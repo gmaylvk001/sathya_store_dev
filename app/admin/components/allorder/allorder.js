@@ -1,0 +1,671 @@
+"use client";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { ToastContainer, toast } from "react-toastify";
+import DateRangePicker from "@/components/DateRangePicker";
+import "react-toastify/dist/ReactToastify.css";
+
+const OrdersTable = () => {
+  const [orders, setOrders] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [status, setStatus] = useState("");
+  const [deliveryType, setDeliveryType] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(0);
+  const [paymentMethod, setPaymentMethod] = useState("");
+  const [filtered, setFiltered] = useState([]);
+  const itemsPerPage = 20;
+  const router = useRouter();
+
+  const [dateFilter, setDateFilter] = useState({
+    startDate: null,
+    endDate: null,
+  });
+  const [isProcessing, setIsProcessing] = useState(false);
+
+
+  // 📌 Delivery Date Modal states
+  const [showDeliveryDateModal, setShowDeliveryDateModal] = useState(false);
+  const [deliveryDate, setDeliveryDate] = useState("");
+  const [orderToUpdate, setOrderToUpdate] = useState(null);
+  const [oldStatus, setOldStatus] = useState("");
+
+  useEffect(() => {
+    const fetchOrders = async () => {
+      const res = await fetch("/api/allorders");
+      const data = await res.json();
+      const filtered = data.filter(order => order.payment_status !== "payment_initialized");
+      setOrders(filtered);
+      setFiltered(filtered);
+      setIsLoading(false);
+    };
+    fetchOrders();
+  }, []);
+
+  // 🔎 Filters
+  useEffect(() => {
+    const applyFilters = () => {
+      let updated = [...orders];
+
+      if (status) {
+        updated = updated.filter(
+          (o) => o.order_status?.toLowerCase() === status.toLowerCase()
+        );
+      }
+
+      if (deliveryType) {
+        updated = updated.filter(
+          (o) => o.delivery_type?.toLowerCase() === deliveryType.toLowerCase()
+        );
+      }
+
+      if (paymentMethod) {
+        updated = updated.filter(
+          (o) => o.payment_method?.toLowerCase() === paymentMethod.toLowerCase()
+        );
+      }
+
+      if (searchTerm.trim()) {
+        const lower = searchTerm.toLowerCase();
+        updated = updated.filter(
+          (o) =>
+            o.order_number?.toLowerCase().includes(lower) ||
+            o.order_username?.toLowerCase().includes(lower)
+        );
+      }
+
+      if (dateFilter?.startDate && dateFilter?.endDate) {
+        const startDate = new Date(dateFilter.startDate);
+        const endDate = new Date(dateFilter.endDate);
+        endDate.setHours(23, 59, 59, 999);
+
+        updated = updated.filter((o) => {
+          const orderDate = new Date(o.createdAt);
+          return orderDate >= startDate && orderDate <= endDate;
+        });
+      }
+
+      setFiltered(updated);
+    };
+
+    applyFilters();
+  }, [
+    status,
+    deliveryType,
+    paymentMethod,
+    searchTerm,
+    orders,
+    dateFilter?.startDate,
+    dateFilter?.endDate,
+  ]);
+
+  // 📧 Send cancellation email function
+  const sendCancellationEmail = async (order) => {
+    try {
+      const name = order.order_username || "Customer";
+
+      // List of emails: customer + admins
+      const emailList = [
+        order.email_address || "kbsiva1234@gmail.com",
+        "arunkarthik@bharathelectronics.in", "ecom@bharathelectronics.in", "itadmin@bharathelectronics.in", "telemarketing@bharathelectronics.in", "sekarcorp@bharathelectronics.in", "customercare@bharathelectronics.in"
+      ];
+
+
+      // Loop through each email and send
+      const results = [];
+      for (const email of emailList) {
+        const emailFormData = new FormData();
+        emailFormData.append("campaign_id", "637cf8a5-db01-453d-9c47-cca3cac44d52");
+        emailFormData.append("email", email);
+        emailFormData.append(
+          "params",
+          JSON.stringify([name, order.order_number])
+        );
+
+        const response = await fetch("https://bea.eygr.in/api/email/send-msg", {
+          method: "POST",
+          headers: {
+            Authorization: "Bearer 2|DC7TldSOIhrILsnzAf0gzgBizJcpYz23GHHs0Y2L",
+          },
+          body: emailFormData,
+        });
+
+        const data = await response.json();
+        results.push({ email, data });
+      }
+
+      return results; // Return results for all emails
+
+    } catch (error) {
+      console.error("Error sending cancellation email:", error);
+      throw error;
+    }
+  };
+
+
+  // 📧 Send delivery confirmation email to user
+  const sendDeliveryEmailToUser = async (order, deliveryDate) => {
+    try {
+      const formattedDate = new Date(deliveryDate).toLocaleDateString('en-IN', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+
+      // multiple recipients
+      const recipients = [
+        order.email_address, // original order user
+        "arunkarthik@bharathelectronics.in", "ecom@bharathelectronics.in", "itadmin@bharathelectronics.in", "telemarketing@bharathelectronics.in", "sekarcorp@bharathelectronics.in", "customercare@bharathelectronics.in"
+      ];
+
+
+
+      // loop through recipients and send individually
+      for (const email of recipients) {
+        console.log("📧 Sending to:", email);
+        const emailFormData = new FormData();
+        emailFormData.append("campaign_id", "e019b2bd-09e9-4369-8b04-1d80a0403bb9");
+        emailFormData.append("email", email);
+        emailFormData.append(
+          "params",
+          JSON.stringify([order.order_username, order.order_number, formattedDate])
+        );
+
+        const response = await fetch("https://bea.eygr.in/api/email/send-msg", {
+          method: "POST",
+          headers: {
+            Authorization: "Bearer 2|DC7TldSOIhrILsnzAf0gzgBizJcpYz23GHHs0Y2L",
+          },
+          body: emailFormData,
+        });
+        await response.json();
+
+        if (!response.ok) {
+          console.error(`Failed to send email to ${email}`);
+        } else {
+          console.log(`Email sent successfully to ${email}`);
+        }
+      }
+
+      return { success: true, message: "Emails sent successfully" };
+    } catch (error) {
+      console.error("Error sending delivery emails:", error);
+      throw error;
+    }
+  };
+
+  // 📧 Send notification email to admin
+  const sendAdminNotificationEmail = async (order, oldStatus, newStatus) => {
+    try {
+      const res = await fetch("/api/order-send-mail", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          to: "ecom@bharathelectroncis.in",
+          //cc: "siva96852@gmail.com",
+          subject: `Order ${order.order_number} Status Updated`,
+          text: `Order ${order.order_number} for ${order.order_username} has been updated from ${oldStatus} to ${newStatus}.`,
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              <h2 style="color: #333;">Order Status Updated</h2>
+              <p><strong>Order Number:</strong> ${order.order_number}</p>
+              <p><strong>Customer Name:</strong> ${order.order_username}</p>
+              <p><strong>Status Changed:</strong> ${oldStatus} → ${newStatus}</p>
+              <p><strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
+              <br>
+              <p>This is an automated notification from the order management system.</p>
+            </div>
+          `
+        }),
+      });
+
+      if (!res.ok) throw new Error("Failed to send admin notification");
+      return await res.json();
+    } catch (error) {
+      console.error("Error sending admin notification:", error);
+      throw error;
+    }
+  };
+
+  // 📅 Handle date range change
+  const handleDateChange = ({ startDate, endDate }) => {
+    setDateFilter({ startDate, endDate });
+    setCurrentPage(0);
+  };
+  const updateOrderStatusWithDeliveryDate = async () => {
+    if (!deliveryDate || !orderToUpdate) {
+      toast.error("Please select a delivery date");
+      return;
+    }
+
+    setIsProcessing(true); // 🚀 Disable button immediately
+
+    try {
+      const res = await fetch(`/api/orders/${orderToUpdate._id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          status: "shipped",
+          delivery_date: deliveryDate
+        }),
+      });
+
+      if (!res.ok) throw new Error();
+
+      const updatedOrder = await res.json();
+
+      setOrders((prev) =>
+        prev.map((ord) =>
+          ord._id === orderToUpdate._id
+            ? { ...ord, order_status: "shipped", delivery_date: deliveryDate }
+            : ord
+        )
+      );
+
+      await sendDeliveryEmailToUser(orderToUpdate, deliveryDate);
+      // await sendAdminNotificationEmail(orderToUpdate, oldStatus, "shipped");
+
+      toast.success("Order shipped! Email sent to user and admin.");
+    } catch (err) {
+      toast.error("Failed to update order status");
+      console.error(err);
+    } finally {
+      setIsProcessing(false); // ✅ Reset button state
+      setShowDeliveryDateModal(false);
+      setDeliveryDate("");
+      setOrderToUpdate(null);
+      setOldStatus("");
+    }
+  };
+
+  // ✅ Update order status with delivery date
+  // const updateOrderStatusWithDeliveryDate = async () => {
+  //   if (!deliveryDate || !orderToUpdate) {
+  //     toast.error("Please select a delivery date");
+  //     return;
+  //   }
+
+  //   try {
+  //     // Update order status and delivery date
+  //     const res = await fetch(`/api/orders/${orderToUpdate._id}`, {
+  //       method: "PUT",
+  //       headers: { "Content-Type": "application/json" },
+  //       body: JSON.stringify({ 
+  //         status: "shipped",
+  //         delivery_date: deliveryDate 
+  //       }),
+  //     });
+
+  //     if (!res.ok) throw new Error();
+
+  //     const updatedOrder = await res.json();
+
+  //     // Update local state
+  //     setOrders((prev) =>
+  //       prev.map((ord) =>
+  //         ord._id === orderToUpdate._id
+  //           ? { 
+  //               ...ord, 
+  //               order_status: "shipped",
+  //               delivery_date: deliveryDate 
+  //             }
+  //           : ord
+  //       )
+  //     );
+
+  //     // Send delivery email to user
+  //     await sendDeliveryEmailToUser(orderToUpdate, deliveryDate);
+
+  //     // Send notification email to admin
+  //     await sendAdminNotificationEmail(orderToUpdate, oldStatus, "shipped");
+
+  //     toast.success("Order shipped! Email sent to user and admin.");
+
+  //   } catch (err) {
+  //     toast.error("Failed to update order status");
+  //     console.error(err);
+  //   } finally {
+  //     setShowDeliveryDateModal(false);
+  //     setDeliveryDate("");
+  //     setOrderToUpdate(null);
+  //     setOldStatus("");
+  //   }
+  // };
+
+  const paginatedOrders = filtered.slice(
+    currentPage * itemsPerPage,
+    (currentPage + 1) * itemsPerPage
+  );
+
+  const pageCount = Math.ceil(filtered.length / itemsPerPage);
+
+  const paginate = (pageIndex) => {
+    if (pageIndex >= 0 && pageIndex < pageCount) {
+      setCurrentPage(pageIndex);
+    }
+  };
+
+  useEffect(() => {
+    setCurrentPage(0);
+  }, [status, deliveryType, paymentMethod, searchTerm, orders, dateFilter]);
+
+  return (
+    <div className="container mx-auto">
+      <ToastContainer position="top-right" autoClose={5000} />
+
+      <div className="flex justify-between items-center mb-5">
+        <h2 className="text-2xl font-bold">All Orders</h2>
+      </div>
+
+      {isLoading ? (
+        <p>Loading order...</p>
+      ) : (
+        <div className="bg-white shadow-md rounded-lg p-5 h-auto overflow-x-auto">
+          {/* 🔍 Filters */}
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-6 items-end mb-4">
+            {/* Search */}
+            <div className="w-full">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Search
+              </label>
+              <input
+                type="text"
+                placeholder="Search all orders..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-3 pr-3 py-2 border border-gray-300 rounded-md w-full text-sm focus:outline-none focus:ring-2 focus:ring-red-200"
+              />
+            </div>
+
+            {/* Status */}
+            <div className="w-full">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Order Status
+              </label>
+              <select
+                value={status}
+                onChange={(e) => setStatus(e.target.value)}
+                className="w-full p-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500 text-sm"
+              >
+                <option value="">All</option>
+                <option value="pending">Pending</option>
+                <option value="order placed">Order Placed</option>
+                <option value="invoiced">Invoiced</option>
+                <option value="cancelled">Cancelled</option>
+                <option value="rejected">Rejected</option>
+                <option value="completed">Completed</option>
+                <option value="shipped">Shipped</option>
+              </select>
+            </div>
+
+            {/* Delivery */}
+            <div className="w-full">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Delivery Type
+              </label>
+              <select
+                value={deliveryType}
+                onChange={(e) => setDeliveryType(e.target.value)}
+                className="w-full p-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500 text-sm"
+              >
+                <option value="">All</option>
+                <option value="home">Home Delivery</option>
+                <option value="store_pickup">Store Pickup</option>
+              </select>
+            </div>
+
+            {/* Payment */}
+            <div className="w-full">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Payment Method
+              </label>
+              <select
+                value={paymentMethod}
+                onChange={(e) => setPaymentMethod(e.target.value)}
+                className="w-full p-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500 text-sm"
+              >
+                <option value="">All</option>
+                <option value="online">Online</option>
+                <option value="cash">COD</option>
+              </select>
+            </div>
+
+            {/* Date */}
+            <div className="w-full">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Date Range
+              </label>
+              <DateRangePicker onDateChange={handleDateChange} />
+            </div>
+          </div>
+
+          {/* 📋 Table */}
+          <div className="overflow-x-auto">
+            <table className="w-full border border-gray-300">
+              <thead>
+                <tr className="bg-gray-200">
+                  <th className="p-2">Action</th>
+                  <th className="p-2">Order Id</th>
+                  <th className="p-2">Order Status</th>
+                  <th className="p-2">Delivery Date</th>
+                  <th className="p-2">Name</th>
+                  <th className="p-2">Amount</th>
+                  <th className="p-2">Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {paginatedOrders.length ? (
+                  paginatedOrders.map((o, i) => (
+                    <tr key={i} className="border-t">
+                      <td className="p-2 border text-center">
+                        <button
+                          onClick={() =>
+                            router.push(`/admin/Allorder/${o._id}`)
+                          }
+                          className="text-sm text-white bg-red-600 hover:bg-red-700 px-3 py-1.5 rounded-md"
+                        >
+                          👁 View
+                        </button>
+                      </td>
+
+                      <td className="p-2 border">{o.order_number}</td>
+
+                      {/* Status dropdown */}
+                      <td className="p-2 border">
+                        <select
+                          value={o.order_status}
+                          onChange={async (e) => {
+                            const newStatus = e.target.value;
+                            const prevStatus = o.order_status;
+
+                            // If changing from pending to shipped, show delivery date modal
+                            if (prevStatus.toLowerCase() === "pending" &&
+                              newStatus.toLowerCase() === "shipped") {
+                              setOrderToUpdate(o);
+                              setOldStatus(prevStatus);
+                              setShowDeliveryDateModal(true);
+                              e.target.value = prevStatus; // Reset dropdown until confirmed
+                              console.log("hai");
+                              return;
+                            }
+
+                            // For other status changes (like cancelled)
+                            try {
+                              const res = await fetch(`/api/orders/${o._id}`, {
+                                method: "PUT",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ status: newStatus }),
+                              });
+
+                              if (!res.ok) throw new Error();
+
+                              toast.success("Order Status updated successfully");
+
+                              setOrders((prev) =>
+                                prev.map((ord) =>
+                                  ord._id === o._id
+                                    ? { ...ord, order_status: newStatus }
+                                    : ord
+                                )
+                              );
+
+                              // Send cancellation email if status changed to cancelled
+                              if (newStatus.toLowerCase() === "cancelled") {
+                                try {
+                                  await sendCancellationEmail(o);
+                                  toast.success("Cancellation email sent successfully!");
+                                } catch (error) {
+                                  toast.error("Failed to send cancellation email");
+                                }
+                              }
+
+                              // Send admin notification for any status change
+                              try {
+                                await sendAdminNotificationEmail(o, prevStatus, newStatus);
+                              } catch (error) {
+                                console.error("Admin notification failed:", error);
+                              }
+                            } catch (err) {
+                              toast.error("Failed to update status");
+                              e.target.value = prevStatus;
+                            }
+                          }}
+                          className="border px-2 py-1 rounded-md text-sm"
+                        >
+                          <option value="pending">Pending</option>
+                          <option value="shipped">Shipped</option>
+                          <option value="cancelled">Cancelled</option>
+                        </select>
+                      </td>
+
+                      <td className="p-2 border">
+                        {o.delivery_date
+                          ? new Date(o.delivery_date).toLocaleDateString()
+                          : "Not set"
+                        }
+                      </td>
+
+                      <td className="p-2 border">{o.order_username}</td>
+                      <td className="p-2 border">₹{o.order_amount}</td>
+                      <td className="p-2 border">
+                        {new Date(o.createdAt).toLocaleDateString()}
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td
+                      colSpan="7"
+                      className="text-center text-gray-500 p-4"
+                    >
+                      No orders found.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Pagination */}
+          <div className="flex justify-between items-center mt-6 flex-wrap gap-3">
+            <div className="text-sm text-gray-600">
+              Showing{" "}
+              {filtered.length === 0
+                ? 0
+                : currentPage * itemsPerPage + 1}{" "}
+              to{" "}
+              {Math.min(
+                (currentPage + 1) * itemsPerPage,
+                filtered.length
+              )}{" "}
+              of {filtered.length} entries
+            </div>
+
+            <div className="flex items-center space-x-1">
+              <button
+                onClick={() => paginate(currentPage - 1)}
+                disabled={currentPage === 0}
+                className="px-3 py-1.5 border rounded-md"
+              >
+                «
+              </button>
+              {Array.from({ length: pageCount }, (_, i) => (
+                <button
+                  key={i}
+                  onClick={() => paginate(i)}
+                  className={`px-3 py-1.5 border rounded-md ${currentPage === i
+                      ? "bg-red-500 text-white"
+                      : "bg-white"
+                    }`}
+                >
+                  {i + 1}
+                </button>
+              ))}
+              <button
+                onClick={() => paginate(currentPage + 1)}
+                disabled={currentPage === pageCount - 1 || pageCount === 0}
+                className="px-3 py-1.5 border rounded-md"
+              >
+                »
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 📅 Delivery Date Modal */}
+      {showDeliveryDateModal && orderToUpdate && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-96">
+            <h3 className="text-lg font-semibold mb-4">Set Delivery Date</h3>
+            <p className="text-sm text-gray-600 mb-4">
+              Order <b>{orderToUpdate.order_number}</b> for{" "}
+              <b>{orderToUpdate.order_username}</b>
+            </p>
+
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Expected Delivery Date:
+              </label>
+              <input
+                type="date"
+                value={deliveryDate}
+                onChange={(e) => setDeliveryDate(e.target.value)}
+                // min={sevenDaysAgo().toISOString().split('T')[0]}
+                className="w-full p-2 border border-gray-300 rounded-md"
+              />
+            </div>
+
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setShowDeliveryDateModal(false);
+                  setDeliveryDate("");
+                  setOrderToUpdate(null);
+                  setOldStatus("");
+                }}
+                className="px-4 py-2 bg-gray-300 rounded-md"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={updateOrderStatusWithDeliveryDate}
+                disabled={!deliveryDate || isProcessing}
+                className={`px-4 py-2 rounded-md text-white ${isProcessing
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-red-600 hover:bg-red-700"
+                  }`}
+              >
+                {isProcessing ? "Processing..." : "Confirm & Send Emails"}
+              </button>
+
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default OrdersTable;
