@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import ContactModel from "@/models/ecom_contact_info";
 import fs from "fs";
@@ -42,10 +42,10 @@ export async function POST(request) {
     
     
     // Email list
-    const emailadmin = ["ecom@bharathelectronics.in","customercare@bharatelectronics.in","careers@bharathelectronics.in"];
+    const emailadmin = ["ecom@sathya.store","customercare@bharatelectronics.in","careers@sathya.store"];
     // const emailadmin = ["sorambeeviuit@gmail.com"];
     
-    //"arunkarthik@bharathelectronics.in"
+    //"arunkarthik@sathya.store"
 
     // Loop through emails one by one
     for (const adminEmail of emailadmin) {

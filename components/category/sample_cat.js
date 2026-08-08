@@ -600,9 +600,39 @@ const fetchInitialData = async () => {
   !hasFlashContent &&
   !hasCategoryMainContent;
 
+  const [hasCustomDesign, setHasCustomDesign] = useState(null);
+
+  useEffect(() => {
+    if (!slug) {
+      setHasCustomDesign(false);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const params = new URLSearchParams({
+          pageType: PAGE_TYPES.CATEGORY,
+          slug: String(slug),
+        });
+        const res = await fetch(`/api/category-pages/render?${params}`);
+        const data = await res.json();
+        if (!cancelled) {
+          setHasCustomDesign(
+            Boolean(data.success && (data.components || []).length > 0)
+          );
+        }
+      } catch {
+        if (!cancelled) setHasCustomDesign(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [slug]);
+
  
    // Show loader while checking content or loading
-   if (checkingContent || loading || !initialLoadComplete) {
+   if (checkingContent || loading || !initialLoadComplete || hasCustomDesign === null) {
      return (
        <div className="container mx-auto px-4 py-8">
          <div className="flex justify-center items-center h-64">
@@ -619,32 +649,32 @@ const fetchInitialData = async () => {
        </div>
      );
    }
-  console.log("🔍 Debug:", { 
-  hasBannerContent, 
-  hasFlashContent, 
-  hasCategoryMainContent, 
-  showFallback,
-  checkingContent,
-  loading,
-  initialLoadComplete
-});
-console.log("slug:", slug);
+
+  // Custom page-builder design → show that only
+  if (hasCustomDesign) {
+    return (
+      <div className="px-3 sm:px-8" style={{ backgroundColor: "#EBEBEB" }}>
+        <div className="max-w-7xl container mx-auto">
+          <ToastContainer />
+          <CategoryPageRenderer
+            pageType={PAGE_TYPES.CATEGORY}
+            categoryId={categoryData.main_category?._id}
+            slug={slug}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // No page-builder design → classic filters + products (or legacy banner sections)
   return (
      <div className="px-3 sm:px-8" style={{ backgroundColor: showFallback ? "#FFFFFF" : "#EBEBEB" }}>
       <div className="max-w-7xl container mx-auto">
         <ToastContainer />
 
-        <CategoryPageRenderer
-          pageType={PAGE_TYPES.CATEGORY}
-          categoryId={categoryData.main_category?._id}
-          slug={slug}
-        />
-
         {showFallback ? (
-          // Show fallback component when all three have no content
           <CategoryPage />
         ) : (
-          // Show the original three components
           <>
             <BannerSlider categorySlug={slug} />
             <FlashCategorySlider slug={params.slug} />

@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 
 const EMAIL_AUTH =
   process.env.EYGR_EMAIL_AUTH ||
@@ -12,7 +12,7 @@ const ADMIN_CAMPAIGN_ID =
   process.env.EYGR_ORDER_ADMIN_CAMPAIGN_ID ||
   "dd7b5f8d-5bf1-45a5-9116-fcb40f69ede6";
 
-const IMAGE_BASE = "https://www.bharathelectronics.in";
+const IMAGE_BASE = "https://www.sathya.store";
 
 const formatINR = (value) =>
   `Rs. ${Number(value || 0).toLocaleString("en-IN", {

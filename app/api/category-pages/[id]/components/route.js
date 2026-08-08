@@ -6,6 +6,11 @@ import CategoryImageCarousel from "@/models/categoryImageCarousel";
 import CategoryProductCarousel from "@/models/categoryProductCarousel";
 import CategoryBannerSideProducts from "@/models/categoryBannerSideProducts";
 import CategoryBannerFourProducts from "@/models/categoryBannerFourProducts";
+import CategoryBannerGrid from "@/models/categoryBannerGrid";
+import CategorySingleBannerProducts from "@/models/categorySingleBannerProducts";
+import CategoryBrandCarousel from "@/models/categoryBrandCarousel";
+import CategoryImageHotspotBanner from "@/models/categoryImageHotspotBanner";
+import CategoryContent from "@/models/categoryContent";
 import {
   allowsMultipleInstances,
   COMPONENT_TYPES,
@@ -98,6 +103,58 @@ export async function POST(req, { params }) {
         name: title || "",
         tiles: [],
         products: [],
+        status: "active",
+      });
+      configId = config._id;
+    } else if (type === COMPONENT_TYPES.BANNER_GRID) {
+      const config = await CategoryBannerGrid.create({
+        instanceId,
+        pageId: page._id,
+        categoryId: page.categoryId,
+        name: title || "",
+        imageCount: 4,
+        banners: [],
+        status: "active",
+      });
+      configId = config._id;
+    } else if (type === COMPONENT_TYPES.SINGLE_BANNER_PRODUCTS) {
+      const config = await CategorySingleBannerProducts.create({
+        instanceId,
+        pageId: page._id,
+        categoryId: page.categoryId,
+        name: title || "",
+        products: [],
+        status: "active",
+      });
+      configId = config._id;
+    } else if (type === COMPONENT_TYPES.BRAND_CAROUSEL) {
+      const config = await CategoryBrandCarousel.create({
+        instanceId,
+        pageId: page._id,
+        categoryId: page.categoryId,
+        name: title || "",
+        items: [],
+        status: "active",
+      });
+      configId = config._id;
+    } else if (type === COMPONENT_TYPES.IMAGE_HOTSPOT_BANNER) {
+      const config = await CategoryImageHotspotBanner.create({
+        instanceId,
+        pageId: page._id,
+        categoryId: page.categoryId,
+        name: title || "",
+        bannerImage: "",
+        hotspots: [],
+        status: "active",
+      });
+      configId = config._id;
+    } else if (type === COMPONENT_TYPES.CATEGORY_CONTENT) {
+      const config = await CategoryContent.create({
+        instanceId,
+        pageId: page._id,
+        categoryId: page.categoryId,
+        name: title || "",
+        content: "",
         status: "active",
       });
       configId = config._id;

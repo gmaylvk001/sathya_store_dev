@@ -1,14 +1,22 @@
 "use client";
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useParams } from "next/navigation";
 import { FaSortAmountDown, FaSlidersH, FaShareAlt } from 'react-icons/fa';
-import { ChevronDown, ChevronUp, ChevronLeft, ChevronRight } from "react-feather";
+import { ChevronLeft, ChevronRight } from "react-feather";
 import ProductCard from "@/components/ProductCard";
 import Addtocart from "@/components/AddToCart";
 import { ToastContainer, toast } from 'react-toastify';
-import { Range as ReactRange } from "react-range";
+import {
+  buildFilterLookupMaps,
+  searchParamsToSelectedFilters,
+  hasActiveFilterParams,
+  normalizeFilterOption,
+  slugifyFilter,
+} from "@/lib/filterUrl";
+import { useCategoryFilterUrl } from "@/hooks/useCategoryFilterUrl";
+import ProductFilters from "@/components/filters/ProductFilters";
 
 export default function CategoryBrandComponent({ categorySlug, brandSlug }) {
   const [categoryData, setCategoryData] = useState({
@@ -31,14 +39,28 @@ export default function CategoryBrandComponent({ categorySlug, brandSlug }) {
   const [priceRange, setPriceRange] = useState([0, 100000]);
   const [filterGroups, setFilterGroups] = useState({});
   const [loading, setLoading] = useState(true);
+  const [filterUrlReady, setFilterUrlReady] = useState(false);
+  const [filterCatalog, setFilterCatalog] = useState(null);
+  const [isFiltering, setIsFiltering] = useState(false);
+  const skipNextFilterFetch = useRef(true);
   const [sortOption, setSortOption] = useState('');
-  const [isCategoriesExpanded, setIsCategoriesExpanded] = useState(true);
-  const [isBrandsExpanded, setIsBrandsExpanded] = useState(true);
-  const [expandedFilters, setExpandedFilters] = useState({}); 
-  const [isFiltersExpanded, setIsFiltersExpanded] = useState(true);
   const [wishlist, setWishlist] = useState([]); 
   const [nofound, setNofound] = useState(false);
   const [brandMap, setBrandMap] = useState({});
+
+  useCategoryFilterUrl({
+    selectedFilters,
+    setSelectedFilters,
+    filterCatalog,
+    brands: filterCatalog?.brands || (categoryData.brand ? [categoryData.brand] : []),
+    filterGroups: filterCatalog?.filterGroups || filterGroups,
+    categoryTree: filterCatalog?.categoryTree || categoryData.categories || [],
+    subcategoryTree: filterCatalog?.subcategoryTree || categoryData.categories || [],
+    priceRange,
+    enabled: true,
+    ready: filterUrlReady && !!filterCatalog,
+    omitUrlKeys: ["brand"],
+  });
 
   // Pagination state
   const [pagination, setPagination] = useState({
@@ -50,12 +72,6 @@ export default function CategoryBrandComponent({ categorySlug, brandSlug }) {
   });
   const itemsPerPage = 12;
 
-  const toggleFilters = () => setIsFiltersExpanded(!isFiltersExpanded);
-  const toggleCategories = () => setIsCategoriesExpanded(!isCategoriesExpanded);
-  const toggleBrands = () => setIsBrandsExpanded(!isBrandsExpanded);
-  const toggleFilterGroup = (id) => {
-    setExpandedFilters(prev => ({ ...prev, [id]: !prev[id] }));
-  };
 
   // Fetch initial data
   useEffect(() => {
@@ -78,47 +94,77 @@ export default function CategoryBrandComponent({ categorySlug, brandSlug }) {
         allCategoryIds: data.allCategoryIds || []
       });
 
+      let minPrice = 0;
+      let maxPrice = 100000;
       if (data.products?.length > 0) {
         const prices = data.products.map(p => p.special_price || p.price);
-        let minPrice = Math.min(...prices);
-        const maxPrice = Math.max(...prices);
+        minPrice = Math.min(...prices);
+        maxPrice = Math.max(...prices);
         if(minPrice === maxPrice) {
           minPrice = 0; // Ensure a range
         }
-        // alert(`Price range: ${minPrice} - ${maxPrice}`);
         setPriceRange([minPrice, maxPrice]);
-        setSelectedFilters(prev => ({
-          ...prev,
-          price: { min: minPrice, max: maxPrice },
-          brands: [data.brand?._id] // Set the current brand as selected
-        }));
       }
 
       const groups = {};
-      data.filters.forEach(filter => {
+      (data.filters || []).forEach(filter => {
         const groupId = filter.filter_group_id || filter.filter_group_name;
         if (groupId) {
           if (!groups[groupId]) {
             groups[groupId] = {
               _id: groupId,
               name: filter.filter_group_name,
-              slug: filter.filter_group_name.toLowerCase().replace(/\s+/g, '-'),
+              slug: slugifyFilter(filter.filter_group_name),
               filters: []
             };
           }
-          groups[groupId].filters.push(filter);
+          groups[groupId].filters.push(normalizeFilterOption(filter));
         }
       });
       setFilterGroups(groups);
+
+      const lookupMaps = buildFilterLookupMaps({
+        brands: data.brand ? [data.brand] : [],
+        filterGroups: groups,
+        categoryTree: data.categories || [],
+        subcategoryTree: data.categories || [],
+      });
+      const urlSearch = typeof window !== "undefined"
+        ? new URLSearchParams(window.location.search)
+        : new URLSearchParams();
+      const urlFilters = searchParamsToSelectedFilters(
+        urlSearch,
+        lookupMaps,
+        [minPrice, maxPrice]
+      );
+      const brandId = data.brand?._id ? [data.brand._id] : [];
+      const nextSelected = {
+        categories: urlFilters.categories,
+        subcategories: urlFilters.subcategories,
+        brands: brandId,
+        filters: urlFilters.filters,
+        price: hasActiveFilterParams(urlSearch)
+          ? urlFilters.price
+          : { min: minPrice, max: maxPrice },
+      };
+      // Don't treat path brand alone as a query filter for clean URLs
+      setSelectedFilters(nextSelected);
+      setFilterCatalog({
+        brands: data.brand ? [data.brand] : [],
+        filterGroups: groups,
+        categoryTree: data.categories || [],
+        subcategoryTree: data.categories || [],
+      });
     } catch (error) {
       toast.error("Error fetching initial data");
     } finally {
       setLoading(false);
+      setFilterUrlReady(true);
     }
   };
    const fetchFilteredProducts = useCallback(async (pageNum = 1) => {
   try {
-    setLoading(true);
+    setIsFiltering(true);
     const query = new URLSearchParams();
 
     // ✅ Always restrict by brand
@@ -187,9 +233,9 @@ console.log("Fetched products:", products);
   } catch (error) {
     toast.error('Error fetching products: ' + error.message);
   } finally {
-    setLoading(false);
+    setIsFiltering(false);
   }
-}, [selectedFilters, categoryData]);
+}, [selectedFilters, categoryData.brand]);
 
   // const fetchFilteredProducts = useCallback(async (pageNum = 1) => {
   //   try {
@@ -436,92 +482,16 @@ console.log("Fetched products:", products);
     setValues([selectedFilters.price.min, selectedFilters.price.max]);
   }, [selectedFilters.price.min, selectedFilters.price.max]);
 
-  const CategoryTree = ({ 
-    categories, 
-    level = 0, 
-    selectedCategories,
-    selectedSubcategories,
-    onFilterChange 
-  }) => {
-    const [expandedCategories, setExpandedCategories] = useState([]);
-  
-    const toggleCategory = (categoryId) => {
-      setExpandedCategories(prev => 
-        prev.includes(categoryId)
-          ? prev.filter(id => id !== categoryId)
-          : [...prev, categoryId]
-      );
-    };
-  
-    return (
-      <div className="space-y-2">
-        {categories.map((category) => (
-          <div key={category._id}>
-            <div className={`flex items-center gap-2 ${level > 0 ? `ml-${level * 4}` : ''}`}>
-              
-              {/* Select category (filter) */}
-              <button
-                onClick={() => onFilterChange(level === 0 ? 'categories' : 'subcategories', category._id)}
-                className={`flex-1 p-2 rounded hover:bg-gray-100 inline-flex items-center ${
-                  (level === 0 && selectedCategories.includes(category._id)) ||
-                  (level > 0 && selectedSubcategories.includes(category._id))
-                    ? 'bg-blue-50 text-blue-600 font-medium'
-                    : 'text-gray-600'
-                }`}
-              >
-                {category.image && (
-                  <div className="w-6 h-6 mr-2 relative">
-                    <Image
-                      src={category.image.startsWith('http') ? category.image : `${category.image}`}
-                      alt={category.category_name}
-                      fill
-                      className="object-contain"
-                      unoptimized
-                    />
-                  </div>
-                )}
-                {category.category_name}
-                {category.count !== undefined && ` (${category.count})`}
-              </button>
-
-              {/* Expand/Collapse chevron */}
-              {category.subCategories?.length > 0 && (
-                <button
-                  type="button"
-                  onClick={() => toggleCategory(category._id)}
-                  className="p-1 rounded hover:bg-gray-200"
-                >
-                  {expandedCategories.includes(category._id) ? (
-                    <ChevronUp size={16} />
-                  ) : (
-                    <ChevronDown size={16} />
-                  )}
-                </button>
-              )}
-            </div>
-
-            {/* Render subcategories */}
-            {category.subCategories?.length > 0 &&
-              expandedCategories.includes(category._id) && (
-                <CategoryTree
-                  categories={category.subCategories}
-                  level={level + 1}
-                  selectedCategories={selectedCategories}
-                  selectedSubcategories={selectedSubcategories}
-                  onFilterChange={onFilterChange}
-                />
-              )}
-          </div>
-        ))}
-      </div>
-    );
-  };
 
   useEffect(() => {
-    if (categoryData.brand) {
+    if (categoryData.brand && filterUrlReady) {
+      if (skipNextFilterFetch.current) {
+        skipNextFilterFetch.current = false;
+        return;
+      }
       fetchFilteredProducts(1);
     }
-  }, [selectedFilters, categoryData.brand, fetchFilteredProducts]);
+  }, [selectedFilters, categoryData.brand, filterUrlReady]);
 
   const clearAllFilters = () => {
     setSelectedFilters({
@@ -617,7 +587,7 @@ console.log("Fetched products:", products);
     );
   };
 
-  if ((loading || !categoryData.brand) && pagination.currentPage === 1) {
+  if ((loading && !filterUrlReady) || (!categoryData.brand && pagination.currentPage === 1 && !filterUrlReady)) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="flex justify-center items-center h-64">
@@ -761,541 +731,28 @@ console.log("Fetched products:", products);
           )}
           
           <div className="flex flex-col md:flex-row gap-4 md:gap-6">
-            {/* Filters Sidebar */}
-            <div className="hidden lg:block w-full md:w-[250px] shrink-0">
-              {/* Active Filters */}
-              {(selectedFilters.categories.length > 0 ||
-               selectedFilters.subcategories.length > 0 ||
-               selectedFilters.filters.length > 0 ||
-               selectedFilters.price.min !== priceRange[0] || 
-               selectedFilters.price.max !== priceRange[1]) && (
-                <div className="bg-white p-4 rounded shadow mb-4">
-                  <div className="flex justify-between items-center mb-2">
-                    <h3 className="font-semibold">Active Filters</h3>
-                    <button 
-                      onClick={clearAllFilters}
-                      className="text-blue-600 text-sm hover:underline"
-                    >
-                      Clear all
-                    </button>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {selectedFilters.categories.map(categoryId => {
-                      const category = categoryData.categories?.find(c => c._id === categoryId);
-                      return category ? (
-                        <span 
-                          key={categoryId}
-                          className="bg-gray-100 px-2 py-1 rounded text-sm flex items-center"
-                        >
-                          {category.category_name}
-                          <button 
-                            onClick={() => handleFilterChange('categories', categoryId)}
-                            className="ml-1 text-gray-500 hover:text-gray-700"
-                          >
-                            ×
-                          </button>
-                        </span>
-                      ) : null;
-                    })}
-                    
-                    {selectedFilters.subcategories.map(subcategoryId => {
-                      // Find subcategory in the category tree
-                      let subcategoryName = "";
-                      const findSubcategory = (categories) => {
-                        for (const cat of categories) {
-                          if (cat._id === subcategoryId) {
-                            subcategoryName = cat.category_name;
-                            return true;
-                          }
-                          if (cat.subCategories && findSubcategory(cat.subCategories)) {
-                            return true;
-                          }
-                        }
-                        return false;
-                      };
-                      
-                      if (categoryData.categories) findSubcategory(categoryData.categories);
-                      
-                      return subcategoryName ? (
-                        <span 
-                          key={subcategoryId}
-                          className="bg-gray-100 px-2 py-1 rounded text-sm flex items-center"
-                        >
-                          {subcategoryName}
-                          <button 
-                            onClick={() => handleFilterChange('subcategories', subcategoryId)}
-                            className="ml-1 text-gray-500 hover:text-gray-700"
-                          >
-                            ×
-                          </button>
-                        </span>
-                      ) : null;
-                    })}
-                    
-                    {selectedFilters.filters.map(filterId => {
-                      const filter = Object.values(filterGroups)
-                        .flatMap(g => g.filters)
-                        .find(f => f._id === filterId);
-                      return filter ? (
-                        <span 
-                          key={filterId}
-                          className="bg-gray-100 px-2 py-1 rounded text-sm flex items-center"
-                        >
-                          {filter.filter_name}
-                          <button 
-                            onClick={() => handleFilterChange('filters', filterId)}
-                            className="ml-1 text-gray-500 hover:text-gray-700"
-                          >
-                            ×
-                          </button>
-                        </span>
-                      ) : null;
-                    })}
-                    
-                    {(selectedFilters.price.min !== priceRange[0] || 
-                     selectedFilters.price.max !== priceRange[1]) && (
-                      <span className="bg-gray-100 px-2 py-1 rounded text-sm flex items-center">
-                        ₹{selectedFilters.price.min} - ₹{selectedFilters.price.max}
-                        <button 
-                          onClick={() => setSelectedFilters(prev => ({
-                            ...prev,
-                            price: { min: priceRange[0], max: priceRange[1] }
-                          }))}
-                          className="ml-1 text-gray-500 hover:text-gray-700"
-                        >
-                          ×
-                        </button>
-                      </span>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* Categories Tree */}
-              {categoryData.categories?.length > 0 && (
-                <div className="bg-white p-4 rounded-lg shadow-sm border mb-3">
-                  <div className="flex items-center justify-between pb-2">
-                    <h3 className="text-base font-semibold text-gray-700">Categories</h3>
-                    <button onClick={toggleCategories} className="text-gray-500 hover:text-gray-700">
-                      {isCategoriesExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
-                    </button>
-                  </div>
-                  {isCategoriesExpanded && (
-                    <CategoryTree 
-                      categories={categoryData.categories} 
-                      selectedCategories={selectedFilters.categories}
-                      selectedSubcategories={selectedFilters.subcategories}
-                      onFilterChange={handleFilterChange}
-                    />
-                  )}
-                </div>
-              )}
-
-              {/* Price Filter */}
-              <div className="bg-white p-4 rounded-lg shadow-sm border mb-3">
-                <h3 className="text-base font-semibold mb-4 text-gray-700">Price Range</h3>
-          
-                <ReactRange
-                  values={values}
-                  step={STEP}
-                  min={MIN}
-                  max={MAX}
-                  onChange={(newValues) => setValues(newValues)}
-                  onFinalChange={(newValues) => handlePriceChange(newValues)}
-                  renderTrack={({ props, children }) => (
-                    <div
-                      {...props}
-                      className="w-full h-2 rounded-lg bg-gray-200 relative"
-                    >
-                      <div
-                        className="absolute h-2 bg-gray-500 rounded-lg"
-                        style={{
-                          left: `${((values[0] - MIN) / (MAX - MIN)) * 100}%`,
-                          width: `${((values[1] - values[0]) / (MAX - MIN)) * 100}%`,
-                        }}
-                      />
-                      {children}
-                    </div>
-                  )}
-                  renderThumb={({ props, index }) => {
-                    const { key, ...rest } = props;
-                    return (
-                      <div
-                        key={key}
-                        {...rest}
-                        className={`w-4 h-4 rounded-full border-2 border-black shadow cursor-pointer relative
-                          ${index === 0 ? "bg-blue-500 z-10" : "bg-green-500 z-20"}`}
-                      />
-                    );
-                  }}
-                />
-          
-                <div className="flex justify-between text-sm text-gray-600 mt-6">
-                  <span>₹{values[0].toLocaleString()}</span>
-                  <span>₹{values[1].toLocaleString()}</span>
-                </div>
+            <ProductFilters
+              variant="both"
+              selectedFilters={selectedFilters}
+              onFilterChange={handleFilterChange}
+              onClearAll={clearAllFilters}
+              onPriceChange={handlePriceChange}
+              brands={[]}
+              filterGroups={filterGroups}
+              priceRange={priceRange}
+              values={values}
+              setValues={setValues}
+              categoryTree={categoryData.categories || []}
+              showCategories={false}
+              showBrands={false}
+              isFilterPanelOpen={isFilterPanelOpen}
+              setIsFilterPanelOpen={setIsFilterPanelOpen}
+            />
+            {isFiltering && (
+              <div className="fixed top-20 right-4 z-40 bg-white shadow px-3 py-2 rounded text-sm text-gray-600 border">
+                Updating results...
               </div>
-
-              {/* Brand Filter */}
-              {categoryData.brands?.length > 0 && (
-                <div className="bg-white p-4 rounded-lg shadow-sm border mb-3">
-                  <div className="flex items-center justify-between pb-2">
-                    <h3 className="text-base font-semibold text-gray-700">Brands</h3>
-                    <button onClick={toggleBrands} className="text-gray-500 hover:text-gray-700">
-                      {isBrandsExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
-                    </button>
-                  </div>
-                  {isBrandsExpanded && (
-                    <ul className="mt-2 max-h-48 overflow-y-auto pr-2">
-                      {[...categoryData.brands].sort((a, b) => a.brand_name.localeCompare(b.brand_name)).map(brand => (
-                        <li key={brand._id} className="flex items-center">
-                          <label className="flex items-center space-x-2 w-full cursor-pointer hover:bg-gray-50 rounded p-2 transition-colors">
-                            <input
-                              type="checkbox"
-                              checked={selectedFilters.brands.includes(brand._id)}
-                              onChange={() => handleFilterChange("brands", brand._id)}
-                              className="mr-2 h-4 w-4 text-blue-600 border-gray-300 rounded"
-                            />
-                            <span className="text-sm text-gray-600">{brand.brand_name} ({brand.count})</span>
-                          </label>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              )}
-
-              {/* Dynamic Filters */}
-              {Object.values(filterGroups).length > 0 && (
-                <div className="bg-white p-4 rounded-lg shadow-sm border mb-3 border-gray-100">
-                  <div className="pb-2 mb-2">
-                    <h3 className="text-base font-semibold text-gray-700">Product Filters</h3>
-                  </div>
-                  {isFiltersExpanded && (
-                    <div className="space-y-4">
-                      {Object.values(filterGroups).sort((a, b) => { if (a.name.toLowerCase() === 'capacity') return -1; if (b.name.toLowerCase() === 'capacity') return 1; return a.name.localeCompare(b.name); }).map(group => (
-                        <div key={group._id} className="border-b border-gray-100 last:border-0 pb-4 last:pb-0">
-                          <button onClick={() => toggleFilterGroup(group._id)} className="flex justify-between items-center w-full group">
-                            <span className="text-sm font-medium text-gray-700 group-hover:text-blue-600 transition-color flex-1 text-left uppercase">{group.name}</span>
-                            <ChevronDown 
-                              size={18}
-                              className={`text-gray-400 transition-transform duration-200 ${
-                                expandedFilters[group._id] ? 'rotate-180' : ''
-                              }`}
-                            />
-                          </button>
-
-                          {expandedFilters[group._id] && (
-                            <ul className="mt-2 max-h-48 overflow-y-auto pr-2">
-                              {[...group.filters].sort(sortFilterValues).map(filter => (
-                                <li key={filter._id} className="flex items-center">
-                                  <label className="flex items-center space-x-2 w-full cursor-pointer hover:bg-gray-50 rounded p-2 transition-colors">
-                                    <input
-                                      type="checkbox"
-                                      checked={selectedFilters.filters.includes(filter._id)}
-                                      onChange={() => handleFilterChange('filters', filter._id)}
-                                      className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                                    />
-                                    <span className="text-sm text-gray-600">{filter.filter_name}</span>
-                                    {filter.count && (
-                                      <span className="text-xs text-gray-400 ml-auto">
-                                        ({filter.count})
-                                      </span>
-                                    )}
-                                  </label>
-                                </li>
-                              ))}
-                            </ul>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-
-             {isFilterPanelOpen && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 z-50">
-            <div className="fixed left-0 top-0 w-4/5 h-full bg-white shadow-lg flex flex-col">
-              
-              {/* Header (fixed) */}
-              <div className="flex justify-between items-center p-4 border-b flex-shrink-0 bg-white">
-                <h2 className="text-lg font-semibold">Filters</h2>
-                <button 
-                  onClick={() => setIsFilterPanelOpen(false)}
-                  className="text-gray-500 hover:text-gray-700 text-lg"
-                >
-                  ✕
-                </button>
-              </div>
-
-              {/* Scrollable content */}
-              <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                {/* Active Filters */}
-              {(selectedFilters.categories.length > 0 ||
-               selectedFilters.subcategories.length > 0 ||
-               selectedFilters.filters.length > 0 ||
-               selectedFilters.price.min !== priceRange[0] || 
-               selectedFilters.price.max !== priceRange[1]) && (
-                <div className="bg-white p-4 rounded shadow mb-4">
-                  <div className="flex justify-between items-center mb-2">
-                    <h3 className="font-semibold">Active Filters</h3>
-                    <button 
-                      onClick={clearAllFilters}
-                      className="text-blue-600 text-sm hover:underline"
-                    >
-                      Clear all
-                    </button>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {selectedFilters.categories.map(categoryId => {
-                      const category = categoryData.categories?.find(c => c._id === categoryId);
-                      return category ? (
-                        <span 
-                          key={categoryId}
-                          className="bg-gray-100 px-2 py-1 rounded text-sm flex items-center"
-                        >
-                          {category.category_name}
-                          <button 
-                            onClick={() => handleFilterChange('categories', categoryId)}
-                            className="ml-1 text-gray-500 hover:text-gray-700"
-                          >
-                            ×
-                          </button>
-                        </span>
-                      ) : null;
-                    })}
-                    
-                    {selectedFilters.subcategories.map(subcategoryId => {
-                      // Find subcategory in the category tree
-                      let subcategoryName = "";
-                      const findSubcategory = (categories) => {
-                        for (const cat of categories) {
-                          if (cat._id === subcategoryId) {
-                            subcategoryName = cat.category_name;
-                            return true;
-                          }
-                          if (cat.subCategories && findSubcategory(cat.subCategories)) {
-                            return true;
-                          }
-                        }
-                        return false;
-                      };
-                      
-                      if (categoryData.categories) findSubcategory(categoryData.categories);
-                      
-                      return subcategoryName ? (
-                        <span 
-                          key={subcategoryId}
-                          className="bg-gray-100 px-2 py-1 rounded text-sm flex items-center"
-                        >
-                          {subcategoryName}
-                          <button 
-                            onClick={() => handleFilterChange('subcategories', subcategoryId)}
-                            className="ml-1 text-gray-500 hover:text-gray-700"
-                          >
-                            ×
-                          </button>
-                        </span>
-                      ) : null;
-                    })}
-                    
-                    {selectedFilters.filters.map(filterId => {
-                      const filter = Object.values(filterGroups)
-                        .flatMap(g => g.filters)
-                        .find(f => f._id === filterId);
-                      return filter ? (
-                        <span 
-                          key={filterId}
-                          className="bg-gray-100 px-2 py-1 rounded text-sm flex items-center"
-                        >
-                          {filter.filter_name}
-                          <button 
-                            onClick={() => handleFilterChange('filters', filterId)}
-                            className="ml-1 text-gray-500 hover:text-gray-700"
-                          >
-                            ×
-                          </button>
-                        </span>
-                      ) : null;
-                    })}
-                    
-                    {(selectedFilters.price.min !== priceRange[0] || 
-                     selectedFilters.price.max !== priceRange[1]) && (
-                      <span className="bg-gray-100 px-2 py-1 rounded text-sm flex items-center">
-                        ₹{selectedFilters.price.min} - ₹{selectedFilters.price.max}
-                        <button 
-                          onClick={() => setSelectedFilters(prev => ({
-                            ...prev,
-                            price: { min: priceRange[0], max: priceRange[1] }
-                          }))}
-                          className="ml-1 text-gray-500 hover:text-gray-700"
-                        >
-                          ×
-                        </button>
-                      </span>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* Categories Tree */}
-              {categoryData.categories?.length > 0 && (
-                <div className="bg-white p-4 rounded-lg shadow-sm border mb-3">
-                  <div className="flex items-center justify-between pb-2">
-                    <h3 className="text-base font-semibold text-gray-700">Categories</h3>
-                    <button onClick={toggleCategories} className="text-gray-500 hover:text-gray-700">
-                      {isCategoriesExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
-                    </button>
-                  </div>
-                  {isCategoriesExpanded && (
-                    <CategoryTree 
-                      categories={categoryData.categories} 
-                      selectedCategories={selectedFilters.categories}
-                      selectedSubcategories={selectedFilters.subcategories}
-                      onFilterChange={handleFilterChange}
-                    />
-                  )}
-                </div>
-              )}
-
-               {/* Price Filter */}
-              <div className="bg-white p-4 rounded-lg shadow-sm border mb-3">
-                <h3 className="text-base font-semibold mb-4 text-gray-700">Price Range</h3>
-          
-                <ReactRange
-                  values={values}
-                  step={STEP}
-                  min={MIN}
-                  max={MAX}
-                  onChange={(newValues) => setValues(newValues)}
-                  onFinalChange={(newValues) => handlePriceChange(newValues)}
-                  renderTrack={({ props, children }) => (
-                    <div
-                      {...props}
-                      className="w-full h-2 rounded-lg bg-gray-200 relative"
-                    >
-                      <div
-                        className="absolute h-2 bg-gray-500 rounded-lg"
-                        style={{
-                          left: `${((values[0] - MIN) / (MAX - MIN)) * 100}%`,
-                          width: `${((values[1] - values[0]) / (MAX - MIN)) * 100}%`,
-                        }}
-                      />
-                      {children}
-                    </div>
-                  )}
-                  renderThumb={({ props, index }) => {
-                    const { key, ...rest } = props;
-                    return (
-                      <div
-                        key={key}
-                        {...rest}
-                        className={`w-4 h-4 rounded-full border-2 border-black shadow cursor-pointer relative
-                          ${index === 0 ? "bg-blue-500 z-10" : "bg-green-500 z-20"}`}
-                      />
-                    );
-                  }}
-                />
-          
-                <div className="flex justify-between text-sm text-gray-600 mt-6">
-                  <span>₹{values[0].toLocaleString()}</span>
-                  <span>₹{values[1].toLocaleString()}</span>
-                </div>
-              </div>
-
-                {/* Brand Filter */}
-              {categoryData.brands?.length > 0 && (
-                <div className="bg-white p-4 rounded-lg shadow-sm border mb-3">
-                  <div className="flex items-center justify-between pb-2">
-                    <h3 className="text-base font-semibold text-gray-700">Brands</h3>
-                    <button onClick={toggleBrands} className="text-gray-500 hover:text-gray-700">
-                      {isBrandsExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
-                    </button>
-                  </div>
-                  {isBrandsExpanded && (
-                    <ul className="mt-2 max-h-48 overflow-y-auto pr-2">
-                      {[...categoryData.brands].sort((a, b) => a.brand_name.localeCompare(b.brand_name)).map(brand => (
-                        <li key={brand._id} className="flex items-center">
-                          <label className="flex items-center space-x-2 w-full cursor-pointer hover:bg-gray-50 rounded p-2 transition-colors">
-                            <input
-                              type="checkbox"
-                              checked={selectedFilters.brands.includes(brand._id)}
-                              onChange={() => handleFilterChange("brands", brand._id)}
-                              className="mr-2 h-4 w-4 text-blue-600 border-gray-300 rounded"
-                            />
-                            <span className="text-sm text-gray-600">{brand.brand_name} ({brand.count})</span>
-                          </label>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              )}
-
-                {/* Dynamic Filters */}
-               {Object.values(filterGroups).length > 0 && (
-                <div className="bg-white p-4 rounded-lg shadow-sm border mb-3 border-gray-100">
-                  <div className="pb-2 mb-2">
-                    <h3 className="text-base font-semibold text-gray-700">Product Filters</h3>
-                  </div>
-                  {isFiltersExpanded && (
-                    <div className="space-y-4">
-                      {Object.values(filterGroups).sort((a, b) => { if (a.name.toLowerCase() === 'capacity') return -1; if (b.name.toLowerCase() === 'capacity') return 1; return a.name.localeCompare(b.name); }).map(group => (
-                        <div key={group._id} className="border-b border-gray-100 last:border-0 pb-4 last:pb-0">
-                          <button onClick={() => toggleFilterGroup(group._id)} className="flex justify-between items-center w-full group">
-                            <span className="text-sm font-medium text-gray-700 group-hover:text-blue-600 transition-colors">{group.name}</span>
-                            <ChevronDown 
-                              size={18}
-                              className={`text-gray-400 transition-transform duration-200 ${
-                                expandedFilters[group._id] ? 'rotate-180' : ''
-                              }`}
-                            />
-                          </button>
-
-                          {expandedFilters[group._id] && (
-                            <ul className="mt-2 max-h-48 overflow-y-auto pr-2">
-                              {[...group.filters].sort(sortFilterValues).map(filter => (
-                                <li key={filter._id} className="flex items-center">
-                                  <label className="flex items-center space-x-2 w-full cursor-pointer hover:bg-gray-50 rounded p-2 transition-colors">
-                                    <input
-                                      type="checkbox"
-                                      checked={selectedFilters.filters.includes(filter._id)}
-                                      onChange={() => handleFilterChange('filters', filter._id)}
-                                      className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                                    />
-                                    <span className="text-sm text-gray-600">{filter.filter_name}</span>
-                                    {filter.count && (
-                                      <span className="text-xs text-gray-400 ml-auto">
-                                        ({filter.count})
-                                      </span>
-                                    )}
-                                  </label>
-                                </li>
-                              ))}
-                            </ul>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-              </div>
-
-              {/* Footer button (fixed) */}
-              <div className="p-4 border-t flex-shrink-0 bg-white">
-                <button
-                  onClick={() => setIsFilterPanelOpen(false)}
-                  className="w-full bg-blue-600 text-white py-2 rounded-md"
-                >
-                  Apply Filters
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+            )}
 
             {/* Products Section */}
             <div className="flex-1">

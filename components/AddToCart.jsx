@@ -343,7 +343,7 @@ const trackAddToCart = ({ user_info, product_info }) => {
 function OpenBoxPopup({ onClose, productName, productSlug, stockQuantity }) {
   const productUrl = `${process.env.NEXT_PUBLIC_API_URL}/product/${productSlug}`;
   const phone = "9842344323";
-  const email = "customercare@bharathelectronics.in";
+  const email = "customercare@sathya.store";
   const whatsappNumber = "919842344323";
 
   const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(`Hi, I'm interested in this product: ${productName}\n${productUrl}`)}`;
@@ -426,7 +426,7 @@ function OpenBoxPopup({ onClose, productName, productSlug, stockQuantity }) {
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
       <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
     </svg>
-    <span className="text-[10px] text-gray-600 font-medium text-center leading-tight">Quality Checked<br/>by BEA Team</span>
+    <span className="text-[10px] text-gray-600 font-medium text-center leading-tight">Quality Checked<br/>by Sathya Stores Team</span>
   </div>
 </div>
 
@@ -435,7 +435,7 @@ function OpenBoxPopup({ onClose, productName, productSlug, stockQuantity }) {
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0">
             <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
           </svg>
-          <span className="text-[11px] text-blue-700 font-medium">Final price & availability will be confirmed by BEA team.</span>
+          <span className="text-[11px] text-blue-700 font-medium">Final price & availability will be confirmed by Sathya Stores team.</span>
         </div>
 
         {/* 3 Contact Buttons */}
@@ -472,7 +472,7 @@ function OpenBoxPopup({ onClose, productName, productSlug, stockQuantity }) {
             <FaEnvelope size={16} />
             <div>
               <div className="text-[12px] font-semibold leading-tight">Email Us</div>
-              <div className="text-[10.5px] opacity-80 leading-tight">customercare@bharathelectronics.in</div>
+              <div className="text-[10.5px] opacity-80 leading-tight">customercare@sathya.store</div>
             </div>
           </a>
         </div>

@@ -23,7 +23,7 @@ const IS_RAZORPAY_TEST_MODE = RAZORPAY_KEY.startsWith('rzp_test_');
 const RAZORPAY_EMI_TEST_CARD = '5241 8100 0000 0000';
 
 const BEA_CONTACT_PHONE = '9842344323';
-const BEA_CONTACT_EMAIL = 'customercare@bharathelectronics.in';
+const BEA_CONTACT_EMAIL = 'customercare@sathya.store';
 
 const FloatInput = ({ label, name, type = 'text', required, readOnly, value, onChange, onBlur, error, inputMode, maxLength, showLock, hint }) => (
   <div>
@@ -197,7 +197,7 @@ const findNearestStores = async (pincode) => {
             <p className={`text-sm font-medium ${formData.deliveryType === 'store' ? 'text-blue-700' : 'text-gray-800'}`}>
               Store pickup
             </p>
-            <p className="text-xs text-gray-500 mt-0.5">Pick up from your nearest BEA showroom</p>
+            <p className="text-xs text-gray-500 mt-0.5">Pick up from your nearest Sathya Stores showroom</p>
           </div>
         </label>
       </div>
@@ -211,7 +211,7 @@ const findNearestStores = async (pincode) => {
                 d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
-            Nearest BEA Stores (Store Pickup)
+            Nearest Sathya Stores (Store Pickup)
           </p>
 
           {loadingStores ? (
@@ -593,7 +593,7 @@ export default function CheckoutPage() {
     return new Promise((resolve, reject) => {
       const options = {
         key: process.env.NEXT_PUBLIC_RAZORPAY_TEST_KEY,
-        amount: order.amount, currency: 'INR', name: 'BEA',
+        amount: order.amount, currency: 'INR', name: 'Sathya Stores',
         description: isEmi ? 'EMI Payment' : 'Product Purchase', order_id: order.id,
         handler: async (response) => {
           try {
@@ -880,13 +880,13 @@ const sellingPrice = mrpTotal - itemDiscountTotal;
           });
 
           const adminEmails = [
-            "arunkarthik@bharathelectronics.in",
-            "ecom@bharathelectronics.in",
-            "itadmin@bharathelectronics.in",
-            "telemarketing@bharathelectronics.in",
-            "sekarcorp@bharathelectronics.in",
-            "abu@bharathelectronics.in",
-            "customercare@bharathelectronics.in",
+            "arunkarthik@sathya.store",
+            "ecom@sathya.store",
+            "itadmin@sathya.store",
+            "telemarketing@sathya.store",
+            "sekarcorp@sathya.store",
+            "abu@sathya.store",
+            "customercare@sathya.store",
           ];
 
           const emailRes = await fetch("/api/send-order-email", {
@@ -1374,7 +1374,7 @@ const sellingPrice = mrpTotal - itemDiscountTotal;
                 <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                 </svg>
-                <span className="text-xs font-medium text-gray-700">Bharath Electronics &amp; Appliances</span>
+                <span className="text-xs font-medium text-gray-700">Sathya Stores</span>
                 <span className="text-[10px] text-green-700 bg-green-100 px-2 py-0.5 rounded-full flex items-center gap-1">
                   <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
                   Authorized brand partner
@@ -1414,7 +1414,7 @@ const sellingPrice = mrpTotal - itemDiscountTotal;
 )}
 {cartItems.some(item => item.warranty > 0) && (
   <div className="flex justify-between text-sm">
-    <span className="text-purple-700">BEA Care warranty</span>
+    <span className="text-purple-700">Sathya Stores Care warranty</span>
     <span className="text-red-600 font-medium">
       ₹{cartItems.reduce((s, i) => s + (i.warranty || 0), 0).toLocaleString('en-IN')}
     </span>
@@ -1546,7 +1546,7 @@ const sellingPrice = mrpTotal - itemDiscountTotal;
                 <div className="flex-1 p-4 sm:p-5 flex flex-col justify-between">
                   <div>
                     <p className="text-sm sm:text-base font-bold text-gray-900 mb-1">
-                      BEA TRUCO Rewards 🎁
+                      Sathya Store Rewards 🎁
                     </p>
                     <p className="text-xs sm:text-sm font-bold text-gray-900 mb-3">
                       Earn points on every purchase
@@ -1579,11 +1579,11 @@ const sellingPrice = mrpTotal - itemDiscountTotal;
                 <div className="w-24 sm:w-32 flex-shrink-0 flex items-center justify-center pr-2 sm:pr-3">
                   <img
                     src="/uploads/truco_app_phone.png"
-                    alt="BEA Truco App"
+                    alt="Sathya Stores Truco App"
                     className="w-full h-auto max-h-[170px] object-contain -rotate-6"
                     onError={(e) => {
                       e.target.style.display = 'none';
-                      e.target.parentElement.innerHTML = `<div class="flex flex-col items-center justify-center h-full p-3 text-center"><div class="bg-white rounded-xl px-3 py-2"><p class="text-indigo-700 text-xs font-bold leading-tight">BEA</p><p class="text-indigo-500 text-[9px] font-semibold">TRUCO</p></div></div>`;
+                      e.target.parentElement.innerHTML = `<div class="flex flex-col items-center justify-center h-full p-3 text-center"><div class="bg-white rounded-xl px-3 py-2"><p class="text-indigo-700 text-xs font-bold leading-tight">Sathya Stores</p><p class="text-indigo-500 text-[9px] font-semibold">TRUCO</p></div></div>`;
                     }}
                   />
                 </div>
@@ -1622,7 +1622,7 @@ const sellingPrice = mrpTotal - itemDiscountTotal;
                       <path strokeLinecap="round" strokeLinejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                     </svg>
                     <span className="text-[10px] sm:text-[11px] font-bold text-[#5B4CF5] leading-tight">
-                      BEA Live<br />Video Demo
+                      Sathya Stores Live<br />Video Demo
                     </span>
                   </button>
                 </div>
@@ -1654,9 +1654,9 @@ const sellingPrice = mrpTotal - itemDiscountTotal;
                 </button>
               </div>
 
-              {/* BEA Promise */}
+              {/* Sathya Stores Promise */}
               <div className="px-5 py-4 bg-white border-t border-gray-200">
-                <p className="text-xs font-semibold text-gray-700 mb-3">BEA Promise —</p>
+                <p className="text-xs font-semibold text-gray-700 mb-3">Sathya Stores Promise —</p>
                 <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
                   {[
                     { icon: (

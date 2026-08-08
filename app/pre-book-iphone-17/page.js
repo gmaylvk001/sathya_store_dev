@@ -1,4 +1,4 @@
-// app/terms/page.js  (App Router)
+﻿// app/terms/page.js  (App Router)
 // or pages/terms.js (Pages Router)
 
 export default function TermsPage() {
@@ -9,7 +9,7 @@ export default function TermsPage() {
       </h1>
       <p className="text-center text-gray-600 mb-10">
         These Terms & Conditions govern the pre-booking of the iPhone 17 through{" "}
-        <span className="font-semibold">Bharath Electronics & Appliances</span>.
+        <span className="font-semibold">Sathya Stores</span>.
         By placing a pre-booking order, you agree to these Terms.
       </p>
 

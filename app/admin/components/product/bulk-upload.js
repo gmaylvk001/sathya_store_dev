@@ -2780,7 +2780,7 @@ const handleBrandManufacturerUpload = async (e) => {
           Excel / CSV File
         </h3>
         <p className="text-sm text-gray-500 mt-1">
-          Upload BEA pincode serviceability data. Columns: SAP Code, Branch Name, Branch Pincode, Serviceable Pincode, Distance (km), Nearest Branch Rank, Branch Address.
+          Upload Sathya Stores pincode serviceability data. Columns: SAP Code, Branch Name, Branch Pincode, Serviceable Pincode, Distance (km), Nearest Branch Rank, Branch Address.
         </p>
       </div>
 

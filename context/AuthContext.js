@@ -68,9 +68,11 @@ export const AuthProvider = ({ children }) => {
     setIsAuthenticated(false);
   };
 
+  // Do not auto-fetch on mount — Header already owns storefront auth via
+  // HeaderContext + /api/auth/check. Call checkAuthStatus() when needed.
   useEffect(() => {
-    checkAuthStatus();
-  }, [checkAuthStatus]);
+    setLoading(false);
+  }, []);
 
   return (
     <AuthContext.Provider value={{ 

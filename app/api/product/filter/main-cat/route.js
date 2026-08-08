@@ -317,12 +317,13 @@ const brandAgg = await Product.aggregate([
 
     const filterIdList = filterAgg.map(f => f._id);
     const filterDocs = await Filter.find({ _id: { $in: filterIdList } })
-      .populate({ path: "filter_group", select: "filtergroup_name", model: FilterGroup })
+      .populate({ path: "filter_group", select: "filtergroup_name filtergroup_slug", model: FilterGroup })
       .lean();
 
     const filtersWithGroup = filterDocs.map(f => ({
       ...f,
       filter_group_name: f.filter_group?.filtergroup_name || "Other",
+      filter_group_slug: f.filter_group?.filtergroup_slug || "",
       filter_group_id: f.filter_group?._id?.toString() || "other",
       count: filterAggMap[f._id.toString()] || 0,
     }));

@@ -29,37 +29,37 @@ const installationProducts = [
 
 const faqs = [
   {
-    question: "How long does BEA take to deliver appliances?",
+    question: "How long does Sathya Stores take to deliver appliances?",
     answer:
       "Most orders are delivered within 2-5 working days. Customers near our showrooms may be eligible for same-day or next-day local delivery.",
   },
   {
-    question: "Does BEA provide AC installation?",
+    question: "Does Sathya Stores provide AC installation?",
     answer:
       "Yes, AC installation is arranged through our authorized brand service partners within 24-48 hours of delivery.",
   },
   {
-    question: "Does BEA deliver TVs, refrigerators, and washing machines?",
+    question: "Does Sathya Stores deliver TVs, refrigerators, and washing machines?",
     answer:
       "Yes, we deliver all major home appliances including TVs, refrigerators, washing machines, air conditioners and more across Tamil Nadu.",
   },
   {
-    question: "Can I pickup my order from a BEA showroom?",
+    question: "Can I pickup my order from a Sathya Stores showroom?",
     answer:
-      "Yes, you can choose the Store Pickup option at checkout and collect your order from your nearest BEA showroom once it's ready.",
+      "Yes, you can choose the Store Pickup option at checkout and collect your order from your nearest Sathya Stores showroom once it's ready.",
   },
   {
-    question: "Does BEA deliver outside Coimbatore?",
+    question: "Does Sathya Stores deliver outside Coimbatore?",
     answer:
       "Yes, we deliver across Tamil Nadu through our network of stores, covering major cities and surrounding areas.",
   },
   {
-    question: "Which areas does BEA deliver in Tamil Nadu?",
+    question: "Which areas does Sathya Stores deliver in Tamil Nadu?",
     answer:
       "We currently deliver to Coimbatore, Salem, Erode, Tirupur, Namakkal, Dharmapuri, Krishnagiri, Trichy and many more locations across Tamil Nadu.",
   },
   {
-    question: "How can I track my BEA order?",
+    question: "How can I track my Sathya Stores order?",
     answer:
       "You can track your order anytime using the 'Track Order' option on our website, or by contacting our customer support team.",
   },
@@ -148,7 +148,7 @@ const ShippingPolicy = () => {
               Fast &amp; reliable electronics delivery across Tamil Nadu
             </h2>
             <p className="text-gray-600 mb-6 leading-relaxed">
-              Bharath Electronics &amp; Appliances (BEA) delivers televisions,
+              Sathya Stores delivers televisions,
               refrigerators, washing machines, air conditioners and home
               appliances across Tamil Nadu through our {storeCount}+ showroom network.
             </p>
@@ -160,7 +160,7 @@ const ShippingPolicy = () => {
           <div className="flex justify-center">
             <img
               src="/store/BEA_Service_Lorry.png"
-              alt="BEA delivery truck and tracking"
+              alt="Sathya Stores delivery truck and tracking"
               className="w-full h-auto max-h-80 object-contain"
             />
           </div>
@@ -237,7 +237,7 @@ const ShippingPolicy = () => {
                   (Same / Next Day)*
                 </p>
                 <p className="text-xs text-gray-500">
-                  Available for pin codes near BEA showrooms.
+                  Available for pin codes near Sathya Stores showrooms.
                 </p>
               </div>
               <div className="bg-indigo-50 rounded-lg p-4 text-center">
@@ -280,7 +280,7 @@ const ShippingPolicy = () => {
                 <li className="flex items-start gap-2">
                   <FiCheckCircle className="text-green-500 mt-1 flex-shrink-0" />
                   Customers can choose Store Pickup at checkout and collect
-                  their order from the nearest BEA showroom.
+                  their order from the nearest Sathya Stores showroom.
                 </li>
                 <li className="flex items-start gap-2">
                   <FiCheckCircle className="text-green-500 mt-1 flex-shrink-0" />
@@ -294,7 +294,7 @@ const ShippingPolicy = () => {
              <div className="rounded-xl overflow-hidden">
   <img
     src="/store/BEA_Store.png"
-    alt="BEA store pickup"
+    alt="Sathya Stores store pickup"
     className="w-full h-auto object-cover"
   />
 </div>
@@ -403,11 +403,11 @@ const ShippingPolicy = () => {
 
         {/* Row 4: Why Trust + Need Help */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* 6. Why Trust BEA Delivery */}
+          {/* 6. Why Trust Sathya Stores Delivery */}
           <div className="bg-white rounded-xl shadow-sm p-6 md:p-8">
             <h3 className="text-xl font-bold text-blue-900 flex items-center gap-2 mb-4">
               <FiShield className="text-blue-600" />
-              6. Why Trust BEA Delivery?
+              6. Why Trust Sathya Stores Delivery?
             </h3>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               <div className="border border-gray-100 rounded-lg p-4 text-center">
@@ -464,13 +464,13 @@ const ShippingPolicy = () => {
                 <p className="text-xs text-gray-400">Chat on WhatsApp</p>
               </a>
               <a
-                href="mailto:customercare@bharathelectronics.in"
+                href="mailto:customercare@sathya.store"
                 className="border border-gray-100 rounded-lg p-4 text-center hover:bg-blue-50 transition-colors"
               >
                 <FiMail className="text-blue-600 text-xl mx-auto mb-2" />
                 <p className="font-semibold text-gray-800 text-sm">Email Support</p>
                 <p className="text-sm text-gray-600 break-all">
-                  customercare@bharathelectronics.in
+                  customercare@sathya.store
                 </p>
               </a>
             </div>

@@ -339,7 +339,7 @@ const handleOnlinePayment = async (totalAmount) => {
         key: process.env.NEXT_PUBLIC_RAZORPAY_TEST_KEY,
         amount: order.amount,
         currency: "INR",
-        name: "BEA",
+        name: "Sathya Stores",
         description: "Product Purchase",
         order_id: order.id,
         handler: async function (response) {
@@ -415,7 +415,7 @@ const handleOnlinePayment = async (totalAmount) => {
   //         key: process.env.NEXT_PUBLIC_RAZORPAY_TEST_KEY,
   //         amount: order.amount,
   //         currency: "INR",
-  //         name: "BEA",
+  //         name: "Sathya Stores",
   //         description: "Product Purchase",
   //         order_id: order.id,
   //         handler: async function (response) {
@@ -829,7 +829,7 @@ const grandTotal = subtotal - totalDiscount;
           JSON.stringify([name,addressData.email,addressData.phonenumber,deliveryAddress, adminItemsTableHtml])
         );
 
-        const emailadmin = ["arunkarthik@bharathelectronics.in","ecom@bharathelectronics.in","itadmin@bharathelectronics.in","telemarketing@bharathelectronics.in","sekarcorp@bharathelectronics.in","siva96852@gmail.com","customercare@bharathelectronics.in"];
+        const emailadmin = ["arunkarthik@sathya.store","ecom@sathya.store","itadmin@sathya.store","telemarketing@sathya.store","sekarcorp@sathya.store","siva96852@gmail.com","customercare@sathya.store"];
         
         emailadmin.forEach(async (adminEmail) => {
           adminemailFormData.set("email", adminEmail);

@@ -33,8 +33,8 @@ const AboutUs = () => {
     {
         image: "/uploads/47_store.png",
         icon: <FiHome />,
-        title: "47+ Store Network",
-        desc: "Always near you with 47+ showrooms across Tamil Nadu."
+        title: "427+ Store Network",
+        desc: "Always near you with 427+ showrooms across South India."
     },
     {
         image: "/uploads/flexiable_finance_options.png",
@@ -105,7 +105,7 @@ const AboutUs = () => {
         src="/uploads/aboutus-banner1.png" 
         width={1920}
         height={650}
-        alt="BEA Store" 
+        alt="Sathya Stores Store" 
         className="relative z-0 w-full h-auto block"
         priority
     />
@@ -114,8 +114,8 @@ const AboutUs = () => {
         <div className="w-[50%] lg:w-[45%] xl:w-[40%] 2xl:w-[35%]">
             <p className="text-sm xl:text-base 2xl:text-lg text-gray-500 mb-1">Tamil Nadu's</p>
             <h1 className="text-2xl lg:text-3xl xl:text-4xl 2xl:text-6xl font-bold leading-tight text-[#0a1d56]">Most Trusted <br />Electronics Destination</h1>
-           <h2 className="text-2xl lg:text-3xl xl:text-4xl 2xl:text-6xl font-bold text-[#2453d3] mt-2">Since 2000</h2>
-            <p className="mt-2 text-gray-600 text-sm xl:text-base 2xl:text-xl leading-7 2xl:leading-9">From our first showroom in Coimbatore in 2000 to 47+ stores across Tamil Nadu, BEA has grown into Tamil Nadu's most trusted destination for home appliances & electronics.</p>
+           <h2 className="text-2xl lg:text-3xl xl:text-4xl 2xl:text-6xl font-bold text-[#2453d3] mt-2">Since 1987</h2>
+            <p className="mt-2 text-gray-600 text-sm xl:text-base 2xl:text-xl leading-7 2xl:leading-9">Sathya Agencies Limited is one of South India&apos;s largest consumer durables and electronics retailers, with 427+ stores across Tamil Nadu, Andhra Pradesh, Kerala, Karnataka and Puducherry.</p>
             <div className="flex flex-wrap gap-3 mt-6">
                 <button onClick={() => router.push("/location")} className="bg-[#2453d3] text-white px-5 py-2.5 2xl:px-7 2xl:py-3 rounded-lg font-semibold text-sm 2xl:text-base flex items-center gap-2 hover:bg-[#1d45b8] transition">
                     <FiMapPin size={16} />
@@ -136,7 +136,7 @@ const AboutUs = () => {
             src="/uploads/aboutus-banner.webp" 
             width={1920}
             height={650}
-            alt="BEA Store" 
+            alt="Sathya Stores Store" 
             className="w-full h-auto block"
             priority
         />
@@ -144,8 +144,8 @@ const AboutUs = () => {
         <div className="px-4 md:px-8 py-10 bg-gradient-to-b from-[#f5f8ff] to-white">
             <p className="text-sm text-gray-500 mb-1">Tamil Nadu's</p>
             <h1 className="text-2xl font-bold leading-tight text-[#0a1d56]">Most Trusted <br />Electronics Destination</h1>
-            <h2 className="text-2xl font-bold text-[#2453d3] mt-2">Since 2000</h2>
-            <p className="mt-2 text-gray-600 text-sm leading-7">From our first showroom in Coimbatore in 2000 to 47+ stores across Tamil Nadu, BEA has grown into Tamil Nadu's most trusted destination for home appliances & electronics.</p>
+            <h2 className="text-2xl font-bold text-[#2453d3] mt-2">Since 1987</h2>
+            <p className="mt-2 text-gray-600 text-sm leading-7">Sathya Agencies Limited is one of South India&apos;s largest consumer durables and electronics retailers, with 427+ stores across Tamil Nadu, Andhra Pradesh, Kerala, Karnataka and Puducherry.</p>
             <div className="flex flex-wrap gap-3 mt-6">
                 <button onClick={() => router.push("/location")} className="bg-[#2453d3] text-white px-5 py-2.5 rounded-lg font-semibold text-sm flex items-center gap-2 hover:bg-[#1d45b8] transition">
                     <FiMapPin size={16} />
@@ -172,7 +172,7 @@ const AboutUs = () => {
                                 icon: <FiAward size={32} className="text-[#2453d3]" />
                             },
                             {
-                                count: "47+",
+                                count: "427+",
                                 label: (<>Showrooms <br />Across Tamil Nadu </>),
                                 icon: <FiHome size={32} className="text-[#2453d3]" />
                             },
@@ -211,11 +211,11 @@ const AboutUs = () => {
                 </div>
             </section>
             
-            {/* Why Choose BEA (Stretched to margins) */}
+            {/* Why Choose Sathya Stores (Stretched to margins) */}
             <section className="py-6 bg-white">
                 <div className="w-full px-4 md:px-8 lg:px-10">
                     <div className="text-center mb-10">
-                        <h2 className="text-2xl font-bold text-[#2b3a79]">Why Customers Choose BEA?</h2>
+                        <h2 className="text-2xl font-bold text-[#2b3a79]">Why Customers Choose Sathya Stores?</h2>
                         <div className="w-12 h-1 bg-[#2453d3] mx-auto mt-2 rounded-full"></div>
                     </div>
                     <div className="grid md:grid-cols-3 lg:grid-cols-6 gap-4">
@@ -239,16 +239,16 @@ const AboutUs = () => {
                 </div>
             </section>
             
-            {/* BEA Live Demo */}
+            {/* Sathya Stores Live Demo */}
             <section className="py-6 bg-white">
                 <div className="w-full px-4 md:px-8 lg:px-10">
                     <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-8 rounded-2xl border border-[#c4b5fd] bg-gradient-to-br from-[#f8f6ff] via-[#f5f7ff] to-[#eef3ff] overflow-hidden px-5 sm:px-8 pt-5 sm:pt-6 pb-0">
                         <div className="flex-1 min-w-0 py-2 sm:py-4 text-center sm:text-left">
                             <h2 className="text-[#0a1d56] font-extrabold text-xl sm:text-2xl leading-tight mb-2">
-                                Experience BEA From Anywhere
+                                Experience Sathya Stores From Anywhere
                             </h2>
                             <p className="text-sm sm:text-[15px] text-gray-600 leading-relaxed mb-4 max-w-xl">
-                                Can&apos;t visit one of our 47+ showrooms? Let us bring the showroom to you.
+                                Can&apos;t visit one of our showrooms? Let us bring the store to you.
                             </p>
                             <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 mb-5 text-left max-w-lg mx-auto sm:mx-0">
                                 {[
@@ -268,7 +268,7 @@ const AboutUs = () => {
                                 onClick={openLiveDemoModal}
                                 className="inline-flex items-center justify-center gap-2 bg-[#5B4CF5] hover:bg-[#4a3de0] text-white text-sm font-bold py-3 px-6 rounded-xl transition-colors"
                             >
-                                Book BEA Live Demo
+                                Book Sathya Stores Live Demo
                                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                                 </svg>
@@ -277,7 +277,7 @@ const AboutUs = () => {
                         <div className="shrink-0 w-[150px] sm:w-[180px] md:w-[210px] self-end">
                             <img
                                 src="/uploads/live-video-phone.png"
-                                alt="BEA Live Demo"
+                                alt="Sathya Stores Live Demo"
                                 className="w-full h-auto object-contain bg-transparent"
                             />
                         </div>
@@ -289,7 +289,7 @@ const AboutUs = () => {
             <section className="pb-8 bg-white">
                 <div className="w-full px-4 md:px-8 lg:px-10">
                     <div className="text-center mb-5">
-                        <h2 className="text-2xl font-bold text-[#2b3a79]">Experience BEA Stores</h2>
+                        <h2 className="text-2xl font-bold text-[#2b3a79]">Experience Sathya Stores</h2>
                         <div className="w-12 h-1 bg-[#2453d3] mx-auto mt-2 rounded-full"></div>
                     </div>
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
@@ -338,44 +338,44 @@ const AboutUs = () => {
                                <div className="grid grid-cols-3 md:grid-cols-6 gap-2 relative z-10">
                                     {[
                                         {
-                                            year: "2000",
-                                            title: "Our First Store",
-                                            desc: "Started our journey With the first BEA showroom in Coimbatore.",
+                                            year: "1987",
+                                            title: "Our Beginning",
+                                            desc: "Established in Tuticorin, Tamil Nadu as a proprietorship venture.",
                                             icon: <FiHome size={22} />,
                                             color: "bg-blue-500",
                                         },
                                         {
-                                            year: "2005",
-                                            title: "Expanding Presence",
-                                            desc: "Opened multiple showrooms in key cities across TN.",
+                                            year: "1990",
+                                            title: "Sathya Agencies",
+                                            desc: "Expanded as a partnership firm under the name Sathya Agencies.",
                                             icon: <FiBriefcase size={22} />,
                                             color: "bg-orange-500",
                                         },
                                         {
-                                            year: "2010",
-                                            title: "Growing Strong",
-                                            desc: "Expanded to more location and became a trusted retail name.",
+                                            year: "2005",
+                                            title: "Incorporation",
+                                            desc: "Incorporated as Sathya Agencies Limited.",
                                             icon: <FiTrendingUp size={22} />,
                                             color: "bg-green-500",
                                         },
                                         {
                                             year: "2015",
-                                            title: "Customer Trust Milestone",
-                                            desc: "Crossed 20+ stores and millions of happy customers.",
+                                            title: "Growing Network",
+                                            desc: "Expanded retail presence across South India.",
                                             icon: <FiAward size={22} />,
                                             color: "bg-purple-500",
                                         },
                                         {
                                             year: "2020",
                                             title: "Digital Transformation",
-                                            desc: "Enhanced Online presence & better customer experience.",
+                                            desc: "Enhanced online presence and customer experience.",
                                             icon: <FiMapPin size={22} />,
                                             color: "bg-blue-600",
                                         },
                                         {
-                                            year: "2025",
-                                            title: "Silver Jubilee",
-                                            desc: "Celebrating 25 years of trust, service and innovation.",
+                                            year: "2026",
+                                            title: "427+ Stores",
+                                            desc: "Operating across Tamil Nadu, Andhra Pradesh, Kerala, Karnataka and Puducherry.",
                                             icon:  <FiGift size={22} />,
                                             color: "bg-orange-500",
                                         },
@@ -393,34 +393,11 @@ const AboutUs = () => {
                             </div>
                         </div>
 
-                        {/* Vision (Added shadow-lg) */}
-                        <div className="bg-[#f7f9ff] rounded-xl border overflow-hidden shadow-lg">
-                          <div className="flex flex-col sm:grid sm:grid-cols-[1fr_200px] h-full">
-                            
-                            {/* Image: Top on mobile, Right on larger screens */}
-                            <div className="w-full flex justify-center sm:hidden pt-4 bg-[#f0f4f8]">
-                              <img src="/uploads/RajaRavichandran.png" alt="R. Raja Ravichandran" className="w-[180px] h-auto object-contain object-bottom" />
-                            </div>
-
-                            {/* Content */}
-                            <div className="p-4 md:p-5 order-2 sm:order-1 flex flex-col justify-center">
-                              <h3 className="text-xl font-bold text-[#2b3a79] mb-3">The Vision Behind BEA</h3>
-                              <p className="text-[12px] text-gray-600 leading-6">Founded by R. Raja Ravichandran in 2000, BEA started with a vision to bring world-class electronics and appliances closer to every home.</p>
-                              <p className="text-[12px] text-gray-600 leading-6 mt-3">Today, under the next generation leadership, we continue our journey combining trust, technology and customer experience.</p>
-                              <div className="mt-5">
-                                <p className="font-semibold text-[#1f3bb3]">R. Raja Ravichandran</p>
-                                <p className="text-xs text-gray-500">Founder</p>
-                              </div>
-                            </div>
-
-                            {/* Image: Hidden on mobile, original layout for desktop */}
-                            <img 
-                              src="/uploads/RajaRavichandran.png" 
-                              alt="R. Raja Ravichandran" 
-                              className="hidden sm:block h-full object-cover order-2"
-                            />
-
-                          </div>
+                        {/* Vision */}
+                        <div className="bg-[#f7f9ff] rounded-xl border overflow-hidden shadow-lg p-5 md:p-6 flex flex-col justify-center">
+                          <h3 className="text-xl font-bold text-[#2b3a79] mb-3">Our Vision</h3>
+                          <p className="text-[12px] text-gray-600 leading-6">Sathya Agencies Limited brings world-class electronics and home appliances closer to every home across South India.</p>
+                          <p className="text-[12px] text-gray-600 leading-6 mt-3">With 427+ stores and partnerships with 150+ leading brands, we combine trust, technology and customer experience.</p>
                         </div>
                     </div>
 
@@ -429,7 +406,7 @@ const AboutUs = () => {
                         
                         {/* Tamil Nadu (Added shadow-lg) */}
                         <div className="bg-[#f7f9ff] rounded-xl border border-gray-200 p-4 lg:p-6 shadow-lg">
-                            <h3 className="text-xl font-bold text-[#1f3bb3] mb-1">BEA Across Tamil Nadu</h3>
+                            <h3 className="text-xl font-bold text-[#1f3bb3] mb-1">Sathya Stores Across Tamil Nadu</h3>
                             <p className="text-sm text-gray-600 mb-4">Serving customers across</p>
                            <div className="grid grid-cols-1 sm:grid-cols-[140px_1fr] gap-4 items-start">
                                 {/* Locations */}
@@ -475,7 +452,7 @@ const AboutUs = () => {
 
                                 {/* Map */}
                                 <div className="flex justify-center">
-                                <img src="/uploads/aboutus-map.png" alt="BEA Across Tamil Nadu" className="max-w-[200px] object-cover" />
+                                <img src="/uploads/aboutus-map.png" alt="Sathya Stores Across Tamil Nadu" className="max-w-[200px] object-cover" />
                                           </div>
                             </div>
                         </div>
@@ -483,7 +460,7 @@ const AboutUs = () => {
                         {/* Brand Partners (Added shadow-lg) */}
                         <div className="bg-white rounded-2xl border shadow-lg p-6 lg:p-9 h-full">
                             <h3 className="text-2xl font-bold text-[#1f3bb3] mb-2">Our Premium Brand Partners</h3>
-                            <p className="text-gray-500 text-sm mb-5">BEA brings together the world's leading electronics and home appliance brands under one roof.</p>
+                            <p className="text-gray-500 text-sm mb-5">Sathya Stores brings together the world's leading electronics and home appliance brands under one roof.</p>
                             <div className="grid grid-cols-4 sm:grid-cols-5 gap-3">
                                 {brands.map((logo, i) => (
                                     <div key={i} className="h-16 bg-white border rounded-xl flex items-center justify-center hover:shadow-md transition">
@@ -512,7 +489,7 @@ const AboutUs = () => {
                             </h3>
 
                             <p className="text-sm">
-                                Meet the people behind BEA who believe
+                                Meet the people behind Sathya Stores who believe
                                 in customer happiness, innovation and excellence.
                             </p>
                             </div>

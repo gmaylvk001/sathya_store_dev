@@ -1,848 +1,483 @@
 "use client";
 
-import { useEffect, useState, useMemo, useRef } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { FaFacebookF, FaInstagram, FaYoutube, FaWhatsapp } from "react-icons/fa";
-import { FiMail, FiPhone, FiMapPin, FiClock } from "react-icons/fi";
-import { FaLinkedinIn, FaXTwitter } from "react-icons/fa6";
-import { IoReload, IoStorefront, IoCardOutline, IoShieldCheckmark } from "react-icons/io5";
-import { TbTruckDelivery } from "react-icons/tb";
-import Image from "next/image";
-import { MdAccountCircle } from "react-icons/md";
-import { FaShoppingBag } from "react-icons/fa";
-import { IoLogOut } from "react-icons/io5";
-import OurLocations from '@/components/OurLocations';
 import {
-  Tv,
-  Laptop,
-  Smartphone,
-  WashingMachine,
-  Refrigerator,
-  MapPin,
-} from "lucide-react";
+  FaFacebookF,
+  FaInstagram,
+  FaYoutube,
+  FaWhatsapp,
+  FaHeadset,
+} from "react-icons/fa";
+import { FaXTwitter } from "react-icons/fa6";
+import { FiMail, FiPhone } from "react-icons/fi";
+import { TbTruckDelivery } from "react-icons/tb";
+import { IoCardOutline, IoPricetagOutline } from "react-icons/io5";
+
+const BRAND_RED = "#d72828";
+const FOOTER_BG = "#1a1a1a";
+
+const ABOUT_LINKS = [
+  { label: "Home", href: "/" },
+  { label: "About Us", href: "/aboutus" },
+  { label: "Store Locator", href: "/location" },
+  { label: "Contact Us", href: "/contact" },
+  { label: "Privacy Policy", href: "/privacypolicy" },
+  { label: "Cancellation Policy", href: "/cancellation-refund-policy" },
+  { label: "Terms & Conditions", href: "/terms-and-condition" },
+  { label: "Help/FAQ", href: "/feedback" },
+  { label: "Sitemap", href: "/sitemap.xml" },
+  { label: "Blogs", href: "/blog" },
+];
+
+const OFFER_LINKS = [
+  { label: "Weekend Offers", href: "/category" },
+  { label: "Big Discounts", href: "/category" },
+  { label: "Bundle Offer", href: "/category" },
+];
+
+const SOCIAL_LINKS = [
+  {
+    label: "Facebook",
+    href: "https://www.facebook.com/sathyastores",
+    Icon: FaFacebookF,
+  },
+  {
+    label: "Twitter",
+    href: "https://twitter.com/sathyastores",
+    Icon: FaXTwitter,
+  },
+  {
+    label: "Instagram",
+    href: "https://www.instagram.com/sathyastores",
+    Icon: FaInstagram,
+  },
+  {
+    label: "YouTube",
+    href: "https://www.youtube.com/@sathyastores",
+    Icon: FaYoutube,
+  },
+];
+
+function sortByPosition(a, b) {
+  return (Number(a.position) || 0) - (Number(b.position) || 0);
+}
 
 const Footer = () => {
-  const [categories, setCategories] = useState([]);
-  const [groupedCategories, setGroupedCategories] = useState({ main: [], subs: {} });
-  const [stores, setStores] = useState([]);
-  
-  // Auth state
-  const [showAuthModal, setShowAuthModal] = useState(false);
-  const [activeTab, setActiveTab] = useState('login');
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    mobile: '',
-    password: ''
+  const [groupedCategories, setGroupedCategories] = useState({
+    main: [],
+    subs: {},
   });
-  const [formError, setFormError] = useState('');
-  const [error, setError] = useState('');
-  const [loadingAuth, setLoadingAuth] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userData, setUserData] = useState(null);
 
   useEffect(() => {
-    const CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
+    const CACHE_TTL = 24 * 60 * 60 * 1000;
+    const key = "cache_footer_categories_v1";
 
-    const getCached = (key) => {
+    const getCached = () => {
       try {
         const raw = localStorage.getItem(key);
         if (!raw) return null;
         const parsed = JSON.parse(raw);
-        if (!parsed || !parsed.__ts) return null;
-        if (Date.now() - parsed.__ts > CACHE_TTL) {
+        if (!parsed?.__ts || Date.now() - parsed.__ts > CACHE_TTL) {
           localStorage.removeItem(key);
           return null;
         }
         return parsed.data;
-      } catch (e) {
+      } catch {
         return null;
       }
     };
 
-    const setCached = (key, data) => {
+    const setCached = (data) => {
       try {
         localStorage.setItem(key, JSON.stringify({ __ts: Date.now(), data }));
-      } catch (e) {
-        // ignore
+      } catch {
+        /* ignore */
       }
     };
 
     const makeGrouped = (data) => {
-      const activeCategories = Array.isArray(data) ? data.filter(cat => cat.status === 'Active') : [];
-      const main = activeCategories.filter(cat => cat.parentid === 'none');
+      const active = Array.isArray(data)
+        ? data.filter((cat) => cat.status === "Active")
+        : [];
+      const main = active.filter((cat) => cat.parentid === "none");
       const subs = {};
-      activeCategories.forEach(cat => {
-        if (cat.parentid !== 'none') {
+      active.forEach((cat) => {
+        if (cat.parentid !== "none") {
           if (!subs[cat.parentid]) subs[cat.parentid] = [];
           subs[cat.parentid].push(cat);
         }
       });
-      return { main, subs };
+      return { main, subs, all: active };
     };
 
-    const fetchCategories = async () => {
-      const key = 'cache_footer_categories_v1';
-      const cached = getCached(key);
-      if (cached) {
-        setGroupedCategories(makeGrouped(cached));
-        return;
-      }
+    const cached = getCached();
+    if (cached) {
+      setGroupedCategories(makeGrouped(cached));
+    }
 
+    (async () => {
       try {
-        const res = await fetch('/api/categories/get');
+        const res = await fetch("/api/categories/get");
         const data = await res.json();
         if (data) {
           setGroupedCategories(makeGrouped(data));
-          setCached(key, data);
+          setCached(data);
         }
       } catch (err) {
-        console.error('Error fetching categories:', err);
+        console.error("Error fetching footer categories:", err);
       }
-    };
-
-    const fetchStores = async () => {
-      const key = 'cache_footer_stores_v1';
-      const cached = getCached(key);
-      if (cached) {
-        setStores(cached);
-        return;
-      }
-
-      try {
-        const res = await fetch('/api/store/get');
-        const data = await res.json();
-        if (data && data.success) {
-          setStores(data.data);
-          setCached(key, data.data);
-        }
-      } catch (err) {
-        console.error('Error fetching stores:', err);
-      }
-    };
-
-    fetchCategories();
-    fetchStores();
+    })();
   }, []);
 
-  const categoryIcons = {
-    "TELEVISIONS": Tv,
-    "COMPUTERS & LAPTOPS": Laptop,
-    "MOBILES & ACCESSORIES": Smartphone,
-    "LARGE APPLIANCES": Refrigerator,
-    "SMALL APPLIANCES": WashingMachine,
-    "OUR LOCATION": MapPin,
-  };
+  /** All active sub-categories (under main), with correct URLs */
+  const categoryColumnLinks = useMemo(() => {
+    const mains = [...(groupedCategories.main || [])].sort(sortByPosition);
+    const links = [];
 
-  const checkAuthStatus = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) return;
-
-      const response = await fetch('/api/auth/check', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        }
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setIsLoggedIn(true);
-        setUserData(data.user);
-      } else {
-        localStorage.removeItem('token');
-        setIsLoggedIn(false);
-      }
-    } catch (error) {
-      console.error("Error checking auth status:", error);
-    }
-  };
-
-  const handleAuthSubmit = async (e) => {
-    e.preventDefault();
-    setFormError('');
-    setError('');
-    setLoadingAuth(true);
-
-    try {
-      const endpoint = activeTab === 'login' ? '/api/auth/login' : '/api/auth/register';
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Something went wrong');
-      }
-
-      localStorage.setItem('token', data.token);
-      setIsLoggedIn(true);
-      setUserData(data.user);
-      setShowAuthModal(false);
-      setFormData({
-        name: '',
-        email: '',
-        mobile: '',
-        password: ''
-      });
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoadingAuth(false);
-    }
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    setIsLoggedIn(false);
-    setUserData(null);
-  };
-  
-  const groupedStores = stores.reduce((acc, store) => {
-    const city = store.city; // or store.store_city based on your API
-    if (!acc[city]) {
-      acc[city] = [];
-    }
-    acc[city].push(store.organisation_name);
-    return acc;
-  }, {});
-
-  const capitalizeFirstLetter = (str) =>
-    str.charAt(0).toUpperCase() + str.slice(1);
-    
-  // Case-insensitive membership helper
-  const inSetCI = (name, arr) => arr.includes(String(name || '').toLowerCase());
-
-  const groupCategories = (categories) => {
-    const grouped = { main: [], subs: {} };
-    
-    const mainCats = categories.filter(cat => cat.parentid === "none");
-    
-    mainCats.forEach(mainCat => {
-      const subs = categories.filter(cat => cat.parentid === mainCat._id.toString());
-      grouped.main.push(mainCat);
-      grouped.subs[mainCat._id] = subs;
-    });
-    
-    return grouped;
-  };
-
-  // Prepare normalized sections for rendering:
-  // - For Large Appliances: one block per ["Dishwasher","Air Conditioner","Washing Machine","Refrigerator"]
-  //   with order: title -> all subcategories -> single Brands list.
-  // - For others: keep existing brand logic (subcategories + nested + one Brands list).
-  const prepareFooterSections = (grouped) => {
-    const sections = [];
-    if (!grouped || !Array.isArray(grouped.main)) return sections;
-
-    // Use lowercase for consistent matching
-    const LARGE_SET = new Set([
-      "dishwasher",
-      "air conditioner",
-      "washing machine",
-      "refrigerator",
-    ]);
-
-    grouped.main.forEach((mainCat) => {
-      const subs = grouped.subs[mainCat._id] || [];
-      if (mainCat.category_name?.toLowerCase() === "large appliances") {
-        subs.forEach((subcat) => {
-          const subName = subcat.category_name?.toLowerCase();
-          if (LARGE_SET.has(subName)) {
-            const children = grouped.subs[subcat._id] || [];
-            const brands =
-              (Array.isArray(subcat.brands) && subcat.brands.length
-                ? subcat.brands
-                : mainCat.brands) || [];
-            sections.push({
-              type: "la",
-              key: `la-${subcat._id}`,
-              main: mainCat,
-              la: subcat,
-              children,
-              brands,
-            });
-          }
+    mains.forEach((main) => {
+      const subs = [...(groupedCategories.subs?.[main._id] || [])].sort(
+        sortByPosition
+      );
+      subs.forEach((sub) => {
+        links.push({
+          label: sub.category_name,
+          href: `/category/${main.category_slug}/${sub.category_slug}`,
+          id: sub._id,
         });
-      } else {
-        sections.push({
-          type: "default",
-          key: `def-${mainCat._id}`,
-          main: mainCat,
-          subs,
-          brands: mainCat.brands || [],
-        });
-      }
+      });
     });
 
-    return sections;
-  };
+    return links;
+  }, [groupedCategories]);
 
-  const preparedSections = useMemo(
-    () => prepareFooterSections(groupedCategories),
-    [groupedCategories]
-  );
+  /**
+   * Bottom SEO block: every sub-category + its child categories.
+   * Sub title → child1, child2, ...
+   */
+  const detailRows = useMemo(() => {
+    const mains = [...(groupedCategories.main || [])].sort(sortByPosition);
+    const rows = [];
+
+    mains.forEach((main) => {
+      const subs = [...(groupedCategories.subs?.[main._id] || [])].sort(
+        sortByPosition
+      );
+      subs.forEach((sub) => {
+        const children = [
+          ...(groupedCategories.subs?.[sub._id] || []),
+        ].sort(sortByPosition);
+
+        rows.push({
+          title: sub.category_name,
+          href: `/category/${main.category_slug}/${sub.category_slug}`,
+          id: sub._id,
+          children: children.map((child) => ({
+            label: child.category_name,
+            href: `/category/${main.category_slug}/${sub.category_slug}/${child.category_slug}`,
+          })),
+        });
+      });
+    });
+
+    return rows;
+  }, [groupedCategories]);
 
   return (
     <>
-        <footer className="bg-white">
-          {/* TOP FEATURES */}
-          <div className="py-3 bg-gray-50">
-            <div className="container mx-auto">
-
-              <div className="w-full lg:w-12/12 mx-auto bg-white rounded-2xl shadow-xl px-6 py-4">
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
-
-                  {/* Item 1 */}
-                  <div className="flex items-center gap-3 px-6 lg:border-r border-gray-200">
-                    <IoShieldCheckmark className="text-3xl text-blue-600 flex-shrink-0" />
-                    <div>
-                      <h4 className="font-semibold text-[#041b4d] text-sm whitespace-nowrap">
-                        100% Original Products
-                      </h4>
-                      <p className="text-xs text-gray-500 whitespace-nowrap">
-                        Authorized Brand Partner
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Item 2 */}
-                  <div className="flex items-center gap-3 px-6 lg:border-r border-gray-200">
-                    <IoShieldCheckmark className="text-3xl text-blue-600 flex-shrink-0" />
-                    <div>
-                      <h4 className="font-semibold text-[#041b4d] text-sm whitespace-nowrap">
-                        2 Year Warranty
-                      </h4>
-                      <p className="text-xs text-gray-500 whitespace-nowrap">
-                        On Select Products
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Item 3 */}
-                  <div className="flex items-center gap-3 px-6 lg:border-r border-gray-200">
-                    <TbTruckDelivery className="text-3xl text-blue-600 flex-shrink-0" />
-                    <div>
-                      <h4 className="font-semibold text-[#041b4d] text-sm whitespace-nowrap">
-                        Fast Delivery
-                      </h4>
-                      <p className="text-xs text-gray-500 whitespace-nowrap">
-                        Across Tamil Nadu
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Item 4 */}
-                  <div className="flex items-center gap-3 px-6 lg:border-r border-gray-200">
-                    <IoReload className="text-3xl text-blue-600 flex-shrink-0" />
-                    <div>
-                      <h4 className="font-semibold text-[#041b4d] text-sm whitespace-nowrap">
-                        Easy Returns
-                      </h4>
-                      <p className="text-xs text-gray-500 whitespace-nowrap">
-                        Hassle Free
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Item 5 */}
-                  <div className="flex items-center gap-3 px-6 lg:border-r border-gray-200">
-                    <IoStorefront className="text-3xl text-blue-600 flex-shrink-0" />
-                    <div>
-                      <h4 className="font-semibold text-[#041b4d] text-sm whitespace-nowrap">
-                        Best Prices
-                      </h4>
-                      <p className="text-xs text-gray-500 whitespace-nowrap">
-                        Top Brands
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Item 6 */}
-                  <div className="flex items-center gap-3 px-6">
-                    <IoCardOutline className="text-3xl text-blue-600 flex-shrink-0" />
-                    <div>
-                      <h4 className="font-semibold text-[#041b4d] text-sm whitespace-nowrap">
-                        No Cost EMI
-                      </h4>
-                      <p className="text-xs text-gray-500 whitespace-nowrap">
-                        Easy EMI
-                      </p>
-                    </div>
-                  </div>
-
-                </div>
-
-              </div>
-
-            </div>
-          </div>
-
-          {/* WHITE FOOTER */}
-          <div className="container mx-auto px-4 py-3">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-
-              {/* LEFT LOGO SECTION */}
-              <div className="lg:col-span-3 lg:border-r border-gray-200 lg:pr-8">
-                <Image
-                  src="/logo.png"
-                  alt="Logo"
-                  width={150}
-                  height={70}
+      <style jsx global>{`
+        .footer-link {
+          position: relative;
+          display: inline-block;
+          color: #9ca3af;
+          text-decoration: none;
+          transition: color 0.25s ease;
+          padding-bottom: 2px;
+        }
+        .footer-link::after {
+          content: "";
+          position: absolute;
+          left: 0;
+          bottom: 0;
+          width: 100%;
+          height: 1.5px;
+          background: #d72828;
+          transform: scaleX(0);
+          transform-origin: left center;
+          transition: transform 0.45s ease;
+        }
+        .footer-link:hover {
+          color: #ffffff;
+        }
+        .footer-link:hover::after {
+          transform: scaleX(1);
+        }
+        .footer-link-bold {
+          color: #ffffff;
+          font-weight: 700;
+        }
+        .footer-link-bold:hover {
+          color: #ffffff;
+        }
+      `}</style>
+      <footer className="w-full">
+        {/* 1. Service highlights — white */}
+        <div className="bg-white border-t border-gray-100">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 py-5 sm:py-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-6">
+              <div className="flex items-center gap-3">
+                <TbTruckDelivery
+                  className="text-3xl sm:text-4xl shrink-0"
+                  style={{ color: BRAND_RED }}
                 />
-
-                <p className="text-gray-600 mt-4 text-sm leading-6">
-                  Bharath Electronics & Appliances – Trusted by thousands of customers for the best brands, unbeatable prices and reliable services.
-                </p>
-
-                <div className="mt-5 space-y-3 text-sm text-gray-600">
-
-                  <div className="flex items-start gap-3">
-                    <FiMapPin className="text-blue-600 text-lg mt-1 shrink-0" />
-                    <p>
-                      26/1 Dr. Alagappa Chettiyar Rd, Tatabad,
-                      Near Kovai Scan Centre, Coimbatore - 641012,
-                      Tamil Nadu
-                    </p>
-                  </div>
-
-                  <div className="flex items-center gap-3">
-                    <FiPhone className="text-blue-600 text-lg" />
-                    <a
-                      href="tel:9842344323"
-                      className="text-blue-600 hover:text-blue-600"
-                    >
-                      9842344323
-                    </a>
-                  </div>
-
-                  <div className="flex items-center gap-3">
-                    <FiMail className="text-blue-600 text-lg shrink-0" />
-
-                    <a
-                      href="mailto:customercare@bharathelectronics.in"
-                      className="text-blue-600 hover:text-blue-600 break-all"
-                    >
-                      customercare@bharathelectronics.in
-                    </a>
-                  </div>
-
-                  <div className="flex items-center gap-3">
-                    <FiClock className="text-blue-600 text-lg" />
-                    <p>Mon - Sun : 10:00 AM - 09:00 PM</p>
-                  </div>
-
-                </div>
-              </div>
-
-              {/* MIDDLE SECTION */}
-              <div className="lg:col-span-7 lg:border-r border-gray-200 lg:pr-8">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-
-                  {/* SHOP BY CATEGORY */}
-                  <div>
-                    <h3 className="font-bold text-[#041b4d] text-sm uppercase">
-                      SHOP BY CATEGORY
-                    </h3>
-
-                    <div className="w-8 h-[2px] bg-blue-600 mt-2 mb-3"></div>
-
-                    <ul className="space-y-2 text-gray-600 text-sm">
-                      {groupedCategories.main.slice(0,8).map((cat) => (
-                        <li key={cat._id}>
-                          <Link href={`/category/${cat.category_slug}`}>
-                            {cat.category_name}
-                          </Link>
-                        </li>
-                      ))}
-                      <li>
-                        <Link href="/open-box">
-                          Open Box Deal
-                        </Link>
-                      </li>
-                    </ul>
-                  </div>
-
-                  {/* CUSTOMER SERVICE */}
-                  <div>
-                    <h3 className="font-bold text-[#041b4d] text-sm uppercase">
-                      CUSTOMER SERVICE
-                    </h3>
-                    <div className="w-8 h-[2px] bg-blue-600 mt-2 mb-3"></div>
-
-                    <ul className="space-y-2 text-gray-600 text-sm">
-                      <li><Link href="/shipping">Shipping & Delivery Policy</Link></li>
-                      <li><Link href="/cancellation-refund-policy">Cancellation & Refund Policy</Link></li>
-                      <li><Link href="/feedback">Customer Support & feedback centre</Link></li>
-                      <li><Link href="/contact">Contact</Link></li>
-                      <li><Link href="/live-video-demo">Live Video Demo</Link></li>
-                      <li><Link href="/bulk-orders-and-gift-card-enquiry">B2B / Corporate Enquiries</Link></li>
-                    </ul>
-                  </div>
-
-                  {/* COMPANY */}
-                  <div>
-                    <h3 className="font-bold text-[#041b4d] text-sm uppercase">
-                      COMPANY
-                    </h3>
-                    <div className="w-8 h-[2px] bg-blue-600 mt-2 mb-3"></div>
-                    <ul className="space-y-2 text-gray-600 text-sm">
-                      <li><Link href="/aboutus">About Us</Link></li>
-                      <li><Link href="/blog">Blog</Link></li>
-                      <li><Link href="/careers">Careers</Link></li>
-                      <li><Link href="/location">Our Stores</Link></li>
-                      <li><Link href="/loyalty">Loyalty Points</Link></li>
-                    </ul>
-                  </div>
-
-                  {/* MY ACCOUNT */}
-                  <div>
-                    <h3 className="font-bold text-[#041b4d] text-sm uppercase">
-                      MY ACCOUNT
-                    </h3>
-                    <div className="w-8 h-[2px] bg-blue-600 mt-2 mb-3"></div>
-                    <ul className="space-y-2 text-gray-600 text-sm">
-                      {isLoggedIn ? (
-                        <>
-                          <li><Link href="/order">My Orders</Link></li>
-                          <li>
-                            <button onClick={handleLogout}>
-                              Logout
-                            </button>
-                          </li>
-                        </>
-                      ) : (
-                        <li>
-                          <button onClick={() => setShowAuthModal(true)}>
-                            Sign In / Register
-                          </button>
-                        </li>
-                      )}
-                      <li><Link href="/orders">My Orders</Link></li>
-                      <li><Link href="/wishlist">Wishlist</Link></li>
-                    </ul>
-                  </div>
-
-                </div>
-              </div>
-
-              {/* RIGHT SOCIAL SECTION */}
-              <div className="lg:col-span-2">
-                <h3 className="font-bold text-[#041b4d] mb-4">
-                  CONNECT WITH US
-                </h3>
-                <p className="text-gray-600 mt-2 text-sm leading-6">
-                  Stay Connected for the latest offers & updates
-                </p>
-                <div className="flex gap-4 text-xl mb-6 mt-5">
-                  <Link href="https://web.whatsapp.com/send?phone=919842344323&text=Hi">
-                    <FaWhatsapp className="text-green-500" />
-                  </Link>
-                  <Link href="https://www.facebook.com/BharathElectronics/">
-                    <FaFacebookF className="text-blue-600" />
-                  </Link>
-                  <Link href="https://www.instagram.com/bharathelectronics/">
-                    <FaInstagram className="text-pink-500" />
-                  </Link>
-                  <Link href="https://www.youtube.com/@bharathelectronicsandapplian">
-                    <FaYoutube className="text-red-500" />
-                  </Link>
-                  <Link href="https://twitter.com/bharath_bea">
-                    <FaXTwitter />
-                  </Link>
-                  <Link href="https://in.linkedin.com/company/bharath-electronics-and-appliances">
-                    <FaLinkedinIn className="text-blue-700" />
-                  </Link>
-                </div>
-              </div>
-
-            </div>
-          </div>
-
-{/* DARK BLUE CATEGORY FOOTER */}
-<div className="bg-[#041b4d] text-white py-10 overflow-hidden">
-  <div className="container mx-auto px-4">
-
-    {/* Changed to 1 column on mobile, 4 on tablet, 10 on desktop */}
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-10 gap-y-10 gap-x-6 text-sm">
-
-      {groupedCategories.main.slice(0, 5).map((main) => {
-        const Icon =
-          categoryIcons[main.category_name?.toUpperCase()] || MapPin;
-
-        return (
-          <div
-            key={main._id}
-            className="lg:border-r border-[#14346d] px-2 lg:px-4 min-w-0"
-          >
-           <h4 className="flex items-center gap-2 font-semibold uppercase mb-4 flex-wrap">
-  <Icon size={18} className="shrink-0" />
-  <span className="text-[13px] leading-snug">{main.category_name}</span>
-</h4>
-
-            <ul className="space-y-2 text-gray-300 text-sm">
-              {(groupedCategories.subs[main._id] || [])
-                .slice(0, 5)
-                .map((sub) => (
-                  <li
-                    key={sub._id}
-  className="hover:text-white transition-colors"
->
-                    <Link
-                      href={`/category/${main.category_slug}/${sub.category_slug}`}
-                    >
-                      {sub.category_name}
-                    </Link>
-                  </li>
-                ))}
-
-              <li className="whitespace-nowrap">
-                <Link
-                  href={`/category/${main.category_slug}`}
-                  className="text-blue-300 hover:text-white transition-colors"
-                >
-                  View All →
-                </Link>
-              </li>
-            </ul>
-          </div>
-        );
-      })}
-
-      {/* Top Brands */}
-      <div className="lg:border-r border-[#14346d] px-2 lg:px-4 min-w-0">
-        <h4 className="font-semibold uppercase mb-4 whitespace-nowrap">
-          Top Brands
-        </h4>
-
-        <ul className="space-y-2 text-gray-300 text-sm">
-          <li className="whitespace-nowrap hover:text-white transition-colors cursor-pointer">LG</li>
-          <li className="whitespace-nowrap hover:text-white transition-colors cursor-pointer">Samsung</li>
-          <li className="whitespace-nowrap hover:text-white transition-colors cursor-pointer">Sony</li>
-          <li className="whitespace-nowrap hover:text-white transition-colors cursor-pointer">Whirlpool</li>
-          <li className="whitespace-nowrap hover:text-white transition-colors cursor-pointer">Bosch</li>
-        </ul>
-      </div>
-
-      {/* Our Location */}
-      <div className="sm:col-span-2 lg:col-span-2 lg:border-r border-[#14346d] px-2 lg:px-4 min-w-0">
-        <h4 className="font-semibold uppercase mb-4 whitespace-nowrap">
-          Our Location
-        </h4>
-
-        <iframe
-          src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d391.02517849236526!2d76.9626592!3d11.0194039!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3ba8585cc4962b87%3A0x38eddb57f0f66203!2sBharath%20Electronics%20%26%20Appliances!5e0!3m2!1sen!2sin!4v1740660808642!5m2!1sen!2sin"
-          width="100%"
-          height="120"
-          style={{ border: 0, borderRadius: '6px' }}
-          loading="lazy"
-          allowFullScreen
-          referrerPolicy="no-referrer-when-downgrade"
-          title="Google Maps - Bharath Electronics & Appliances Location"
-        />
-
-        <a
-          href="https://maps.app.goo.gl/aceBM5ztAjNQLx217"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-blue-300 text-sm mt-3 inline-block whitespace-nowrap hover:text-white transition-colors"
-        >
-          View on Google Maps →
-        </a>
-      </div>
-
-      {/* Our App Section */}
-      <div className="sm:col-span-2 lg:col-span-2 bottom-4 flex px-2 lg:px-2 xl:px-4 min-w-0 relative h-[196px] lg:h-[230px] xl:h-[240px] items-center lg:items-start lg:pt-4 xl:pt-2 overflow-visible">
-        
-        {/* Text & Badges */}
-        <div className="relative z-10 mb-2 flex flex-col pt-0.5 w-[60%] sm:w-[50%] md:w-[90%] lg:w-[52%] xl:w-[90%]">
-          <h4 className="font-semibold text-white mb-6 mb-1 leading-tight lg:text-[13px] xl:text-base">
-            Download BEA TRUCO App
-          </h4>
-          <p className="text-gray-300 text-[14px] leading-snug mb-2 lg:text-[12px] xl:text-[14px]">
-            Your rewards, always<br/>in your pocket.
-          </p>
-
-          <div className="flex flex-col gap-1.5 mt-1">
-            <Link href="https://play.google.com/store/apps/details?id=com.avaniko.truco&pcampaignid=web_share" className="flex items-center gap-2 hover:opacity-80 transition-opacity w-[140px] lg:w-[118px] xl:w-[140px]">
-              <Image
-                src="/uploads/Play_Store.png" 
-                alt="Get it on Google Play"
-                width={140}
-                height={100}
-                className="object-contain rounded w-full h-auto"
-              />
-             
-            </Link>
-            <Link href="https://apps.apple.com/in/app/bea-truco/id6751942292" className="flex items-center gap-2 hover:opacity-80 transition-opacity w-[140px] lg:w-[118px] xl:w-[140px]">
-              <Image
-                src="/uploads/App_Store.png" 
-                alt="Download on the App Store"
-                width={140}
-                height={100}
-                className="object-contain rounded w-full h-auto"
-              />
-             
-            </Link>
-          </div>
-        </div>
-
-        {/* Phone Image at the end (right) - hidden on very small screens, visible from sm up */}
-        <div className="absolute right-[-12px] mb-2 sm:right-[90px] md:right-[90px] top-5 md:top-[80px] bottom-4 xl:bottom-[-2px] z-0 pointer-events-none flex items-center lg:right-[-18px] xl:right-[-90px] 2xl:right-[-40px] lg:top-[18px] xl:top-[36px] lg:bottom-auto">
-  <Image
-    src="/uploads/truco_app_phone.png"
-    alt="BEA Mobile App Mockup"
-    width={110}
-    height={140}
-    className="object-contain drop-shadow-xl lg:w-[92px] xl:w-[110px] h-auto"
-  />
-</div>
-      </div>
-    </div>
-  </div>
-</div>
-          <div className="bg-[#02133a] text-gray-300 py-4">
-            <div className="container mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4">
-
-              {/* Left Side */}
-              <div className="flex items-center gap-3 text-sm">
-                <div className="text-xl">🔒</div>
                 <div>
-                  <p className="font-medium text-white">Secure Payments</p>
-                  <p className="text-xs text-gray-400">
-                    Your data is protected with 256-bit encryption
+                  <h4 className="font-bold text-gray-900 text-sm sm:text-base leading-tight">
+                    Fast Delivery
+                  </h4>
+                  <p className="text-xs sm:text-sm text-gray-500 mt-0.5">
+                    Quick &amp; Reliable
                   </p>
                 </div>
               </div>
 
-              {/* Center */}
-              <div className="text-center text-sm">
-                <p>© 2026 Bharath Electronics & Appliances. All Rights Reserved.</p>
-
-                <div className="flex justify-center gap-4 mt-1 text-xs">
-                  <Link href="/terms-and-condition" className="hover:text-white">
-                    Terms & Conditions
-                  </Link>
-                  <span>|</span>
-                  <Link href="/privacypolicy" className="hover:text-white">
-                    Privacy Policy
-                  </Link>
-                  {/* <span>|</span>
-                  <Link href="/sitemap" className="hover:text-white">
-                    Sitemap
-                  </Link> */}
+              <div className="flex items-center gap-3">
+                <IoCardOutline
+                  className="text-3xl sm:text-4xl shrink-0"
+                  style={{ color: BRAND_RED }}
+                />
+                <div>
+                  <h4 className="font-bold text-gray-900 text-sm sm:text-base leading-tight">
+                    Safe Payments
+                  </h4>
+                  <p className="text-xs sm:text-sm text-gray-500 mt-0.5">
+                    Secure Checkout
+                  </p>
                 </div>
               </div>
 
-              {/* Right Side */}
-              <div className="flex items-center gap-4">
-                <img src="/uploads/payment.png" alt="Visa" className="h-6" />
-                
+              <div className="flex items-center gap-3">
+                <IoPricetagOutline
+                  className="text-3xl sm:text-4xl shrink-0"
+                  style={{ color: BRAND_RED }}
+                />
+                <div>
+                  <h4 className="font-bold text-gray-900 text-sm sm:text-base leading-tight">
+                    Quality Products
+                  </h4>
+                  <p className="text-xs sm:text-sm text-gray-500 mt-0.5">
+                    Top Quality
+                  </p>
+                </div>
               </div>
 
-            </div>
-          </div>
-        </footer>
-      {/* Auth Modal */}
-      {showAuthModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-[#677279] rounded-lg p-8 w-96 max-w-full relative">
-            <button 
-                onClick={() => {
-                  setShowAuthModal(false);
-                  setFormError('');
-                  setError('');
-                }}
-              className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl">
-              ×
-            </button>
-            <div className="flex gap-4 mb-6 border-b">
-              <button
-                className={`pb-2 px-1 ${
-                  activeTab === 'login' 
-                    ? 'border-b-2 border-blue-500 text-blue-600' 
-                    : 'text-gray-500 hover:text-gray-700'
-                }`}
-                onClick={() => setActiveTab('login')}
-              >
-                Login
-              </button>
-              <button
-                className={`pb-2 px-1 ${
-                  activeTab === 'register'
-                    ? 'border-b-2 border-blue-500 text-blue-600'
-                    : 'text-gray-500 hover:text-gray-700'
-                }`}
-                onClick={() => setActiveTab('register')}
-              >
-                Register
-              </button>
-            </div>
-            <form onSubmit={handleAuthSubmit} className="space-y-4">
-              {activeTab === 'register' && (
-                <input
-                  type="text"
-                  placeholder="Name"
-                  value={formData.name}
-                  onChange={(e) => setFormData({...formData, name: e.target.value})}
-                  className="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
+              <div className="flex items-center gap-3">
+                <FaHeadset
+                  className="text-3xl sm:text-4xl shrink-0"
+                  style={{ color: BRAND_RED }}
                 />
-              )}
-              <input
-                type="email"
-                placeholder="Email"
-                value={formData.email}
-                onChange={(e) => setFormData({...formData, email: e.target.value})}
-                className="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              />
-              {activeTab === 'register' && (
-                <input
-                  type="tel"
-                  placeholder="Mobile"
-                  value={formData.mobile}
-                  onChange={(e) => setFormData({...formData, mobile: e.target.value})}
-                  className="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
-                />
-              )}
-              <input
-                type="password"
-                placeholder="Password"
-                value={formData.password}
-                onChange={(e) => setFormData({...formData, password: e.target.value})}
-                className="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-                minLength={6}
-              />
-              
-              {(formError || error) && (
-                <div className="text-red-500 text-sm">
-                  {formError || error}
+                <div>
+                  <h4 className="font-bold text-gray-900 text-sm sm:text-base leading-tight">
+                    Help Center
+                  </h4>
+                  <p className="text-xs sm:text-sm text-gray-500 mt-0.5">
+                    24/7 Support
+                  </p>
                 </div>
-              )}
-
-              <button
-                type="submit"
-                disabled={loadingAuth}
-                className="w-full bg-blue-500 text-[#677279] py-2 px-4 rounded hover:bg-blue-600 disabled:bg-gray-400 transition-colors duration-200"
-              >
-                {loadingAuth ? 'Processing...' : activeTab === 'login' ? 'Login' : 'Register'}
-              </button>
-            </form>
+              </div>
+            </div>
           </div>
         </div>
-      )}
+
+        {/* 2. Main dark footer */}
+        <div style={{ backgroundColor: FOOTER_BG }} className="text-white">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-10 pb-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-10">
+              {/* ABOUT SATHYA */}
+              <div>
+                <h3 className="text-sm font-bold tracking-wide uppercase mb-4">
+                  About Sathya
+                </h3>
+                <ul className="space-y-2.5">
+                  {ABOUT_LINKS.map((link) => (
+                    <li key={link.label}>
+                      <Link href={link.href} className="footer-link text-sm">
+                        {link.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* CATEGORIES */}
+              <div>
+                <h3 className="text-sm font-bold tracking-wide uppercase mb-4">
+                  Categories
+                </h3>
+                <ul className="space-y-2.5 max-h-[28rem] overflow-y-auto pr-1">
+                  {categoryColumnLinks.length === 0 ? (
+                    <li className="text-sm text-gray-500">Loading…</li>
+                  ) : (
+                    categoryColumnLinks.map((link) => (
+                      <li key={link.id || link.href}>
+                        <Link href={link.href} className="footer-link text-sm">
+                          {link.label}
+                        </Link>
+                      </li>
+                    ))
+                  )}
+                </ul>
+              </div>
+
+              {/* OFFERS */}
+              <div>
+                <h3 className="text-sm font-bold tracking-wide uppercase mb-4">
+                  Offers
+                </h3>
+                <ul className="space-y-2.5">
+                  {OFFER_LINKS.map((link) => (
+                    <li key={link.label}>
+                      <Link href={link.href} className="footer-link text-sm">
+                        {link.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* SALES ENQUIRY */}
+              <div>
+                <h3 className="text-sm font-bold tracking-wide uppercase mb-4">
+                  Sales Enquiry
+                </h3>
+                <div className="space-y-3 text-sm">
+                  <a
+                    href="tel:+918880598985"
+                    className="flex items-center gap-2 font-semibold hover:opacity-90"
+                    style={{ color: BRAND_RED }}
+                  >
+                    <FiPhone className="text-base shrink-0" />
+                    +91 88805 98985
+                  </a>
+                  <a
+                    href="mailto:info@sathya.store"
+                    className="flex items-center gap-2 font-semibold hover:opacity-90 break-all"
+                    style={{ color: BRAND_RED }}
+                  >
+                    <FiMail className="text-base shrink-0" />
+                    info@sathya.store
+                  </a>
+                  <p className="text-gray-400 pt-1">
+                    Mon To Sun: 09:30 AM - 09:30 PM
+                  </p>
+                </div>
+
+                <h4 className="text-sm font-bold tracking-wide uppercase mt-6 mb-3">
+                  Follow Us On
+                </h4>
+                <div className="flex items-center gap-2.5">
+                  {SOCIAL_LINKS.map(({ label, href, Icon }) => (
+                    <a
+                      key={label}
+                      href={href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={label}
+                      className="w-9 h-9 flex items-center justify-center rounded border border-gray-600 text-gray-300 hover:border-white hover:text-white transition-colors"
+                    >
+                      <Icon className="text-sm" />
+                    </a>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 3. Detailed category links */}
+          <div className="border-t border-gray-700/80">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-10 gap-y-4">
+                {detailRows.length === 0 ? (
+                  <p className="text-sm text-gray-500">Categories loading…</p>
+                ) : (
+                  detailRows.map((row) => (
+                  <div
+                    key={row.id || row.title}
+                    className="flex flex-wrap items-baseline gap-x-2 gap-y-1 text-sm leading-relaxed"
+                  >
+                    <Link
+                      href={row.href}
+                      className="footer-link footer-link-bold text-sm whitespace-nowrap"
+                    >
+                      {row.title}
+                    </Link>
+                    {row.children.length > 0 ? (
+                      <span className="text-gray-500">—</span>
+                    ) : null}
+                    {row.children.map((child, idx) => (
+                      <span key={child.href} className="text-gray-400">
+                        <Link href={child.href} className="footer-link text-sm">
+                          {child.label}
+                        </Link>
+                        {idx < row.children.length - 1 ? (
+                          <span className="mx-1.5 text-gray-600">,</span>
+                        ) : null}
+                      </span>
+                    ))}
+                  </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* 4. Copyright bar */}
+          <div className="border-t border-gray-700/80">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-sm text-gray-400">
+              <p className="text-center sm:text-left">
+                © 2023-2026{" "}
+                <a
+                  href="https://sathya.store"
+                  className="font-medium hover:underline"
+                  style={{ color: BRAND_RED }}
+                >
+                  sathya.store
+                </a>{" "}
+                All Rights Reserved.
+              </p>
+              <p className="text-center sm:text-right">
+                Powered by{" "}
+                <a
+                  href="https://eywamedia.com/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-semibold tracking-wide hover:underline"
+                  style={{ color: BRAND_RED }}
+                >
+                  EYWAMEDIA
+                </a>
+              </p>
+            </div>
+          </div>
+        </div>
+      </footer>
+
+      {/* Floating WhatsApp */}
+      <div className="fixed bottom-5 right-4 z-40 flex flex-col items-end gap-3">
+        <a
+          href="https://wa.me/918880598985?text=Hi"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="WhatsApp assist"
+          className="relative group"
+        >
+          <span className="absolute -left-2 -right-2 -top-2 -bottom-2 rounded-full border border-green-500/40 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity" />
+          <span className="w-14 h-14 rounded-full bg-[#25D366] text-white shadow-lg flex items-center justify-center hover:scale-105 transition-transform">
+            <FaWhatsapp className="text-3xl" />
+          </span>
+        </a>
+      </div>
     </>
   );
 };
+
 export default Footer;

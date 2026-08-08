@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
@@ -112,7 +112,7 @@ const OrdersTable_abon = () => {
       // List of emails: customer + admins
       const emailList = [
         order.email_address || "kbsiva1234@gmail.com",
-        "arunkarthik@bharathelectronics.in", "ecom@bharathelectronics.in", "itadmin@bharathelectronics.in", "telemarketing@bharathelectronics.in", "sekarcorp@bharathelectronics.in", "customercare@bharathelectronics.in"
+        "arunkarthik@sathya.store", "ecom@sathya.store", "itadmin@sathya.store", "telemarketing@sathya.store", "sekarcorp@sathya.store", "customercare@sathya.store"
       ];
 
 
@@ -227,7 +227,7 @@ const OrdersTable_abon = () => {
       // multiple recipients
       const recipients = [
         order.email_address, // original order user
-        "arunkarthik@bharathelectronics.in", "ecom@bharathelectronics.in", "itadmin@bharathelectronics.in", "telemarketing@bharathelectronics.in", "sekarcorp@bharathelectronics.in", "customercare@bharathelectronics.in"
+        "arunkarthik@sathya.store", "ecom@sathya.store", "itadmin@sathya.store", "telemarketing@sathya.store", "sekarcorp@sathya.store", "customercare@sathya.store"
       ];
 
 
@@ -273,7 +273,7 @@ const OrdersTable_abon = () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          to: "ecom@bharathelectroncis.in",
+          to: "ecom@sathya.store",
           //cc: "siva96852@gmail.com",
           subject: `Order ${order.order_number} Status Updated`,
           text: `Order ${order.order_number} for ${order.order_username} has been updated from ${oldStatus} to ${newStatus}.`,

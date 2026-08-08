@@ -126,7 +126,7 @@ function WishlistBanner({ count }) {
             <Image src="/wishlist/across.webp" className="w-[40px] h-[40px]" alt="stores" width={40} height={40} />
             <div className="flex flex-col">
               <strong className="text-sm font-bold text-gray-900 whitespace-nowrap">Available Across</strong>
-              <span className="text-xs text-gray-600 whitespace-nowrap">BEA Stores</span>
+              <span className="text-xs text-gray-600 whitespace-nowrap">Sathya Stores</span>
             </div>
           </div>
           <div className="flex items-center gap-3 border border-gray-300 rounded-xl px-4 py-2.5 shadow bg-white/80 backdrop-blur-sm">
@@ -150,7 +150,7 @@ function WishlistBanner({ count }) {
 <Image src="/wishlist/across.webp" loading="eager" className="w-[36px] h-[36px] flex-shrink-0" alt="stores" width={36} height={36} />
           <div className="flex flex-col">
             <strong className="text-xs font-bold text-gray-900 whitespace-nowrap">Available Across</strong>
-            <span className="text-[11px] text-gray-600 whitespace-nowrap">BEA Stores</span>
+            <span className="text-[11px] text-gray-600 whitespace-nowrap">Sathya Stores</span>
           </div>
         </div>
         <div className="flex items-center gap-2 border border-gray-300 rounded-xl px-3 py-2 shadow-sm bg-white flex-shrink-0">

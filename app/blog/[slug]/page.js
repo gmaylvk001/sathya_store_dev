@@ -36,7 +36,7 @@ function VideoEmbed({ url }) {
         <iframe
           className="w-full h-full"
           src={`https://www.youtube.com/embed/${ytId}`}
-          title="BEA Expert Video"
+          title="Sathya Stores Expert Video"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowFullScreen
         />
@@ -200,11 +200,11 @@ export async function generateMetadata({ params }) {
   const blog = await getBlogPost(slug);
 
   return {
-    title: blog?.blog_name || "Blog Post | BEA",
-    description: blog?.description?.slice(0, 160) || "Read expert appliance guides from BEA",
+    title: blog?.blog_name || "Blog Post | Sathya Stores",
+    description: blog?.description?.slice(0, 160) || "Read expert appliance guides from Sathya Stores",
     openGraph: {
-      title: blog?.blog_name || "Blog Post | BEA",
-      description: blog?.description?.slice(0, 160) || "Read expert appliance guides from BEA",
+      title: blog?.blog_name || "Blog Post | Sathya Stores",
+      description: blog?.description?.slice(0, 160) || "Read expert appliance guides from Sathya Stores",
       images: blog?.image ? [{ url: blog.image }] : [],
     },
   };

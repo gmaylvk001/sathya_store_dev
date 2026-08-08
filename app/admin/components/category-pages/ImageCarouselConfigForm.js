@@ -11,6 +11,10 @@ const emptyItem = () => ({
   isActive: true,
 });
 
+function readShowGap(value) {
+  return value === true || value === "true" || value === 1;
+}
+
 /**
  * Image Carousel component page:
  * - Select from gallery → list already-created sets + ADD NEW (top right)
@@ -30,6 +34,7 @@ export default function ImageCarouselConfigForm({
   const isListMode = !instanceId;
   const [name, setName] = useState("");
   const [status, setStatus] = useState("active");
+  const [showGap, setShowGap] = useState(false);
   const [items, setItems] = useState([emptyItem()]);
   const [loading, setLoading] = useState(!isListMode);
   const [saving, setSaving] = useState(false);
@@ -77,6 +82,7 @@ export default function ImageCarouselConfigForm({
         if (data.success && data.data) {
           setName(data.data.name || "");
           setStatus(data.data.status || "active");
+          setShowGap(readShowGap(data.data.showGap));
           const rows = data.data.items || [];
           setItems(
             rows.length
@@ -92,6 +98,7 @@ export default function ImageCarouselConfigForm({
         } else {
           setName("");
           setItems([emptyItem()]);
+          setShowGap(false);
           setStatus("active");
         }
       } catch (e) {
@@ -130,6 +137,7 @@ export default function ImageCarouselConfigForm({
       fd.append("pageId", pageId);
       fd.append("name", name.trim());
       fd.append("status", status);
+      fd.append("showGap", showGap ? "true" : "false");
       fd.append(
         "itemsMeta",
         JSON.stringify(
@@ -151,6 +159,9 @@ export default function ImageCarouselConfigForm({
       });
       const data = await res.json();
       if (!data.success) throw new Error(data.message || "Save failed");
+      if (data.data) {
+        setShowGap(readShowGap(data.data.showGap));
+      }
       onSaved?.(data);
     } catch (err) {
       setError(err.message);
@@ -298,6 +309,39 @@ export default function ImageCarouselConfigForm({
         />
       </div>
 
+      <div className="rounded-xl border-2 border-gray-200 bg-gray-50 p-4">
+        <label className="block text-sm font-semibold text-gray-900 mb-1">
+          Gap between images
+        </label>
+        <p className="text-xs text-gray-500 mb-3">
+          ON shows space between carousel images. OFF displays images with no gap.
+        </p>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => setShowGap(true)}
+            className={`rounded-lg border px-6 py-2 text-sm font-semibold transition ${
+              showGap
+                ? "border-[#d72828] bg-[#d72828] text-white"
+                : "border-gray-300 bg-white text-gray-700 hover:border-gray-400"
+            }`}
+          >
+            ON
+          </button>
+          <button
+            type="button"
+            onClick={() => setShowGap(false)}
+            className={`rounded-lg border px-6 py-2 text-sm font-semibold transition ${
+              !showGap
+                ? "border-[#d72828] bg-[#d72828] text-white"
+                : "border-gray-300 bg-white text-gray-700 hover:border-gray-400"
+            }`}
+          >
+            OFF
+          </button>
+        </div>
+      </div>
+
       <div className="flex items-center gap-3">
         <label className="relative inline-flex items-center cursor-pointer">
           <input
@@ -355,7 +399,7 @@ export default function ImageCarouselConfigForm({
             </label>
             <input
               type="file"
-              accept="image/jpeg,image/png,image/webp,image/gif,image/heic,image/heif,.jpg,.jpeg,.png,.webp,.gif,.heic,.heif"
+              accept="image/jpeg,image/png,image/webp,image/gif,image/avif,image/heic,image/heif,.jpg,.jpeg,.png,.webp,.gif,.avif,.heic,.heif"
               onChange={(e) => {
                 const file = e.target.files?.[0];
                 if (!file) return;
@@ -368,7 +412,7 @@ export default function ImageCarouselConfigForm({
               className="w-full text-sm"
             />
             <p className="text-[11px] text-gray-500 mt-1">
-              JPG, PNG, WebP, or HEIC (HEIC is converted to JPG automatically).
+              JPG, PNG, WebP, AVIF, or HEIC (HEIC is converted to JPG automatically).
             </p>
             {item.imagePreview && (
               // eslint-disable-next-line @next/next/no-img-element

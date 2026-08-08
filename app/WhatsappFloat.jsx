@@ -18,12 +18,12 @@ export default function WhatsAppFloat() {
           {/* Header */}
           <div className="bg-[#075E54] px-4 py-3 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              {/* BEA Logo placeholder — replace src with your logo */}
+              {/* Sathya Stores Logo placeholder — replace src with your logo */}
           <div className="w-14 h-14 rounded-full bg-white flex items-center justify-center overflow-hidden flex-shrink-0">
-      <img src="\images\logo\bea-favi.png" alt="BEA" className="w-12 h-12 object-contain" />
+      <img src="/uploads/sathyalogo.webp" alt="Sathya Stores" className="w-12 h-12 object-contain" />
              </div>
               <div>
-                <p className="text-white font-bold text-sm leading-tight">Bharath Electronics</p>
+                <p className="text-white font-bold text-sm leading-tight">Sathya Stores</p>
                 <p className="text-green-300 text-xs">Typically replies within minutes</p>
               </div>
             </div>
@@ -38,7 +38,7 @@ export default function WhatsAppFloat() {
           {/* Chat bubble */}
           <div className="bg-[#ECE5DD] px-4 py-5">
             <div className="bg-white rounded-xl rounded-tl-none px-4 py-3 shadow-sm max-w-[85%]">
-              <p className="text-xs font-semibold text-[#075E54] mb-1">Bharath Electronics</p>
+              <p className="text-xs font-semibold text-[#075E54] mb-1">Sathya Stores</p>
               <p className="text-sm text-gray-700 leading-snug">
                 👋 Hi there! How can we help you today? Connect with us to know more.
               </p>

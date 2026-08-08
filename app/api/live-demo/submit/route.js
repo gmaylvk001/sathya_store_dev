@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
 
 const ADMIN_EMAILS = [
-  "arunkarthik@bharathelectronics.in",
-  "ecom@bharathelectronics.in",
-  "itadmin@bharathelectronics.in",
-  "telemarketing@bharathelectronics.in",
-  "sekarcorp@bharathelectronics.in",
-  "abu@bharathelectronics.in",
-  "customercare@bharathelectronics.in",
+  "arunkarthik@sathya.store",
+  "ecom@sathya.store",
+  "itadmin@sathya.store",
+  "telemarketing@sathya.store",
+  "sekarcorp@sathya.store",
+  "abu@sathya.store",
+  "customercare@sathya.store",
 ];
 
 // const ADMIN_EMAILS = [
@@ -41,7 +41,7 @@ export async function POST(req) {
     }
 
     const messageHtml = [
-      "<b>BEA Live Video Call Demo Request</b>",
+      "<b>Sathya Stores Live Video Call Demo Request</b>",
       `Name: ${fullName}`,
       `Mobile: ${mobile}`,
       `Email: ${email || "N/A"}`,
@@ -102,7 +102,7 @@ export async function POST(req) {
     }
 
     const waText = [
-      "BEA Live Demo Request",
+      "Sathya Stores Live Demo Request",
       "",
       `Name: ${fullName}`,
       `Mobile: ${mobile}`,

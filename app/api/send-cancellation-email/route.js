@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 
 const EMAIL_AUTH =
   process.env.EYGR_EMAIL_AUTH ||
@@ -10,11 +10,11 @@ const CANCEL_CAMPAIGN_ID =
   "04f143b9-492e-4a5b-97b8-52a2c9c879a4";
 
 const DEFAULT_ADMIN_EMAILS = [
-  "arunkarthik@bharathelectronics.in",
-  "ecom@bharathelectronics.in",
-  "itadmin@bharathelectronics.in",
-  "telemarketing@bharathelectronics.in",
-  "sekarcorp@bharathelectronics.in",
+  "arunkarthik@sathya.store",
+  "ecom@sathya.store",
+  "itadmin@sathya.store",
+  "telemarketing@sathya.store",
+  "sekarcorp@sathya.store",
 ];
 
 const formatINR = (value) =>

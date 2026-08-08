@@ -38,14 +38,12 @@ export const WishlistProvider = ({ children }) => {
       }
     };
 
-    const handleFocus = () => fetchWishlist();
-
+    // Cross-tab sync via storage only — avoid refetching wishlist on every
+    // window focus (that hammered /api/wishlist during navigation/tab switches).
     window.addEventListener('storage', handleStorageChange);
-    window.addEventListener('focus', handleFocus);
 
     return () => {
       window.removeEventListener('storage', handleStorageChange);
-      window.removeEventListener('focus', handleFocus);
     };
   }, []);
 

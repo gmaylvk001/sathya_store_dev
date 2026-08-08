@@ -117,7 +117,7 @@ export async function GET(request, { params }) {
     const filters = await Filter.find({ _id: { $in: filterIds } })
       .populate({
         path: "filter_group",
-        select: "filtergroup_name -_id",
+        select: "filtergroup_name filtergroup_slug",
         model: FilterGroup,
       })
       .lean();
@@ -125,6 +125,7 @@ export async function GET(request, { params }) {
     const formattedFilters = filters.map((filter) => ({
       ...filter,
       filter_group_name: filter.filter_group?.filtergroup_name || "No Group",
+      filter_group_slug: filter.filter_group?.filtergroup_slug || "",
       filter_group: filter.filter_group?._id,
     }));
 

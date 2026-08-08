@@ -193,7 +193,7 @@ const removeProductRow = (index) => {
                     "params",
                     JSON.stringify([contact.name,contact.company_name,contact.email_address,contact.mobile_number,contact.city,contact.business_type,contact.requirement_category,contact.gst_number,contact.contact_method,productsDetails])
                 );
-                const emailadmin = ["arunkarthik@bharathelectronics.in","rajesh@bharathelectronics.in","customercare@bharathelectronics.in"];
+                const emailadmin = ["arunkarthik@sathya.store","rajesh@sathya.store","customercare@sathya.store"];
                 // const emailadmin = ["sorambeeviuit@gmail.com"];
                 emailadmin.forEach(async (emailadmin) => {
                     adminemailFormData.set("email", emailadmin);
@@ -247,7 +247,7 @@ const removeProductRow = (index) => {
 
                             <p className="text-base sm:text-lg text-gray-200 leading-8 mb-4">Looking for bulk electronics, appliances, corporate gifting, or institutional purchases?</p>
 
-                            <p className="text-[16px] md:text-[18px] text-gray-300 leading-8 mb-8">BEA Corporate Solutions provides dedicated pricing, product consultation, delivery coordination, and after-sales support for businesses across Tamil Nadu.</p>
+                            <p className="text-[16px] md:text-[18px] text-gray-300 leading-8 mb-8">Sathya Stores Corporate Solutions provides dedicated pricing, product consultation, delivery coordination, and after-sales support for businesses across Tamil Nadu.</p>
 
                             {/* BUTTONS */}
                             <div className="flex flex-col sm:flex-row gap-3">
@@ -307,7 +307,7 @@ const removeProductRow = (index) => {
                             <h2 className="text-[34px] md:text-[34px] font-extrabold text-[#081028] leading-[1.1] mb-4">Solutions Built for <br />Businesses Like Yours</h2>
                             <div className="space-y-3 text-gray-600 leading-8 text-[17px]">
                             <p>
-                                BEA Corporate Solutions helps businesses, institutions,
+                                Sathya Stores Corporate Solutions helps businesses, institutions,
                                 hotels, builders, offices, and retailers fulfil bulk
                                 electronics and appliance requirements with ease.
                             </p>
@@ -319,7 +319,7 @@ const removeProductRow = (index) => {
                             </p>
                             <p>
                                 Whether you require a single category or multi-brand bulk
-                                purchases, BEA offers competitive pricing, GST billing,
+                                purchases, Sathya Stores offers competitive pricing, GST billing,
                                 and trusted support across Tamil Nadu.
                             </p>
                             </div>
@@ -493,7 +493,7 @@ const removeProductRow = (index) => {
                         <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto_1fr] gap-10 items-center">
                             {/* LEFT */}
                             <div>
-                                <h2 className="text-[32px] md:text-[30px] font-extrabold text-[#081028] mb-8">Why Businesses Choose BEA</h2>
+                                <h2 className="text-[32px] md:text-[30px] font-extrabold text-[#081028] mb-8">Why Businesses Choose Sathya Stores</h2>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-5 gap-x-8">
                                     <div className="flex items-start gap-3">
                                         <span className="w-6 h-6 rounded-full bg-[#2563eb] text-white flex items-center justify-center text-[13px] shrink-0 mt-1">✓</span>
@@ -611,14 +611,14 @@ const removeProductRow = (index) => {
                                     onClick={openLiveDemoModal}
                                     className="inline-flex items-center justify-center gap-2.5 w-full sm:w-auto min-w-[280px] px-6 py-3.5 rounded-xl bg-[#5B4CF5] hover:bg-[#4a3de0] text-white font-semibold text-[14px] md:text-[15px] transition-colors shadow-sm"
                                 >
-                                    Schedule Corporate BEA Live Meeting
+                                    Schedule Corporate Sathya Stores Live Meeting
                                     <Video className="w-5 h-5" strokeWidth={2} />
                                 </button>
                             </div>
                             <div className="order-first lg:order-last flex justify-center lg:justify-end">
                                 <Image
                                     src="/uploads/live-video-phone.png"
-                                    alt="Corporate BEA Live Meeting"
+                                    alt="Corporate Sathya Stores Live Meeting"
                                     width={370}
                                     height={495}
                                     className="w-[370px] h-[495px] max-w-full object-contain"
@@ -1070,7 +1070,7 @@ const removeProductRow = (index) => {
                                 <div>
                                     <h3 className="font-bold text-[15px] text-[#081028] mb-2">Mail Us</h3>
                                     <p className="text-[15px] font-bold text-[#081028] mb-3 break-all leading-7">
-                                        <a href="mailto:corporate@bharathelectronics.in" className="text-[15px] font-bold text-blue-600 mb-3 break-all leading-7 hover:text-blue-600">corporate@bharathelectronics.in</a>
+                                        <a href="mailto:corporate@sathya.store" className="text-[15px] font-bold text-blue-600 mb-3 break-all leading-7 hover:text-blue-600">corporate@sathya.store</a>
                                     </p>
                                     <p className="text-gray-600 text-[13px]">We reply within 24 hours</p>
                                 </div>

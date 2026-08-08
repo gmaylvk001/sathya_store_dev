@@ -146,7 +146,7 @@ const items = order_new_vk.order_details.map(item => ({
    /*
     
     const url =
-    "http://BEA-SAP-CLIENT.Victory.local:8080/B1iXcellerator/exec/ipo/.DEV.sap.httpcallpost.sap.httpcallpost/com.sap.b1i.dev.scenarios.setup/sap.httpcallpost/sap.httpcallpost.ipo/httpcallpost.sap.httpcallpost";
+    "http://Sathya Stores-SAP-CLIENT.Victory.local:8080/B1iXcellerator/exec/ipo/.DEV.sap.httpcallpost.sap.httpcallpost/com.sap.b1i.dev.scenarios.setup/sap.httpcallpost/sap.httpcallpost.ipo/httpcallpost.sap.httpcallpost";
     
     */
     

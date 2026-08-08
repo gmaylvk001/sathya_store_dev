@@ -11,9 +11,9 @@ import { FaHeart } from "react-icons/fa6";
 
 export default function Profile() {
   const [profileData, setProfileData] = useState({
-    firstName: 'BEA',
+    firstName: 'Sathya Stores',
     lastName: 'Admin',
-    email: 'ecom@bharathelectronics.in',
+    email: 'ecom@sathya.store',
     mobile: '9842248610',
     store: '100 FEET ROAD'
   });

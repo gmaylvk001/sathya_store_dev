@@ -420,6 +420,9 @@ export default function BannerFourProductsConfigForm({
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Desktop image *
             </label>
+            <p className="text-[11px] text-red-600 mb-1">
+              Displayed at exact image size on storefront (scales down only if wider than the page).
+            </p>
             <input
               type="file"
               accept="image/*,.heic,.heif"
@@ -467,9 +470,15 @@ export default function BannerFourProductsConfigForm({
 
       <div className="rounded-xl border border-gray-200 p-4 space-y-4 bg-gray-50/40">
         <div className="flex flex-wrap items-end justify-between gap-3">
-          <h4 className="text-sm font-semibold text-gray-900">
-            4 images (tiles)
-          </h4>
+          <div>
+            <h4 className="text-sm font-semibold text-gray-900">
+              4 images (tiles)
+            </h4>
+            <p className="text-[11px] text-red-600 mt-0.5">
+              Displayed at exact image size. If larger than 450×450, scaled down
+              to fit (no crop).
+            </p>
+          </div>
           <div className="min-w-[200px]">
             <label className="block text-xs font-medium text-gray-600 mb-1">
               Background color for 4 images *

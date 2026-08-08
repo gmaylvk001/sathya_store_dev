@@ -19,7 +19,7 @@ const PHONE_DISPLAY = "98423 44323";
 const PHONE_TEL = "9842344323";
 const WHATSAPP_URL =
   "https://wa.me/919842344323?text=" +
-  encodeURIComponent("Hi, I'd like to know more about BEA Live Video Demo.");
+  encodeURIComponent("Hi, I'd like to know more about Sathya Stores Live Video Demo.");
 
 const STEPS = [
   {
@@ -79,7 +79,7 @@ export default function LiveVideoDemoPage() {
           {/* Left — content */}
           <div className="order-2 lg:order-1">
             <span className="inline-flex items-center rounded-full bg-[#e8eefc] text-[#1a4db8] text-[11px] sm:text-xs font-bold tracking-wide px-3 py-1 mb-4">
-              BEA LIVE DEMO
+              Sathya Stores LIVE DEMO
             </span>
 
             <h1 className="text-[#041b4d] font-extrabold text-[1.65rem] sm:text-3xl lg:text-[2.15rem] leading-tight mb-3 sm:mb-4">
@@ -89,7 +89,7 @@ export default function LiveVideoDemoPage() {
             </h1>
 
             <p className="text-gray-600 text-sm sm:text-[15px] leading-relaxed mb-5 sm:mb-6 max-w-xl">
-              Connect with our product experts from your nearest BEA store
+              Connect with our product experts from your nearest Sathya Stores store
               through a live video call.
             </p>
 
@@ -127,7 +127,7 @@ export default function LiveVideoDemoPage() {
             <div className="relative w-full max-w-[450px] aspect-square rounded-2xl overflow-hidden shadow-[0_12px_40px_-12px_rgba(4,27,77,0.28)]">
               <Image
                 src="/uploads/live-demo.png"
-                alt="BEA Live Video Call with product expert"
+                alt="Sathya Stores Live Video Call with product expert"
                 width={450}
                 height={450}
                 className="w-full h-full object-cover"

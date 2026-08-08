@@ -456,7 +456,7 @@ export default function BlogComponent() {
 
             <h1 className="text-4xl md:text-5xl font-bold mb-4 tracking-tight">
 
-              BEA Knowledge Hub
+              Sathya Stores Knowledge Hub
 
             </h1>
 
@@ -470,7 +470,7 @@ export default function BlogComponent() {
 
               Expert buying guides, appliance comparisons, maintenance tips and latest technology
 
-              updates from Bharath Electronics & Appliances — Tamil Nadu's trusted electronics
+              updates from Sathya Stores — Tamil Nadu's trusted electronics
 
               destination.
 
@@ -520,7 +520,7 @@ export default function BlogComponent() {
 
               src="/store/BEA_Store.png"
 
-              alt="BEA Store"
+              alt="Sathya Stores Store"
 
               className="w-full rounded-lg shadow-2xl border border-gray-700/50"
 
@@ -966,7 +966,7 @@ export default function BlogComponent() {
 
 
 
-          {/* Right: Watch BEA Expert Guides (UPDATED MATCHING DESIGN) */}
+          {/* Right: Watch Sathya Stores Expert Guides (UPDATED MATCHING DESIGN) */}
 
           <div>
 
@@ -974,7 +974,7 @@ export default function BlogComponent() {
 
               <h3 className="text-[20px] font-extrabold text-[#0a1d56] tracking-tight">
 
-                Watch BEA Expert Guides
+                Watch Sathya Stores Expert Guides
 
               </h3>
 
@@ -1472,11 +1472,11 @@ export default function BlogComponent() {
 
 
 
-          {/* COLUMN 3: BEA Live Demo + Need Help Choosing + Subscribe */}
+          {/* COLUMN 3: Sathya Stores Live Demo + Need Help Choosing + Subscribe */}
 
           <div className="flex flex-col gap-5">
 
-            {/* BEA Live Demo */}
+            {/* Sathya Stores Live Demo */}
             <div className="flex items-center gap-2 rounded-xl border border-[#d4d8f0] bg-gradient-to-br from-[#f8f6ff] to-[#eef3ff] overflow-hidden shadow-[0_2px_8px_-2px_rgba(0,0,0,0.08)] p-3 sm:p-4">
               <div className="flex-1 min-w-0">
                 <h4 className="font-extrabold text-[#0a1d56] text-[14px] sm:text-[15px] leading-snug mb-1">
@@ -1507,7 +1507,7 @@ export default function BlogComponent() {
               <div className="shrink-0 w-[90px] sm:w-[110px] self-end">
                 <img
                   src="/uploads/live-video-phone.png"
-                  alt="BEA Live Demo"
+                  alt="Sathya Stores Live Demo"
                   className="w-full h-auto object-contain bg-transparent"
                 />
               </div>
@@ -1539,7 +1539,7 @@ export default function BlogComponent() {
 
               <p className="text-[12px] text-gray-600 mb-4 leading-relaxed relative z-10 pr-16">
 
-                Get guidance from BEA product specialists who help thousands of customers choose the right appliances every month.
+                Get guidance from Sathya Stores product specialists who help thousands of customers choose the right appliances every month.
 
               </p>
 
@@ -1669,7 +1669,7 @@ export default function BlogComponent() {
 
             <h3 className="text-[18px] font-bold text-gray-900 mb-4 tracking-tight">
 
-              Why Trust BEA Guides?
+              Why Trust Sathya Stores Guides?
 
             </h3>
 
@@ -1743,7 +1743,7 @@ export default function BlogComponent() {
 
                 <p className="text-blue-100 text-[13px] leading-relaxed mb-4">
 
-                  Talk to a BEA Expert or visit your nearest store.
+                  Talk to a Sathya Stores Expert or visit your nearest store.
 
                 </p>
 
@@ -1783,7 +1783,7 @@ export default function BlogComponent() {
 
                   src="/store/BEA_Store.png"
 
-                  alt="BEA Store"
+                  alt="Sathya Stores Store"
 
                   className="w-full h-full object-cover rounded-tl-lg"
 

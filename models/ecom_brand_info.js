@@ -17,7 +17,7 @@ const BrandSchema = new mongoose.Schema({
     type: String,
     validate: {
       validator: function(v) {
-        return /\.(jpg|jpeg|png|webp|gif)$/i.test(v);
+        return /\.(jpg|jpeg|png|webp|gif|avif)$/i.test(v);
       },
       message: props => `${props.value} is not a valid image path!`
     }

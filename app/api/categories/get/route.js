@@ -5,112 +5,153 @@ import Brand from "@/models/ecom_brand_info";
 import { NextResponse } from "next/server";
 import mongoose from "mongoose";
 
+/** Short in-memory cache so Header + Footer don't double-hit Mongo on first paint.
+ *  Use globalThis so Turbopack/HMR does not wipe the cache on every compile. */
+const g = globalThis;
+if (!g.__sathyaCategoriesCache) {
+  g.__sathyaCategoriesCache = { data: null, at: 0 };
+}
+const CATEGORIES_CACHE_TTL_MS = 60 * 1000; // 60s
+
 /**
- * Recursively fetch all descendant category IDs
+ * Build parent → child id map and descendant sets in memory
+ * (avoids N recursive Category.find queries).
  */
-async function getDescendantCategoryIds(categoryId, visited = new Set()) {
-  if (!mongoose.Types.ObjectId.isValid(categoryId)) return [];
+function buildDescendantMap(categories) {
+  const childrenByParent = new Map();
 
-  const idStr = categoryId.toString();
-  if (visited.has(idStr)) return []; // avoid loops
-  visited.add(idStr);
-
-  const children = await Category.find({ parentid: categoryId });
-  let ids = [categoryId];
-
-  for (const child of children) {
-    const childIds = await getDescendantCategoryIds(child._id, visited);
-    ids = ids.concat(childIds);
+  for (const cat of categories) {
+    const parentKey =
+      cat.parentid && cat.parentid !== "none"
+        ? cat.parentid.toString()
+        : "none";
+    if (!childrenByParent.has(parentKey)) {
+      childrenByParent.set(parentKey, []);
+    }
+    childrenByParent.get(parentKey).push(cat._id.toString());
   }
 
-  return ids;
+  const memo = new Map();
+
+  function getDescendants(categoryId, visiting = new Set()) {
+    const idStr = categoryId.toString();
+    if (memo.has(idStr)) return memo.get(idStr);
+    // Guard against circular parent/child links in category data
+    if (visiting.has(idStr)) return [];
+    visiting.add(idStr);
+
+    const result = [idStr];
+    const children = childrenByParent.get(idStr) || [];
+    for (const childId of children) {
+      result.push(...getDescendants(childId, visiting));
+    }
+    visiting.delete(idStr);
+    memo.set(idStr, result);
+    return result;
+  }
+
+  return getDescendants;
 }
 
 /**
  * GET /api/categories/get
- * Fetch all categories with their products and related brands
+ * Same response shape as before: category fields + parentid string + brands[].
+ * Optimized: 3–4 DB queries total instead of N+1 per category.
  */
 export async function GET() {
   try {
+    const now = Date.now();
+    const cacheStore = g.__sathyaCategoriesCache;
+    if (
+      cacheStore.data &&
+      now - cacheStore.at < CATEGORIES_CACHE_TTL_MS
+    ) {
+      return NextResponse.json(cacheStore.data, { status: 200 });
+    }
+
     await dbConnect();
 
-    const categories = await Category.find().sort({ position: 1 });
+    // Keep Combo Offers category Active only when ≥1 storefront-visible combo exists
+    try {
+      const { syncComboCategoryVisibility } = await import(
+        "@/lib/comboOffers/categoryVisibilityService"
+      );
+      await syncComboCategoryVisibility();
+    } catch (syncErr) {
+      console.warn("Combo category visibility sync skipped:", syncErr?.message);
+    }
 
-    const categoriesWithProducts = await Promise.all(
-      categories.map(async (cat) => {
-        console.log(
-          `📂 Processing category: ${cat.category_name} (${cat._id})`,
-        );
+    const categories = await Category.find().sort({ position: 1 }).lean();
+    const getDescendants = buildDescendantMap(categories);
 
-        // fetch all descendant IDs (including itself)
-        //const categoryIds = await getDescendantCategoryIds(cat._id);
+    // One aggregation: category → set of brand ids
+    const brandByCategory = await Product.aggregate([
+      {
+        $match: {
+          brand: { $exists: true, $nin: [null, ""] },
+          category: { $exists: true, $nin: [null, ""] },
+        },
+      },
+      {
+        $group: {
+          _id: "$category",
+          brands: { $addToSet: "$brand" },
+        },
+      },
+    ]);
 
-        // fetch products within these categories
-        /*
-        const products = await Product.find({ category: { $in: categoryIds } }).sort({ createdAt: -1 });
+    const brandsByCategoryId = new Map();
+    for (const row of brandByCategory) {
+      if (row?._id != null) {
+        brandsByCategoryId.set(row._id.toString(), row.brands || []);
+      }
+    }
 
-        if (products.length > 0) {
-          console.log(`✅ Found ${products.length} products for "${cat.category_name}"`);
-        } else {
-          console.log(`⚠️ No products found for "${cat.category_name}"`);
+    // Collect every brand id needed across the whole tree
+    const allBrandIdSet = new Set();
+    const brandIdsPerCategory = new Map();
+
+    for (const cat of categories) {
+      const catId = cat._id.toString();
+      const descendantIds = getDescendants(catId);
+      const brandIds = new Set();
+
+      for (const descId of descendantIds) {
+        const brands = brandsByCategoryId.get(descId) || [];
+        for (const brandId of brands) {
+          if (brandId && mongoose.Types.ObjectId.isValid(brandId)) {
+            brandIds.add(brandId.toString());
+            allBrandIdSet.add(brandId.toString());
+          }
         }
+      }
 
-        // extract unique valid brand IDs
-        const brandIds = [
-          ...new Set(
-            products
-              .map((p) => p.brand?.toString())
-              .filter((id) => id && mongoose.Types.ObjectId.isValid(id))
-          ),
-        ];
+      brandIdsPerCategory.set(catId, [...brandIds]);
+    }
 
-        // fetch related brands
-        const brands = brandIds.length
-          ? await Brand.find({ _id: { $in: brandIds } })
-          : [];
+    const allBrandIds = [...allBrandIdSet];
+    const brands =
+      allBrandIds.length > 0
+        ? await Brand.find({ _id: { $in: allBrandIds } }).lean()
+        : [];
 
-        return {
-          ...cat.toObject(),
-          products,
-          brands,
-        }; */
+    const brandMap = new Map(brands.map((b) => [b._id.toString(), b]));
 
-        // fetch all descendant IDs (including itself)
-        const categoryIds = await getDescendantCategoryIds(cat._id);
+    const categoriesWithProducts = categories.map((cat) => {
+      const catId = cat._id.toString();
+      const brandIds = brandIdsPerCategory.get(catId) || [];
+      const catBrands = brandIds.map((id) => brandMap.get(id)).filter(Boolean);
 
-        // fetch products within these categories
+      return {
+        ...cat,
+        parentid: cat.parentid?.toString() || "none",
+        brands: catBrands,
+      };
+    });
 
-        const brandIds = await Product.distinct("brand", {
-          category: { $in: categoryIds },
-        });
+    cacheStore.data = categoriesWithProducts;
+    cacheStore.at = now;
 
-        if (brandIds.length > 0) {
-          console.log(
-            `✅ Found ${brandIds.length} brands for "${cat.category_name}"`,
-          );
-        } else {
-          console.log(`⚠️ No brands found for "${cat.category_name}"`);
-        }
-
-        const validBrandIds = brandIds.filter(
-          (id) => id && mongoose.Types.ObjectId.isValid(id),
-        );
-
-        const brands = validBrandIds.length
-          ? await Brand.find({ _id: { $in: validBrandIds } })
-          : [];
-
-        return {
-          ...cat.toObject(),
-          parentid: cat.parentid?.toString() || "none",
-          brands,
-        };
-      }),
-    );
-
-    console.log(
-      `✅ Done! Fetched ${categoriesWithProducts.length} categories.`,
-    );
     return NextResponse.json(categoriesWithProducts, { status: 200 });
   } catch (error) {
     console.error("❌ Error fetching categories with products/brands:", error);

@@ -90,7 +90,7 @@ const policySections = [
     title: "2. Damaged or Defective Items",
     desc: (
       <p className="text-gray-600">
-        If you receive a damaged or defective product, please contact BEA
+        If you receive a damaged or defective product, please contact Sathya Stores
         Customer Care within 7 days of delivery with your order details and
         images/videos of the issue. Our team will verify the concern and
         assist with replacement or refund as per product and brand
@@ -116,7 +116,7 @@ const policySections = [
     desc: (
       <p className="text-gray-600">
         Products covered under manufacturer warranty will receive support
-        through authorized brand service partners. BEA will help customers
+        through authorized brand service partners. Sathya Stores will help customers
         connect with the respective brand service team whenever required.
       </p>
     ),
@@ -159,27 +159,27 @@ const helpPoints = [
 
 const faqs = [
   {
-    q: "1. Can I cancel my BEA order?",
+    q: "1. Can I cancel my Sathya Stores order?",
     a: "Yes, you can cancel your order immediately after placing it, as long as it has not been dispatched or installation has not started. Please contact our Customer Care team with your order details.",
   },
   {
-    q: "2. How long does BEA take to process refunds?",
+    q: "2. How long does Sathya Stores take to process refunds?",
     a: "Once your cancellation or refund request is approved, the refund will be processed within the applicable timeline based on your payment method and banking partner.",
   },
   {
     q: "3. What should I do if my appliance is damaged during delivery?",
-    a: "Please contact BEA Customer Care within 7 days of delivery along with images/videos of the issue. Our team will verify and assist with a replacement or refund.",
+    a: "Please contact Sathya Stores Customer Care within 7 days of delivery along with images/videos of the issue. Our team will verify and assist with a replacement or refund.",
   },
   {
     q: "4. Are installed products eligible for return?",
     a: "Once installation has started or been completed, the product is generally not eligible for cancellation or return, except in cases of verified manufacturing defects.",
   },
   {
-    q: "5. Does BEA provide warranty support?",
+    q: "5. Does Sathya Stores provide warranty support?",
     a: "Yes, products covered under manufacturer warranty receive support through our authorized brand service partners, and our team will help you connect with them.",
   },
   {
-    q: "6. How can I contact BEA customer care?",
+    q: "6. How can I contact Sathya Stores customer care?",
     a: "You can reach us via phone, WhatsApp, or email. Our contact details are listed in the Need Help section above.",
   },
 ];
@@ -246,7 +246,7 @@ const CancellationrefundComponent = () => {
               your electronics and home appliance purchases.
             </p>
             <p className="text-gray-500 mb-4 leading-relaxed">
-              At Bharath Electronics & Appliances (BEA), we are committed to
+              At Sathya Stores, we are committed to
               providing a smooth shopping experience for TVs, refrigerators,
               washing machines, air conditioners and other appliances
               purchased online or from our stores.
@@ -362,7 +362,7 @@ const CancellationrefundComponent = () => {
         </h2>
         <p className="text-gray-500 mb-6">
           This policy is applicable to the following product categories sold
-          on BEA online and in-store.
+          on Sathya Stores online and in-store.
         </p>
         <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-4">
           {categories.map((cat, idx) => (
@@ -434,13 +434,13 @@ const CancellationrefundComponent = () => {
 
               {/* Email Us */}
               <a
-                href="mailto:customercare@bharathelectronics.in">
+                href="mailto:customercare@sathya.store">
               <div className="flex flex-col sm:flex-row items-center sm:items-start gap-2 sm:gap-3 flex-1 text-center sm:text-left">
                 <FiMail className="text-xl sm:text-2xl text-customBlue flex-shrink-0 mt-1" />
                 <div>
                   <p className="text-[12px] font-bold text-customBlue mb-0.5">Email Us</p>
                   <p className="font-bold text-gray-900 text-[11px] sm:text-[12px] break-all">
-                    customercare@<br className="hidden xl:block" />bharathelectronics.in
+                    customercare@<br className="hidden xl:block" />sathya.store
                   </p>
                 </div>
               </div>
@@ -455,7 +455,7 @@ const CancellationrefundComponent = () => {
             <div className="w-full sm:w-[45%] lg:w-1/2 relative h-48 sm:h-auto">
               <img
                 src="/uploads/cancellation-refund/BEA_support.png"
-                alt="BEA Support Team"
+                alt="Sathya Stores Support Team"
                 className="w-full h-full object-cover object-top"
               />
               {/* Fade gradient to blend image smoothly into the white background */}
@@ -488,7 +488,7 @@ const CancellationrefundComponent = () => {
       {/* FAQ Section */}
       <div className="max-w-12xl mx-auto px-4 md:px-6 pb-12">
         <h2 className="text-2xl font-bold text-customBlue mb-6">
-          Frequently Asked Questions – BEA Cancellation & Refund
+          Frequently Asked Questions – Sathya Stores Cancellation & Refund
         </h2>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
           {faqs.map((faq, idx) => (

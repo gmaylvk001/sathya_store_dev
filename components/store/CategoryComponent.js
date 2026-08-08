@@ -56,36 +56,36 @@ const STATIC_PAYMENT_SERVICES = [
 
 const STATIC_FAQS = [
   {
-    q: "What is Bharath Electronics & Appliances (BEA)?",
-    a: "Bharath Electronics & Appliances (BEA) is one of South India's leading electronics and home appliances retailers, trusted by thousands of customers for genuine products, competitive prices, and reliable after-sales support across 47+ showrooms.",
+    q: "What is Sathya Stores?",
+    a: "Sathya Stores is one of South India's leading electronics and home appliances retailers, trusted by thousands of customers for genuine products, competitive prices, and reliable after-sales support across 47+ showrooms.",
   },
   {
-    q: "Which brands are available at BEA?",
-    a: "BEA is an authorized dealer for 100+ leading brands including LG, Samsung, Sony, Whirlpool, Panasonic, Bosch, Daikin, Haier, Voltas, and many more across TVs, ACs, refrigerators, washing machines, and kitchen appliances.",
+    q: "Which brands are available at Sathya Stores?",
+    a: "Sathya Stores is an authorized dealer for 100+ leading brands including LG, Samsung, Sony, Whirlpool, Panasonic, Bosch, Daikin, Haier, Voltas, and many more across TVs, ACs, refrigerators, washing machines, and kitchen appliances.",
   },
   {
     q: "Are EMI and No Cost EMI options available?",
-    a: "Yes. BEA offers easy EMI and No Cost EMI on select products through leading banks and finance partners, making it easier to purchase appliances and electronics in convenient monthly instalments.",
+    a: "Yes. Sathya Stores offers easy EMI and No Cost EMI on select products through leading banks and finance partners, making it easier to purchase appliances and electronics in convenient monthly instalments.",
   },
   {
-    q: "Does BEA provide home delivery?",
-    a: "Yes. BEA offers safe and timely home delivery across our service areas. Delivery availability and timelines may vary by product category and location.",
+    q: "Does Sathya Stores provide home delivery?",
+    a: "Yes. Sathya Stores offers safe and timely home delivery across our service areas. Delivery availability and timelines may vary by product category and location.",
   },
   {
-    q: "Does BEA provide installation for appliances?",
+    q: "Does Sathya Stores provide installation for appliances?",
     a: "Yes. Professional installation support is available for air conditioners, televisions, washing machines, and other appliances as per brand guidelines and product requirements.",
   },
   {
-    q: "What are BEA showroom timings?",
-    a: "Most BEA showrooms are open from 10:00 AM to 9:00 PM. Store timings may vary slightly by location — please check the store details above or contact the showroom directly.",
+    q: "What are Sathya Stores showroom timings?",
+    a: "Most Sathya Stores showrooms are open from 10:00 AM to 9:00 PM. Store timings may vary slightly by location — please check the store details above or contact the showroom directly.",
   },
   {
-    q: "Does BEA provide after-sales support?",
-    a: "Yes. BEA provides after-sales assistance for products purchased from our showrooms and website, including help with warranty guidance, brand service coordination, and customer support queries.",
+    q: "Does Sathya Stores provide after-sales support?",
+    a: "Yes. Sathya Stores provides after-sales assistance for products purchased from our showrooms and website, including help with warranty guidance, brand service coordination, and customer support queries.",
   },
   {
-    q: "How can I contact BEA customer care?",
-    a: "You can reach BEA Customer Care at 9842344323 or email customercare@bharathelectronics.in for product enquiries, delivery support, installation assistance, and service-related help.",
+    q: "How can I contact Sathya Stores customer care?",
+    a: "You can reach Sathya Stores Customer Care at 9842344323 or email customercare@sathya.store for product enquiries, delivery support, installation assistance, and service-related help.",
   },
 ];
 
@@ -801,7 +801,7 @@ export default function StoreDetail() {
       ) : (
         <div className="space-y-2">
           {[
-            { icon: "🎉", title: "BEA Summer Sale",   desc: "Up to 45% OFF on Select Products" },
+            { icon: "🎉", title: "Sathya Stores Summer Sale",   desc: "Up to 45% OFF on Select Products" },
             { icon: "💳", title: "No Cost EMI",        desc: "Easy EMI on Credit Cards" },
             { icon: "🔄", title: "Exchange Bonus",     desc: "Best Exchange Value Guaranteed" },
             { icon: "🛍️", title: "Combo Offers",      desc: "Buy More, Save More" },
@@ -1026,7 +1026,7 @@ export default function StoreDetail() {
 
           {/* Nearby Stores — dynamic */}
           <div className="bea-card">
-            <h3 className="text-[14px] font-bold text-blue-700 mb-3">More BEA Stores Near You</h3>
+            <h3 className="text-[14px] font-bold text-blue-700 mb-3">More Sathya Stores Near You</h3>
             {store.nearbyStores?.length > 0 ? (
               <div className="space-y-2.5">
                 {store.nearbyStores.slice(0, 3).map((ns, i) => (
@@ -1043,24 +1043,7 @@ export default function StoreDetail() {
                 ))}
               </div>
             ) : (
-              <div className="space-y-2.5">
-                {[
-                  { name: "BEA Trichy Road", city: "Coimbatore", dist: "4.3 km" },
-                  { name: "BEA 100 Feet Road", city: "Coimbatore", dist: "5.8 km" },
-                  { name: "BEA Gandhipuram", city: "Coimbatore", dist: "6.1 km" },
-                ].map((ns, i) => (
-                  <div key={i} className="flex items-center justify-between gap-2 border border-gray-200 rounded-lg p-2.5">
-                    <div>
-                      <div className="text-[12px] font-semibold text-gray-800">{ns.name}</div>
-                      <div className="text-[11px] text-gray-500">{ns.city}</div>
-                      <div className="text-[11px] text-blue-600 font-medium">{ns.dist}</div>
-                    </div>
-                    <button className="flex-shrink-0 bg-blue-600 text-white text-[10.5px] font-semibold px-2.5 py-1.5 rounded-lg hover:bg-blue-700 transition-colors">
-                      View Store
-                    </button>
-                  </div>
-                ))}
-              </div>
+              <p className="text-[12px] text-gray-500">Visit our <Link href="/location" className="text-blue-600 hover:underline">store locator</Link> to find nearby showrooms.</p>
             )}
             <div className="text-center mt-3">
               <Link href="/our-branches">
@@ -1136,11 +1119,11 @@ export default function StoreDetail() {
 
           {/* App Download — static */}
         <div className="bea-card">
-  <h3 className="text-[14px] font-bold text-gray-900 mb-3">Download BEA TRUCO App</h3>
+  <h3 className="text-[14px] font-bold text-gray-900 mb-3">Download Sathya Store App</h3>
   <a href={"https://truco.avaniko.com/api/api/download.html?tid=019acf86-5371-447f-a6f7-eeca624972ad&source=web&medium=web&campaign=truco"} target="_blank" rel="noopener noreferrer">
     <img
       src="/Store/storeTruco.png"
-      alt="Download BEA TRUCO App"
+      alt="Download Sathya Store App"
       className="w-full rounded-lg object-cover cursor-pointer"
     />
     <h2 className="cursor-pointer text-bold text-blue-800 text-center pt-3">Click here</h2>

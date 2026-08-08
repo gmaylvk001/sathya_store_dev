@@ -34,18 +34,18 @@ function ProductSearchInput({ onSelect }) {
     <div className="relative">
       <input
         type="text"
-        placeholder="Search product by name or item code..."
+        placeholder="Search product by name or item code…"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        className="w-full p-2 border rounded text-sm"
+        className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#d72828]/20 focus:border-[#d72828]"
       />
-      {loading && <div className="text-xs text-gray-400 mt-1">Searching...</div>}
+      {loading && <div className="text-xs text-gray-400 mt-1.5">Searching…</div>}
       {results.length > 0 && (
-        <div className="absolute z-50 w-full bg-white border border-gray-200 rounded shadow-lg max-h-48 overflow-y-auto mt-1">
+        <div className="absolute z-50 w-full bg-white border border-gray-200 rounded-xl shadow-lg max-h-48 overflow-y-auto mt-1.5">
           {results.map((prod) => (
             <div
               key={prod._id}
-              className="flex items-center gap-2 px-3 py-2 hover:bg-blue-50 cursor-pointer"
+              className="flex items-center gap-2 px-3 py-2.5 hover:bg-red-50 cursor-pointer border-b border-gray-50 last:border-0"
               onClick={() => {
                 onSelect(prod);
                 setQuery("");
@@ -60,7 +60,7 @@ function ProductSearchInput({ onSelect }) {
                 />
               )}
               <div>
-                <div className="text-[12px] font-semibold text-gray-800">{prod.name}</div>
+                <div className="text-xs font-semibold text-gray-800">{prod.name}</div>
                 <div className="text-[10px] text-gray-400">{prod.item_code}</div>
               </div>
             </div>
@@ -592,482 +592,969 @@ formData.append("existing_customer_images", JSON.stringify(customerExisting));
 
   const formTitle = storeId ? "Edit Store" : "Create New Store";
   const submitButtonText = storeId ? "Update Store" : "Create Store";
+  const storeSteps = [
+    { title: "Basics", desc: "Name, type & media" },
+    { title: "Location", desc: "Address & contact" },
+    { title: "SEO & access", desc: "Meta, user & status" },
+    { title: "Content", desc: "Banners & extras" },
+  ];
+  const fieldClass =
+    "w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm bg-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#d72828]/20 focus:border-[#d72828] transition";
+  const labelClass = "block text-sm font-medium text-gray-700 mb-1.5";
+  const sectionClass = "rounded-xl border border-gray-200 bg-gray-50/50 p-5 space-y-4";
+  const fileInputClass =
+    "block w-full text-sm text-gray-600 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-[#d72828] hover:file:bg-red-100 cursor-pointer";
+  const addBtnClass =
+    "inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-medium bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 transition";
 
   return (
-    <div className="max-w-6xl mx-auto p-6 bg-white shadow-md rounded-lg mt-4">
+    <div className="max-w-6xl mx-auto mt-4 mb-8">
       <ToastContainer />
-      <h2 className="text-2xl font-bold mb-6">{formTitle}</h2>
-      <form onSubmit={handleSubmit}>
-        {currentStep === 1 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Organisation Name</label>
-              <input type="text" name="organisation_name" className="p-2 border rounded w-full"
-                onChange={handleInputChange} value={newStore.organisation_name} />
-              {errors.organisation_name && <span className="text-red-500 text-sm">{errors.organisation_name}</span>}
-            </div>
+      <div className="mb-5">
+        <h2 className="text-2xl font-semibold text-gray-900">{formTitle}</h2>
+        <p className="text-sm text-gray-500 mt-1">
+          Step {currentStep} of {storeSteps.length} — {storeSteps[currentStep - 1].desc}
+        </p>
+      </div>
 
-            <div className="col-span-1 md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Store Type</label>
-              <div className="flex flex-wrap items-center gap-3">
-                <button
-                  type="button"
-                  onClick={() =>
-                    setNewStore((prev) => ({
-                      ...prev,
-                      multibrandstore: !prev.multibrandstore,
-                    }))
-                  }
-                  className={`px-4 py-2 rounded-md text-sm font-semibold border transition ${
-                    newStore.multibrandstore
-                      ? "bg-blue-600 text-white border-blue-600"
-                      : "bg-white text-gray-700 border-gray-300 hover:border-blue-400"
+      <div className="bg-white shadow-sm rounded-xl border border-gray-200 overflow-hidden">
+        <div className="px-4 sm:px-6 pt-5 pb-4 border-b border-gray-100">
+          <div className="flex gap-1 sm:gap-2">
+            {storeSteps.map((step, index) => {
+              const stepNum = index + 1;
+              const active = currentStep === stepNum;
+              const done = currentStep > stepNum;
+              return (
+                <div
+                  key={step.title}
+                  className={`flex-1 rounded-lg px-2 sm:px-3 py-2.5 border transition ${
+                    active
+                      ? "border-[#d72828] bg-red-50"
+                      : done
+                        ? "border-emerald-200 bg-emerald-50/60"
+                        : "border-gray-100 bg-gray-50"
                   }`}
                 >
-                  Multi Brand Store
-                </button>
-                <span className="text-sm text-gray-500">
-                  {newStore.multibrandstore
-                    ? "Selected: Multi Brand Store"
-                    : "Selected: Executive Store"}
-                </span>
-              </div>
-            </div>
-
-            <div className="col-span-1 md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-              <textarea name="description" className="p-2 border rounded w-full" onChange={handleInputChange} value={newStore.description}></textarea>
-              {errors.description && <span className="text-red-500 text-sm">{errors.description}</span>}
-            </div>
-
-            <div>
-              <label className="block mb-1 text-sm font-semibold text-gray-700">Upload Logo</label>
-              <input type="file" onChange={(e) => handleFileChange(e, "logo")} accept="image/*"
-                className="block w-full text-sm text-gray-600 file:mr-3 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100" />
-              {logoPreview && <img src={logoPreview} className="h-20 mt-2 rounded-md object-contain" alt="Logo Preview" />}
-              {errors.logo && <span className="text-red-500 text-sm">{errors.logo}</span>}
-            </div>
-
-           <div>
-  <div className="flex items-center justify-between mb-2">
-    <label className="block text-sm font-semibold text-gray-700">Store Images</label>
-    <button
-      type="button"
-      onClick={() => {
-        setNewStore((prev) => ({ ...prev, store_images: [...prev.store_images, null] }));
-        setStoreImagePreviews((prev) => [...prev, null]);
-      }}
-      className="flex items-center gap-1 px-3 py-1 bg-red-600 text-white text-sm font-semibold rounded-md hover:bg-red-700 transition"
-    >
-      <FaPlus size={11} /> Add Image
-    </button>
-  </div>
-   {/*max image 3 changed part*/}
-  <div className="flex flex-wrap gap-3 mt-1">
-    {newStore.store_images.map((_, index) => (
-      <div key={index} className="relative">
-        {storeImagePreviews[index] ? (
-          <>
-            <img
-              src={storeImagePreviews[index]}
-              className="h-24 w-24 object-cover rounded-md border border-gray-200"
-              alt={`Store Image ${index + 1}`}
-            />
-            <button
-              type="button"
-              onClick={() => handleRemoveImage("store_images", index)}
-              className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1 text-xs"
-            >
-              <FaTimes />
-            </button>
-          </>
-        ) : (
-          <label className="h-24 w-24 flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-md cursor-pointer hover:border-red-400 hover:bg-red-50 transition">
-            <FaPlus className="text-gray-400 mb-1" size={16} />
-            <span className="text-[10px] text-gray-400">Upload</span>
-            <input
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={(e) => handleFileChange(e, "store_images", index)}
-            />
-          </label>
-        )}
-      </div>
-    ))}
-  </div>
-</div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
-              <input type="text" name="location" className="p-2 border rounded w-full" onChange={handleInputChange} value={newStore.location} />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Zipcode</label>
-              <input type="text" name="zipcode" className="p-2 border rounded w-full" onChange={handleInputChange} value={newStore.zipcode} />
-            </div>
-          </div>
-        )}
-
-        {currentStep === 2 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Location ID *</label>
-              <input
-                type="text"
-                name="location_id"
-                className="p-2 border rounded w-full"
-                onChange={handleInputChange}
-                value={newStore.location_id}
-                placeholder="e.g. LOC001"
-              />
-              {errors.location_id && <span className="text-red-500 text-sm">{errors.location_id}</span>}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
-              <input type="text" name="address" className="p-2 border rounded w-full" onChange={handleInputChange} value={newStore.address} />
-              {errors.address && <span className="text-red-500 text-sm">{errors.address}</span>}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Service Area</label>
-              <input type="text" name="service_area" className="p-2 border rounded w-full" onChange={handleInputChange} value={newStore.service_area} />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
-              <input type="text" name="city" className="p-2 border rounded w-full" onChange={handleInputChange} value={newStore.city} />
-            </div>
-
-            <div>
-              <label className="block mb-1 text-sm font-semibold text-gray-700">Additional Images</label>
-              <input type="file" multiple onChange={(e) => handleFileChange(e, "images")} accept="image/*" className="block w-full text-sm text-gray-600 file:mr-3 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100" />
-              <div className="flex flex-wrap gap-2 mt-3">
-                {generalImagePreviews.map((preview, index) => (
-                  <div key={index} className="relative">
-                    <img src={preview} className="h-20 w-20 object-cover rounded-md" alt={`Image ${index + 1}`} />
-                    <button type="button" onClick={() => handleRemoveImage("images", index)} className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1 text-xs"><FaTimes /></button>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Tags (comma separated)</label>
-              <input name="tags" className="p-2 border rounded w-full" onChange={handleInputChange} value={Array.isArray(newStore.tags) ? newStore.tags.join(", ") : newStore.tags} />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
-              <input type="text" name="phone" className="p-2 border rounded w-full" onChange={handleInputChange} value={newStore.phone} />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Phone After Hours</label>
-              <input type="text" name="phone_after_hours" className="p-2 border rounded w-full" onChange={handleInputChange} value={newStore.phone_after_hours} />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Website</label>
-              <input type="text" name="website" className="p-2 border rounded w-full" onChange={handleInputChange} value={newStore.website} />
-            </div>
-          </div>
-        )}
-
-        {currentStep === 3 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-              <input type="text" name="email" className="p-2 border rounded w-full" onChange={handleInputChange} value={newStore.email} />
-              {errors.email && <span className="text-red-500 text-sm">{errors.email}</span>}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Twitter</label>
-              <input type="text" name="twitter" className="p-2 border rounded w-full" onChange={handleInputChange} value={newStore.twitter} />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Facebook</label>
-              <input type="text" name="facebook" className="p-2 border rounded w-full" onChange={handleInputChange} value={newStore.facebook} />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Meta Title</label>
-              <input type="text" name="meta_title" className="p-2 border rounded w-full" onChange={handleInputChange} value={newStore.meta_title} />
-            </div>
-
-            <div className="col-span-1 md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Meta Description</label>
-              <textarea name="meta_description" className="p-2 border rounded w-full h-24" onChange={handleInputChange} value={newStore.meta_description}></textarea>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Verified</label>
-              <select name="verified" className="p-2 border rounded w-full" onChange={handleInputChange} value={newStore.verified}>
-                <option value="No">No</option>
-                <option value="Yes">Yes</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Approved</label>
-              <select name="approved" className="p-2 border rounded w-full" onChange={handleInputChange} value={newStore.approved}>
-                <option value="No">No</option>
-                <option value="Yes">Yes</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Assigned User</label>
-              <Select options={users} className="basic-single" classNamePrefix="select" onChange={handleUserChange} value={users.find((u) => u.value === newStore.user)} placeholder="Select user..." />
-              {errors.user && <span className="text-red-500 text-sm">{errors.user}</span>}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-              <select name="status" className="p-2 border rounded w-full" onChange={handleInputChange} value={newStore.status}>
-                <option value="Active">Active</option>
-                <option value="Inactive">Inactive</option>
-              </select>
-            </div>
-          </div>
-        )}
-
-        {/* STEP 4 – ADVANCED CONTENT */}
-        {currentStep === 4 && (
-          <div className="space-y-8">
-            {/* BANNERS */}
-            <section className="border rounded p-4">
-              <h3 className="text-lg font-semibold mb-3">Banner Images</h3>
-              <input
-                type="file"
-                multiple
-                accept="image/*"
-                onChange={(e) => handleFileChange(e, "banners")}
-                className="block w-full text-sm text-gray-600 
-                  file:mr-3 file:py-1 file:px-3 file:rounded-md 
-                  file:border-0 file:text-sm file:font-semibold 
-                  file:bg-red-50 file:text-red-700 hover:file:bg-red-100"
-              />
-
-              <div className="flex gap-2 mt-3 flex-wrap">
-                {bannerPreviews.map((b, idx) => (
-                  <div key={idx} className="relative">
-                    <img src={b} className="h-24 w-40 object-cover rounded" />
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveImage("banners", idx)}
-                      className="absolute top-0 right-0 bg-red-600 text-white 
-                        rounded-full p-1 text-xs"
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`h-6 w-6 shrink-0 rounded-full text-xs font-semibold flex items-center justify-center ${
+                        active
+                          ? "bg-[#d72828] text-white"
+                          : done
+                            ? "bg-emerald-500 text-white"
+                            : "bg-white text-gray-500 border border-gray-200"
+                      }`}
                     >
-                      <FaTimes />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </section>
-
-{/* FEATURED PRODUCTS — Product Search */}
-<section className="border rounded p-4">
-  <div className="flex justify-between items-center mb-3">
-    <h3 className="text-lg font-semibold">Featured Products</h3>
-  </div>
-
-  {/* Search Input */}
-  <ProductSearchInput
-    onSelect={(product) => {
-      // duplicate check
-      const alreadyAdded = newStore.featuredProducts.some(
-        (p) => p._id === product._id
-      );
-      if (!alreadyAdded) {
-        setNewStore((prev) => ({
-          ...prev,
-          featuredProducts: [...prev.featuredProducts, product],
-        }));
-      }
-    }}
-  />
-
-  {/* Selected Products */}
-  <div className="flex flex-wrap gap-2 mt-3">
-    {newStore.featuredProducts.map((prod, idx) => (
-      <div key={prod._id || idx} className="flex items-center gap-2 bg-gray-100 rounded-lg px-3 py-2">
-        {prod.images?.[0] && (
-          <img
-            src={`/uploads/products/${prod.images[0]}`}
-            className="w-8 h-8 object-contain rounded"
-            alt={prod.name}
-          />
-        )}
-        <span className="text-[12px] font-medium text-gray-800">{prod.name}</span>
-        <button
-          type="button"
-          onClick={() => {
-            setNewStore((prev) => ({
-              ...prev,
-              featuredProducts: prev.featuredProducts.filter((_, i) => i !== idx),
-            }));
-          }}
-          className="text-red-500 ml-1"
-        >
-          <FaTimes size={10} />
-        </button>
-      </div>
-    ))}
-  </div>
-</section>
-
-            {/* OFFERS */}
-            <section className="border rounded p-4">
-              <div className="flex justify-between items-center mb-3">
-                <h3 className="text-lg font-semibold">Offers</h3>
-                <button type="button" onClick={() => addListItem("offers", { title: "", validTill: "", image: null, description: "" })} className="px-3 py-1 bg-blue-600 text-white rounded">+ Add</button>
-              </div>
-
-              {(newStore.offers || []).map((o, idx) => (
-                <div key={idx} className="grid grid-cols-3 gap-3 mb-3">
-                  <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, "offer_image", idx)} />
-                  <div className="space-y-1">
-                    <input type="text" placeholder="Offer Title" value={o.title} onChange={(e) => updateListField("offers", idx, "title", e.target.value)} className="p-2 border rounded w-full" />
-                    <input type="text" placeholder="Valid Till" value={o.validTill} onChange={(e) => updateListField("offers", idx, "validTill", e.target.value)} className="p-2 border rounded w-full" />
-                    <textarea placeholder="Description" value={o.description} onChange={(e) => updateListField("offers", idx, "description", e.target.value)} className="p-2 border rounded w-full" />
-                  </div>
-                  <div className="flex items-center">
-                    {offerPreviews[idx] && <img src={offerPreviews[idx]} className="h-20 w-28 rounded object-cover" />}
-                    <button type="button" onClick={() => handleRemoveImage("offers", idx)} className="ml-2 bg-red-600 text-white rounded p-2"><FaTimes /></button>
+                      {done ? "✓" : stepNum}
+                    </span>
+                    <div className="min-w-0 hidden sm:block">
+                      <p
+                        className={`text-xs font-semibold truncate ${
+                          active ? "text-[#d72828]" : done ? "text-emerald-700" : "text-gray-600"
+                        }`}
+                      >
+                        {step.title}
+                      </p>
+                      <p className="text-[10px] text-gray-400 truncate">{step.desc}</p>
+                    </div>
                   </div>
                 </div>
-              ))}
-            </section>
-
-            {/* HIGHLIGHTS */}
-            <section className="border rounded p-4">
-              <div className="flex justify-between items-center mb-3">
-                <h3 className="text-lg font-semibold">Highlights</h3>
-                <button type="button" onClick={() => addListItem("highlights", { label: "", image: null })} className="px-3 py-1 bg-blue-600 text-white rounded">+ Add</button>
-              </div>
-
-              {(newStore.highlights || []).map((h, idx) => (
-                <div key={idx} className="grid grid-cols-3 gap-3 mb-3">
-                  <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, "highlight_image", idx)} />
-                  <input type="text" placeholder="Label" value={h.label} onChange={(e) => updateListField("highlights", idx, "label", e.target.value)} className="p-2 border rounded" />
-                  <div className="flex items-center">
-                    {highlightPreviews[idx] && <img src={highlightPreviews[idx]} className="h-16 w-16 rounded object-cover" />}
-                    <button type="button" onClick={() => handleRemoveImage("highlights", idx)} className="ml-2 bg-red-600 text-white rounded p-2"><FaTimes /></button>
-                  </div>
-                </div>
-              ))}
-            </section>
-
-            {/* NEARBY STORES */}
-            <section className="border rounded p-4">
-              <div className="flex justify-between items-center mb-3">
-                <h3 className="text-lg font-semibold">Nearby Stores</h3>
-                <button type="button" onClick={() => addListItem("nearbyStores", { name: "", address: "", rating: "" })} className="px-3 py-1 bg-blue-600 text-white rounded">+ Add</button>
-              </div>
-
-              {(newStore.nearbyStores || []).map((s, idx) => (
-                <div key={idx} className="grid grid-cols-3 gap-3 mb-3">
-                  <input className="p-2 border rounded" placeholder="Store Name" value={s.name} onChange={(e) => updateListField("nearbyStores", idx, "name", e.target.value)} />
-                  <input className="p-2 border rounded" placeholder="Address" value={s.address} onChange={(e) => updateListField("nearbyStores", idx, "address", e.target.value)} />
-                  <input className="p-2 border rounded" placeholder="Rating" value={s.rating} onChange={(e) => updateListField("nearbyStores", idx, "rating", e.target.value)} />
-                </div>
-              ))}
-            </section>
-
-            {/* BUSINESS HOURS */}
-            <section className="border rounded p-4">
-              <div className="flex justify-between items-center mb-3">
-                <h3 className="text-lg font-semibold">Business Hours</h3>
-                <button type="button" onClick={() => addListItem("businessHours", { day: "", timing: "" })} className="px-3 py-1 bg-blue-600 text-white rounded">+ Add</button>
-              </div>
-
-              {(newStore.businessHours || []).map((b, idx) => (
-                <div key={idx} className="grid grid-cols-2 gap-3 mb-3">
-                  <input className="p-2 border rounded" placeholder="Day" value={b.day} onChange={(e) => updateListField("businessHours", idx, "day", e.target.value)} />
-                  <input className="p-2 border rounded" placeholder="Timing" value={b.timing} onChange={(e) => updateListField("businessHours", idx, "timing", e.target.value)} />
-                </div>
-              ))}
-            </section>
-
-            {/* SOCIAL TIMELINE */}
-            <section className="border rounded p-4">
-              <div className="flex justify-between items-center mb-3">
-                <h3 className="text-lg font-semibold">Social Timeline</h3>
-                <button type="button" onClick={() => addListItem("socialTimeline", { media: "", text: "", postedOn: "", thumbnail: "", thumbnailPreview: "", thumbnailFile: null })} className="px-3 py-1 bg-blue-600 text-white rounded">+ Add</button>
-              </div>
-
-              {(newStore.socialTimeline || []).map((item, idx) => (
-                <div key={idx} className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4 border p-3 rounded bg-gray-50">
-                  {/* Media URL */}
-                  <input type="text" className="p-2 border rounded w-full" placeholder="Media URL (FB reel, IG reel, YouTube...)" value={item.media} onChange={(e) => updateListField("socialTimeline", idx, "media", e.target.value)} />
-
-                  {/* Text */}
-                  <input type="text" className="p-2 border rounded w-full" placeholder="Post Text" value={item.text} onChange={(e) => updateListField("socialTimeline", idx, "text", e.target.value)} />
-
-                  {/* Posted On */}
-                  <input type="datetime-local" className="p-2 border rounded w-full" value={item.postedOn} onChange={(e) => updateListField("socialTimeline", idx, "postedOn", e.target.value)} />
-
-                  {/* Thumbnail Upload */}
-                  <div>
-                    <label className="text-sm font-medium block mb-1">Thumbnail Image</label>
-                    <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, "social_thumbnail", idx)} />
-                    {item.thumbnailPreview ? (
-                      <img src={item.thumbnailPreview} className="mt-2 w-24 h-24 rounded object-cover border" />
-                    ) : item.thumbnail ? (
-                      <img src={item.thumbnail} className="mt-2 w-24 h-24 rounded object-cover border" />
-                    ) : null}
-                  </div>
-                </div>
-              ))}
-            </section>
-
-              {/* CUSTOMER IMAGES */}
-<section className="border rounded p-4">
-  <h3 className="text-lg font-semibold mb-3">Customer Images</h3>
-  <input
-    type="file"
-    multiple
-    accept="image/*"
-    onChange={(e) => handleFileChange(e, "customer_images")}
-    className="block w-full text-sm text-gray-600 file:mr-3 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100"
-  />
-  <div className="flex flex-wrap gap-2 mt-3">
-    {customerImagePreviews.map((preview, index) => (
-      <div key={index} className="relative">
-        <img src={preview} className="h-20 w-20 object-cover rounded-md" alt={`Customer ${index + 1}`} />
-        <button
-          type="button"
-          onClick={() => handleRemoveImage("customer_images", index)}
-          className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1 text-xs"
-        >
-          <FaTimes />
-        </button>
-      </div>
-    ))}
-  </div>
-</section>
+              );
+            })}
           </div>
-        )}
+          <div className="mt-3 h-1.5 rounded-full bg-gray-100 overflow-hidden">
+            <div
+              className="h-full bg-[#d72828] transition-all duration-300"
+              style={{ width: `${((currentStep - 1) / (storeSteps.length - 1)) * 100}%` }}
+            />
+          </div>
+        </div>
 
-        <div className="flex justify-between mt-6">
-          {currentStep > 1 && (
-            <button type="button" onClick={handleBack} className="px-4 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400">Previous</button>
+        <form onSubmit={handleSubmit} className="p-4 sm:p-6">
+          {currentStep === 1 && (
+            <div className="space-y-5">
+              <section className={sectionClass}>
+                <h3 className="text-sm font-semibold text-gray-900">Store identity</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="md:col-span-2">
+                    <label className={labelClass}>
+                      Organisation Name <span className="text-[#d72828]">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="organisation_name"
+                      className={fieldClass}
+                      onChange={handleInputChange}
+                      value={newStore.organisation_name}
+                      placeholder="Store / organisation name"
+                    />
+                    {errors.organisation_name && (
+                      <span className="text-red-500 text-sm mt-1 block">{errors.organisation_name}</span>
+                    )}
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <label className={labelClass}>Store Type</label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setNewStore((prev) => ({ ...prev, multibrandstore: false }))
+                        }
+                        className={`rounded-lg border px-3 py-3 text-sm font-medium text-left transition ${
+                          !newStore.multibrandstore
+                            ? "border-[#d72828] bg-red-50 text-[#d72828]"
+                            : "border-gray-200 bg-white text-gray-700 hover:border-gray-300"
+                        }`}
+                      >
+                        Executive Store
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setNewStore((prev) => ({ ...prev, multibrandstore: true }))
+                        }
+                        className={`rounded-lg border px-3 py-3 text-sm font-medium text-left transition ${
+                          newStore.multibrandstore
+                            ? "border-[#d72828] bg-red-50 text-[#d72828]"
+                            : "border-gray-200 bg-white text-gray-700 hover:border-gray-300"
+                        }`}
+                      >
+                        Multi Brand Store
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <label className={labelClass}>Description</label>
+                    <textarea
+                      name="description"
+                      className={fieldClass}
+                      rows={3}
+                      onChange={handleInputChange}
+                      value={newStore.description}
+                      placeholder="Short store description"
+                    />
+                    {errors.description && (
+                      <span className="text-red-500 text-sm mt-1 block">{errors.description}</span>
+                    )}
+                  </div>
+                </div>
+              </section>
+
+              <section className={sectionClass}>
+                <h3 className="text-sm font-semibold text-gray-900">Media & place</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className={labelClass}>Upload Logo</label>
+                    <div className="rounded-lg border border-dashed border-gray-300 bg-white p-4">
+                      <input
+                        type="file"
+                        onChange={(e) => handleFileChange(e, "logo")}
+                        accept="image/*"
+                        className={fileInputClass}
+                      />
+                      {logoPreview && (
+                        <img
+                          src={logoPreview}
+                          className="h-20 mt-3 rounded-lg object-contain border border-gray-100 bg-gray-50 p-1"
+                          alt="Logo Preview"
+                        />
+                      )}
+                      {errors.logo && (
+                        <span className="text-red-500 text-sm mt-1 block">{errors.logo}</span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="text-sm font-medium text-gray-700">Store Images</label>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setNewStore((prev) => ({
+                            ...prev,
+                            store_images: [...prev.store_images, null],
+                          }));
+                          setStoreImagePreviews((prev) => [...prev, null]);
+                        }}
+                        className={addBtnClass}
+                      >
+                        <FaPlus size={10} /> Add
+                      </button>
+                    </div>
+                    <div className="flex flex-wrap gap-3 mt-1">
+                      {newStore.store_images.map((_, index) => (
+                        <div key={index} className="relative">
+                          {storeImagePreviews[index] ? (
+                            <>
+                              <img
+                                src={storeImagePreviews[index]}
+                                className="h-24 w-24 object-cover rounded-lg border border-gray-200"
+                                alt={`Store Image ${index + 1}`}
+                              />
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveImage("store_images", index)}
+                                className="absolute -top-1.5 -right-1.5 bg-[#d72828] text-white rounded-full p-1 text-xs shadow"
+                              >
+                                <FaTimes size={10} />
+                              </button>
+                            </>
+                          ) : (
+                            <label className="h-24 w-24 flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-[#d72828] hover:bg-red-50 transition bg-white">
+                              <FaPlus className="text-gray-400 mb-1" size={16} />
+                              <span className="text-[10px] text-gray-400">Upload</span>
+                              <input
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={(e) => handleFileChange(e, "store_images", index)}
+                              />
+                            </label>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className={labelClass}>Location</label>
+                    <input
+                      type="text"
+                      name="location"
+                      className={fieldClass}
+                      onChange={handleInputChange}
+                      value={newStore.location}
+                      placeholder="Area / locality"
+                    />
+                  </div>
+
+                  <div>
+                    <label className={labelClass}>Zipcode</label>
+                    <input
+                      type="text"
+                      name="zipcode"
+                      className={fieldClass}
+                      onChange={handleInputChange}
+                      value={newStore.zipcode}
+                      placeholder="PIN / zip"
+                    />
+                  </div>
+                </div>
+              </section>
+            </div>
           )}
 
-          {currentStep < 4 && (
-            <button type="button" onClick={handleNext} className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">Next</button>
+          {currentStep === 2 && (
+            <section className={sectionClass}>
+              <h3 className="text-sm font-semibold text-gray-900">Address & contact</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className={labelClass}>
+                    Location ID <span className="text-[#d72828]">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    name="location_id"
+                    className={fieldClass}
+                    onChange={handleInputChange}
+                    value={newStore.location_id}
+                    placeholder="e.g. LOC001"
+                  />
+                  {errors.location_id && (
+                    <span className="text-red-500 text-sm mt-1 block">{errors.location_id}</span>
+                  )}
+                </div>
+
+                <div>
+                  <label className={labelClass}>Address</label>
+                  <input
+                    type="text"
+                    name="address"
+                    className={fieldClass}
+                    onChange={handleInputChange}
+                    value={newStore.address}
+                    placeholder="Full street address"
+                  />
+                  {errors.address && (
+                    <span className="text-red-500 text-sm mt-1 block">{errors.address}</span>
+                  )}
+                </div>
+
+                <div>
+                  <label className={labelClass}>Service Area</label>
+                  <input
+                    type="text"
+                    name="service_area"
+                    className={fieldClass}
+                    onChange={handleInputChange}
+                    value={newStore.service_area}
+                  />
+                </div>
+
+                <div>
+                  <label className={labelClass}>City</label>
+                  <input
+                    type="text"
+                    name="city"
+                    className={fieldClass}
+                    onChange={handleInputChange}
+                    value={newStore.city}
+                  />
+                </div>
+
+                <div>
+                  <label className={labelClass}>Additional Images</label>
+                  <div className="rounded-lg border border-dashed border-gray-300 bg-white p-4">
+                    <input
+                      type="file"
+                      multiple
+                      onChange={(e) => handleFileChange(e, "images")}
+                      accept="image/*"
+                      className={fileInputClass}
+                    />
+                    <div className="flex flex-wrap gap-2 mt-3">
+                      {generalImagePreviews.map((preview, index) => (
+                        <div key={index} className="relative">
+                          <img
+                            src={preview}
+                            className="h-20 w-20 object-cover rounded-lg border border-gray-100"
+                            alt={`Image ${index + 1}`}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveImage("images", index)}
+                            className="absolute -top-1.5 -right-1.5 bg-[#d72828] text-white rounded-full p-1 text-xs"
+                          >
+                            <FaTimes size={10} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <label className={labelClass}>Tags (comma separated)</label>
+                  <input
+                    name="tags"
+                    className={fieldClass}
+                    onChange={handleInputChange}
+                    value={Array.isArray(newStore.tags) ? newStore.tags.join(", ") : newStore.tags}
+                    placeholder="e.g. electronics, service"
+                  />
+                </div>
+
+                <div>
+                  <label className={labelClass}>Phone</label>
+                  <input
+                    type="text"
+                    name="phone"
+                    className={fieldClass}
+                    onChange={handleInputChange}
+                    value={newStore.phone}
+                  />
+                </div>
+
+                <div>
+                  <label className={labelClass}>Phone After Hours</label>
+                  <input
+                    type="text"
+                    name="phone_after_hours"
+                    className={fieldClass}
+                    onChange={handleInputChange}
+                    value={newStore.phone_after_hours}
+                  />
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className={labelClass}>Website</label>
+                  <input
+                    type="text"
+                    name="website"
+                    className={fieldClass}
+                    onChange={handleInputChange}
+                    value={newStore.website}
+                    placeholder="https://"
+                  />
+                </div>
+              </div>
+            </section>
+          )}
+
+          {currentStep === 3 && (
+            <div className="space-y-5">
+              <section className={sectionClass}>
+                <h3 className="text-sm font-semibold text-gray-900">Contact & social</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className={labelClass}>Email</label>
+                    <input
+                      type="text"
+                      name="email"
+                      className={fieldClass}
+                      onChange={handleInputChange}
+                      value={newStore.email}
+                    />
+                    {errors.email && (
+                      <span className="text-red-500 text-sm mt-1 block">{errors.email}</span>
+                    )}
+                  </div>
+                  <div>
+                    <label className={labelClass}>Twitter</label>
+                    <input
+                      type="text"
+                      name="twitter"
+                      className={fieldClass}
+                      onChange={handleInputChange}
+                      value={newStore.twitter}
+                    />
+                  </div>
+                  <div>
+                    <label className={labelClass}>Facebook</label>
+                    <input
+                      type="text"
+                      name="facebook"
+                      className={fieldClass}
+                      onChange={handleInputChange}
+                      value={newStore.facebook}
+                    />
+                  </div>
+                </div>
+              </section>
+
+              <section className={sectionClass}>
+                <h3 className="text-sm font-semibold text-gray-900">SEO & publishing</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className={labelClass}>Meta Title</label>
+                    <input
+                      type="text"
+                      name="meta_title"
+                      className={fieldClass}
+                      onChange={handleInputChange}
+                      value={newStore.meta_title}
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className={labelClass}>Meta Description</label>
+                    <textarea
+                      name="meta_description"
+                      className={`${fieldClass} h-24`}
+                      onChange={handleInputChange}
+                      value={newStore.meta_description}
+                    />
+                  </div>
+
+                  <div>
+                    <label className={labelClass}>Verified</label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {["No", "Yes"].map((v) => (
+                        <button
+                          key={v}
+                          type="button"
+                          onClick={() => setNewStore((prev) => ({ ...prev, verified: v }))}
+                          className={`rounded-lg border px-3 py-2.5 text-sm font-medium transition ${
+                            newStore.verified === v
+                              ? "border-[#d72828] bg-red-50 text-[#d72828]"
+                              : "border-gray-200 bg-white text-gray-600"
+                          }`}
+                        >
+                          {v}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className={labelClass}>Approved</label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {["No", "Yes"].map((v) => (
+                        <button
+                          key={v}
+                          type="button"
+                          onClick={() => setNewStore((prev) => ({ ...prev, approved: v }))}
+                          className={`rounded-lg border px-3 py-2.5 text-sm font-medium transition ${
+                            newStore.approved === v
+                              ? "border-[#d72828] bg-red-50 text-[#d72828]"
+                              : "border-gray-200 bg-white text-gray-600"
+                          }`}
+                        >
+                          {v}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className={labelClass}>Assigned User</label>
+                    <Select
+                      options={users}
+                      className="basic-single"
+                      classNamePrefix="select"
+                      onChange={handleUserChange}
+                      value={users.find((u) => u.value === newStore.user)}
+                      placeholder="Select user…"
+                      styles={{
+                        control: (base, state) => ({
+                          ...base,
+                          borderRadius: "0.5rem",
+                          minHeight: "42px",
+                          borderColor: state.isFocused ? "#d72828" : "#d1d5db",
+                          boxShadow: state.isFocused
+                            ? "0 0 0 2px rgba(215,40,40,0.15)"
+                            : "none",
+                        }),
+                      }}
+                    />
+                    {errors.user && (
+                      <span className="text-red-500 text-sm mt-1 block">{errors.user}</span>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className={labelClass}>Status</label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {["Active", "Inactive"].map((s) => (
+                        <button
+                          key={s}
+                          type="button"
+                          onClick={() => setNewStore((prev) => ({ ...prev, status: s }))}
+                          className={`rounded-lg border px-3 py-2.5 text-sm font-medium transition ${
+                            newStore.status === s
+                              ? "border-[#d72828] bg-red-50 text-[#d72828]"
+                              : "border-gray-200 bg-white text-gray-600"
+                          }`}
+                        >
+                          {s}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </section>
+            </div>
           )}
 
           {currentStep === 4 && (
-            <button type="submit" className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">{submitButtonText}</button>
+            <div className="space-y-5">
+              <section className={sectionClass}>
+                <h3 className="text-sm font-semibold text-gray-900">Banner Images</h3>
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  onChange={(e) => handleFileChange(e, "banners")}
+                  className={fileInputClass}
+                />
+                <div className="flex gap-2 mt-1 flex-wrap">
+                  {bannerPreviews.map((b, idx) => (
+                    <div key={idx} className="relative">
+                      <img src={b} className="h-24 w-40 object-cover rounded-lg border border-gray-100" alt="" />
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveImage("banners", idx)}
+                        className="absolute -top-1.5 -right-1.5 bg-[#d72828] text-white rounded-full p-1 text-xs"
+                      >
+                        <FaTimes size={10} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </section>
+
+              <section className={sectionClass}>
+                <h3 className="text-sm font-semibold text-gray-900 mb-1">Featured Products</h3>
+                <ProductSearchInput
+                  onSelect={(product) => {
+                    const alreadyAdded = newStore.featuredProducts.some(
+                      (p) => p._id === product._id
+                    );
+                    if (!alreadyAdded) {
+                      setNewStore((prev) => ({
+                        ...prev,
+                        featuredProducts: [...prev.featuredProducts, product],
+                      }));
+                    }
+                  }}
+                />
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {newStore.featuredProducts.map((prod, idx) => (
+                    <div
+                      key={prod._id || idx}
+                      className="flex items-center gap-2 bg-white border border-gray-200 rounded-lg px-3 py-2"
+                    >
+                      {prod.images?.[0] && (
+                        <img
+                          src={`/uploads/products/${prod.images[0]}`}
+                          className="w-8 h-8 object-contain rounded"
+                          alt={prod.name}
+                        />
+                      )}
+                      <span className="text-xs font-medium text-gray-800">{prod.name}</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setNewStore((prev) => ({
+                            ...prev,
+                            featuredProducts: prev.featuredProducts.filter((_, i) => i !== idx),
+                          }));
+                        }}
+                        className="text-[#d72828] ml-1"
+                      >
+                        <FaTimes size={10} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </section>
+
+              <section className={sectionClass}>
+                <div className="flex justify-between items-center">
+                  <h3 className="text-sm font-semibold text-gray-900">Offers</h3>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      addListItem("offers", {
+                        title: "",
+                        validTill: "",
+                        image: null,
+                        description: "",
+                      })
+                    }
+                    className={addBtnClass}
+                  >
+                    <FaPlus size={10} /> Add
+                  </button>
+                </div>
+                {(newStore.offers || []).map((o, idx) => (
+                  <div
+                    key={idx}
+                    className="grid grid-cols-1 md:grid-cols-3 gap-3 p-3 rounded-lg border border-gray-200 bg-white"
+                  >
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleFileChange(e, "offer_image", idx)}
+                      className={fileInputClass}
+                    />
+                    <div className="space-y-2">
+                      <input
+                        type="text"
+                        placeholder="Offer Title"
+                        value={o.title}
+                        onChange={(e) => updateListField("offers", idx, "title", e.target.value)}
+                        className={fieldClass}
+                      />
+                      <input
+                        type="text"
+                        placeholder="Valid Till"
+                        value={o.validTill}
+                        onChange={(e) =>
+                          updateListField("offers", idx, "validTill", e.target.value)
+                        }
+                        className={fieldClass}
+                      />
+                      <textarea
+                        placeholder="Description"
+                        value={o.description}
+                        onChange={(e) =>
+                          updateListField("offers", idx, "description", e.target.value)
+                        }
+                        className={fieldClass}
+                      />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {offerPreviews[idx] && (
+                        <img
+                          src={offerPreviews[idx]}
+                          className="h-20 w-28 rounded-lg object-cover border border-gray-100"
+                          alt=""
+                        />
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveImage("offers", idx)}
+                        className="bg-[#d72828] text-white rounded-lg p-2"
+                      >
+                        <FaTimes />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </section>
+
+              <section className={sectionClass}>
+                <div className="flex justify-between items-center">
+                  <h3 className="text-sm font-semibold text-gray-900">Highlights</h3>
+                  <button
+                    type="button"
+                    onClick={() => addListItem("highlights", { label: "", image: null })}
+                    className={addBtnClass}
+                  >
+                    <FaPlus size={10} /> Add
+                  </button>
+                </div>
+                {(newStore.highlights || []).map((h, idx) => (
+                  <div
+                    key={idx}
+                    className="grid grid-cols-1 md:grid-cols-3 gap-3 p-3 rounded-lg border border-gray-200 bg-white"
+                  >
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleFileChange(e, "highlight_image", idx)}
+                      className={fileInputClass}
+                    />
+                    <input
+                      type="text"
+                      placeholder="Label"
+                      value={h.label}
+                      onChange={(e) => updateListField("highlights", idx, "label", e.target.value)}
+                      className={fieldClass}
+                    />
+                    <div className="flex items-center gap-2">
+                      {highlightPreviews[idx] && (
+                        <img
+                          src={highlightPreviews[idx]}
+                          className="h-16 w-16 rounded-lg object-cover border border-gray-100"
+                          alt=""
+                        />
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveImage("highlights", idx)}
+                        className="bg-[#d72828] text-white rounded-lg p-2"
+                      >
+                        <FaTimes />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </section>
+
+              <section className={sectionClass}>
+                <div className="flex justify-between items-center">
+                  <h3 className="text-sm font-semibold text-gray-900">Nearby Stores</h3>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      addListItem("nearbyStores", { name: "", address: "", rating: "" })
+                    }
+                    className={addBtnClass}
+                  >
+                    <FaPlus size={10} /> Add
+                  </button>
+                </div>
+                {(newStore.nearbyStores || []).map((s, idx) => (
+                  <div key={idx} className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <input
+                      className={fieldClass}
+                      placeholder="Store Name"
+                      value={s.name}
+                      onChange={(e) =>
+                        updateListField("nearbyStores", idx, "name", e.target.value)
+                      }
+                    />
+                    <input
+                      className={fieldClass}
+                      placeholder="Address"
+                      value={s.address}
+                      onChange={(e) =>
+                        updateListField("nearbyStores", idx, "address", e.target.value)
+                      }
+                    />
+                    <input
+                      className={fieldClass}
+                      placeholder="Rating"
+                      value={s.rating}
+                      onChange={(e) =>
+                        updateListField("nearbyStores", idx, "rating", e.target.value)
+                      }
+                    />
+                  </div>
+                ))}
+              </section>
+
+              <section className={sectionClass}>
+                <div className="flex justify-between items-center">
+                  <h3 className="text-sm font-semibold text-gray-900">Business Hours</h3>
+                  <button
+                    type="button"
+                    onClick={() => addListItem("businessHours", { day: "", timing: "" })}
+                    className={addBtnClass}
+                  >
+                    <FaPlus size={10} /> Add
+                  </button>
+                </div>
+                {(newStore.businessHours || []).map((b, idx) => (
+                  <div key={idx} className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <input
+                      className={fieldClass}
+                      placeholder="Day"
+                      value={b.day}
+                      onChange={(e) =>
+                        updateListField("businessHours", idx, "day", e.target.value)
+                      }
+                    />
+                    <input
+                      className={fieldClass}
+                      placeholder="Timing"
+                      value={b.timing}
+                      onChange={(e) =>
+                        updateListField("businessHours", idx, "timing", e.target.value)
+                      }
+                    />
+                  </div>
+                ))}
+              </section>
+
+              <section className={sectionClass}>
+                <div className="flex justify-between items-center">
+                  <h3 className="text-sm font-semibold text-gray-900">Social Timeline</h3>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      addListItem("socialTimeline", {
+                        media: "",
+                        text: "",
+                        postedOn: "",
+                        thumbnail: "",
+                        thumbnailPreview: "",
+                        thumbnailFile: null,
+                      })
+                    }
+                    className={addBtnClass}
+                  >
+                    <FaPlus size={10} /> Add
+                  </button>
+                </div>
+                {(newStore.socialTimeline || []).map((item, idx) => (
+                  <div
+                    key={idx}
+                    className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3 p-3 rounded-lg border border-gray-200 bg-white"
+                  >
+                    <input
+                      type="text"
+                      className={fieldClass}
+                      placeholder="Media URL (FB, IG, YouTube…)"
+                      value={item.media}
+                      onChange={(e) =>
+                        updateListField("socialTimeline", idx, "media", e.target.value)
+                      }
+                    />
+                    <input
+                      type="text"
+                      className={fieldClass}
+                      placeholder="Post Text"
+                      value={item.text}
+                      onChange={(e) =>
+                        updateListField("socialTimeline", idx, "text", e.target.value)
+                      }
+                    />
+                    <input
+                      type="datetime-local"
+                      className={fieldClass}
+                      value={item.postedOn}
+                      onChange={(e) =>
+                        updateListField("socialTimeline", idx, "postedOn", e.target.value)
+                      }
+                    />
+                    <div>
+                      <label className="text-xs font-medium text-gray-500 block mb-1">
+                        Thumbnail
+                      </label>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handleFileChange(e, "social_thumbnail", idx)}
+                        className={fileInputClass}
+                      />
+                      {item.thumbnailPreview ? (
+                        <img
+                          src={item.thumbnailPreview}
+                          className="mt-2 w-24 h-24 rounded-lg object-cover border"
+                          alt=""
+                        />
+                      ) : item.thumbnail ? (
+                        <img
+                          src={item.thumbnail}
+                          className="mt-2 w-24 h-24 rounded-lg object-cover border"
+                          alt=""
+                        />
+                      ) : null}
+                    </div>
+                  </div>
+                ))}
+              </section>
+
+              <section className={sectionClass}>
+                <h3 className="text-sm font-semibold text-gray-900">Customer Images</h3>
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  onChange={(e) => handleFileChange(e, "customer_images")}
+                  className={fileInputClass}
+                />
+                <div className="flex flex-wrap gap-2 mt-1">
+                  {customerImagePreviews.map((preview, index) => (
+                    <div key={index} className="relative">
+                      <img
+                        src={preview}
+                        className="h-20 w-20 object-cover rounded-lg border border-gray-100"
+                        alt={`Customer ${index + 1}`}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveImage("customer_images", index)}
+                        className="absolute -top-1.5 -right-1.5 bg-[#d72828] text-white rounded-full p-1 text-xs"
+                      >
+                        <FaTimes size={10} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            </div>
           )}
-        </div>
-      </form>
+
+          <div className="flex flex-col-reverse sm:flex-row sm:justify-between gap-2 mt-6 pt-5 border-t border-gray-100">
+            <div>
+              {currentStep > 1 && (
+                <button
+                  type="button"
+                  onClick={handleBack}
+                  className="w-full sm:w-auto px-5 py-2.5 rounded-lg border border-gray-300 text-gray-700 text-sm font-medium hover:bg-gray-50 transition"
+                >
+                  Previous
+                </button>
+              )}
+            </div>
+            <div className="flex gap-2">
+              {currentStep < 4 && (
+                <button
+                  type="button"
+                  onClick={handleNext}
+                  className="w-full sm:w-auto px-5 py-2.5 rounded-lg bg-[#d72828] hover:bg-[#b82222] text-white text-sm font-semibold shadow-sm transition"
+                >
+                  Next step
+                </button>
+              )}
+              {currentStep === 4 && (
+                <button
+                  type="submit"
+                  className="w-full sm:w-auto px-5 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold shadow-sm transition"
+                >
+                  {submitButtonText}
+                </button>
+              )}
+            </div>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }

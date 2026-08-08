@@ -204,10 +204,10 @@ export default function LiveDemoModal({ onClose }) {
             {/* Left promo */}
             <div className="bg-[#eef4ff] p-5 sm:p-7 rounded-t-2xl lg:rounded-tr-none lg:rounded-l-2xl">
               <div className="inline-flex items-center gap-2 bg-white text-[#2453d3] text-xs font-bold px-3 py-1.5 rounded-full mb-4">
-                <FaVideo /> BEA LIVE EXPERT
+                <FaVideo /> Sathya Stores LIVE EXPERT
               </div>
               <h2 className="text-2xl sm:text-3xl font-extrabold text-[#0a1d56] mb-2">
-                Talk to a BEA Expert
+                Talk to a Sathya Stores Expert
               </h2>
               <p className="text-sm text-gray-600 mb-5 leading-relaxed">
                 Get personalised advice and see products live on a video call. 100% free. No obligation to buy.
@@ -230,7 +230,7 @@ export default function LiveDemoModal({ onClose }) {
               <div className="flex items-end gap-3 mt-4 ml-4 sm:mt-6 sm:ml-8">
                 <img
                   src="/uploads/live-demo-popup.png"
-                  alt="BEA Live Demo"
+                  alt="Sathya Stores Live Demo"
                   className="w-44 sm:w-56 md:w-64 h-auto object-contain bg-transparent translate-y-2 sm:translate-y-4"
                 />
                 <div className="hidden sm:block bg-white rounded-xl px-3 py-2 text-xs text-gray-600 shadow-sm max-w-[160px] mb-6">

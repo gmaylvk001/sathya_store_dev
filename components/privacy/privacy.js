@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import React, { useState, useEffect } from "react";
 import Link from 'next/link';
 import { FiShield, FiLock, FiMail, FiCookie } from 'react-icons/fi';
@@ -53,11 +53,11 @@ const PrivacyPolicy = () => {
                                 <FiLock className="text-customBlue" />Your Privacy Matters
                             </h2>
                             <p className="text-gray-600 mb-4">
-                                    This privacy policy sets out how Bharath Electronics and Appliances uses and protects any 
+                                    This privacy policy sets out how Sathya Stores uses and protects any 
                                     information that you give when using this website.
                             </p>
                             <p className="text-gray-600">
-                                    Bharath Electronics and Appliances is committed to ensuring that your privacy is protected. 
+                                    Sathya Stores is committed to ensuring that your privacy is protected. 
                                     Should we ask you to provide certain information by which you can be identified when using 
                                     this website, you can be assured that it will only be used in accordance with this privacy 
                                     statement.
@@ -71,7 +71,7 @@ const PrivacyPolicy = () => {
                        </h3>
 
                                 <p className="text-gray-600">
-                                    Bharath Electronics and Appliances may change this policy from time to time by updating 
+                                    Sathya Stores may change this policy from time to time by updating 
                                     this page. You should check this page periodically to ensure you're happy with any changes.
                                 </p>
                          </div>
@@ -158,7 +158,7 @@ const PrivacyPolicy = () => {
                                 </p>
                                 <ul className="list-disc pl-5 space-y-2 text-gray-600 mb-6">
                                     <li>Look for opt-out boxes in forms to prevent direct marketing use</li>
-                                    <li>Change previous marketing consent by emailing us at customercare@bharathelectronics.in</li>
+                                    <li>Change previous marketing consent by emailing us at customercare@sathya.store</li>
                                     <li>We won't sell/distribute your information without your permission</li>
                                 </ul>
                                 <p className="text-gray-600">
@@ -177,10 +177,10 @@ const PrivacyPolicy = () => {
                                 For any questions about our privacy policy, please contact:
                             </p>
                             <a 
-                                href="mailto:customercare@bharathelectronics.in" 
+                                href="mailto:customercare@sathya.store" 
                                 className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-lg transition-colors duration-300"
                             >
-                                customercare@bharathelectronics.in
+                                customercare@sathya.store
                             </a>
                         </div>
                     </div>

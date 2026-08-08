@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { FaPhoneAlt, FaEnvelope } from "react-icons/fa";
@@ -104,7 +104,7 @@ const [openSuccess, setOpenSuccess] = useState(false);
             JSON.stringify([SamsungS26Ultra.name,SamsungS26Ultra.mobile_number,SamsungS26Ultra.email_address,SamsungS26Ultra.city,SamsungS26Ultra.product])
           );
   
-          const emailadmin = ["arunkarthik@bharathelectronics.in","Customercare@bharathelectronics.in"];
+          const emailadmin = ["arunkarthik@sathya.store","Customercare@sathya.store"];
           emailadmin.forEach(async (emailadmin) => {
             adminemailFormData.set("email", emailadmin);
           let adminresponse = await fetch("https://bea.eygr.in/api/email/send-msg", {

@@ -1,4 +1,4 @@
-import { Geist, Geist_Mono } from "next/font/google";
+﻿import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import ClientLayout from "@/app/ClientLayout";
 import Script from "next/script";
@@ -16,10 +16,10 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "Bharath Electronics & Appliances",
-  description: "Barath Electronics",
+  title: "Sathya Stores",
+  description: "Sathya Stores",
   icons: {
-    icon: "/images/logo/bea-favi.png",
+    icon: "/uploads/sathyalogo.webp",
   },
 };
 

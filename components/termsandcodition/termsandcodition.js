@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import React, { useState, useEffect } from "react";
 import Link from 'next/link';
 import { FiFileText, FiBook, FiShield, FiMail, FiLink } from 'react-icons/fi';
@@ -50,13 +50,13 @@ const TermsAndConditions = () => {
                 <FiBook className="text-customBlue" /> Website Terms
               </h2>
               <p className="text-gray-600 mb-4">
-                The Website Owner, including subsidiaries and affiliates www.bharathelectronics.in provides the information contained on the website or any of the pages comprising the website www.bharathelectronics.in to visitors ("visitors") (cumulatively referred to as "you" or "your" hereinafter) subject to the terms and conditions set out in these website terms and conditions, the privacy policy and any other relevant terms and conditions, policies and notices which may be applicable to a specific section or module of the website.
+                The Website Owner, including subsidiaries and affiliates www.sathya.store provides the information contained on the website or any of the pages comprising the website www.sathya.store to visitors ("visitors") (cumulatively referred to as "you" or "your" hereinafter) subject to the terms and conditions set out in these website terms and conditions, the privacy policy and any other relevant terms and conditions, policies and notices which may be applicable to a specific section or module of the website.
               </p>
               <p className="text-gray-600 mb-4">
-                Welcome to our website. If you continue to browse and use this website, you are agreeing to comply with and be bound by the following terms and conditions of use, which, together with our privacy policy, govern Bharath Electronics and Appliances relationship with you in relation to this website.
+                Welcome to our website. If you continue to browse and use this website, you are agreeing to comply with and be bound by the following terms and conditions of use, which, together with our privacy policy, govern Sathya Stores relationship with you in relation to this website.
               </p>
               <p className="text-gray-600">
-                The term Bharath Electronics and Appliances refers to the owner of the website whose registered/operational office is 383, 100 Feet Road, Gandhipuram, Coimbatore Tamilnadu 641012. The term 'you' refers to the user or viewer of our website.
+                The term Sathya Stores refers to the owner of the website whose registered/operational office is 383, 100 Feet Road, Gandhipuram, Coimbatore Tamilnadu 641012. The term 'you' refers to the user or viewer of our website.
               </p>
             </div>
 
@@ -77,7 +77,7 @@ const TermsAndConditions = () => {
                 <li>All trademarks reproduced in this website which are not the property of, or licensed to, the operator are acknowledged on the website.</li>
                 <li>Unauthorized use of this website may give rise to a claim for damages and/or be a criminal offense.</li>
                 <li>From time to time this website may also include links to other websites. These links are provided for your convenience to provide further information.</li>
-                <li>You may not create a link to this website from another website or document without Bharath Electronics and Appliances' prior written consent.</li>
+                <li>You may not create a link to this website from another website or document without Sathya Stores' prior written consent.</li>
                 <li>Your use of this website and any dispute arising out of such use of the website is subject to the laws of India or other regulatory authority.</li>
                 <li>We, as a merchant shall be under no liability whatsoever in respect of any loss or damage arising directly or indirectly out of the decline of authorization for any Transaction, on Account of the Cardholder having exceeded the preset limit mutually agreed by us with our acquiring bank from time to time.</li>
               </ul>
@@ -93,10 +93,10 @@ const TermsAndConditions = () => {
                 For any questions about our terms and conditions, please contact us at:
               </p>
               <a 
-                href="mailto:customercare@bharathelectronics.in" 
+                href="mailto:customercare@sathya.store" 
                 className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-lg transition-colors duration-300"
               >
-                customercare@bharathelectronics.in
+                customercare@sathya.store
               </a>
             </div>
           </div>

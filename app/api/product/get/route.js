@@ -6,11 +6,43 @@ import Filter from '@/models/ecom_filter_infos';
 import FilterGroup from '@/models/ecom_filter_group_infos';
 import ProductFilter from '@/models/ecom_productfilter_info';
 
-export async function GET() {
+/**
+ * GET /api/product/get
+ * - With ?field=a,b,c → light projection only (fast; used by search cache helpers)
+ * - Without field → full catalog + wishlist + filters (existing behavior)
+ */
+export async function GET(req) {
   try {
     await dbConnect();
+
+    const { searchParams } = new URL(req.url);
+    const fieldParam = searchParams.get("field");
+
+    // Fast path: only requested fields, Active products, no wishlist/filter joins
+    if (fieldParam) {
+      const fields = fieldParam
+        .split(",")
+        .map((f) => f.trim())
+        .filter(Boolean);
+
+      const projection = { _id: 1 };
+      for (const f of fields) {
+        projection[f] = 1;
+      }
+      // Common search/display extras if callers ask for images/name/slug
+      if (!projection.slug) projection.slug = 1;
+      if (!projection.status) projection.status = 1;
+
+      const products = await Product.find({ status: "Active" })
+        .select(projection)
+        .sort({ createdAt: -1 })
+        .lean();
+
+      return NextResponse.json(products, { status: 200 });
+    }
+
     const products            = await Product.find({}) .sort({ createdAt: -1 }) .lean();
-    const wishlistedItems     = await Wishlist.find({}, 'productId userId').lean(); // adjust projection as needed
+    const wishlistedItems     = await Wishlist.find({}, 'productId userId').lean();
 
     const ProductFilteritems  = await ProductFilter.find({}).lean();
     const Filteritems         = await Filter.find({}).lean();

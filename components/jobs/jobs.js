@@ -247,14 +247,14 @@ const opportunities = [
       <div className="relative z-10 py-12 lg:py-0">
 
         <span className="inline-block px-4 py-1 text-xs font-semibold text-white border border-white/30 rounded-full mb-6">
-          #BEA CAREERS
+          #Sathya Stores CAREERS
         </span>
 
         <h1 className="text-4xl md:text-5xl lg:text-5xl font-bold text-white leading-tight">
           Build Your Future
           <br />
           With
-          <span className="text-[#2f7cff]"> BEA</span>
+          <span className="text-[#2f7cff]"> Sathya Stores</span>
         </h1>
 
         <p className="mt-1 text-lg text-white/80 max-w-xl">
@@ -325,7 +325,7 @@ const opportunities = [
         <div className="relative flex justify-end">
   <img
     src="/uploads/career.png"
-    alt="BEA Team"
+    alt="Sathya Stores Team"
     className="w-full max-w-[700px] h-auto object-cover"
     style={{
       clipPath: "ellipse(50% 48% at 50% 50%)",
@@ -347,7 +347,7 @@ const opportunities = [
 <div className="max-w-12xl mx-auto px-4 md:px-6">
 
     <h2 className="text-center text-2xl font-bold text-[#001B5E]">
-      Why Work With BEA?
+      Why Work With Sathya Stores?
     </h2>
 
     <div className="w-20 h-1 bg-blue-600 mx-auto mt-3 mb-5 rounded-full"></div>
@@ -439,11 +439,11 @@ const opportunities = [
 
     <div className="grid lg:grid-cols-2 gap-8">
 
-      {/* LIFE AT BEA */}
+      {/* LIFE AT Sathya Stores */}
       <div className="bg-white border rounded-2xl p-6">
 
         <h2 className="text-3xl font-bold text-[#001B5E] mb-2">
-          Life at BEA
+          Life at Sathya Stores
         </h2>
 
         <div className="w-16 h-1 bg-blue-600 rounded-full mb-4"></div>
@@ -455,7 +455,7 @@ const opportunities = [
         <div className="mt-4">
   <img
     src="/uploads/aboutus-all-own-created-images.png"
-    alt="Life at BEA"
+    alt="Life at Sathya Stores"
     className="w-full rounded-xl object-cover"
   />
           {/* <img
@@ -483,7 +483,7 @@ const opportunities = [
       <div className="bg-white border rounded-2xl p-6 shadow-sm overflow-hidden">
 
         <h2 className="text-3xl font-bold text-center text-[#001B5E] mb-2">
-          Start Your BEA Journey
+          Start Your Sathya Stores Journey
         </h2>
 
         <div className="w-16 h-1 bg-blue-600 rounded-full mx-auto mb-8"></div>

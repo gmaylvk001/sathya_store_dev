@@ -32,6 +32,8 @@ const CategoryImageCarouselSchema = new mongoose.Schema(
     /** Displayed at top of component on storefront */
     name: { type: String, default: "" },
     items: { type: [ImageItemSchema], default: [] },
+    /** When true, storefront shows spacing between carousel images */
+    showGap: { type: Boolean, default: false },
     status: {
       type: String,
       enum: ["active", "inactive"],
@@ -44,5 +46,8 @@ const CategoryImageCarouselSchema = new mongoose.Schema(
 CategoryImageCarouselSchema.index({ pageId: 1 });
 CategoryImageCarouselSchema.index({ categoryId: 1 });
 
-export default mongoose.models.CategoryImageCarousel ||
-  mongoose.model("CategoryImageCarousel", CategoryImageCarouselSchema);
+if (mongoose.models.CategoryImageCarousel) {
+  delete mongoose.models.CategoryImageCarousel;
+}
+
+export default mongoose.model("CategoryImageCarousel", CategoryImageCarouselSchema);

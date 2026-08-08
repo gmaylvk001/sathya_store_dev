@@ -86,7 +86,7 @@ function StoreTypeIcon({ color = "#2563EB", size = 13 }) {
 // ─── Store Card ───────────────────────────────────────────────────────────────
 function StoreCard({ store }) {
   const whatsappMsg = encodeURIComponent(
-    `Bharath Electronics And Appliances ${store.organisation_name}, ${store.city}. ${store.website || ""}`
+    `Sathya Stores ${store.organisation_name}, ${store.city}. ${store.website || ""}`
   );
 
   const capitalize = (str) =>
@@ -109,7 +109,7 @@ function StoreCard({ store }) {
               onError={(e) => { e.target.style.display = "none"; }}
             />
           ) : (
-            <span className="text-blue-300 text-[11px] font-bold text-center px-1">BEA</span>
+            <span className="text-blue-300 text-[11px] font-bold text-center px-1">Sathya Stores</span>
           )}
         </div>
 
@@ -230,7 +230,7 @@ export default function BEABranchesPage() {
      <div className="relative w-full hidden sm:block">
         <img
           src="/location/LocationBanner1.png"
-          alt="BEA Store Network"
+          alt="Sathya Stores Store Network"
           className="relative z-0 w-full h-auto block"
           onError={(e) => { e.target.style.display = "none"; }}
         />
@@ -247,7 +247,7 @@ export default function BEABranchesPage() {
         <div className="absolute inset-0 z-[2] flex items-center px-[clamp(1rem,3vw,2.5rem)]">
           <div className="ml-0 md:ml-8 lg:ml-14 max-w-[min(400px,42vw)]">
             <p className="text-[clamp(1.1rem,2vw+0.4rem,2.25rem)] font-bold text-blue-900 mb-1">
-              BEA Store Network.
+              Sathya Stores Store Network.
             </p>
             <div className="leading-tight mb-0.5">
               <span className="text-[clamp(1.5rem,3vw+0.5rem,3rem)] font-black text-blue-700">
@@ -263,7 +263,7 @@ export default function BEABranchesPage() {
             </div>
             <div className="text-[clamp(1.2rem,2.2vw+0.4rem,2.375rem)] font-black text-blue-900 mb-3">One Trusted Name.</div>
             <p className="text-[clamp(0.75rem,0.6vw+0.5rem,0.9rem)] text-blue-900 leading-relaxed max-w-[300px]">
-              Find your nearest BEA showroom and experience Tamil Nadu&apos;s favourite
+              Find your nearest Sathya Stores showroom and experience Tamil Nadu&apos;s favourite
               destination for electronics &amp; home appliances.
             </p>
           </div>
@@ -313,7 +313,7 @@ export default function BEABranchesPage() {
         <div className="relative w-full overflow-hidden">
           <img
             src="/location/LocationBanner1.png"
-            alt="BEA Store Network"
+            alt="Sathya Stores Store Network"
             className="relative z-0 w-full h-auto block"
             onError={(e) => { e.target.style.display = "none"; }}
           />
@@ -322,7 +322,7 @@ export default function BEABranchesPage() {
         {/* Content below banner */}
         <div className="bg-white px-5 pt-5 pb-4">
           <p className="text-[11px] font-semibold text-gray-500 mb-1">
-            BEA Store Network.
+            Sathya Stores Store Network.
           </p>
           <div className="leading-tight mb-0.5">
             <span className="text-[34px] font-black text-blue-700">
@@ -338,7 +338,7 @@ export default function BEABranchesPage() {
           </div>
           <div className="text-[20px] font-black text-gray-900 mb-2">One Trusted Name.</div>
           <p className="text-[12px] text-gray-600 leading-relaxed mb-5">
-            Find your nearest BEA showroom and experience Tamil Nadu&apos;s favourite
+            Find your nearest Sathya Stores showroom and experience Tamil Nadu&apos;s favourite
             destination for electronics &amp; home appliances.
           </p>
 
@@ -371,7 +371,7 @@ export default function BEABranchesPage() {
       {/* ── Find Store Section ── */}
       <div id="find-store-section" className="bg-white px-6 sm:px-10 pt-10 pb-8">
         <h2 className="text-center text-[21px] font-bold text-gray-900 mb-5">
-          Find Your Nearest BEA Store
+          Find Your Nearest Sathya Stores Store
         </h2>
 
         {/* ── Filters Row ── */}
@@ -473,7 +473,7 @@ className="h-[44px]  flex-1 bg-blue-600 hover:bg-blue-700 text-white border-none
         )}
       </div>
 
-      {/* ── Why Shop at BEA ── */}
+      {/* ── Why Shop at Sathya Stores ── */}
       <div className="bg-white px-6 sm:px-10 pt-12 pb-0">
 
         {/* LocationBanner2 */}
@@ -488,7 +488,7 @@ className="h-[44px]  flex-1 bg-blue-600 hover:bg-blue-700 text-white border-none
 
         {/* Section Title */}
         <h2 className="text-center text-[21px] font-bold text-gray-900 mb-6">
-          Why Shop at BEA?
+          Why Shop at Sathya Stores?
         </h2>
 
         {/* ── Why Shop Cards ── */}
@@ -521,7 +521,7 @@ className="h-[44px]  flex-1 bg-blue-600 hover:bg-blue-700 text-white border-none
           <div className="relative hidden sm:block">
             <img
               src="/location/LocationBanner3.png"
-              alt="Visit BEA Store"
+              alt="Visit Sathya Stores Store"
               className="relative z-0 w-full h-auto block"
               onError={(e) => { e.target.style.display = "none"; }}
             />
@@ -550,7 +550,7 @@ className="h-[44px]  flex-1 bg-blue-600 hover:bg-blue-700 text-white border-none
           <div className="block sm:hidden">
             <img
               src="/location/LocationBanner3.png"
-              alt="Visit BEA Store"
+              alt="Visit Sathya Stores Store"
               className="w-full h-auto block"
               onError={(e) => { e.target.style.display = "none"; }}
             />

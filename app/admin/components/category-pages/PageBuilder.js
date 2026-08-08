@@ -16,6 +16,11 @@ import ImageCarouselConfigForm from "./ImageCarouselConfigForm";
 import ProductCarouselConfigForm from "./ProductCarouselConfigForm";
 import BannerSideProductsConfigForm from "./BannerSideProductsConfigForm";
 import BannerFourProductsConfigForm from "./BannerFourProductsConfigForm";
+import BannerGridConfigForm from "./BannerGridConfigForm";
+import SingleBannerProductsConfigForm from "./SingleBannerProductsConfigForm";
+import BrandCarouselConfigForm from "./BrandCarouselConfigForm";
+import ImageHotspotBannerConfigForm from "./ImageHotspotBannerConfigForm";
+import CategoryContentConfigForm from "./CategoryContentConfigForm";
 
 /**
  * Page Builder:
@@ -106,6 +111,60 @@ export default function PageBuilder() {
     }
   };
 
+  const addNewBrandCarouselSet = async () => {
+    setMessage("");
+    try {
+      const res = await fetch(`/api/category-pages/${id}/components`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: COMPONENT_TYPES.BRAND_CAROUSEL }),
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.message);
+      setPage(data.page);
+      setConfigType(COMPONENT_TYPES.BRAND_CAROUSEL);
+      setConfigInstanceId(data.instance?.instanceId || null);
+    } catch (e) {
+      alert(e.message);
+    }
+  };
+
+  const addNewImageHotspotBannerSet = async () => {
+    setMessage("");
+    try {
+      const res = await fetch(`/api/category-pages/${id}/components`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: COMPONENT_TYPES.IMAGE_HOTSPOT_BANNER }),
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.message);
+      setPage(data.page);
+      setConfigType(COMPONENT_TYPES.IMAGE_HOTSPOT_BANNER);
+      setConfigInstanceId(data.instance?.instanceId || null);
+    } catch (e) {
+      alert(e.message);
+    }
+  };
+
+  const addNewCategoryContentSet = async () => {
+    setMessage("");
+    try {
+      const res = await fetch(`/api/category-pages/${id}/components`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: COMPONENT_TYPES.CATEGORY_CONTENT }),
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.message);
+      setPage(data.page);
+      setConfigType(COMPONENT_TYPES.CATEGORY_CONTENT);
+      setConfigInstanceId(data.instance?.instanceId || null);
+    } catch (e) {
+      alert(e.message);
+    }
+  };
+
   const addNewProductCarouselSet = async () => {
     setMessage("");
     try {
@@ -160,6 +219,42 @@ export default function PageBuilder() {
     }
   };
 
+  const addNewBannerGridSet = async () => {
+    setMessage("");
+    try {
+      const res = await fetch(`/api/category-pages/${id}/components`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: COMPONENT_TYPES.BANNER_GRID }),
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.message);
+      setPage(data.page);
+      setConfigType(COMPONENT_TYPES.BANNER_GRID);
+      setConfigInstanceId(data.instance?.instanceId || null);
+    } catch (e) {
+      alert(e.message);
+    }
+  };
+
+  const addNewSingleBannerProductsSet = async () => {
+    setMessage("");
+    try {
+      const res = await fetch(`/api/category-pages/${id}/components`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: COMPONENT_TYPES.SINGLE_BANNER_PRODUCTS }),
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.message);
+      setPage(data.page);
+      setConfigType(COMPONENT_TYPES.SINGLE_BANNER_PRODUCTS);
+      setConfigInstanceId(data.instance?.instanceId || null);
+    } catch (e) {
+      alert(e.message);
+    }
+  };
+
   const openEditInstance = (c) => {
     setConfigType(c.type);
     setConfigInstanceId(c.instanceId);
@@ -186,8 +281,8 @@ export default function PageBuilder() {
   }
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
-      <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
+    <div className="flex flex-col max-w-6xl mx-auto py-4 box-border lg:h-[calc(100vh-3.5rem)] lg:overflow-hidden">
+      <div className="shrink-0 flex flex-wrap items-start justify-between gap-4 mb-4">
         <div>
           <Link
             href="/admin/category-pages"
@@ -213,21 +308,23 @@ export default function PageBuilder() {
       </div>
 
       {message && (
-        <div className="mb-4 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
+        <div className="shrink-0 mb-4 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
           {message}
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Component screenshot gallery */}
-        <div className="lg:col-span-1">
-          <div className="bg-white rounded-xl border p-4 shadow-sm sticky top-4">
-            <h2 className="text-sm font-semibold mb-1">Components</h2>
-            <p className="text-xs text-gray-500 mb-4">
-              Select a component image to open its page. Image Carousel shows
-              existing sets; use ADD NEW to create another.
-            </p>
-            <div className="space-y-3">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:flex-1 lg:min-h-0 lg:overflow-hidden">
+        {/* Component screenshot gallery — scrolls independently */}
+        <div className="lg:col-span-1 flex flex-col max-h-[42vh] lg:max-h-none lg:min-h-0 lg:h-full overflow-hidden">
+          <div className="bg-white rounded-xl border p-4 shadow-sm flex flex-col min-h-0 h-full overflow-hidden">
+            <div className="shrink-0 mb-4">
+              <h2 className="text-sm font-semibold mb-1">Components</h2>
+              <p className="text-xs text-gray-500">
+                Select a component image to open its page. Image Carousel shows
+                existing sets; use ADD NEW to create another.
+              </p>
+            </div>
+            <div className="space-y-3 overflow-y-auto flex-1 min-h-0 pr-1 overscroll-contain">
               {available.map((comp) => {
                 const count = countByType[comp.type] || 0;
                 const added = count > 0;
@@ -272,15 +369,11 @@ export default function PageBuilder() {
                 );
               })}
             </div>
-            <p className="text-[11px] text-gray-400 mt-4">
-              More components will appear here later with their own screenshots
-              and input forms.
-            </p>
           </div>
         </div>
 
-        {/* Config / canvas */}
-        <div className="lg:col-span-2">
+        {/* Config / canvas — scrolls independently */}
+        <div className="lg:col-span-2 lg:min-h-0 lg:overflow-y-auto overscroll-contain">
           <div className="bg-white rounded-xl border p-5 shadow-sm min-h-[320px]">
             {!configType ? (
               <div className="py-16 text-center text-sm text-gray-500">
@@ -366,7 +459,6 @@ export default function PageBuilder() {
                 }}
                 onSaved={() => {
                   setMessage("Image Carousel set saved.");
-                  setConfigInstanceId(null);
                   load();
                 }}
               />
@@ -497,6 +589,210 @@ export default function PageBuilder() {
                 onSaved={() => {
                   setMessage("Banner + 4 Images + Products set saved.");
                   setConfigInstanceId(null);
+                  load();
+                }}
+              />
+            ) : configType === COMPONENT_TYPES.BANNER_GRID ? (
+              <BannerGridConfigForm
+                key={configInstanceId || "bg-list"}
+                pageId={page._id}
+                categoryName={page.categoryName}
+                instanceId={configInstanceId}
+                setLabel={
+                  configInstanceId
+                    ? instanceLabels[configInstanceId]
+                    : null
+                }
+                existingSets={[...components]
+                  .filter((c) => c.type === COMPONENT_TYPES.BANNER_GRID)
+                  .sort((a, b) => a.order - b.order)
+                  .map((c) => ({
+                    instanceId: c.instanceId,
+                    title: c.title || "",
+                    label:
+                      instanceLabels[c.instanceId] ||
+                      c.title ||
+                      "Banner Grid",
+                  }))}
+                onAddNew={addNewBannerGridSet}
+                onEditSet={(instanceId) => {
+                  setConfigInstanceId(instanceId);
+                  setMessage("");
+                }}
+                onDeleteSet={() => {
+                  setMessage("Banner Grid set deleted.");
+                  load();
+                }}
+                onBackToList={() => {
+                  setConfigInstanceId(null);
+                  load();
+                }}
+                onSaved={() => {
+                  setMessage("Banner Grid set saved.");
+                  load();
+                }}
+              />
+            ) : configType === COMPONENT_TYPES.SINGLE_BANNER_PRODUCTS ? (
+              <SingleBannerProductsConfigForm
+                key={configInstanceId || "sbp-list"}
+                pageId={page._id}
+                categoryId={page.categoryId}
+                categoryName={page.categoryName}
+                instanceId={configInstanceId}
+                setLabel={
+                  configInstanceId
+                    ? instanceLabels[configInstanceId]
+                    : null
+                }
+                existingSets={[...components]
+                  .filter(
+                    (c) => c.type === COMPONENT_TYPES.SINGLE_BANNER_PRODUCTS
+                  )
+                  .sort((a, b) => a.order - b.order)
+                  .map((c) => ({
+                    instanceId: c.instanceId,
+                    title: c.title || "",
+                    label:
+                      instanceLabels[c.instanceId] ||
+                      c.title ||
+                      "Single Banner + Products",
+                  }))}
+                onAddNew={addNewSingleBannerProductsSet}
+                onEditSet={(instanceId) => {
+                  setConfigInstanceId(instanceId);
+                  setMessage("");
+                }}
+                onDeleteSet={() => {
+                  setMessage("Single Banner + Products set deleted.");
+                  load();
+                }}
+                onBackToList={() => {
+                  setConfigInstanceId(null);
+                  load();
+                }}
+                onSaved={() => {
+                  setMessage("Single Banner + Products set saved.");
+                  load();
+                }}
+              />
+            ) : configType === COMPONENT_TYPES.BRAND_CAROUSEL ? (
+              <BrandCarouselConfigForm
+                key={configInstanceId || "brand-list"}
+                pageId={page._id}
+                instanceId={configInstanceId}
+                setLabel={
+                  configInstanceId
+                    ? instanceLabels[configInstanceId]
+                    : null
+                }
+                existingSets={[...components]
+                  .filter((c) => c.type === COMPONENT_TYPES.BRAND_CAROUSEL)
+                  .sort((a, b) => a.order - b.order)
+                  .map((c) => ({
+                    instanceId: c.instanceId,
+                    title: c.title || "",
+                    label:
+                      instanceLabels[c.instanceId] ||
+                      c.title ||
+                      "Brand Carousel",
+                  }))}
+                onAddNew={addNewBrandCarouselSet}
+                onEditSet={(instanceId) => {
+                  setConfigInstanceId(instanceId);
+                  setMessage("");
+                }}
+                onDeleteSet={() => {
+                  setMessage("Brand Carousel set deleted.");
+                  load();
+                }}
+                onBackToList={() => {
+                  setConfigInstanceId(null);
+                  load();
+                }}
+                onSaved={() => {
+                  setMessage("Brand Carousel set saved.");
+                  load();
+                }}
+              />
+            ) : configType === COMPONENT_TYPES.IMAGE_HOTSPOT_BANNER ? (
+              <ImageHotspotBannerConfigForm
+                key={configInstanceId || "hotspot-list"}
+                pageId={page._id}
+                categoryName={page.categoryName}
+                instanceId={configInstanceId}
+                setLabel={
+                  configInstanceId
+                    ? instanceLabels[configInstanceId]
+                    : null
+                }
+                existingSets={[...components]
+                  .filter(
+                    (c) => c.type === COMPONENT_TYPES.IMAGE_HOTSPOT_BANNER
+                  )
+                  .sort((a, b) => a.order - b.order)
+                  .map((c) => ({
+                    instanceId: c.instanceId,
+                    title: c.title || "",
+                    label:
+                      instanceLabels[c.instanceId] ||
+                      c.title ||
+                      "Image Hotspot Banner",
+                  }))}
+                onAddNew={addNewImageHotspotBannerSet}
+                onEditSet={(instanceId) => {
+                  setConfigInstanceId(instanceId);
+                  setMessage("");
+                }}
+                onDeleteSet={() => {
+                  setMessage("Image Hotspot Banner set deleted.");
+                  load();
+                }}
+                onBackToList={() => {
+                  setConfigInstanceId(null);
+                  load();
+                }}
+                onSaved={() => {
+                  setMessage("Image Hotspot Banner set saved.");
+                  load();
+                }}
+              />
+            ) : configType === COMPONENT_TYPES.CATEGORY_CONTENT ? (
+              <CategoryContentConfigForm
+                key={configInstanceId || "content-list"}
+                pageId={page._id}
+                categoryName={page.categoryName}
+                instanceId={configInstanceId}
+                setLabel={
+                  configInstanceId
+                    ? instanceLabels[configInstanceId]
+                    : null
+                }
+                existingSets={[...components]
+                  .filter((c) => c.type === COMPONENT_TYPES.CATEGORY_CONTENT)
+                  .sort((a, b) => a.order - b.order)
+                  .map((c) => ({
+                    instanceId: c.instanceId,
+                    title: c.title || "",
+                    label:
+                      instanceLabels[c.instanceId] ||
+                      c.title ||
+                      "Category Content",
+                  }))}
+                onAddNew={addNewCategoryContentSet}
+                onEditSet={(instanceId) => {
+                  setConfigInstanceId(instanceId);
+                  setMessage("");
+                }}
+                onDeleteSet={() => {
+                  setMessage("Category Content deleted.");
+                  load();
+                }}
+                onBackToList={() => {
+                  setConfigInstanceId(null);
+                  load();
+                }}
+                onSaved={() => {
+                  setMessage("Category Content saved.");
                   load();
                 }}
               />

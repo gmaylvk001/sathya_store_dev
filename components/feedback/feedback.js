@@ -26,36 +26,36 @@ import { FcGoogle } from "react-icons/fc";
 
 const faqData = [
   {
-    q: "How can I share feedback about my BEA shopping experience?",
-    a: "You can share your feedback about your shopping experience at Bharath Electronics & Appliances through our feedback form, Google reviews, or by contacting our customer care team. Your feedback helps BEA improve our products, services, delivery, and customer experience across all our stores."
+    q: "How can I share feedback about my Sathya Stores shopping experience?",
+    a: "You can share your feedback about your shopping experience at Sathya Stores through our feedback form, Google reviews, or by contacting our customer care team. Your feedback helps Sathya Stores improve our products, services, delivery, and customer experience across all our stores."
   },
   {
-    q: "How do I raise a complaint with BEA?",
-    a: "Customers can raise a complaint by submitting the feedback form on our website or contacting BEA Customer Care. Our support team will review your concern and assist you regarding product, delivery, installation, warranty, or service-related issues. \n\n📞 9842344323 \n✉️ customercare@bharathelectronics.in"
+    q: "How do I raise a complaint with Sathya Stores?",
+    a: "Customers can raise a complaint by submitting the feedback form on our website or contacting Sathya Stores Customer Care. Our support team will review your concern and assist you regarding product, delivery, installation, warranty, or service-related issues. \n\n📞 9842344323 \n✉️ customercare@sathya.store"
   },
   {
-    q: "Does BEA provide support after purchasing a product?",
-    a: "Yes. BEA provides after-sales assistance for products purchased from our stores and website. Our team helps customers with installation guidance, brand warranty support, and service-related queries for appliances and electronics."
+    q: "Does Sathya Stores provide support after purchasing a product?",
+    a: "Yes. Sathya Stores provides after-sales assistance for products purchased from our stores and website. Our team helps customers with installation guidance, brand warranty support, and service-related queries for appliances and electronics."
   },
   {
     q: "Who should I contact for appliance installation support?",
-    a: "For products like air conditioners, televisions, refrigerators, washing machines and other appliances, installation support is handled as per brand guidelines. BEA assists customers in coordinating with authorized brand service teams for a smooth installation experience."
+    a: "For products like air conditioners, televisions, refrigerators, washing machines and other appliances, installation support is handled as per brand guidelines. Sathya Stores assists customers in coordinating with authorized brand service teams for a smooth installation experience."
   },
   {
-    q: "How long does BEA take to respond to customer complaints?",
+    q: "How long does Sathya Stores take to respond to customer complaints?",
     a: "Our customer support team reviews every customer query and works to provide timely assistance. Response time may vary depending on the product category, brand support process, and type of concern raised."
   },
   {
-    q: "Can I contact BEA for warranty-related issues?",
-    a: "Yes. Products purchased from Bharath Electronics & Appliances come with applicable manufacturer warranty. Customers can contact BEA Customer Care for guidance regarding warranty claims and authorized service support."
+    q: "Can I contact Sathya Stores for warranty-related issues?",
+    a: "Yes. Products purchased from Sathya Stores come with applicable manufacturer warranty. Customers can contact Sathya Stores Customer Care for guidance regarding warranty claims and authorized service support."
   },
   {
-    q: "Where are BEA customer support services available?",
-    a: "BEA supports customers across Tamil Nadu through our network of 47+ showrooms and online support channels. Customers can reach us for product assistance, delivery support, installation queries, and after-sales service."
+    q: "Where are Sathya Stores customer support services available?",
+    a: "Sathya Stores supports customers across Tamil Nadu through our network of 47+ showrooms and online support channels. Customers can reach us for product assistance, delivery support, installation queries, and after-sales service."
   },
   {
-    q: "How can I leave a Google review for BEA?",
-    a: "Customers can share their experience by leaving a Google review for the BEA showroom they visited. Reviews help us understand customer experiences and continue improving our service quality."
+    q: "How can I leave a Google review for Sathya Stores?",
+    a: "Customers can share their experience by leaving a Google review for the Sathya Stores showroom they visited. Reviews help us understand customer experiences and continue improving our service quality."
   }
 ];
 
@@ -209,7 +209,7 @@ export default function ContactForm() {
           JSON.stringify([FeedBack.name,FeedBack.email_address,FeedBack.mobile_number,FeedBack.invoice_number,FeedBack.products, FeedBack.city,FeedBack.feedback])
         );
 
-        const emailadmin = ["arunkarthik@bharathelectronics.in","ecom@bharathelectronics.in","Customercare@bharathelectronics.in"];
+        const emailadmin = ["arunkarthik@sathya.store","ecom@sathya.store","Customercare@sathya.store"];
 
         emailadmin.forEach(async (emailadmin) => {
           adminemailFormData.set("email", emailadmin);
@@ -373,7 +373,7 @@ export default function ContactForm() {
               </h2>
 
               <p className="text-gray-600 text-[13px] mb-6 leading-relaxed">
-                At BEA (Bharath Electronics & Appliances), customer satisfaction priority. Our dedicated support teams helps customers with product enquiries, delivery updates, installation assistance, warranty guidance and after-sales support across Tamil Nadu.
+                At Sathya Stores, customer satisfaction priority. Our dedicated support teams helps customers with product enquiries, delivery updates, installation assistance, warranty guidance and after-sales support across Tamil Nadu.
               </p>
 
               <div className="space-y-3 flex-1 flex flex-col justify-end">
@@ -396,7 +396,7 @@ export default function ContactForm() {
                 </a>
 
                 {/* Email */}
-                <a href="mailto:customercare@bharathelectronics.in" className="block border border-blue-100 bg-blue-50 rounded-xl p-4 flex items-start gap-4 hover:border-blue-300 transition-colors">
+                <a href="mailto:customercare@sathya.store" className="block border border-blue-100 bg-blue-50 rounded-xl p-4 flex items-start gap-4 hover:border-blue-300 transition-colors">
                   <div className="w-12 h-12 rounded-full bg-[#2453d3] flex items-center justify-center shrink-0">
                     <Mail className="w-5 h-5 text-white" />
                   </div>
@@ -404,51 +404,10 @@ export default function ContactForm() {
                   <div>
                     <h4 className="font-semibold text-gray-900">Email Us</h4>
                     <p className="text-[#2453d3] break-all">
-                      customercare@bharathelectronics.in
+                      customercare@sathya.store
                     </p>
                   </div>
                 </a>
-
-                {/* Address */}
-                <a href="https://maps.app.goo.gl/QgL94z6N1gyhhM3E9" target="_blank" rel="noopener noreferrer" className="block border border-blue-100 bg-blue-50 rounded-xl p-4 flex items-start gap-4 hover:border-blue-300 transition-colors">
-                  <div className="w-12 h-12 rounded-full bg-[#2453d3] flex items-center justify-center shrink-0">
-                    <MapPin className="w-5 h-5 text-white" />
-                  </div>
-
-                  <div>
-                    <h4 className="font-semibold text-gray-900">Corporate Office</h4>
-                    <p className="text-gray-600 text-sm">
-                      26/1 Dr. Alagappa Chettiyar Rd,
-                      Tatabad, Coimbatore - 641012,
-                      Tamil Nadu.
-                    </p>
-                  </div>
-                </a>
-
-                <a
-                href="https://link.reviews/BEA-CBE-TATABAD"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-between w-full border border-[#2453d3]/20 bg-transparent rounded-xl px-4 py-3 hover:border-[#2453d3] transition"
-              >
-                <div className="flex items-center gap-3">
-                  <FcGoogle className="text-2xl" />
-
-                  <span className="font-semibold text-[#2453d3]">
-                    Review us on Google
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-1">
-                  {[...Array(5)].map((_, i) => (
-                    <Star
-                      key={i}
-                      size={16}
-                      className="fill-yellow-400 text-yellow-400"
-                    />
-                  ))}
-                </div>
-              </a>
 
               </div>
             </div>
@@ -609,7 +568,7 @@ export default function ContactForm() {
         <div className="bg-white border rounded-2xl p-8 md:p-10 shadow-sm">
 
           <h2 className="text-xl font-bold text-center text-[#2453d3] mb-5">
-            How BEA Support Works
+            How Sathya Stores Support Works
           </h2>
 
           <div className="relative grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-10">
@@ -822,27 +781,6 @@ export default function ContactForm() {
               </div>
             </a>
 
-            {/* Google Review */}
-            <a
-              href="https://link.reviews/BEA-CBE-TATABAD"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="bg-white rounded-xl px-4 py-4 flex items-center gap-3 shadow-sm hover:shadow-md transition-all duration-300"
-            >
-              <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
-                <FcGoogle className="text-2xl" />
-              </div>
-
-              <div>
-                <p className="text-xs text-[#2453d3] font-medium">
-                  Review BEA
-                </p>
-
-                <p className="font-semibold text-[#2453d3] text-sm">
-                  On Google ⭐
-                </p>
-              </div>
-            </a>
 
           </div>
         </div>

@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 
 /**
  * POST /api/admin/wishlist-mail/test
@@ -25,7 +25,7 @@ export async function POST(req) {
         wishlistDetails: {
           name: body.name || "Test Customer",
           product_name: body.productName || "Sample Wishlist Product",
-          wishlist_url: "https://www.bharathelectronics.in/wishlist",
+          wishlist_url: "https://www.sathya.store/wishlist",
         },
       }),
     });

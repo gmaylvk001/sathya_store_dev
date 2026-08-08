@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -55,6 +55,18 @@ export default function AdminSider({ collapsed }) {
     ]
   },
     { icon: 'mdi:tag-outline', label: 'Offer', link: 'offer' },
+    {
+      icon: 'mdi:bullhorn-outline',
+      label: 'Marketing',
+      submenu: [
+        {
+          icon: 'mdi:gift-outline',
+          label: 'Combo Offers',
+          link: 'combo-offers',
+          dotColor: 'bg-green-500',
+        },
+      ],
+    },
     // { icon: 'mdi:heart-flash', label: 'Wishlist Mail Alerts', link: 'wishlist-mail' },
     { icon: "mdi:briefcase-account-outline", label: "Job Positions", link: "careers" },
     { icon: 'mdi:note-text-outline', label: 'Blog', link: 'blog' },
@@ -125,11 +137,11 @@ export default function AdminSider({ collapsed }) {
         >
           {!collapsed ? (
             <a href="/" className="flex items-center space-x-2">
-              <img src="/admin/assets/images/bea.png" alt="Site Logo" className="h-9" />
-              <span className="text-sm font-bold text-gray-700">Bharath Electronics</span>
+              <img src="/uploads/sathyalogo.webp" alt="Site Logo" className="h-9" />
+              <span className="text-sm font-bold text-gray-700">Sathya Stores</span>
             </a>
           ) : (
-            <img src="/admin/assets/images/bea.png" alt="Site Logo" className="h-9" />
+            <img src="/uploads/sathyalogo.webp" alt="Site Logo" className="h-9" />
           )}
         </div>
 
@@ -194,8 +206,8 @@ export default function AdminSider({ collapsed }) {
                   }}
                   className={`w-full flex items-center px-3 py-2 rounded text-sm space-x-3 ${
                     activeMenu === sub.label
-                      ? 'bg-blue-500 text-white'
-                      : 'text-gray-700 hover:text-blue-500'
+                      ? 'bg-brandRed text-white'
+                      : 'text-gray-700 hover:text-brandRed'
                   }`}
                 >
                   <Icon icon={sub.icon} className="text-lg" />
@@ -220,7 +232,7 @@ function SidebarItem({ icon, label, link, activeMenu, setActiveMenu, collapsed, 
           router.push(`/admin/${link}`);
         }}
         className={`w-full flex items-center px-3 py-3 rounded-lg text-md font-medium transition-colors duration-200 ${
-          active ? 'bg-blue-500 text-white' : 'text-gray-700 hover:text-blue-500'
+          active ? 'bg-brandRed text-white' : 'text-gray-700 hover:text-brandRed'
         } ${collapsed ? 'justify-center' : 'space-x-3'}`}
       >
         <Icon icon={icon} className={collapsed ? 'text-2xl' : 'text-xl'} />
@@ -280,8 +292,8 @@ function SidebarItemWithDropdown({
         }}
         className={`w-full flex items-center px-3 py-3 rounded-lg text-md font-medium transition-colors duration-200 ${
           item.submenu.some((sub) => sub.label === activeMenu)
-            ? 'bg-blue-100 text-blue-600'
-            : 'text-gray-700 hover:text-blue-500'
+            ? 'bg-red-100 text-brandRed'
+            : 'text-gray-700 hover:text-brandRed'
         } ${collapsed ? 'justify-center' : 'space-x-3'}`}
       >
         <Icon icon={item.icon} className={collapsed ? 'text-2xl' : 'text-xl'} />
@@ -306,8 +318,8 @@ function SidebarItemWithDropdown({
                 }}
                 className={`w-full flex items-center px-3 py-2 rounded text-sm space-x-3 ${
                   activeMenu === sub.label
-                    ? 'bg-blue-500 text-white'
-                    : 'text-gray-700 hover:text-blue-500'
+                    ? 'bg-brandRed text-white'
+                    : 'text-gray-700 hover:text-brandRed'
                 }`}
               >
                 <Icon icon={sub.icon} className="text-lg" />

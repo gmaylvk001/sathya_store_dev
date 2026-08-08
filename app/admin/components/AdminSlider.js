@@ -10,8 +10,7 @@ export default function AdminSlider() {
       rounded-[100px] m-4 flex-col h-[calc(100%-30px)]">
       <a href="index.html" className="block text-center logo">
         <span>
-          <img src="../assets/images/logo-sm.png" alt="logo-small" className="logo-sm
-            h-8" />
+          <img src="/uploads/sathyalogo.webp" alt="logo-small" className="logo-sm h-8" />
         </span>
       </a>
 
@@ -73,8 +72,8 @@ export default function AdminSlider() {
       <div className="main-menu-inner-logo">
         <div className="flex items-center">
           <a href="index.html" className="leading-[60px]">
-            <img src="../assets/images/logo-2.png" alt="" className="inline-block dark:hidden h-[15px] ltr:ml-4 rtl:ml-0 rtl:mr-4" />
-            <img src="../assets/images/logo.png" alt="" className=" dark:inline-block h-[15px] ltr:ml-4 rtl:ml-0 rtl:mr-4" />
+            <img src="/uploads/sathyalogo.webp" alt="" className="inline-block dark:hidden h-[15px] ltr:ml-4 rtl:ml-0 rtl:mr-4" />
+            <img src="/uploads/sathyalogo.webp" alt="" className=" dark:inline-block h-[15px] ltr:ml-4 rtl:ml-0 rtl:mr-4" />
           </a>
           <div className="ltr:mr-2 ltr:lg:mr-4 rtl:mr-0 rtl:ml-2 rtl:lg:mr-0 rtl:lg:ml-4 ml-auto block xl:hidden">
             <button id="toggle-menu-hide-2" className="button-menu-mobile-2 flex rounded-full md:mr-0 relative">

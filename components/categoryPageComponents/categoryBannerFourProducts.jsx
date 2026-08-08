@@ -258,7 +258,77 @@ function RelatedProducts({ products, seeAllHref, name }) {
 
 /**
  * Storefront: top banner + 4 tiles on colored BG + related products.
+ * Banner & tiles: display at exact uploaded size; if too large, shrink to fit
+ * (tiles max 450×450) without cropping.
  */
+const TILE_MAX_DISPLAY = 450;
+
+function getDisplaySize(naturalWidth, naturalHeight, maxSide = TILE_MAX_DISPLAY) {
+  const nw = naturalWidth || 0;
+  const nh = naturalHeight || 0;
+  if (nw <= 0 || nh <= 0) return null;
+  if (nw <= maxSide && nh <= maxSide) {
+    return { width: nw, height: nh };
+  }
+  const scale = Math.min(maxSide / nw, maxSide / nh);
+  return {
+    width: Math.round(nw * scale),
+    height: Math.round(nh * scale),
+  };
+}
+
+function ExactSizeImage({ src, alt = "", maxSide, className = "" }) {
+  const [displaySize, setDisplaySize] = useState(null);
+
+  const handleLoad = (e) => {
+    const { naturalWidth, naturalHeight } = e.currentTarget;
+    if (maxSide != null) {
+      setDisplaySize(getDisplaySize(naturalWidth, naturalHeight, maxSide));
+      return;
+    }
+    // Banner: keep exact pixel size (container may shrink via maxWidth)
+    setDisplaySize({ width: naturalWidth, height: naturalHeight });
+  };
+
+  const style =
+    maxSide != null
+      ? displaySize
+        ? {
+            width: `${displaySize.width}px`,
+            height: `${displaySize.height}px`,
+            maxWidth: "100%",
+          }
+        : {
+            width: "auto",
+            height: "auto",
+            maxWidth: "100%",
+            maxHeight: `${maxSide}px`,
+          }
+      : displaySize
+        ? {
+            width: `${displaySize.width}px`,
+            maxWidth: "100%",
+            height: "auto",
+          }
+        : {
+            width: "auto",
+            height: "auto",
+            maxWidth: "100%",
+          };
+
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={src}
+      alt={alt}
+      onLoad={handleLoad}
+      style={style}
+      className={`block object-contain ${className}`}
+      draggable={false}
+    />
+  );
+}
+
 export default function CategoryBannerFourProducts({ config }) {
   const bannerDesktop = config?.bannerDesktop || "";
   const bannerMobile = config?.bannerMobile || bannerDesktop;
@@ -274,18 +344,13 @@ export default function CategoryBannerFourProducts({ config }) {
     <section className="w-full mb-8 bg-white">
       <BannerLink
         href={bannerHref}
-        className="block w-full overflow-hidden rounded-sm"
+        className="flex w-full items-center justify-center overflow-hidden rounded-sm"
       >
-        <picture>
+        <picture className="flex w-full items-center justify-center">
           {bannerMobile && bannerMobile !== bannerDesktop ? (
             <source media="(max-width: 767px)" srcSet={bannerMobile} />
           ) : null}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={bannerDesktop}
-            alt=""
-            className="w-full h-auto object-cover aspect-[16/5] sm:aspect-[16/4]"
-          />
+          <ExactSizeImage src={bannerDesktop} alt="" className="mx-auto" />
         </picture>
       </BannerLink>
 
@@ -293,21 +358,19 @@ export default function CategoryBannerFourProducts({ config }) {
         className="w-full px-2 sm:px-3 py-3 sm:py-4 rounded-sm"
         style={{ backgroundColor: tilesBgColor }}
       >
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3 place-items-center">
           {tiles.slice(0, 4).map((tile, idx) => {
             const href = resolveHref(tile.url);
             return (
               <BannerLink
                 key={idx}
                 href={href}
-                className="block rounded-md overflow-hidden shadow-sm hover:shadow-md transition min-h-[100px] sm:min-h-[130px] md:min-h-[150px]"
-                style={{ backgroundColor: tilesBgColor }}
+                className="flex items-center justify-center w-full min-w-0 overflow-hidden rounded-md hover:opacity-95 transition-opacity"
               >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
+                <ExactSizeImage
                   src={tile.image}
                   alt=""
-                  className="w-full h-[100px] sm:h-[130px] md:h-[150px] object-contain p-2"
+                  maxSide={TILE_MAX_DISPLAY}
                 />
               </BannerLink>
             );

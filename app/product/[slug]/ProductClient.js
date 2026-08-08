@@ -1113,7 +1113,7 @@ const fetchBrand = async () => {
   <span className="text-red-600 font-semibold text-sm">✗ Out of Stock</span>
 )}
       <p className="text-xs text-gray-600 mt-1">
-        Sold by <span className="font-semibold">Bharath Electronics & Appliances</span>
+        Sold by <span className="font-semibold">Sathya Stores</span>
       </p>
     </div>
 
@@ -1661,7 +1661,7 @@ const fetchBrand = async () => {
 )}
                   </div>
                   <p className="text-xs text-gray-600">
-                    Sold by <span className="font-semibold">Bharath Electronics & Appliances</span>
+                    Sold by <span className="font-semibold">Sathya Stores</span>
                     <svg className="w-3.5 h-3.5 inline ml-1 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                     </svg>

@@ -1,8 +1,14 @@
 // 'use client';
 import Link from "next/link";
 import Image from 'next/image';
-import { FiSearch, FiMapPin, FiHeart, FiShoppingCart, FiUser, FiMenu, FiX, FiPhoneCall, FiMessageSquare, FiChevronRight } from "react-icons/fi";
+import { FiSearch, FiUser, FiMenu, FiX, FiChevronRight } from "react-icons/fi";
 import { FaBars, FaShoppingBag, FaUserShield, FaSearch } from "react-icons/fa";
+import {
+  HiOutlineHeart,
+  HiOutlineShoppingBag,
+  HiOutlinePhone,
+  HiOutlineBuildingStorefront,
+} from "react-icons/hi2";
 import { useState, useRef, useEffect, useLayoutEffect, useCallback, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { IoLogOut } from "react-icons/io5";
@@ -15,7 +21,6 @@ import 'swiper/css/scrollbar';
 import { useRouter } from 'next/navigation';
 import { Navigation, Scrollbar } from 'swiper/modules';
 import { useHeaderdetails } from "@/context/HeaderContext"; 
-import { getProducts } from '@/lib/productApi';
 import { filterAndRankProducts } from '@/lib/searchMatch';
 
 // ADD: alphaSortString - case-insensitive, null-safe string comparator
@@ -27,11 +32,17 @@ const alphaSortString = (a, b) => {
 };
 
 const HEADER_ACTION_LINK_CLASS =
-  "group flex flex-col items-center gap-0.5 rounded-lg px-1.5 py-1 transition-all duration-200 hover:bg-yellow-50 hover:-translate-y-0.5 active:translate-y-0 active:scale-95";
-const HEADER_ACTION_ICON_CLASS =
-  "text-brandRed transition-all duration-200 group-hover:text-brandYellowDark group-hover:scale-110";
+  "group flex flex-col items-center gap-1 rounded-xl px-1 py-0.5 transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 active:scale-95";
+const HEADER_ACTION_ICON_WRAP_CLASS =
+  "relative flex h-9 w-9 items-center justify-center rounded-xl border border-[#d72828]/25 bg-gradient-to-b from-[#fffdf5] to-white text-[#d72828] shadow-[0_1px_2px_rgba(215,40,40,0.08)] transition-all duration-200 group-hover:border-[#d72828] group-hover:bg-[#fbe002] group-hover:text-[#b82222] group-hover:shadow-[0_4px_10px_rgba(215,40,40,0.18)]";
+const HEADER_ACTION_ICON_WRAP_SM_CLASS =
+  "relative flex h-8 w-8 items-center justify-center rounded-lg border border-[#d72828]/25 bg-gradient-to-b from-[#fffdf5] to-white text-[#d72828] shadow-[0_1px_2px_rgba(215,40,40,0.08)] transition-all duration-200 group-hover:border-[#d72828] group-hover:bg-[#fbe002] group-hover:text-[#b82222]";
 const HEADER_ACTION_LABEL_CLASS =
-  "text-brandRed font-medium leading-none transition-colors duration-200 group-hover:text-brandYellowDark";
+  "text-[#d72828] font-semibold leading-none transition-colors duration-200 group-hover:text-[#b82222]";
+const HEADER_ACTION_BADGE_CLASS =
+  "absolute -top-1.5 -right-1.5 min-w-[16px] h-4 px-1 text-[9px] font-bold bg-[#d72828] text-[#fbe002] rounded-full flex items-center justify-center ring-2 ring-white";
+const HEADER_ACTION_BADGE_SM_CLASS =
+  "absolute -top-1.5 -right-1.5 min-w-[14px] h-3.5 px-0.5 text-[8px] font-bold bg-[#d72828] text-[#fbe002] rounded-full flex items-center justify-center ring-2 ring-white";
 
 
 
@@ -171,9 +182,12 @@ const Header = () => {
       } catch { /* ignore quota */ }
     }, [cartCount]);
 
-    // ADD: whenever cartCount changes, refresh latest cart (covers add/remove/order)
+    // ADD: whenever cartCount changes from 0 → >0 without cached cart, fetch once
+    // (avoid hitting /api/cart on every count bump — badge only needs cartCount)
     useEffect(() => {
-      fetchCartLatest();
+      if ((cartCountRef.current ?? 0) > 0 && !cartDataRef.current) {
+        fetchCartLatest();
+      }
     }, [cartCount, fetchCartLatest]);
 
     // ADD: persist cartData on change (avoid redundant writes)
@@ -286,111 +300,125 @@ const Header = () => {
       return ['Mobiles', 'Laptops', 'Television', 'Air Conditioner', 'Refrigerator'];
     };
 
+    // Auth must be defined before categories effect uses it
+    const checkAuthStatus = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) return;
+
+            const response = await fetch('/api/auth/check', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                setIsLoggedIn(true);
+                if (data.role == "admin") {
+                    setIsAdmin(true);
+                } else {
+                    setIsAdmin(false);
+                }
+                setUserData(data.user);
+                
+                try {
+                const loyaltyRes = await fetch(`/api/award-points?phone=${data.phone || ''}`);
+              const loyaltyData = await loyaltyRes.json();
+             if (loyaltyData.success) {
+
+             setLoyaltyPoints(loyaltyData.points);
+              }
+             } catch (e) {
+            console.error('Loyalty fetch failed:', e);
+             }
+            } else {
+                localStorage.removeItem('token');
+                setIsLoggedIn(false);
+                setShowAuthModal(true);
+            }
+        } catch (error) {
+            console.error("Error checking auth status:", error);
+        }
+    };
+
     useEffect(() => {
-      const key = 'categories_raw_cache';
+      const rawKey = 'categories_raw_cache';
+      const nestedKey = 'categories_nested_cache';
       let mounted = true;
 
-      const useCachedOrFetch = async () => {
-        // try cache first
+      const buildNestedAndCache = (rawData) => {
+        const activeCategories = Array.isArray(rawData)
+          ? rawData.filter((cat) => cat.status === "Active")
+          : [];
+
+        const categoryMap = {};
+        activeCategories.forEach((cat) => {
+          categoryMap[cat._id] = { ...cat, subcategories: [] };
+        });
+
+        const nestedCategories = [];
+        activeCategories.forEach((cat) => {
+          if (cat.parentid === "none") {
+            nestedCategories.push(categoryMap[cat._id]);
+          } else if (categoryMap[cat.parentid]) {
+            categoryMap[cat.parentid].subcategories.push(categoryMap[cat._id]);
+          }
+        });
+
+        saveCache(nestedKey, nestedCategories);
+        return nestedCategories;
+      };
+
+      const applyRawToWords = (raw) => {
+        const arr = extractCategoryArray(raw);
+        setCategorieslist(arr);
+        setWords(ensureWordsNotEmpty(arr.map((cat) => cat.category_name)));
+      };
+
+      const setupCategories = async () => {
         try {
-          const cached = loadCache(key);
-          if (cached && (Date.now() - cached.ts) < CACHE_TTL_MS) {
+          // 1) Nested cache for mega-menu
+          const nestedCached = loadCache(nestedKey);
+          if (nestedCached && (Date.now() - nestedCached.ts) < CACHE_TTL_MS) {
+            if (mounted) setCategories(nestedCached.data);
+          }
+
+          // 2) Raw cache for search placeholder words (+ build nested if missing)
+          const rawCached = loadCache(rawKey);
+          if (rawCached && (Date.now() - rawCached.ts) < CACHE_TTL_MS) {
+            if (mounted) {
+              applyRawToWords(rawCached.data);
+              if (!nestedCached || (Date.now() - nestedCached.ts) >= CACHE_TTL_MS) {
+                setCategories(buildNestedAndCache(rawCached.data));
+              }
+            }
+          } else {
+            // Single network fetch shared by menu + placeholder words
+            const res = await fetch("/api/categories/get");
+            const raw = await res.json();
             if (!mounted) return;
-            const data = cached.data;
-            // CHANGED: extract array safely + fallback
-            const arr = extractCategoryArray(data);
-            setCategorieslist(arr);
-            setWords(ensureWordsNotEmpty(arr.map((cat) => cat.category_name)));
-            return;
+            saveCache(rawKey, raw);
+            applyRawToWords(raw);
+            setCategories(buildNestedAndCache(raw));
           }
         } catch (err) {
-          console.warn('Error reading categories cache', err);
-        }
-
-        // fallback to fetch and then cache
-        try {
-          const response = await fetch("/api/categories/get");
-          const raw = await response.json();
-          if (!mounted) return;
-          // CHANGED: extract array safely + fallback
-          const arr = extractCategoryArray(raw);
-          setCategorieslist(arr);
-          setWords(ensureWordsNotEmpty(arr.map((cat) => cat.category_name)));
-          saveCache(key, raw);
-        } catch (error) {
-          console.error("Error fetching categories:", error);
-          // Fallback words if fetch fails
+          console.error("Failed to fetch or build categories:", err);
           if (mounted) setWords(ensureWordsNotEmpty([]));
         }
+
+        // Auth once after categories settle (not duplicated elsewhere on mount)
+        try {
+          await checkAuthStatus();
+        } catch (e) { /* ignore */ }
       };
-      useCachedOrFetch();
-      return () => { mounted = false; };
-    }, []);
-
-    useEffect(() => {
-        const rawKey = 'categories_raw_cache';
-        const nestedKey = 'categories_nested_cache';
-        let mounted = true;
-
-        const buildNestedAndCache = (rawData) => {
-        // Keep only active categories
-          const activeCategories = Array.isArray(rawData) ? rawData.filter(cat => cat.status === "Active") : [];
-
-          const categoryMap = {};
-          activeCategories.forEach((cat) => {
-            // ensure subcategories array exists
-            categoryMap[cat._id] = { ...cat, subcategories: [] };
-          });
-
-          const nestedCategories = [];
-          activeCategories.forEach((cat) => {
-            if (cat.parentid === "none") {
-              // use the mapped object to ensure same reference
-              nestedCategories.push(categoryMap[cat._id]);
-            } else if (categoryMap[cat.parentid]) {
-              categoryMap[cat.parentid].subcategories.push(categoryMap[cat._id]);
-            }
-          });
-
-          // cache nested structure
-          saveCache(nestedKey, nestedCategories);
-          return nestedCategories;
-        };
-
-        const setupCategories = async () => {
-          try {
-            // Try nested cache first
-            const nestedCached = loadCache(nestedKey);
-            if (nestedCached && (Date.now() - nestedCached.ts) < CACHE_TTL_MS) {
-              if (!mounted) return;
-              setCategories(nestedCached.data);
-            } else {
-              // Get raw data from cache or fetch
-              let raw = null;
-              const rawCached = loadCache(rawKey);
-              if (rawCached && (Date.now() - rawCached.ts) < CACHE_TTL_MS) {
-                raw = rawCached.data;
-              } else {
-                const res = await fetch("/api/categories/get");
-                raw = await res.json();
-                saveCache(rawKey, raw);
-              }
-
-              if (!mounted) return;
-              const nested = buildNestedAndCache(raw);
-              setCategories(nested);
-            }
-          } catch (err) {
-            console.error("Failed to fetch or build categories:", err);
-            // fallback: ensure auth check still runs
-          }
-          // always check auth status after categories settled
-          try { checkAuthStatus(); } catch (e) { /* ignore */ }
-        };
 
       setupCategories();
       return () => { mounted = false; };
-      }, []);
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     useEffect(() => {
       // CHANGED: add cancellation to avoid orphaned timers
@@ -533,50 +561,6 @@ const Header = () => {
       };
     }, [dropdownOpen]);
 
-    const checkAuthStatus = async () => {
-        try {
-            const token = localStorage.getItem('token');
-            if (!token) return;
-
-            const response = await fetch('/api/auth/check', {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`,
-                }
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                setIsLoggedIn(true);
-                if (data.role == "admin") {
-                    setIsAdmin(true);
-                } else {
-                    setIsAdmin(false);
-                }
-                setUserData(data.user);
-                console.log("user data:", data.user);
-                console.log("phone:", data.phone);
-                
-                try {
-                const loyaltyRes = await fetch(`/api/award-points?phone=${data.phone || ''}`);
-              const loyaltyData = await loyaltyRes.json();
-             if (loyaltyData.success) {
-
-             setLoyaltyPoints(loyaltyData.points);
-              }
-             } catch (e) {
-            console.error('Loyalty fetch failed:', e);
-             }
-            } else {
-                localStorage.removeItem('token');
-                setIsLoggedIn(false);
-                setShowAuthModal(true);
-            }
-        } catch (error) {
-            console.error("Error checking auth status:", error);
-        }
-    };
     const handleSearch = () => {
 
       if (!searchQuery.trim() && selectedCategory === "All Category") return;
@@ -613,19 +597,19 @@ const Header = () => {
       return () => { mounted = false; };
     }, []);
 
-    // Load products once using shared util (for instant local filtering)
+    // Search suggestions use /api/search/suggestions (no full-catalog preload).
+    // Optional tiny local fallback if a prior session cached light products.
     useEffect(() => {
       let mounted = true;
-      const loadProducts = async () => {
-        try {
-          const data = await getProducts();
-          if (!mounted) return;
-          setProducts(Array.isArray(data) ? data : (data?.data || []));
-        } catch (err) {
-          console.error('Error loading products in header', err);
-        }
-      };
-      loadProducts();
+      try {
+        const raw = localStorage.getItem('cache_products');
+        if (!raw) return;
+        const parsed = JSON.parse(raw);
+        if (!parsed?.data || !parsed?.timestamp) return;
+        if (Date.now() - parsed.timestamp > 24 * 60 * 60 * 1000) return;
+        const list = Array.isArray(parsed.data) ? parsed.data : (parsed.data?.data || []);
+        if (mounted && list.length > 0) setProducts(list);
+      } catch { /* ignore */ }
       return () => { mounted = false; };
     }, []);
 
@@ -641,7 +625,7 @@ const Header = () => {
       if (searchInputRef.current) searchInputRef.current.blur();
     }, []);
 
-    // helper to fetch suggestions (safe JSON handling) - now uses local products for instant results
+    // Primary: /api/search/suggestions. Fallback: local cache only if present.
     const fetchSuggestions = useCallback(async (q) => {
       if (!q || q.trim().length < 1) {
         setSuggestions([]);
@@ -926,39 +910,6 @@ const Header = () => {
         fetchOffers();
     }, []);
     const hideTimeout = useRef(null);
-    useEffect(() => {
-        const fetchCategories = async () => {
-            try {
-                const response = await fetch("/api/categories/get");
-                const data = await response.json();
-
-                // Keep only active categories
-                const activeCategories = data.filter(cat => cat.status === "Active");
-
-                const categoryMap = {};
-                activeCategories.forEach((cat) => {
-                    cat.subcategories = [];
-                    categoryMap[cat._id] = cat;
-                });
-
-                const nestedCategories = [];
-                activeCategories.forEach((cat) => {
-                    if (cat.parentid === "none") {
-                        nestedCategories.push(cat);
-                    } else if (categoryMap[cat.parentid]) {
-                        categoryMap[cat.parentid].subcategories.push(cat);
-                    }
-                });
-
-                setCategories(nestedCategories);
-            } catch (err) {
-                console.error("Failed to fetch categories", err);
-            }
-        };
-
-        fetchCategories();
-        checkAuthStatus();
-    }, []);
     const flattenTree = (cat, rootCategory, level = 0) => {
         let result = [];
         
@@ -1428,32 +1379,113 @@ const Header = () => {
       <>
         <header className="sticky top-0 z-50 w-full max-w-[100vw] overflow-x-hidden">
             <style jsx global>{`
-              :root{--height:34px;--radius:12px;--outline:#e3e3e9;--bg:#ffffff;--accent:#d72828;--muted:#6b7280;--shadow:0 8px 18px rgba(200,16,46,0.04)}
-              .search-bar{display:flex;align-items:center;gap:8px;background:var(--bg);border-radius:10px;padding:3px 6px;border:2px solid var(--outline);box-shadow:var(--shadow);transition:box-shadow .25s ease,transform .12s ease,border-color .18s ease;width:100%;max-width:680px;margin:0 auto}
-              .search-bar:focus-within{box-shadow:0 12px 30px rgba(200,16,46,.04);border-color:rgba(200,16,46,.04)}
-              .search-bar-inner{position:relative;display:flex;align-items:center;gap:8px;width:100%;padding:2px;border-radius:8px}
-               /* select */
-               /* default: no visible border, show only when focused or has value */
-               .search-select{height:var(--height);min-width:118px;max-width:200px;border-radius:10px;border:1px solid transparent;padding:0 30px 0 12px;font-size:14px;color:#111;background:#fff;-webkit-appearance:none;appearance:none;cursor:pointer}
-               .select-wrap{position:relative;display:inline-block;max-width:32%;flex:0 0 auto;}
-               .select-wrap::after{content:'';position:absolute;right:12px;top:50%;transform:translateY(-50%);width:10px;height:10px;background-image:linear-gradient(135deg,#6b7280,#6b7280);clip-path:polygon(50% 70%,0 25%,100% 25%);opacity:.85;pointer-events:none}
-               /* input */
-               .search-input{flex:1 1 auto;height:var(--height);padding:6px 10px;border-radius:10px;border:1px solid transparent;background:#fff;color:#0f172a;font-size:14px;width:100%;}
-               /* when user has typed or on focus, show light border */
-               .search-input.has-value, .search-input:focus, .search-select:focus { border-color: #e3e3e9; box-shadow: 0 6px 20px rgba(200,16,46,0.04); }
-               /* remove default browser outline to avoid black focus ring */
-               .search-input:focus, .search-select:focus { outline: none; }
-               @keyframes shimmer{from{left:-120%}to{left:120%}}
-               @keyframes loyaltyNewBlink{
-                 0%,100%{background:#ef4444;color:#fff;box-shadow:0 0 6px rgba(239,68,68,.6)}
-                 25%{background:#f59e0b;color:#fff;box-shadow:0 0 6px rgba(245,158,11,.6)}
-                 50%{background:#22c55e;color:#fff;box-shadow:0 0 6px rgba(34,197,94,.6)}
-                 75%{background:#3b82f6;color:#fff;box-shadow:0 0 6px rgba(59,130,246,.6)}
-               }
-               .loyalty-new-badge{
-                 animation:loyaltyNewBlink 1.1s ease-in-out infinite;
-               }
-               @media (max-width:900px){:root{--height:36px}.search-btn{width:48px;color:#d72828;}.search-select{min-width:100px}}
+              :root{
+                --search-h:42px;
+                --search-radius:999px;
+                --accent:#d72828;
+                --search-border:#e5e7eb;
+                --muted:#6b7280;
+              }
+              .header-search{
+                display:flex;
+                align-items:center;
+                width:100%;
+                max-width:680px;
+                margin:0 auto;
+                height:var(--search-h);
+                background:#fff;
+                border:1.5px solid var(--search-border);
+                border-radius:var(--search-radius);
+                overflow:hidden;
+                box-shadow:0 1px 2px rgba(15,23,42,0.04);
+                transition:border-color .18s ease, box-shadow .18s ease;
+              }
+              .header-search:focus-within{
+                border-color:var(--accent);
+                box-shadow:0 0 0 3px rgba(215,40,40,0.12);
+              }
+              .header-search-select-wrap{
+                position:relative;
+                flex:0 0 auto;
+                height:100%;
+                border-right:1px solid #eee;
+                background:#fafafa;
+              }
+              .header-search-select{
+                height:100%;
+                min-width:120px;
+                max-width:160px;
+                padding:0 28px 0 14px;
+                border:0;
+                background:transparent;
+                color:#111;
+                font-size:13px;
+                font-weight:500;
+                cursor:pointer;
+                outline:none;
+                -webkit-appearance:none;
+                appearance:none;
+              }
+              .header-search-select-wrap::after{
+                content:'';
+                position:absolute;
+                right:10px;
+                top:50%;
+                transform:translateY(-40%);
+                border-left:4px solid transparent;
+                border-right:4px solid transparent;
+                border-top:5px solid #6b7280;
+                pointer-events:none;
+              }
+              .header-search-field{
+                position:relative;
+                flex:1 1 auto;
+                height:100%;
+                min-width:0;
+              }
+              .header-search-input{
+                width:100%;
+                height:100%;
+                border:0;
+                outline:none;
+                background:transparent;
+                padding:0 12px;
+                font-size:14px;
+                color:#0f172a;
+              }
+              .header-search-input::-webkit-search-cancel-button{
+                -webkit-appearance:none;
+              }
+              .header-search-btn{
+                flex:0 0 auto;
+                height:100%;
+                min-width:48px;
+                padding:0 16px;
+                border:0;
+                background:var(--accent);
+                color:#fff;
+                display:flex;
+                align-items:center;
+                justify-content:center;
+                cursor:pointer;
+                transition:background .15s ease;
+              }
+              .header-search-btn:hover{ background:#b82020; }
+              .header-search-btn:active{ transform:scale(0.98); }
+              @keyframes loyaltyNewBlink{
+                0%,100%{background:#ef4444;color:#fff;box-shadow:0 0 6px rgba(239,68,68,.6)}
+                25%{background:#f59e0b;color:#fff;box-shadow:0 0 6px rgba(245,158,11,.6)}
+                50%{background:#22c55e;color:#fff;box-shadow:0 0 6px rgba(34,197,94,.6)}
+                75%{background:#3b82f6;color:#fff;box-shadow:0 0 6px rgba(59,130,246,.6)}
+              }
+              .loyalty-new-badge{
+                animation:loyaltyNewBlink 1.1s ease-in-out infinite;
+              }
+              @media (max-width:640px){
+                :root{ --search-h:40px; --search-radius:12px; }
+                .header-search-select{ min-width:78px; max-width:92px; font-size:11px; padding:0 22px 0 8px; }
+                .header-search-btn{ min-width:42px; padding:0 12px; }
+              }
             `}</style>
             {/* Main Header */}
             <div className={`${isMobileMenuOpen ? "fixed inset-0 mt-0 pt-0 z-50 overflow-y-auto overflow-x-hidden" : "bg-white px-3 sm:px-6 md:px-6 py-1 sticky top-0 z-40 overflow-x-hidden"}`}>
@@ -1462,20 +1494,20 @@ const Header = () => {
                     <Link href="/" className="p-1 rounded-lg flex-shrink-0">
                       <img src="/uploads/sathyalogo.webp" alt="Logo" width={64} height={40} className="h-9 w-auto" />
                     </Link>
-                    <div className="flex items-center gap-1 text-brandRed flex-shrink-0">
+                    <div className="flex items-center gap-1.5 text-brandRed flex-shrink-0">
                         <Link href="/wishlist" className={`${HEADER_ACTION_LINK_CLASS} relative min-w-[36px]`}>
-                          <div className="relative">
-                            <FiHeart size={16} className={HEADER_ACTION_ICON_CLASS} />
-                            <span className="absolute -top-2 -right-2 text-[9px] bg-brandRed text-white rounded-full w-3.5 h-3.5 flex items-center justify-center">
+                          <div className={HEADER_ACTION_ICON_WRAP_SM_CLASS}>
+                            <HiOutlineHeart size={15} strokeWidth={1.8} />
+                            <span className={HEADER_ACTION_BADGE_SM_CLASS}>
                               {wishlistCount}
                             </span>
                           </div>
                           <span className={`text-[8px] ${HEADER_ACTION_LABEL_CLASS}`}>Wishlist</span>
                         </Link>
                         <Link href="/cart" className={`${HEADER_ACTION_LINK_CLASS} relative min-w-[36px]`}>
-                          <div className="relative">
-                            <FiShoppingCart size={16} className={HEADER_ACTION_ICON_CLASS} />
-                            <span className="absolute -top-2 -right-2 text-[9px] bg-brandRed text-white rounded-full w-3.5 h-3.5 flex items-center justify-center">
+                          <div className={HEADER_ACTION_ICON_WRAP_SM_CLASS}>
+                            <HiOutlineShoppingBag size={15} strokeWidth={1.8} />
+                            <span className={HEADER_ACTION_BADGE_SM_CLASS}>
                               {cartCount}
                             </span>
                           </div>
@@ -1502,70 +1534,60 @@ const Header = () => {
                         </button>
                     </div>
                 </div>
-                {/* NEW MOBILE SEARCH BAR */}
+                {/* MOBILE SEARCH BAR */}
                 <div className="sm:hidden mt-2 w-full max-w-full">
-                  <div
-                    className="w-full rounded-lg overflow-hidden bg-[#d72828]"
-                    style={{ borderTop: "4px solid #fbe002" }}
-                  >
-                    <div className="w-full px-2 py-2.5">
-                    <div className="flex items-center bg-white h-9 rounded-xl border border-gray-300 shadow-sm overflow-hidden w-full max-w-full transition-all duration-150 focus-within:border-[#d72828] focus-within:shadow-[0_0_0_2px_rgba(200,16,46,0.15)] flex-nowrap">
-                      
-                      {/* Category select */}
+                  <div className="header-search" role="search">
+                    <div className="header-search-select-wrap">
                       <select
                         value={selectedCategory}
                         onChange={(e) => setSelectedCategory(e.target.value)}
-                        className="h-full text-[10px] bg-white border-r border-gray-300 outline-none flex-shrink-0 min-w-[72px] max-w-[78px] w-auto"
+                        className="header-search-select"
                         aria-label="Category"
                       >
-                        <option value="All Category">All Category</option>
+                        <option value="All Category">All</option>
                         {categories.map((cat) => (
                           <option key={cat._id} value={cat.category_name} title={cat.category_name}>
                             {cat.category_name}
-                               
                           </option>
-                       
                         ))}
-                      
                       </select>
-                      <div className="flex-1 relative h-full flex items-center">
-                        <input
-                          type="search"
-                          value={searchQuery}
-                          onChange={(e) => setSearchQuery(e.target.value)}
-                          onKeyDown={handleKeyPress}
-                          placeholder=" "
-                          className="w-full h-full text-sm outline-none bg-transparent px-1 focus:text-[#111] placeholder-transparent"
-                          ref={searchInputRef}
-                          onFocus={() => {
-                            setSearchContext('mobileTop'); // ADDED
-                            if (searchInputRef.current) {
-                              const rect = searchInputRef.current.getBoundingClientRect();
-                              setSearchDropdownLeft(rect.left);
-                              setSearchDropdownTop(rect.bottom + window.scrollY);
-                              setSearchDropdownWidth(rect.width);
-                            }
-                            if (searchQuery.trim().length >= 1) fetchSuggestions(searchQuery);
-                            setSearchDropdownVisible(true);
-                          }}
-                        />
-                        {searchQuery.trim() === "" && (
-                          <div className="absolute left-1 top-1/2 -translate-y-1/2 flex items-center gap-1 text-[10px] pointer-events-none z-10 truncate max-w-[calc(100%-8px)]">
-                            <span className="text-gray-400">Search for</span>
-                            <span className="text-gray-900">"{typedPreview }"</span>
-                          </div>
-                        )}
-                      </div>
-                  
-                      <button
-                        onClick={handleSearch}
-                        aria-label="Search"
-                        className="h-full px-2.5 bg-[#d72828] text-white flex items-center justify-center active:scale-[0.97] transition flex-shrink-0"
-                      >
-                        <FaSearch size={13} />
-                      </button>
                     </div>
-                  </div>
+                    <div className="header-search-field">
+                      <input
+                        type="search"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        onKeyDown={handleKeyPress}
+                        placeholder=" "
+                        className="header-search-input"
+                        ref={searchInputRef}
+                        onFocus={() => {
+                          setSearchContext('mobileTop');
+                          if (searchInputRef.current) {
+                            const rect = searchInputRef.current.getBoundingClientRect();
+                            setSearchDropdownLeft(rect.left);
+                            setSearchDropdownTop(rect.bottom + window.scrollY);
+                            setSearchDropdownWidth(rect.width);
+                          }
+                          if (searchQuery.trim().length >= 1) fetchSuggestions(searchQuery);
+                          setSearchDropdownVisible(true);
+                        }}
+                      />
+                      {searchQuery.trim() === "" && (
+                        <div className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center gap-1 text-[11px] pointer-events-none z-10 truncate max-w-[calc(100%-12px)]">
+                          <span className="text-gray-400">Search for</span>
+                          <span className="text-gray-900 font-medium">"{typedPreview}"</span>
+                        </div>
+                      )}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleSearch}
+                      aria-label="Search"
+                      className="header-search-btn"
+                    >
+                      <FaSearch size={14} />
+                    </button>
                   </div>
                 </div>
                 {/* MOBILE TOP SUGGESTIONS (outside menu) */}
@@ -1616,26 +1638,13 @@ const Header = () => {
                         </Link>
                     </div>
 
-                    {/* Search Bar (Hidden on mobile - will show in mobile menu) */}
-                    <div className="search-bar relative hidden sm:flex flex-1 w-full max-w-[680px] mx-auto items-center bg-white rounded-lg shadow-sm overflow-hidden border border-gray-200" role="search" style={{minHeight: '36px', display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                        background: 'var(--bg)',
-                        borderRadius: '10px',
-                        padding: '3px 6px',
-                        border: '2px solid var(--outline)',
-                        boxShadow: 'var(--shadow)',
-                        transition:
-                          'box-shadow .25s ease, transform .12s ease, border-color .18s ease',
-                        width: '100%',
-                        maxWidth: '680px',
-                        margin: '0 auto',}}>
-                      <div className="search-bar-inner" style={{ position: 'relative', width: '100%' }}>
-                        <div className="select-wrap">
+                    {/* Search Bar */}
+                    <div className="header-search relative hidden sm:flex flex-1" role="search">
+                        <div className="header-search-select-wrap">
                           <select
                             value={selectedCategory}
                             onChange={(e) => setSelectedCategory(e.target.value)}
-                            className="search-select"
+                            className="header-search-select"
                             aria-label="Search category"
                           >
                             <option value="All Category">All Category</option>
@@ -1645,10 +1654,8 @@ const Header = () => {
                               </option>
                             ))}
                           </select>
-                         
                         </div>
-                        {/* input wrapper with absolute overlay */}
-                        <div className="relative flex-1">
+                        <div className="header-search-field">
                           <input
                             type="search"
                             name="q"
@@ -1657,7 +1664,7 @@ const Header = () => {
                             onChange={(e) => setSearchQuery(e.target.value)}
                             ref={searchInputRef}
                             onFocus={() => {
-                              setSearchContext('desktop'); // ADDED
+                              setSearchContext('desktop');
                               if (searchInputRef.current) {
                                 const rect = searchInputRef.current.getBoundingClientRect();
                                 setSearchDropdownLeft(rect.left);
@@ -1667,60 +1674,52 @@ const Header = () => {
                               if (searchQuery.trim().length >= 2) fetchSuggestions(searchQuery);
                               setSearchDropdownVisible(true);
                             }}
-                            onKeyDown={handleDesktopKeyDown}  // correct usage
-                            className={`search-input ${searchQuery.trim() ? 'has-value' : ''}`}
+                            onKeyDown={handleDesktopKeyDown}
+                            className="header-search-input"
                             placeholder=" "
                             aria-label="Search query"
                           />
-                          {/* typed-overlay: "Search for" light gray, typedPreview black */}
                           {searchQuery.trim() === "" && (
-                            <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center gap-2 pointer-events-none z-10">
+                            <div className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center gap-2 pointer-events-none z-10">
                               <span className="text-gray-400 text-sm">Search for</span>
-                              <span className="text-black text-sm">"{typedPreview }"</span>
+                              <span className="text-gray-900 text-sm font-medium">"{typedPreview}"</span>
                             </div>
                           )}
                         </div>
-                        {/* CHANGE: wire desktop .search-btn to immediate redirect handler */}
                         <button
                           type="button"
-                          className="search-btn"
-                          style={{color:'#d72828'}}
+                          className="header-search-btn"
                           onClick={handleSearchBtnClick}
                           aria-label="Search"
                         >
-                          <FaSearch />
+                          <FaSearch size={15} />
                         </button>
-                        <div className="shimmer" aria-hidden="true"></div>
-                        {/* DROPDOWN MOVED OUTSIDE TO SUPPORT MOBILE */ }
-                        {/* (was here previously) */}
-                      </div>                    
                     </div>
                     {/* Icons Group */}
-                    <div className="flex items-center gap-3 sm:gap-4 flex-shrink-0 mt-0.5">
+                    <div className="flex items-center gap-2.5 sm:gap-3 flex-shrink-0 mt-0.5">
                         {/* Mobile Search Button (Hidden on desktop) */}
                         <button onClick={toggleMobileMenu} className="sm:hidden text-brandRed">
                             <FiSearch size={20} />
                         </button>
 
-						<Link href="/feedback" className={`${HEADER_ACTION_LINK_CLASS} hidden sm:flex min-w-[52px]`}>
-						  <FiMessageSquare size={18} className={HEADER_ACTION_ICON_CLASS} />
-						  <span className={`text-[10px] ${HEADER_ACTION_LABEL_CLASS}`}>Feedback</span>
-						</Link>
-
                         <Link href="/contact" className={`${HEADER_ACTION_LINK_CLASS} hidden sm:flex min-w-[52px]`}>
-                            <FiPhoneCall size={18} className={HEADER_ACTION_ICON_CLASS} />
+                            <div className={HEADER_ACTION_ICON_WRAP_CLASS}>
+                              <HiOutlinePhone size={18} strokeWidth={1.75} />
+                            </div>
 							<span className={`text-[10px] ${HEADER_ACTION_LABEL_CLASS}`}>Contact</span>
                         </Link>
 
                         <Link href="/location" className={`${HEADER_ACTION_LINK_CLASS} hidden sm:flex min-w-[52px]`}>
-                            <FiMapPin size={18} className={HEADER_ACTION_ICON_CLASS} />
+                            <div className={HEADER_ACTION_ICON_WRAP_CLASS}>
+                              <HiOutlineBuildingStorefront size={18} strokeWidth={1.75} />
+                            </div>
 							<span className={`text-[10px] ${HEADER_ACTION_LABEL_CLASS}`}>Store</span>
                         </Link>
 
                         <Link href="/wishlist" className={`${HEADER_ACTION_LINK_CLASS} flex min-w-[52px] relative`}>
-                            <div className="relative">
-                              <FiHeart size={18} className={HEADER_ACTION_ICON_CLASS} />
-                              <span className="absolute -top-2 -right-2 text-[10px] bg-brandRed text-white rounded-full w-4 h-4 flex items-center justify-center">
+                            <div className={HEADER_ACTION_ICON_WRAP_CLASS}>
+                              <HiOutlineHeart size={18} strokeWidth={1.75} />
+                              <span className={HEADER_ACTION_BADGE_CLASS}>
                                   {wishlistCount}
                               </span>
                             </div>
@@ -1728,9 +1727,9 @@ const Header = () => {
                         </Link>
 
                         <Link href="/cart" className={`${HEADER_ACTION_LINK_CLASS} flex min-w-[52px] relative`}>
-                            <div className="relative">
-                              <FiShoppingCart size={18} className={HEADER_ACTION_ICON_CLASS} />
-                              <span className="absolute -top-2 -right-2 text-[10px] bg-brandRed text-white rounded-full w-4 h-4 flex items-center justify-center">
+                            <div className={HEADER_ACTION_ICON_WRAP_CLASS}>
+                              <HiOutlineShoppingBag size={18} strokeWidth={1.75} />
+                              <span className={HEADER_ACTION_BADGE_CLASS}>
                                   {cartCount}
                               </span>
                             </div>
@@ -1797,30 +1796,26 @@ const Header = () => {
                           )}
                         </div>
                         {/* Quick links moved from top bar (mobile) */}
-                        <div className="mt-3 grid grid-cols-3 gap-2">
-                          <Link
-                            href="/feedback"
-                            onClick={() => setIsMobileMenuOpen(false)}
-                            className="flex flex-col items-center justify-center gap-1 rounded-md border border-gray-200 bg-white px-2 py-3 text-brandRed"
-                          >
-                            <FiMessageSquare size={18} />
-                            <span className="text-[11px] font-medium">Feedback</span>
-                          </Link>
+                        <div className="mt-3 grid grid-cols-2 gap-2">
                           <Link
                             href="/contact"
                             onClick={() => setIsMobileMenuOpen(false)}
-                            className="flex flex-col items-center justify-center gap-1 rounded-md border border-gray-200 bg-white px-2 py-3 text-brandRed"
+                            className="flex flex-col items-center justify-center gap-1.5 rounded-xl border border-[#d72828]/20 bg-gradient-to-b from-[#fffdf5] to-white px-2 py-3 text-[#d72828] shadow-sm"
                           >
-                            <FiPhoneCall size={18} />
-                            <span className="text-[11px] font-medium">Contact</span>
+                            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#fbe002]/60">
+                              <HiOutlinePhone size={18} strokeWidth={1.75} />
+                            </span>
+                            <span className="text-[11px] font-semibold">Contact</span>
                           </Link>
                           <Link
                             href="/location"
                             onClick={() => setIsMobileMenuOpen(false)}
-                            className="flex flex-col items-center justify-center gap-1 rounded-md border border-gray-200 bg-white px-2 py-3 text-brandRed"
+                            className="flex flex-col items-center justify-center gap-1.5 rounded-xl border border-[#d72828]/20 bg-gradient-to-b from-[#fffdf5] to-white px-2 py-3 text-[#d72828] shadow-sm"
                           >
-                            <FiMapPin size={18} />
-                            <span className="text-[11px] font-medium">Store</span>
+                            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#fbe002]/60">
+                              <HiOutlineBuildingStorefront size={18} strokeWidth={1.75} />
+                            </span>
+                            <span className="text-[11px] font-semibold">Store</span>
                           </Link>
                         </div>
                         {/* Open Box Sale - Mobile */}

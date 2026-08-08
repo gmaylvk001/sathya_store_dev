@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import {
   isEmailOnWishlistTestAllowlist,
   getWishlistMailTestAllowlist,
@@ -18,7 +18,7 @@ const EMAIL_AUTH =
 
 const WISHLIST_CAMPAIGN_ID = "ff234711-ea38-4429-9c43-a9e1e2d08568";
 
-const SITE_BASE = "https://www.bharathelectronics.in";
+const SITE_BASE = "https://www.sathya.store";
 
 /** Same helper as send-order-email/route.js */
 async function sendEygrEmail(campaignId, email, params) {

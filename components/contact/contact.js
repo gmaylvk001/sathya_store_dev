@@ -94,7 +94,7 @@ function ContactForm() {
         const fd = new FormData();
         fd.append("campaign_id", "04024860-c288-405b-9be7-9d111419093d");
         fd.append("params", JSON.stringify([contact.name, contact.email_address, contact.mobile_number, contact.city, contact.message]));
-        ["arunkarthik@bharathelectronics.in", "ecom@bharathelectronics.in", "Customercare@bharathelectronics.in"].forEach(async (email) => {
+        ["arunkarthik@sathya.store", "ecom@sathya.store", "Customercare@sathya.store"].forEach(async (email) => {
           fd.set("email", email);
           await fetch("https://bea.eygr.in/api/email/send-msg", {
             method: "POST",
@@ -220,7 +220,7 @@ function StoreCard({ store }) {
         ) : store.logo ? (
           <img src={store.logo} alt={store.organisation_name} className="w-full h-full object-cover" onError={(e) => { e.target.style.display = "none"; }} />
         ) : (
-          <div className="w-full h-full flex items-center justify-center"><span className="text-blue-300 font-bold text-sm">BEA</span></div>
+          <div className="w-full h-full flex items-center justify-center"><span className="text-blue-300 font-bold text-sm">Sathya Stores</span></div>
         )}
         {/* City badge */}
         {store.city && (
@@ -316,7 +316,7 @@ const results = stores.filter(
   {/* In-flow image sets height from asset AR — no crop on large screens */}
   <img
     src="/contact/banner1.png"
-    alt="Contact BEA"
+    alt="Contact Sathya Stores"
     className="relative z-0 block w-full h-auto"
     onError={(e) => { e.target.style.display = "none"; }}
   />
@@ -332,7 +332,7 @@ const results = stores.filter(
       {/* Heading + subtitle */}
       <div>
         <h1 className="font-black text-white leading-tight mb-1 sm:mb-1.5 text-[clamp(1.35rem,2.6vw+0.45rem,2.375rem)]">
-          Get in Touch With BEA
+          Get in Touch With Sathya Stores
         </h1>
         <p className="text-[clamp(0.68rem,0.85vw+0.4rem,0.8125rem)] text-white leading-snug max-w-full sm:max-w-[min(300px,85vw)] md:max-w-[min(360px,70vw)] lg:max-w-[380px]">
           We&apos;re here to help you with any queries, support,
@@ -358,7 +358,7 @@ const results = stores.filter(
       </a>
 
       {/* Email Us */}
-      <a href="mailto:customercare@bharathelectronics.in" className="flex items-center gap-[clamp(0.4rem,0.8vw,0.65rem)] no-underline min-w-0 sm:border-l sm:border-white/15 sm:pl-[clamp(0.5rem,1vw,1rem)]">
+      <a href="mailto:customercare@sathya.store" className="flex items-center gap-[clamp(0.4rem,0.8vw,0.65rem)] no-underline min-w-0 sm:border-l sm:border-white/15 sm:pl-[clamp(0.5rem,1vw,1rem)]">
         <div className="rounded-full border border-white/30 flex items-center justify-center flex-shrink-0 w-[clamp(1.65rem,1.4vw+1rem,2.1rem)] h-[clamp(1.65rem,1.4vw+1rem,2.1rem)]">
           <svg className="w-[clamp(0.7rem,0.5vw+0.55rem,0.9rem)] h-[clamp(0.7rem,0.5vw+0.55rem,0.9rem)]" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.85)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
             <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
@@ -368,7 +368,7 @@ const results = stores.filter(
         <div className="min-w-0">
           <div className="text-[clamp(0.6rem,0.55vw+0.42rem,0.72rem)] text-white font-medium leading-none mb-0.5">Email Us</div>
           <div className="text-[clamp(0.72rem,0.7vw+0.45rem,0.9rem)] text-white font-bold leading-tight break-all">customercare@</div>
-          <div className="text-[clamp(0.62rem,0.55vw+0.4rem,0.82rem)] text-white leading-tight mt-0.5 break-all">bharathelectronics.in</div>
+          <div className="text-[clamp(0.62rem,0.55vw+0.4rem,0.82rem)] text-white leading-tight mt-0.5 break-all">sathya.store</div>
         </div>
       </a>
 
@@ -386,7 +386,7 @@ const results = stores.filter(
         </div>
         <div className="min-w-0">
           <div className="text-[clamp(0.6rem,0.55vw+0.42rem,0.72rem)] text-white font-medium leading-none mb-0.5">Video Call</div>
-          <div className="text-[clamp(0.72rem,0.7vw+0.45rem,0.9rem)] text-white font-bold leading-tight">BEA Live Demo</div>
+          <div className="text-[clamp(0.72rem,0.7vw+0.45rem,0.9rem)] text-white font-bold leading-tight">Sathya Stores Live Demo</div>
           <div className="text-[clamp(0.62rem,0.55vw+0.4rem,0.82rem)] text-white leading-tight mt-0.5">Demo Video Call</div>
         </div>
       </button>
@@ -448,13 +448,13 @@ const results = stores.filter(
               <p className="text-[12px] text-gray-500 leading-relaxed mb-2">
                 Drop us an email. We typically respond within 24 hours.
               </p>
-              <a href="mailto:customercare@bharathelectronics.in" className="text-blue-700 font-bold text-[12px] hover:underline break-all">
-                customercare@<br/>bharathelectronics.in
+              <a href="mailto:customercare@sathya.store" className="text-blue-700 font-bold text-[12px] hover:underline break-all">
+                customercare@<br/>sathya.store
               </a>
             </div>
           </div>
 
-          {/* BEA Live Video Demo */}
+          {/* Sathya Stores Live Video Demo */}
           <button
             type="button"
             onClick={openLiveDemoModal}
@@ -464,7 +464,7 @@ const results = stores.filter(
               <FaVideo className="text-white text-[15px] sm:text-[17px]" />
             </div>
             <div>
-              <div className="text-[14px] font-bold text-[#5B4CF5] mb-1.5">BEA Live Video Demo</div>
+              <div className="text-[14px] font-bold text-[#5B4CF5] mb-1.5">Sathya Stores Live Video Demo</div>
               <p className="text-[12px] text-gray-500 leading-relaxed mb-2">
                 See products live on a video call. Compare models and ask our experts anything.
               </p>
@@ -513,13 +513,13 @@ const results = stores.filter(
             {/* Map */}
             <div className="rounded-xl overflow-hidden border border-gray-200 mb-4 h-[220px] sm:h-[260px] md:h-[280px]">
               <iframe
-                title="BEA Corporate Office"
+                title="Sathya Stores Corporate Office"
                 width="100%"
                 height="100%"
                 frameBorder="0"
                 style={{ border: 0 }}
                 referrerPolicy="no-referrer-when-downgrade"
-                src="https://maps.google.com/maps?q=Bharath+Electronics+And+Appliances+Coimbatore&output=embed"
+                src="https://maps.google.com/maps?q=Sathya+Stores&output=embed"
                 allowFullScreen
               />
             </div>
@@ -540,8 +540,8 @@ const results = stores.filter(
               </div>
               <div className="flex items-center gap-2.5">
                 <FaEnvelope size={12} className="text-gray-600 flex-shrink-0" />
-                <a href="mailto:customercare@bharathelectronics.in" className="text-[12.5px] text-blue-600 hover:underline">
-                  customercare@bharathelectronics.in
+                <a href="mailto:customercare@sathya.store" className="text-[12.5px] text-blue-600 hover:underline">
+                  customercare@sathya.store
                 </a>
               </div>
             </div>
@@ -560,7 +560,7 @@ const results = stores.filter(
             Find Your Nearest Store
           </h2>
           <p className="text-center text-[12px] sm:text-[13px] text-gray-500 mb-6 px-2">
-            Search by city or pincode to locate a BEA showroom near you.
+            Search by city or pincode to locate a Sathya Stores showroom near you.
           </p>
 
           {/* Search bar */}

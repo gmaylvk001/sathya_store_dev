@@ -4,6 +4,10 @@ import CategoryImageCarousel from "@/models/categoryImageCarousel";
 import CategoryPage from "@/models/categoryPage";
 import { saveCategoryImageCarouselImage } from "@/lib/categoryImageCarouselUpload";
 
+function parseShowGap(value) {
+  return value === true || value === "true" || value === "1";
+}
+
 /**
  * GET /api/category-image-carousel?instanceId= | ?configId=
  */
@@ -63,6 +67,7 @@ export async function POST(req) {
     const pageId = formData.get("pageId");
     const name = String(formData.get("name") || "").trim();
     const status = formData.get("status") || "active";
+    const showGap = parseShowGap(formData.get("showGap"));
 
     if (!instanceId || !pageId) {
       return NextResponse.json(
@@ -102,23 +107,25 @@ export async function POST(req) {
     }
 
     let doc = await CategoryImageCarousel.findOne({ instanceId });
+    const payload = {
+      name,
+      status,
+      showGap,
+      items,
+      categoryId: page.categoryId,
+      pageId: page._id,
+    };
+
     if (doc) {
-      doc.name = name;
-      doc.status = status;
-      doc.items = items;
-      doc.categoryId = page.categoryId;
-      doc.pageId = page._id;
-      await doc.save();
+      await CategoryImageCarousel.updateOne({ instanceId }, { $set: payload });
     } else {
-      doc = await CategoryImageCarousel.create({
+      await CategoryImageCarousel.create({
         instanceId,
-        pageId: page._id,
-        categoryId: page.categoryId,
-        name,
-        status,
-        items,
+        ...payload,
       });
     }
+
+    doc = await CategoryImageCarousel.findOne({ instanceId }).lean();
 
     const comp = page.components.find((c) => c.instanceId === instanceId);
     if (comp) {

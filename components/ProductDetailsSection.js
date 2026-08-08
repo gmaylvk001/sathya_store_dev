@@ -39,7 +39,7 @@ useEffect(() => {
 return (
   <div className="p-4 bg-white">
     <h3 className="text-base font-bold text-gray-900 mb-1">Available Near You</h3>
-    <p className="text-xs text-gray-500 mb-3">Check product availability in BEA Stores</p>
+    <p className="text-xs text-gray-500 mb-3">Check product availability in Sathya Stores</p>
 
     {loadingStores ? (
       <div className="space-y-2">

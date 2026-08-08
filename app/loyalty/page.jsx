@@ -4,18 +4,18 @@ import { useRouter } from "next/navigation";
 import { jwtDecode } from "jwt-decode";
 
 const faqs = [
-  { q: "What is BEA Loyalty Programme?", a: "BEA Loyalty is a cardless loyalty programme that rewards you with points on every purchase. Use your mobile number as your membership ID — no card needed!" },
-  { q: "How do I join BEA Loyalty?", a: "You are automatically enrolled when you make your first purchase at BEA. No separate registration required — just shop and you're in!" },
+  { q: "What is Sathya Stores Loyalty Programme?", a: "Sathya Stores Loyalty is a cardless loyalty programme that rewards you with points on every purchase. Use your mobile number as your membership ID — no card needed!" },
+  { q: "How do I join Sathya Stores Loyalty?", a: "You are automatically enrolled when you make your first purchase at Sathya Stores. No separate registration required — just shop and you're in!" },
   { q: "How do I earn points?", a: "You earn loyalty points automatically on every completed purchase. Points are calculated based on your order value and credited to your account after payment." },
   { q: "What is the value of 1 point?", a: "1 Point = ₹1. Every point you earn has a direct cash equivalent that can be redeemed on your next purchase." },
   { q: "Where can I redeem my points?", a: "You can redeem your loyalty points directly at checkout — both in-store and online. Simply tap 'Use All Points' to apply your balance as a discount." },
   { q: "Do my points expire?", a: "Points validity depends on your account activity. Keep shopping to keep your points active!" },
-  { q: "Do I need an app or card?", a: "No card and no mandatory app! Your mobile number is your membership ID. However, you can optionally download the BEA TRUCO app for a richer experience." },
+  { q: "Do I need an app or card?", a: "No card and no mandatory app! Your mobile number is your membership ID. However, you can optionally download the Sathya Stores TRUCO app for a richer experience." },
   { q: "How do I check my balance?", a: "Enter your registered mobile number in the 'Check Point Balance' section on this page, or log in to your account to see your full dashboard." },
 ];
 
 const extras = [
-  { img: "/loyalty/image21.png", title: "Personalized Vouchers", desc: "Get exclusive BEA member deals and coupons." },
+  { img: "/loyalty/image21.png", title: "Personalized Vouchers", desc: "Get exclusive Sathya Stores member deals and coupons." },
   { img: "/loyalty/image22.png", title: "Warranty Hub", desc: "Manage your product information, warranty and service support." },
   { img: "/loyalty/image23.png", title: "Purchase Updates", desc: "Track your orders, delivery updates and service requests easily." },
   { img: "/loyalty/image24.png", title: "Member Privileges", desc: "Early access to sales, special events and exclusive product launches." },
@@ -90,7 +90,7 @@ export default function LoyaltyPage() {
         <div className="relative w-full">
           <img
             src="/loyalty/banner1.png"
-            alt="BEA Loyalty Rewards Programme"
+            alt="Sathya Stores Loyalty Rewards Programme"
             className="w-full h-auto block"
           />
           <div className="hidden lg:block absolute inset-0 bg-[#0B1D3F]/50 pointer-events-none" />
@@ -100,7 +100,7 @@ export default function LoyaltyPage() {
           {/* LEFT */}
           <div className="flex-1 text-white max-w-[600px]">
             <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 rounded-full px-4 py-1.5 mb-5 text-xs font-semibold tracking-wider uppercase text-white/90">
-              ★ BEA Loyalty Rewards Programme
+              ★ Sathya Stores Loyalty Rewards Programme
             </div>
             <h1 className="text-4xl sm:text-5xl font-black leading-tight mb-4">
               Shop More.<br />
@@ -108,7 +108,7 @@ export default function LoyaltyPage() {
               Save <span className="text-[#FBBF24]">More.</span>
             </h1>
             <p className="text-white/80 text-sm sm:text-base mb-6 max-w-sm leading-relaxed">
-              Every purchase at BEA earns you rewards. Unlock points, vouchers & exclusive member benefits across 47+ BEA stores.
+              Every purchase at Sathya Stores earns you rewards. Unlock points, vouchers & exclusive member benefits across 47+ Sathya Stores stores.
             </p>
             <button
               onClick={() => router.push("/")}
@@ -131,7 +131,7 @@ export default function LoyaltyPage() {
           {/* RIGHT — Balance Check Form */}
           <div className="w-full lg:w-[340px] flex-shrink-0">
             <div className="bg-[#0B1D3F]/90 backdrop-blur-sm border border-white/10 rounded-2xl p-6 shadow-2xl">
-              <h3 className="text-white font-black text-lg mb-1">Already a BEA Member?</h3>
+              <h3 className="text-white font-black text-lg mb-1">Already a Sathya Stores Member?</h3>
               <p className="text-white/60 text-xs mb-4">Enter your mobile number to check your rewards balance.</p>
 
               <div className="space-y-3">
@@ -174,15 +174,7 @@ export default function LoyaltyPage() {
               </div>
 
               <div className="border-t border-white/10 mt-4 pt-4">
-                <p className="text-white/40 text-xs text-center mb-3">New to BEA Loyalty? Download the TRUCO app to start earning!</p>
-                <div className="flex gap-2 justify-center">
-                  <a href="https://play.google.com/store/apps/details?id=com.avaniko.truco&pcampaignid=web_share" target="_blank" rel="noopener noreferrer">
-                    <img src="/uploads/GooglePlayDark.png" alt="Google Play" className="h-9 w-auto rounded object-contain" />
-                  </a>
-                  <a href="https://apps.apple.com/in/app/bea-truco/id6751942292" target="_blank" rel="noopener noreferrer">
-                    <img src="/uploads/AppStoreDark.png" alt="App Store" className="h-9 w-auto rounded object-contain" />
-                  </a>
-                </div>
+                <p className="text-white/40 text-xs text-center mb-3">Login to check and use your loyalty points at checkout.</p>
                 {!isLoggedIn && (
                   <button onClick={() => router.push("/")} className="mt-3 w-full text-center text-[#60A5FA] text-xs font-semibold hover:text-white transition">
                     Login to your account →
@@ -196,11 +188,11 @@ export default function LoyaltyPage() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════
-          SECTION 2 — WHY JOIN BEA LOYALTY
+          SECTION 2 — WHY JOIN Sathya Stores LOYALTY
       ═══════════════════════════════════════════════════════ */}
       <section className="py-14 px-4 bg-white">
         <div className="max-w-5xl mx-auto">
-          <h2 className="text-center text-2xl sm:text-3xl font-black text-[#1a2236] mb-2">Why Join BEA Loyalty?</h2>
+          <h2 className="text-center text-2xl sm:text-3xl font-black text-[#1a2236] mb-2">Why Join Sathya Stores Loyalty?</h2>
           <div className="flex justify-center mb-10"><div className="w-12 h-1 rounded-full bg-[#1D4ED8]" /></div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
             {whyJoin.map((item, i) => (
@@ -222,17 +214,11 @@ export default function LoyaltyPage() {
       <section className="w-full px-4 py-2 bg-white">
         <div className="max-w-5xl mx-auto">
           <div className="relative rounded-2xl overflow-hidden">
-            <img src="/loyalty/banner2.png" alt="Download BEA TRUCO App" className="w-full h-auto block" />
+            <img src="/loyalty/banner2.png" alt="Download Sathya Stores TRUCO App" className="w-full h-auto block" />
             <div className="absolute  flex  items-center justify-center" style={{ top: "12.5%", right: "6%", width: "15%", height: "70%" }}>
               <img src="/loyalty/loyaltyQR.jpeg" alt="Scan QR" className="w-full h-full object-contain" />
             </div>
             <div className="absolute hidden md:flex gap-2 items-center" style={{ bottom: "27%", left: "10%" }}>
-              <a href="https://play.google.com/store/apps/details?id=com.avaniko.truco&pcampaignid=web_share" target="_blank" rel="noopener noreferrer">
-                <img src="/loyalty/playstore.jpg" alt="Google Play" className="h-8 w-auto rounded object-contain" />
-              </a>
-              <a href="https://apps.apple.com/in/app/bea-truco/id6751942292" target="_blank" rel="noopener noreferrer">
-                <img src="/loyalty/appstore.jpg" alt="App Store" className="h-8 w-auto rounded object-contain" />
-              </a>
             </div>
           </div>
         </div>
@@ -269,7 +255,7 @@ export default function LoyaltyPage() {
             <div className="rounded-[18px] px-7 py-6 sm:pr-7 pr-4" style={{ background: "#0B1D3F" }}>
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">                <div className="flex items-center gap-2 text-[#94A3B8] text-xs font-semibold tracking-wide">
                   <span className="text-[#FBBF24] text-base leading-none">★</span>
-                  Your BEA Rewards Wallet
+                  Your Sathya Stores Rewards Wallet
                 </div>
                 <button onClick={() => router.push("/checkout")} className="flex items-center gap-2 bg-[#1D4ED8] text-white text-[13px] font-bold px-5 py-2.5 rounded-[10px] hover:bg-[#1e45c2] transition active:scale-[0.98]">
                   Use Points at Checkout
@@ -336,7 +322,7 @@ export default function LoyaltyPage() {
           <div className="max-w-4xl mx-auto">
             <div className="rounded-[18px] px-7 py-8 text-center" style={{ background: "#0B1D3F" }}>
               <div className="text-3xl mb-3">★</div>
-              <h3 className="text-[18px] font-black text-white mb-2">Your BEA Rewards Wallet</h3>
+              <h3 className="text-[18px] font-black text-white mb-2">Your Sathya Stores Rewards Wallet</h3>
               <p className="text-[#94A3B8] text-sm mb-5">Login to view your points, savings value and membership details.</p>
               <button onClick={() => router.push("/")} className="bg-[#1D4ED8] text-white text-sm font-bold px-7 py-3 rounded-[10px] hover:bg-[#1e45c2] transition">Login to Your Account →</button>
               <div className="text-[#64748B] text-xs my-4">— or check your balance as guest —</div>

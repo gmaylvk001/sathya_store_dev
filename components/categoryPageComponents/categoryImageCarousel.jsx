@@ -51,6 +51,7 @@ function getPageStarts(total, perPage) {
 export default function CategoryImageCarousel({ config }) {
   const items = (config?.items || []).filter((i) => i?.image);
   const name = config?.name || "";
+  const showGap = Boolean(config?.showGap);
   const perPage = usePerPage();
   const scrollerRef = useRef(null);
   const [page, setPage] = useState(0);
@@ -214,7 +215,13 @@ export default function CategoryImageCarousel({ config }) {
 
   if (!items.length) return null;
 
-  const cellStyle = { width: `${100 / perPage}%` };
+  const gapPx = showGap ? 12 : 0;
+  const cellStyle =
+    showGap && perPage > 1
+      ? {
+          width: `calc((100% - ${(perPage - 1) * gapPx}px) / ${perPage})`,
+        }
+      : { width: `${100 / perPage}%` };
 
   const renderItem = (item, idx) => {
     const img = (
@@ -305,7 +312,9 @@ export default function CategoryImageCarousel({ config }) {
 
         <div
           ref={scrollerRef}
-          className="flex w-full gap-0 overflow-x-auto overflow-y-hidden scroll-smooth snap-x snap-mandatory scrollbar-hide cursor-grab touch-pan-x select-none bg-white"
+          className={`flex w-full overflow-x-auto overflow-y-hidden scroll-smooth snap-x snap-mandatory scrollbar-hide cursor-grab touch-pan-x select-none bg-white ${
+            showGap ? "gap-3" : "gap-0"
+          }`}
           style={{
             WebkitOverflowScrolling: "touch",
             touchAction: "pan-x",
@@ -314,7 +323,10 @@ export default function CategoryImageCarousel({ config }) {
           {pages.map((chunk, pageIdx) => (
             <div
               key={pageIdx}
-              className="flex w-full min-w-full shrink-0 snap-start snap-always items-center gap-0 bg-white"
+              className={`flex w-full min-w-full shrink-0 snap-start snap-always items-center bg-white ${
+                showGap ? "gap-3" : "gap-0"
+              }`}
+              style={showGap ? { gap: `${gapPx}px` } : undefined}
             >
               {chunk.map((item, i) =>
                 renderItem(item, pageStarts[pageIdx] + i)

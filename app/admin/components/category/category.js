@@ -964,39 +964,73 @@ export default function CategoryComponent() {
     ));
   };
 
+  const fieldClass =
+    "w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm bg-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#d72828]/20 focus:border-[#d72828] transition";
+  const labelClass = "block text-sm font-medium text-gray-700 mb-1.5";
+  const sectionClass = "rounded-xl border border-gray-200 bg-gray-50/60 p-4 space-y-4";
+  const fileInputClass =
+    "block w-full text-sm text-gray-600 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-[#d72828] hover:file:bg-red-100 cursor-pointer";
+
+  const resetNewCategory = () => {
+    setNewCategory({
+      category_name: "",
+      meta_title: "",
+      meta_description: "",
+      meta_keyword: "",
+      parentid: "none",
+      status: "Active",
+      image: null,
+      navImage: null,
+      selectedFilters: [],
+      content: "",
+      icon_image: null,
+    });
+    setImagePreview(null);
+    setImageError("");
+    setErrorMessage("");
+  };
+
   return (
     <div className="container mx-auto">
       {/* Alert Message */}
       {showAlert && (
-        <div className="bg-green-500 text-white px-4 py-2 rounded-md mb-4 mt-5">
+        <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 rounded-xl mb-4 mt-5 text-sm flex items-center gap-2">
+          <Icon icon="mdi:check-circle" className="text-lg text-emerald-600" />
           {alertMessage}
         </div>
       )}
 
-      <div className="flex justify-between items-center mb-5">
-        <h2 className="text-2xl font-bold">Category List</h2>
+      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-5">
+        <div>
+          <h2 className="text-2xl font-semibold text-gray-900">Categories</h2>
+          <p className="text-sm text-gray-500 mt-0.5">
+            Manage category hierarchy, SEO, images, and filters.
+          </p>
+        </div>
       </div>
 
       {isLoading ? (
-        <p>Loading categories...</p>
+        <div className="bg-white rounded-xl border border-gray-200 p-10 text-center text-sm text-gray-500">
+          Loading categories…
+        </div>
       ) : (
-        <div className="bg-white shadow-md rounded-lg p-5 mb-5 overflow-x-auto">
-          <div className="flex items-center justify-between mb-5">
-            {/* LEFT SIDE */}
+        <div className="bg-white shadow-sm rounded-xl border border-gray-200 p-5 mb-5 overflow-x-auto">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
             <Link
               href="/admin/category/navcat"
-              className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium shadow-sm transition duration-150"
+              className="inline-flex items-center justify-center gap-1.5 bg-slate-800 hover:bg-slate-900 text-white px-4 py-2.5 rounded-lg text-sm font-medium transition"
             >
-              NavMenu
+              <Icon icon="mdi:menu" className="text-base" />
+              Nav Menu
             </Link>
 
-            {/* RIGHT SIDE */}
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-2">
               <button
                 onClick={() => setIsModalOpen(true)}
-                className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium shadow-sm transition duration-150"
+                className="inline-flex items-center gap-1.5 bg-[#d72828] hover:bg-[#b82222] text-white px-4 py-2.5 rounded-lg text-sm font-medium shadow-sm transition"
               >
-                + Add Category
+                <Icon icon="mdi:plus" className="text-lg" />
+                Add Category
               </button>
 
               <button
@@ -1010,55 +1044,37 @@ export default function CategoryComponent() {
 
                   window.location.href = `/api/categories/export?${params.toString()}`;
                 }}
-                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm font-medium"
+                className="inline-flex items-center gap-1.5 bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 px-4 py-2.5 rounded-lg text-sm font-medium transition"
               >
+                <Icon icon="mdi:microsoft-excel" className="text-base text-emerald-600" />
                 Export Excel
               </button>
             </div>
           </div>
-          {/* Search and Filter Section */}
-          {/* Search and Filter Section */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 items-end mb-4">
-            {/* Search Input */}
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end mb-5 p-4 rounded-xl bg-gray-50 border border-gray-100">
             <div className="w-full">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Search
-              </label>
+              <label className={labelClass}>Search</label>
               <div className="relative">
-                <span className="absolute inset-y-0 left-0 flex items-center pl-3">
-                  <svg
-                    className="w-4 h-4 text-gray-500"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M21 21l-4.35-4.35M16.65 16.65A7.5 7.5 0 1116.65 2.5a7.5 7.5 0 010 15z"
-                    />
-                  </svg>
+                <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                  <Icon icon="mdi:magnify" className="text-gray-400 text-lg" />
                 </span>
                 <input
                   type="text"
-                  placeholder="Search Category..."
+                  placeholder="Search category…"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 pr-3 py-2 border border-gray-300 rounded-md w-full text-sm focus:outline-none focus:ring-2 focus:ring-red-200"
+                  className={`${fieldClass} pl-10`}
                 />
               </div>
             </div>
 
-            {/* Status Filter */}
             <div className="w-full">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Status
-              </label>
+              <label className={labelClass}>Status</label>
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500 text-sm"
+                className={fieldClass}
               >
                 <option value="">All Statuses</option>
                 <option value="Active">Active</option>
@@ -1066,36 +1082,25 @@ export default function CategoryComponent() {
               </select>
             </div>
 
-            {/* Date Range Picker */}
-            <div className="w-full col-span-1 md:col-span-1">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Date Range
-              </label>
-              <div className="relative w-full max-w-sm">
+            <div className="w-full">
+              <label className={labelClass}>Date Range</label>
+              <div className="relative w-full">
                 <DateRangePicker onDateChange={handleDateChange} />
-                {/* {dateFilter.startDate && dateFilter.endDate && (
-        <button 
-          onClick={clearDateFilter}
-          className="mt-2 text-sm text-red-600 hover:text-red-800"
-        >
-          Clear date filter
-        </button>
-      )} */}
               </div>
             </div>
           </div>
 
           {/* Categories Table */}
-          <div className="overflow-x-auto">
-            <table className="w-full border border-gray-300">
+          <div className="overflow-x-auto rounded-xl border border-gray-200">
+            <table className="w-full">
               <thead>
-                <tr className="bg-gray-200">
-                  <th className="p-2">Category Name</th>
-                  <th className="p-2">Category Slug</th>
-                  <th className="p-2">Parent</th>
-                  <th className="p-2">Image</th>
-                  <th className="p-2">Status</th>
-                  <th className="p-2">Action</th>
+                <tr className="bg-gray-50 border-b border-gray-200 text-left text-xs uppercase tracking-wide text-gray-500">
+                  <th className="px-3 py-3 font-semibold">Category Name</th>
+                  <th className="px-3 py-3 font-semibold">Category Slug</th>
+                  <th className="px-3 py-3 font-semibold">Parent</th>
+                  <th className="px-3 py-3 font-semibold">Image</th>
+                  <th className="px-3 py-3 font-semibold">Status</th>
+                  <th className="px-3 py-3 font-semibold">Action</th>
                 </tr>
               </thead>
               <tbody>{renderCategoryRows()}</tbody>
@@ -1166,492 +1171,510 @@ export default function CategoryComponent() {
 
       {/* Add Category Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 overflow-y-auto">
-          <div className="bg-white rounded-2xl shadow-lg w-full max-w-3xl mx-4 max-h-[90vh] flex flex-col">
-            <div className="flex justify-between items-center border-b-2 border-gray-300 px-6 py-4">
-              <h2 className="text-xl font-semibold text-gray-900">
-                Add Category
-              </h2>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-[2px]">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[92vh] flex flex-col overflow-hidden border border-gray-100">
+            <div className="flex items-start justify-between gap-4 px-6 py-5 border-b border-gray-100 bg-gradient-to-r from-red-50/80 to-white">
+              <div className="flex items-start gap-3">
+                <div className="mt-0.5 h-10 w-10 rounded-xl bg-[#d72828] text-white flex items-center justify-center shadow-sm">
+                  <Icon icon="mdi:folder-plus-outline" className="text-xl" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-semibold text-gray-900">Add Category</h2>
+                  <p className="text-sm text-gray-500 mt-0.5">
+                    Create a new category with SEO, media, and filters.
+                  </p>
+                </div>
+              </div>
               <button
+                type="button"
                 onClick={() => {
                   setIsModalOpen(false);
-                  setNewCategory({
-                    category_name: "",
-                    meta_title: "",
-                    meta_description: "",
-                    meta_keyword: "",
-                    parentid: "none",
-                    status: "Active",
-                    image: null,
-                    navImage: null,
-                    content: "",
-                  });
+                  resetNewCategory();
                 }}
-                className="text-gray-400 hover:text-gray-700 focus:outline-none"
+                className="h-9 w-9 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 flex items-center justify-center transition"
                 aria-label="Close modal"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
+                <Icon icon="mdi:close" className="text-xl" />
               </button>
             </div>
 
-            <div className="px-6 py-6 overflow-y-auto flex-grow">
-              <form onSubmit={handleAddCategory} className="space-y-5">
-                {/* ALERT MESSAGE – moved here */}
-                {/* {showAlert && (
-                <div className="bg-green-500 text-white px-4 py-2 rounded-md">
-                  {alertMessage}
-                </div>
-              )} */}
+            <form onSubmit={handleAddCategory} className="flex flex-col flex-1 min-h-0">
+              <div className="px-6 py-5 overflow-y-auto flex-1 space-y-5">
+                <section className={sectionClass}>
+                  <div className="flex items-center gap-2 mb-1">
+                    <Icon icon="mdi:tag-outline" className="text-[#d72828]" />
+                    <h3 className="text-sm font-semibold text-gray-900">Basic details</h3>
+                  </div>
+                  <div>
+                    <label htmlFor="category_name" className={labelClass}>
+                      Category Name <span className="text-[#d72828]">*</span>
+                    </label>
+                    <input
+                      name="category_name"
+                      value={newCategory.category_name}
+                      onChange={handleInputChange}
+                      id="category_name"
+                      className={fieldClass}
+                      placeholder="e.g. Televisions"
+                      required
+                    />
+                    {errorMessage && (
+                      <p className="text-red-500 text-sm mt-1.5">{errorMessage}</p>
+                    )}
+                  </div>
+                  <div>
+                    <label className={labelClass}>Status</label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {["Active", "Inactive"].map((s) => (
+                        <button
+                          key={s}
+                          type="button"
+                          onClick={() =>
+                            setNewCategory({ ...newCategory, status: s })
+                          }
+                          className={`rounded-lg border px-3 py-2.5 text-sm font-medium transition ${
+                            newCategory.status === s
+                              ? "border-[#d72828] bg-red-50 text-[#d72828]"
+                              : "border-gray-200 bg-white text-gray-600 hover:border-gray-300"
+                          }`}
+                        >
+                          {s}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </section>
 
-                <div>
-                  <label
-                    htmlFor="category_name"
-                    className="block mb-1 text-sm font-semibold text-gray-700"
-                  >
-                    Category Name
-                  </label>
-                  <input
-                    name="category_name"
-                    value={newCategory.category_name}
-                    onChange={handleInputChange}
-                    id="category_name"
-                    className="w-full rounded-md border p-2 focus:ring-2 focus:ring-red-400"
-                    placeholder="Enter Category Name"
-                    required
-                  />
-                  {errorMessage && (
-                    <p className="text-red-500 text-sm mt-1">{errorMessage}</p>
-                  )}
-                </div>
+                <section className={sectionClass}>
+                  <div className="flex items-center gap-2 mb-1">
+                    <Icon icon="mdi:search-web" className="text-[#d72828]" />
+                    <h3 className="text-sm font-semibold text-gray-900">SEO</h3>
+                  </div>
+                  <div>
+                    <label htmlFor="meta_title" className={labelClass}>
+                      Meta Title <span className="text-[#d72828]">*</span>
+                    </label>
+                    <input
+                      name="meta_title"
+                      value={newCategory.meta_title}
+                      onChange={handleInputChange}
+                      id="meta_title"
+                      className={fieldClass}
+                      placeholder="SEO title for search engines"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="meta_keyword" className={labelClass}>
+                      Meta Keyword
+                    </label>
+                    <textarea
+                      name="meta_keyword"
+                      value={newCategory.meta_keyword || ""}
+                      onChange={handleInputChange}
+                      className={fieldClass}
+                      rows="2"
+                      placeholder="Comma-separated keywords"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="meta_description" className={labelClass}>
+                      Meta Description
+                    </label>
+                    <textarea
+                      name="meta_description"
+                      value={newCategory.meta_description || ""}
+                      onChange={handleInputChange}
+                      className={fieldClass}
+                      rows="2"
+                      placeholder="Short description for search results"
+                    />
+                  </div>
+                </section>
 
-                <div>
-                  <label
-                    htmlFor="meta_title"
-                    className="block mb-1 text-sm font-semibold text-gray-700"
-                  >
-                    Meta Title
-                  </label>
-                  <input
-                    name="meta_title"
-                    value={newCategory.meta_title}
-                    onChange={handleInputChange}
-                    id="meta_title"
-                    className="w-full rounded-md border p-2 focus:ring-2 focus:ring-red-400"
-                    placeholder="Enter Meta Title"
-                    required
-                  />
-
-                  {errorMessage && (
-                    <p className="text-red-500 text-sm mt-1">{errorMessage}</p>
-                  )}
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="meta_keyword"
-                    className="block mb-1 text-sm font-semibold text-gray-700"
-                  >
-                    Meta Keyword
-                  </label>
-
-                  <textarea
-                    name="meta_keyword"
-                    value={newCategory.meta_keyword || ""}
-                    onChange={handleInputChange}
-                    className="w-full border p-2 rounded"
-                    rows="2"
-                  />
-
-                  {errorMessage && (
-                    <p className="text-red-500 text-sm mt-1">{errorMessage}</p>
-                  )}
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="meta_description"
-                    className="block mb-1 text-sm font-semibold text-gray-700"
-                  >
-                    Meta Description
-                  </label>
-                  <textarea
-                    name="meta_description"
-                    value={newCategory.meta_description || ""}
-                    onChange={handleInputChange}
-                    className="w-full border p-2 rounded"
-                    rows="2"
-                  />
-                  {errorMessage && (
-                    <p className="text-red-500 text-sm mt-1">{errorMessage}</p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block mb-1 text-sm font-semibold text-gray-700">
-                    Parent Category
-                  </label>
-                  <div className="border border-gray-300 rounded-md max-h-40 overflow-y-auto p-2">
-                    <div>
+                <section className={sectionClass}>
+                  <div className="flex items-center gap-2 mb-1">
+                    <Icon icon="mdi:file-tree-outline" className="text-[#d72828]" />
+                    <h3 className="text-sm font-semibold text-gray-900">
+                      Hierarchy & media
+                    </h3>
+                  </div>
+                  <div>
+                    <label className={labelClass}>Parent Category</label>
+                    <p className="text-xs text-gray-500 mb-2">
+                      Choose “Category” for a top-level item, or pick a parent below.
+                    </p>
+                    <div className="border border-gray-200 rounded-lg max-h-44 overflow-y-auto p-2 bg-white">
                       <div
-                        className={`p-2 cursor-pointer rounded-md font-semibold ${
+                        className={`p-2.5 cursor-pointer rounded-lg text-sm font-medium transition ${
                           newCategory.parentid === "none"
-                            ? "bg-red-100 text-red-600"
-                            : "text-gray-800 hover:bg-gray-100"
+                            ? "bg-red-50 text-[#d72828] border border-red-100"
+                            : "text-gray-800 hover:bg-gray-50"
                         }`}
                         onClick={() =>
                           setNewCategory({ ...newCategory, parentid: "none" })
                         }
                       >
-                        Category
+                        Category (top level)
                       </div>
                       {renderCategoryTree(buildCategoryTree(categories))}
                     </div>
                   </div>
-                </div>
-                {newCategory.parentid != "none" && (
-                <div>
-                  <label className="block mb-1 text-sm font-semibold text-gray-700">
-                    Upload Image (260px X 240px) - Optional
-                  </label>
-                  <input
-                    type="file"
-                    onChange={handleImageChange}
-                    className="block w-full text-sm text-gray-600
-                    file:mr-3 file:py-1 file:px-3
-                    file:rounded-md file:border-0
-                    file:text-sm file:font-semibold
-                    file:bg-red-50 file:text-red-700
-                    hover:file:bg-red-100"
-                  />
-                  {imageError && (
-                    <p className="text-red-500 text-sm mt-1">{imageError}</p>
-                  )}
-                  {imagePreview && (
-                    <img
-                      src={imagePreview}
-                      alt="Preview"
-                      className="mt-3 h-16 rounded-md object-contain mx-auto"
-                    />
-                  )}
-                </div>
-                )}
-                {newCategory.parentid == "none" && (
-                <div>
-                  <label className="block mb-1 text-sm font-semibold text-gray-700">
-                    Upload Navigation Image (210px X 370px)
-                  </label>
-                  <input
-                    type="file"
-                    onChange={handleNavImageChange}
-                    className="block w-full text-sm text-gray-600
-                    file:mr-3 file:py-1 file:px-3
-                    file:rounded-md file:border-0
-                    file:text-sm file:font-semibold
-                    file:bg-red-50 file:text-red-700
-                    hover:file:bg-red-100"
-                  />
-                </div>
-                )}
-                {/* Filter Selection for Update - EXACTLY LIKE PRODUCT PAGE */}
-                <div className="border p-4 rounded">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Filters
-                  </label>
-                  <Select
-                    options={filters}
-                    isMulti
-                    hideSelectedOptions={false}
-                    closeMenuOnSelect={false}
-                    components={{ Option: CustomOption }}
-                    value={newCategory.selectedFilters}
-                    onChange={handleFilterChange}
-                    placeholder="Select filters..."
-                    filterOption={(option, inputValue) => {
-                      // option.label is filter name, option.data.groupLabel is group name
-                      const filterName = option.label?.toLowerCase() || "";
-                      const groupLabel =
-                        option.data?.groupLabel?.toLowerCase?.() || "";
-                      const input = inputValue.toLowerCase();
-                      // If input matches group label, show all options in that group
-                      if (groupLabel && groupLabel.includes(input)) return true;
-                      // Otherwise, match by filter name
-                      return filterName.includes(input);
-                    }}
-                    styles={{
-                      groupHeading: (base) => ({
-                        ...base,
-                        backgroundColor: "#f3f4f6",
-                        color: "#1f2937",
-                        fontWeight: 600,
-                        padding: "8px 12px",
-                        borderBottom: "1px solid #e5e7eb",
-                        borderRadius: "4px",
-                        textTransform: "uppercase",
-                        letterSpacing: "0.5px",
-                      }),
-                      option: (base, state) => ({
-                        ...base,
-                        backgroundColor: state.isSelected
-                          ? "#e6f4ea"
-                          : state.isFocused
-                          ? "#f9fafb"
-                          : "white",
-                        color: "#111827",
-                        fontWeight: state.isSelected ? 600 : 400,
-                      }),
-                    }}
-                  />
-                </div>
-                {/* Content Field - Add Category */}
-                <div>
-                  <label
-                    htmlFor="content"
-                    className="block mb-1 text-sm font-semibold text-gray-700"
-                  >
-                    Content
-                  </label>
-                  <textarea
-                    name="content"
-                    id="content"
-                    value={newCategory.content}
-                    onChange={(e) =>
-                      setNewCategory({
-                        ...newCategory,
-                        content: e.target.value,
-                      })
-                    }
-                    rows="4"
-                    className="w-full rounded-md border border-gray-300 p-2 focus:ring-2 focus:ring-red-400"
-                    placeholder="Enter category description or content..."
-                  />
-                </div>
-                     <div>
-       <label className="block mb-1 text-sm font-semibold text-gray-700">
-    Icon Image 
-  </label>
-  <input
-    type="file"
-    accept="image/*"
-    onChange={(e) => {
-      const file = e.target.files[0];
-      if (file) setNewCategory((prev) => ({ ...prev, icon_image: file }));
-    }}
-    className="block w-full text-sm text-gray-600 file:mr-3 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100"
-  />
-  {newCategory.icon_image && (
-    <img src={URL.createObjectURL(newCategory.icon_image)} className="mt-2 h-10 w-10 object-contain rounded" />
-  )}
-</div> 
-      
-                <div>
-                  <label
-                    htmlFor="status"
-                    className="block mb-1 text-sm font-semibold text-gray-700"
-                  >
-                    Status
-                  </label>
-                  <select
-                    name="status"
-                    id="status"
-                    value={newCategory.status}
-                    onChange={handleInputChange}
-                    className="w-full rounded-md border border-gray-300 p-2 focus:ring-2 focus:ring-red-400"
-                  >
-                    <option value="Active">Active</option>
-                    <option value="Inactive">Inactive</option>
-                  </select>
-                </div>
 
+                  {newCategory.parentid != "none" && (
+                    <div>
+                      <label className={labelClass}>
+                        Category Image{" "}
+                        <span className="font-normal text-gray-400">
+                          (260×240 · optional)
+                        </span>
+                      </label>
+                      <div className="rounded-lg border border-dashed border-gray-300 bg-white p-4">
+                        <input
+                          type="file"
+                          onChange={handleImageChange}
+                          className={fileInputClass}
+                        />
+                        {imageError && (
+                          <p className="text-red-500 text-sm mt-2">{imageError}</p>
+                        )}
+                        {imagePreview && (
+                          <img
+                            src={imagePreview}
+                            alt="Preview"
+                            className="mt-3 h-20 rounded-lg object-contain border border-gray-100 bg-gray-50 p-1"
+                          />
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {newCategory.parentid == "none" && (
+                    <div>
+                      <label className={labelClass}>
+                        Navigation Image{" "}
+                        <span className="font-normal text-gray-400">(210×370)</span>
+                      </label>
+                      <div className="rounded-lg border border-dashed border-gray-300 bg-white p-4">
+                        <input
+                          type="file"
+                          onChange={handleNavImageChange}
+                          className={fileInputClass}
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  <div>
+                    <label className={labelClass}>Icon Image</label>
+                    <div className="rounded-lg border border-dashed border-gray-300 bg-white p-4">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files[0];
+                          if (file)
+                            setNewCategory((prev) => ({
+                              ...prev,
+                              icon_image: file,
+                            }));
+                        }}
+                        className={fileInputClass}
+                      />
+                      {newCategory.icon_image && (
+                        <img
+                          src={URL.createObjectURL(newCategory.icon_image)}
+                          className="mt-3 h-12 w-12 object-contain rounded-lg border border-gray-100"
+                          alt="Icon preview"
+                        />
+                      )}
+                    </div>
+                  </div>
+                </section>
+
+                <section className={sectionClass}>
+                  <div className="flex items-center gap-2 mb-1">
+                    <Icon icon="mdi:filter-variant" className="text-[#d72828]" />
+                    <h3 className="text-sm font-semibold text-gray-900">
+                      Filters & content
+                    </h3>
+                  </div>
+                  <div>
+                    <label className={labelClass}>Filters</label>
+                    <Select
+                      options={filters}
+                      isMulti
+                      hideSelectedOptions={false}
+                      closeMenuOnSelect={false}
+                      components={{ Option: CustomOption }}
+                      value={newCategory.selectedFilters}
+                      onChange={handleFilterChange}
+                      placeholder="Select filters…"
+                      filterOption={(option, inputValue) => {
+                        const filterName = option.label?.toLowerCase() || "";
+                        const groupLabel =
+                          option.data?.groupLabel?.toLowerCase?.() || "";
+                        const input = inputValue.toLowerCase();
+                        if (groupLabel && groupLabel.includes(input)) return true;
+                        return filterName.includes(input);
+                      }}
+                      styles={{
+                        control: (base, state) => ({
+                          ...base,
+                          borderRadius: "0.5rem",
+                          minHeight: "42px",
+                          borderColor: state.isFocused ? "#d72828" : "#d1d5db",
+                          boxShadow: state.isFocused
+                            ? "0 0 0 2px rgba(215,40,40,0.15)"
+                            : "none",
+                          "&:hover": { borderColor: "#d72828" },
+                        }),
+                        groupHeading: (base) => ({
+                          ...base,
+                          backgroundColor: "#f3f4f6",
+                          color: "#1f2937",
+                          fontWeight: 600,
+                          padding: "8px 12px",
+                          borderBottom: "1px solid #e5e7eb",
+                          borderRadius: "4px",
+                          textTransform: "uppercase",
+                          letterSpacing: "0.5px",
+                        }),
+                        option: (base, state) => ({
+                          ...base,
+                          backgroundColor: state.isSelected
+                            ? "#e6f4ea"
+                            : state.isFocused
+                              ? "#f9fafb"
+                              : "white",
+                          color: "#111827",
+                          fontWeight: state.isSelected ? 600 : 400,
+                        }),
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="content" className={labelClass}>
+                      Content
+                    </label>
+                    <textarea
+                      name="content"
+                      id="content"
+                      value={newCategory.content}
+                      onChange={(e) =>
+                        setNewCategory({
+                          ...newCategory,
+                          content: e.target.value,
+                        })
+                      }
+                      rows="4"
+                      className={fieldClass}
+                      placeholder="Category description or content…"
+                    />
+                  </div>
+                </section>
+              </div>
+
+              <div className="px-6 py-4 border-t border-gray-100 bg-white flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsModalOpen(false);
+                    resetNewCategory();
+                  }}
+                  className="rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition"
+                >
+                  Cancel
+                </button>
                 <button
                   type="submit"
-                  className="inline-block bg-red-600 text-white px-5 py-2 rounded-md text-sm font-semibold hover:bg-red-700 transition"
+                  className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-[#d72828] hover:bg-[#b82222] text-white px-5 py-2.5 text-sm font-semibold shadow-sm transition"
                 >
+                  <Icon icon="mdi:plus" className="text-lg" />
                   Add Category
                 </button>
-              </form>
-            </div>
+              </div>
+            </form>
           </div>
         </div>
       )}
 
       {/* Update Category Modal */}
       {isUpdateModalOpen && categoryToUpdate && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 overflow-y-auto">
-          <div className="bg-white rounded-2xl shadow-lg w-full max-w-3xl mx-4 max-h-[90vh] flex flex-col">
-            <div className="flex justify-between items-center border-b-2 border-gray-300 px-6 py-4">
-              <h2 className="text-xl font-semibold text-gray-900">
-                Update Category
-              </h2>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-[2px]">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[92vh] flex flex-col overflow-hidden border border-gray-100">
+            <div className="flex items-start justify-between gap-4 px-6 py-5 border-b border-gray-100 bg-gradient-to-r from-amber-50/70 to-white">
+              <div className="flex items-start gap-3">
+                <div className="mt-0.5 h-10 w-10 rounded-xl bg-amber-500 text-white flex items-center justify-center shadow-sm">
+                  <Icon icon="mdi:folder-edit-outline" className="text-xl" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-semibold text-gray-900">
+                    Update Category
+                  </h2>
+                  <p className="text-sm text-gray-500 mt-0.5 truncate max-w-[240px] sm:max-w-md">
+                    {categoryToUpdate.category_name || "Edit category details"}
+                  </p>
+                </div>
+              </div>
               <button
+                type="button"
                 onClick={() => {
                   setIsUpdateModalOpen(false);
                   setUpdateErrorMessage("");
                   setUpdateImageError("");
                   setErrorMessage("");
                 }}
-                className="text-gray-400 hover:text-gray-700 focus:outline-none"
+                className="h-9 w-9 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 flex items-center justify-center transition"
                 aria-label="Close modal"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
+                <Icon icon="mdi:close" className="text-xl" />
               </button>
             </div>
 
-            <div className="px-6 py-6 overflow-y-auto flex-grow">
-              <form onSubmit={handleUpdateCategory} className="space-y-5">
-                {/* Error Messages */}
-                {/* {updateErrorMessage && (
-            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded-md">
-              {updateErrorMessage}
-            </div>
-          )} */}
-
-                {/* Success Message */}
+            <form
+              onSubmit={handleUpdateCategory}
+              className="flex flex-col flex-1 min-h-0"
+            >
+              <div className="px-6 py-5 overflow-y-auto flex-1 space-y-5">
                 {showUpdateAlert && (
-                  <div className="bg-green-500 text-white px-4 py-2 rounded-md">
+                  <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 rounded-xl text-sm flex items-center gap-2">
+                    <Icon icon="mdi:check-circle" className="text-lg text-emerald-600" />
                     {updateAlertMessage}
                   </div>
                 )}
 
-                {/* Category Name */}
-                <div>
-                  <label
-                    htmlFor="update_category_name"
-                    className="block mb-1 text-sm font-semibold text-gray-700"
-                  >
-                    Category Name
-                  </label>
-                  <input
-                    name="category_name"
-                    value={categoryToUpdate.category_name}
-                    onChange={(e) =>
-                      setCategoryToUpdate({
-                        ...categoryToUpdate,
-                        category_name: e.target.value,
-                      })
-                    }
-                    id="update_category_name"
-                    className="w-full rounded-md border p-2 focus:ring-2 focus:ring-red-400"
-                    placeholder="Enter Category Name"
-                    required
-                  />
-                  {errorMessage && (
-                    <p className="text-red-500 text-sm mt-1">{errorMessage}</p>
-                  )}
-                </div>
+                <section className={sectionClass}>
+                  <div className="flex items-center gap-2 mb-1">
+                    <Icon icon="mdi:tag-outline" className="text-[#d72828]" />
+                    <h3 className="text-sm font-semibold text-gray-900">Basic details</h3>
+                  </div>
+                  <div>
+                    <label htmlFor="update_category_name" className={labelClass}>
+                      Category Name <span className="text-[#d72828]">*</span>
+                    </label>
+                    <input
+                      name="category_name"
+                      value={categoryToUpdate.category_name}
+                      onChange={(e) =>
+                        setCategoryToUpdate({
+                          ...categoryToUpdate,
+                          category_name: e.target.value,
+                        })
+                      }
+                      id="update_category_name"
+                      className={fieldClass}
+                      placeholder="Enter Category Name"
+                      required
+                    />
+                    {errorMessage && (
+                      <p className="text-red-500 text-sm mt-1.5">{errorMessage}</p>
+                    )}
+                  </div>
+                  <div>
+                    <label className={labelClass}>Status</label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {["Active", "Inactive"].map((s) => (
+                        <button
+                          key={s}
+                          type="button"
+                          onClick={() =>
+                            setCategoryToUpdate({
+                              ...categoryToUpdate,
+                              status: s,
+                            })
+                          }
+                          className={`rounded-lg border px-3 py-2.5 text-sm font-medium transition ${
+                            categoryToUpdate.status === s
+                              ? "border-[#d72828] bg-red-50 text-[#d72828]"
+                              : "border-gray-200 bg-white text-gray-600 hover:border-gray-300"
+                          }`}
+                        >
+                          {s}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </section>
 
-                <div>
-                  <label
-                    htmlFor="update_meta_title"
-                    className="block mb-1 text-sm font-semibold text-gray-700"
-                  >
-                    Meta Title
-                  </label>
-                  <input
-                    name="meta_title"
-                    value={categoryToUpdate.meta_title}
-                    onChange={(e) =>
-                      setCategoryToUpdate({
-                        ...categoryToUpdate,
-                        meta_title: e.target.value,
-                      })
-                    }
-                    id="update_meta_title"
-                    className="w-full rounded-md border p-2 focus:ring-2 focus:ring-red-400"
-                    placeholder="Enter Meta Title"
-                  />
-                  {errorMessage && (
-                    <p className="text-red-500 text-sm mt-1">{errorMessage}</p>
-                  )}
-                </div>
+                <section className={sectionClass}>
+                  <div className="flex items-center gap-2 mb-1">
+                    <Icon icon="mdi:search-web" className="text-[#d72828]" />
+                    <h3 className="text-sm font-semibold text-gray-900">SEO</h3>
+                  </div>
+                  <div>
+                    <label htmlFor="update_meta_title" className={labelClass}>
+                      Meta Title
+                    </label>
+                    <input
+                      name="meta_title"
+                      value={categoryToUpdate.meta_title}
+                      onChange={(e) =>
+                        setCategoryToUpdate({
+                          ...categoryToUpdate,
+                          meta_title: e.target.value,
+                        })
+                      }
+                      id="update_meta_title"
+                      className={fieldClass}
+                      placeholder="Enter Meta Title"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="update_meta_keyword" className={labelClass}>
+                      Meta Keyword
+                    </label>
+                    <textarea
+                      name="meta_keyword"
+                      value={categoryToUpdate.meta_keyword}
+                      onChange={(e) =>
+                        setCategoryToUpdate({
+                          ...categoryToUpdate,
+                          meta_keyword: e.target.value,
+                        })
+                      }
+                      id="update_meta_keyword"
+                      className={fieldClass}
+                      rows="2"
+                      placeholder="Enter Meta Keyword"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="update_meta_description" className={labelClass}>
+                      Meta Description
+                    </label>
+                    <textarea
+                      name="meta_description"
+                      value={categoryToUpdate.meta_description}
+                      onChange={(e) =>
+                        setCategoryToUpdate({
+                          ...categoryToUpdate,
+                          meta_description: e.target.value,
+                        })
+                      }
+                      id="update_meta_description"
+                      className={fieldClass}
+                      rows="2"
+                      placeholder="Enter Meta Description"
+                    />
+                  </div>
+                </section>
 
-                <div>
-                  <label
-                    htmlFor="update_meta_keyword"
-                    className="block mb-1 text-sm font-semibold text-gray-700"
-                  >
-                    Meta Keyword
-                  </label>
-                  <textarea
-                    name="meta_keyword"
-                    value={categoryToUpdate.meta_keyword}
-                    onChange={(e) =>
-                      setCategoryToUpdate({
-                        ...categoryToUpdate,
-                        meta_keyword: e.target.value,
-                      })
-                    }
-                    id="update_meta_keyword"
-                    className="w-full rounded-md border p-2 focus:ring-2 focus:ring-red-400"
-                    placeholder="Enter Meta Keyword"
-                  />
-                  {errorMessage && (
-                    <p className="text-red-500 text-sm mt-1">{errorMessage}</p>
-                  )}
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="update_meta_description"
-                    className="block mb-1 text-sm font-semibold text-gray-700"
-                  >
-                    Meta Description
-                  </label>
-                  <textarea
-                    name="meta_description"
-                    value={categoryToUpdate.meta_description}
-                    onChange={(e) =>
-                      setCategoryToUpdate({
-                        ...categoryToUpdate,
-                        meta_description: e.target.value,
-                      })
-                    }
-                    id="update_meta_description"
-                    className="w-full rounded-md border p-2 focus:ring-2 focus:ring-red-400"
-                    placeholder="Enter Meta Description"
-                  />
-                  {errorMessage && (
-                    <p className="text-red-500 text-sm mt-1">{errorMessage}</p>
-                  )}
-                </div>
-
-                {/* Parent Category */}
-                <div>
-                  <label className="block mb-1 text-sm font-semibold text-gray-700">
-                    Parent Category
-                  </label>
-                  <div className="border border-gray-300 rounded-md max-h-40 overflow-y-auto p-2">
-                    <div>
+                <section className={sectionClass}>
+                  <div className="flex items-center gap-2 mb-1">
+                    <Icon icon="mdi:file-tree-outline" className="text-[#d72828]" />
+                    <h3 className="text-sm font-semibold text-gray-900">
+                      Hierarchy & media
+                    </h3>
+                  </div>
+                  <div>
+                    <label className={labelClass}>Parent Category</label>
+                    <div className="border border-gray-200 rounded-lg max-h-44 overflow-y-auto p-2 bg-white">
                       <div
-                        className={`p-2 cursor-pointer rounded-md font-semibold ${
+                        className={`p-2.5 cursor-pointer rounded-lg text-sm font-medium transition ${
                           categoryToUpdate.parentid === "none"
-                            ? "bg-red-100 text-red-600"
-                            : "text-gray-800 hover:bg-gray-100"
+                            ? "bg-red-50 text-[#d72828] border border-red-100"
+                            : "text-gray-800 hover:bg-gray-50"
                         }`}
                         onClick={() =>
                           setCategoryToUpdate({
@@ -1660,247 +1683,263 @@ export default function CategoryComponent() {
                           })
                         }
                       >
-                        Category
+                        Category (top level)
                       </div>
                       {renderCategoryTree(buildCategoryTree(categories))}
                     </div>
                   </div>
-                </div>
 
-                {/* Image Upload */}
-                {categoryToUpdate.parentid != "none" && (
-                <div>
-                  <label className="block mb-1 text-sm font-semibold text-gray-700">
-                    Upload Image (260px X 240px)
-                  </label>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleUpdateImageChange}
-                    className="block w-full text-sm text-gray-600
-                file:mr-3 file:py-1 file:px-3
-                file:rounded-md file:border-0
-                file:text-sm file:font-semibold
-                file:bg-red-50 file:text-red-700
-                hover:file:bg-red-100"
-                  />
-                  {updateImageError && (
-                    <p className="text-red-500 text-sm mt-1">
-                      {updateImageError}
-                    </p>
-                  )}
-                  {(categoryToUpdate.existingImage ||
-                    categoryToUpdate.image) && (
-                    <div className="mt-3 flex flex-col items-center">
-                      <img
-                        src={
-                          categoryToUpdate.image instanceof File
-                            ? URL.createObjectURL(categoryToUpdate.image)
-                            : categoryToUpdate.existingImage
-                        }
-                        alt="Preview"
-                        className="h-16 rounded-md object-contain"
-                      />
-                      <p className="text-xs text-gray-500 mt-1">
-                        Current Image Preview
-                      </p>
+                  {categoryToUpdate.parentid != "none" && (
+                    <div>
+                      <label className={labelClass}>
+                        Category Image{" "}
+                        <span className="font-normal text-gray-400">(260×240)</span>
+                      </label>
+                      <div className="rounded-lg border border-dashed border-gray-300 bg-white p-4">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleUpdateImageChange}
+                          className={fileInputClass}
+                        />
+                        {updateImageError && (
+                          <p className="text-red-500 text-sm mt-2">
+                            {updateImageError}
+                          </p>
+                        )}
+                        {(categoryToUpdate.existingImage ||
+                          categoryToUpdate.image) && (
+                          <div className="mt-3">
+                            <img
+                              src={
+                                categoryToUpdate.image instanceof File
+                                  ? URL.createObjectURL(categoryToUpdate.image)
+                                  : categoryToUpdate.existingImage
+                              }
+                              alt="Preview"
+                              className="h-20 rounded-lg object-contain border border-gray-100 bg-gray-50 p-1"
+                            />
+                            <p className="text-xs text-gray-500 mt-1">
+                              Current image preview
+                            </p>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   )}
-                </div>
-                )}
 
-                {/* Navigation Image Upload */}
-                {categoryToUpdate.parentid == "none" && (
-                <div>
-                  <label className="block mb-1 text-sm font-semibold text-gray-700">
-                    Upload Navigation Image (210px X 370px)
-                  </label>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleUpdateNavImageChange}
-                    className="block w-full text-sm text-gray-600
-                file:mr-3 file:py-1 file:px-3
-                file:rounded-md file:border-0
-                file:text-sm file:font-semibold
-                file:bg-red-50 file:text-red-700
-                hover:file:bg-red-100"
-                  />
-                  {updateImageError && (
-                    <p className="text-red-500 text-sm mt-1">
-                      {updateImageError}
-                    </p>
-                  )}
-                  {(categoryToUpdate.existingNavImage ||
-                    categoryToUpdate.navImage) && (
-                    <div className="mt-3 flex flex-col items-center">
-                      <img
-                        src={
-                          categoryToUpdate.navImage instanceof File
-                            ? URL.createObjectURL(categoryToUpdate.navImage)
-                            : categoryToUpdate.existingNavImage
-                        }
-                        alt="Preview"
-                        className="h-16 rounded-md object-contain"
-                      />
-                      <p className="text-xs text-gray-500 mt-1">
-                        Current Navigation Image Preview
-                      </p>
+                  {categoryToUpdate.parentid == "none" && (
+                    <div>
+                      <label className={labelClass}>
+                        Navigation Image{" "}
+                        <span className="font-normal text-gray-400">(210×370)</span>
+                      </label>
+                      <div className="rounded-lg border border-dashed border-gray-300 bg-white p-4">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleUpdateNavImageChange}
+                          className={fileInputClass}
+                        />
+                        {updateImageError && (
+                          <p className="text-red-500 text-sm mt-2">
+                            {updateImageError}
+                          </p>
+                        )}
+                        {(categoryToUpdate.existingNavImage ||
+                          categoryToUpdate.navImage) && (
+                          <div className="mt-3">
+                            <img
+                              src={
+                                categoryToUpdate.navImage instanceof File
+                                  ? URL.createObjectURL(categoryToUpdate.navImage)
+                                  : categoryToUpdate.existingNavImage
+                              }
+                              alt="Preview"
+                              className="h-20 rounded-lg object-contain border border-gray-100 bg-gray-50 p-1"
+                            />
+                            <p className="text-xs text-gray-500 mt-1">
+                              Current navigation image preview
+                            </p>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   )}
-                </div>
-                )}
-                {/* Filter Selection for Update - EXACTLY LIKE PRODUCT PAGE */}
-                <div className="border p-4 rounded">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Filters
-                  </label>
-                  <Select
-                    options={filters}
-                    isMulti
-                    hideSelectedOptions={false}
-                    closeMenuOnSelect={false}
-                    components={{ Option: CustomOption }}
-                    value={categoryToUpdate.selectedFilters}
-                    onChange={handleUpdateFilterChange}
-                    placeholder="Select filters..."
-                    filterOption={(option, inputValue) => {
-                      const filterName = option.label?.toLowerCase() || "";
-                      const groupLabel =
-                        option.data?.groupLabel?.toLowerCase?.() || "";
-                      const input = inputValue.toLowerCase();
-                      if (groupLabel && groupLabel.includes(input)) return true;
-                      return filterName.includes(input);
-                    }}
-                    styles={{
-                      groupHeading: (base) => ({
-                        ...base,
-                        backgroundColor: "#f3f4f6",
-                        color: "#1f2937",
-                        fontWeight: 600,
-                        padding: "8px 12px",
-                        borderBottom: "1px solid #e5e7eb",
-                        borderRadius: "4px",
-                        textTransform: "uppercase",
-                        letterSpacing: "0.5px",
-                      }),
-                      option: (base, state) => ({
-                        ...base,
-                        backgroundColor: state.isSelected
-                          ? "#e6f4ea"
-                          : state.isFocused
-                          ? "#f9fafb"
-                          : "white",
-                        color: "#111827",
-                        fontWeight: state.isSelected ? 600 : 400,
-                      }),
-                    }}
-                  />
-                </div>
 
-                {/* Content Field - Update Category */}
-                <div>
-                  <label
-                    htmlFor="update_content"
-                    className="block mb-1 text-sm font-semibold text-gray-700"
-                  >
-                    Content
-                  </label>
-                  <textarea
-                    name="content"
-                    id="update_content"
-                    value={categoryToUpdate.content}
-                    onChange={(e) =>
-                      setCategoryToUpdate({
-                        ...categoryToUpdate,
-                        content: e.target.value,
-                      })
-                    }
-                    rows="4"
-                    className="w-full rounded-md border border-gray-300 p-2 focus:ring-2 focus:ring-red-400"
-                    placeholder="Enter category description or content..."
-                  />
-                </div>
-     <div>
-  <label className="block mb-1 text-sm font-semibold text-gray-700">
-    Icon Image (optional)
-  </label>
-  <input
-    type="file"
-    accept="image/*"
-    onChange={(e) => {
-      const file = e.target.files[0];
-      if (file) setCategoryToUpdate((prev) => ({ ...prev, icon_image: file }));
-    }}
-    className="block w-full text-sm text-gray-600 file:mr-3 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100"
-  />
-  {(categoryToUpdate.existingIconImage || categoryToUpdate.icon_image) && (
-    <img
-      src={categoryToUpdate.icon_image instanceof File
-        ? URL.createObjectURL(categoryToUpdate.icon_image)
-        : categoryToUpdate.existingIconImage}
-      className="mt-2 h-10 w-10 object-contain rounded"
-    />
-  )}
-</div>
+                  <div>
+                    <label className={labelClass}>
+                      Icon Image{" "}
+                      <span className="font-normal text-gray-400">(optional)</span>
+                    </label>
+                    <div className="rounded-lg border border-dashed border-gray-300 bg-white p-4">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files[0];
+                          if (file)
+                            setCategoryToUpdate((prev) => ({
+                              ...prev,
+                              icon_image: file,
+                            }));
+                        }}
+                        className={fileInputClass}
+                      />
+                      {(categoryToUpdate.existingIconImage ||
+                        categoryToUpdate.icon_image) && (
+                        <img
+                          src={
+                            categoryToUpdate.icon_image instanceof File
+                              ? URL.createObjectURL(categoryToUpdate.icon_image)
+                              : categoryToUpdate.existingIconImage
+                          }
+                          className="mt-3 h-12 w-12 object-contain rounded-lg border border-gray-100"
+                          alt="Icon preview"
+                        />
+                      )}
+                    </div>
+                  </div>
+                </section>
 
-                {/* Status */}
-                <div>
-                  <label
-                    htmlFor="update_status"
-                    className="block mb-1 text-sm font-semibold text-gray-700"
-                  >
-                    Status
-                  </label>
-                  <select
-                    name="status"
-                    id="update_status"
-                    value={categoryToUpdate.status}
-                    onChange={(e) =>
-                      setCategoryToUpdate({
-                        ...categoryToUpdate,
-                        status: e.target.value,
-                      })
-                    }
-                    className="w-full rounded-md border border-gray-300 p-2 focus:ring-2 focus:ring-red-400"
-                  >
-                    <option value="Active">Active</option>
-                    <option value="Inactive">Inactive</option>
-                  </select>
-                </div>
+                <section className={sectionClass}>
+                  <div className="flex items-center gap-2 mb-1">
+                    <Icon icon="mdi:filter-variant" className="text-[#d72828]" />
+                    <h3 className="text-sm font-semibold text-gray-900">
+                      Filters & content
+                    </h3>
+                  </div>
+                  <div>
+                    <label className={labelClass}>Filters</label>
+                    <Select
+                      options={filters}
+                      isMulti
+                      hideSelectedOptions={false}
+                      closeMenuOnSelect={false}
+                      components={{ Option: CustomOption }}
+                      value={categoryToUpdate.selectedFilters}
+                      onChange={handleUpdateFilterChange}
+                      placeholder="Select filters…"
+                      filterOption={(option, inputValue) => {
+                        const filterName = option.label?.toLowerCase() || "";
+                        const groupLabel =
+                          option.data?.groupLabel?.toLowerCase?.() || "";
+                        const input = inputValue.toLowerCase();
+                        if (groupLabel && groupLabel.includes(input)) return true;
+                        return filterName.includes(input);
+                      }}
+                      styles={{
+                        control: (base, state) => ({
+                          ...base,
+                          borderRadius: "0.5rem",
+                          minHeight: "42px",
+                          borderColor: state.isFocused ? "#d72828" : "#d1d5db",
+                          boxShadow: state.isFocused
+                            ? "0 0 0 2px rgba(215,40,40,0.15)"
+                            : "none",
+                          "&:hover": { borderColor: "#d72828" },
+                        }),
+                        groupHeading: (base) => ({
+                          ...base,
+                          backgroundColor: "#f3f4f6",
+                          color: "#1f2937",
+                          fontWeight: 600,
+                          padding: "8px 12px",
+                          borderBottom: "1px solid #e5e7eb",
+                          borderRadius: "4px",
+                          textTransform: "uppercase",
+                          letterSpacing: "0.5px",
+                        }),
+                        option: (base, state) => ({
+                          ...base,
+                          backgroundColor: state.isSelected
+                            ? "#e6f4ea"
+                            : state.isFocused
+                              ? "#f9fafb"
+                              : "white",
+                          color: "#111827",
+                          fontWeight: state.isSelected ? 600 : 400,
+                        }),
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="update_content" className={labelClass}>
+                      Content
+                    </label>
+                    <textarea
+                      name="content"
+                      id="update_content"
+                      value={categoryToUpdate.content}
+                      onChange={(e) =>
+                        setCategoryToUpdate({
+                          ...categoryToUpdate,
+                          content: e.target.value,
+                        })
+                      }
+                      rows="4"
+                      className={fieldClass}
+                      placeholder="Category description or content…"
+                    />
+                  </div>
+                </section>
+              </div>
 
-                {/* Submit Button */}
+              <div className="px-6 py-4 border-t border-gray-100 bg-white flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsUpdateModalOpen(false);
+                    setUpdateErrorMessage("");
+                    setUpdateImageError("");
+                    setErrorMessage("");
+                  }}
+                  className="rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition"
+                >
+                  Cancel
+                </button>
                 <button
                   type="submit"
-                  className="inline-block bg-red-600 text-white px-5 py-2 rounded-md text-sm font-semibold hover:bg-red-700 transition w-full"
+                  className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-[#d72828] hover:bg-[#b82222] text-white px-5 py-2.5 text-sm font-semibold shadow-sm transition"
                 >
+                  <Icon icon="mdi:content-save-outline" className="text-lg" />
                   Update Category
                 </button>
-              </form>
-            </div>
+              </div>
+            </form>
           </div>
         </div>
       )}
 
       {/* Confirmation Modal */}
       {showConfirmationModal && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-96">
-            <h2 className="text-xl font-bold mb-4">Delete Category</h2>
-            <p className="mb-4">
-              Are you sure you want to delete this category?
-            </p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-[2px]">
+          <div className="bg-white p-6 rounded-2xl shadow-2xl w-full max-w-md border border-gray-100">
+            <div className="flex items-start gap-3 mb-4">
+              <div className="h-10 w-10 rounded-xl bg-red-50 text-[#d72828] flex items-center justify-center">
+                <Icon icon="mdi:alert-outline" className="text-xl" />
+              </div>
+              <div>
+                <h2 className="text-lg font-semibold text-gray-900">
+                  Delete Category
+                </h2>
+                <p className="text-sm text-gray-500 mt-1">
+                  Are you sure you want to delete this category? This action cannot
+                  be undone.
+                </p>
+              </div>
+            </div>
 
-            <div className="flex justify-end space-x-3">
+            <div className="flex justify-end gap-2">
               <button
                 onClick={() => setShowConfirmationModal(false)}
-                className="bg-gray-300 px-4 py-2 rounded-md"
+                className="rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition"
               >
-                No, Close
+                Cancel
               </button>
               <button
                 onClick={() => handleDeleteCategory(categoryToDelete)}
-                className="bg-red-500 px-4 py-2 rounded-md text-white"
+                className="rounded-lg bg-[#d72828] hover:bg-[#b82222] px-4 py-2.5 text-sm font-semibold text-white transition"
               >
                 Yes, Delete
               </button>
