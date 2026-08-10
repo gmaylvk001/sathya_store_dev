@@ -6,7 +6,8 @@ import CategoryPage from "@/models/categoryPage";
 import Product from "@/models/product";
 import { saveCategoryBannerFourProductsImage } from "@/lib/categoryBannerFourProductsUpload";
 
-const TILE_COUNT = 4;
+const MIN_TILE_COUNT = 3;
+const MAX_TILE_COUNT = 4;
 
 /**
  * GET /api/category-banner-four-products?instanceId= | ?configId=
@@ -90,6 +91,17 @@ export async function POST(req) {
       );
     }
 
+    if (
+      !Array.isArray(tilesMeta) ||
+      tilesMeta.length < MIN_TILE_COUNT ||
+      tilesMeta.length > MAX_TILE_COUNT
+    ) {
+      return NextResponse.json(
+        { success: false, message: "Choose either 3 or 4 tile images" },
+        { status: 400 }
+      );
+    }
+
     const page = await CategoryPage.findById(pageId);
     if (!page) {
       return NextResponse.json(
@@ -118,7 +130,8 @@ export async function POST(req) {
     }
 
     const tiles = [];
-    for (let i = 0; i < TILE_COUNT; i++) {
+    const tileCount = tilesMeta.length;
+    for (let i = 0; i < tileCount; i++) {
       const meta = tilesMeta[i] || {};
       let image = meta.image || "";
       const file = formData.get(`tileImage_${i}`);
@@ -127,7 +140,10 @@ export async function POST(req) {
       }
       if (!image) {
         return NextResponse.json(
-          { success: false, message: `Image ${i + 1} of 4 is required` },
+          {
+            success: false,
+            message: `Image ${i + 1} of ${tileCount} is required`,
+          },
           { status: 400 }
         );
       }

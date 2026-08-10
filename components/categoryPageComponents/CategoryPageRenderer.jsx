@@ -8,6 +8,7 @@ import CategoryProductCarousel from "./categoryProductCarousel";
 import CategoryBannerSideProducts from "./categoryBannerSideProducts";
 import CategoryBannerFourProducts from "./categoryBannerFourProducts";
 import CategoryBannerGrid from "./categoryBannerGrid";
+import CategoryImageColumns from "./categoryImageColumns";
 import CategorySingleBannerProducts from "./categorySingleBannerProducts";
 import CategoryBrandCarousel from "./categoryBrandCarousel";
 import CategoryImageHotspotBanner from "./categoryImageHotspotBanner";
@@ -121,6 +122,14 @@ export default function CategoryPageRenderer({
         if (item.type === COMPONENT_TYPES.BANNER_GRID) {
           return (
             <CategoryBannerGrid
+              key={item.instanceId || idx}
+              config={item.config}
+            />
+          );
+        }
+        if (item.type === COMPONENT_TYPES.IMAGE_COLUMNS) {
+          return (
+            <CategoryImageColumns
               key={item.instanceId || idx}
               config={item.config}
             />

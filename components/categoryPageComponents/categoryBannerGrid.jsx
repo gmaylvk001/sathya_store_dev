@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import CategoryProductCarousel from "./categoryProductCarousel";
 
 /** Storefront max box — images larger than this shrink to fit, never crop */
 const MAX_DISPLAY = 450;
@@ -101,6 +102,10 @@ function BannerTile({ banner, className = "" }) {
  */
 export default function CategoryBannerGrid({ config }) {
   const name = config?.name || "";
+  const productName = config?.productName || "";
+  const products = (config?.products || []).filter(
+    (product) => product?._id || product?.slug
+  );
   const showGap = Boolean(config?.showGap);
   const banners = (config?.banners || []).filter((b) => b?.image);
   const count = banners.length;
@@ -150,6 +155,16 @@ export default function CategoryBannerGrid({ config }) {
           ))}
         </div>
       )}
+
+      {products.length >= 6 && productName ? (
+        <CategoryProductCarousel
+          config={{
+            name: productName,
+            products,
+            seeAllHref: "",
+          }}
+        />
+      ) : null}
     </section>
   );
 }

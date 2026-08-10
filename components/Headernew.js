@@ -22,6 +22,12 @@ import { useRouter } from 'next/navigation';
 import { Navigation, Scrollbar } from 'swiper/modules';
 import { useHeaderdetails } from "@/context/HeaderContext"; 
 import { filterAndRankProducts } from '@/lib/searchMatch';
+import { PAGE_TYPES } from '@/lib/categoryPageComponents/registry';
+import {
+  buildCategoryHref,
+  hasOverviewAvailability,
+  pageTypeFromLevel,
+} from '@/lib/categoryPageComponents/categoryHref';
 
 // ADD: alphaSortString - case-insensitive, null-safe string comparator
 const alphaSortString = (a, b) => {
@@ -56,6 +62,7 @@ const Header = () => {
     const { wishlistCount } = useWishlist();
     const { cartCount, updateCartCount } = useCart();
     const [loyaltyPoints, setLoyaltyPoints] = useState(0);
+    const [overviewAvailability, setOverviewAvailability] = useState({});
 
     // ADD: Cross-tab cart sync helpers
     const CART_COUNT_KEY = 'cartCount';
@@ -217,12 +224,15 @@ const Header = () => {
       return () => window.removeEventListener('storage', onStorage);
     }, [updateCartCount]);
 
-    const handleCategoryClick = useCallback((categorySlug, categoryName) => {
-        const path = `/category/${categorySlug}`;
+    const handleCategoryClick = useCallback((categorySlug, categoryName, categoryId = null) => {
+        const hasOverview = categoryId
+          ? hasOverviewAvailability(overviewAvailability, categoryId, PAGE_TYPES.CATEGORY)
+          : false;
+        const path = buildCategoryHref([categorySlug], hasOverview);
         setSelectedCategory(categoryName);
         setIsMobileMenuOpen(false);
         router.push(path);
-    }, [router]);
+    }, [router, overviewAvailability]);
     const dropdownRef = useRef(null);
     const profileDropdownRef = useRef(null);
     const profileButtonRef = useRef(null);
@@ -470,6 +480,76 @@ const Header = () => {
     const [offers, setOffers] = useState([]);
     const [categories, setCategories] = useState([]);
     const [products, setProducts] = useState([]);
+
+    const collectAvailabilityRequests = useCallback((nodes, level = 0, out = []) => {
+      if (!Array.isArray(nodes)) return out;
+      for (const node of nodes) {
+        if (node?._id) {
+          out.push({
+            categoryId: String(node._id),
+            pageType: pageTypeFromLevel(level),
+          });
+        }
+        if (Array.isArray(node?.subcategories) && node.subcategories.length > 0) {
+          collectAvailabilityRequests(node.subcategories, level + 1, out);
+        }
+      }
+      return out;
+    }, []);
+
+    const resolveCategoryNavHref = useCallback((slugs = [], categoryId, level = 0) => {
+      const pageType = pageTypeFromLevel(level);
+      const hasOverview = hasOverviewAvailability(
+        overviewAvailability,
+        categoryId,
+        pageType
+      );
+      return buildCategoryHref(slugs, hasOverview);
+    }, [overviewAvailability]);
+
+    useEffect(() => {
+      if (!Array.isArray(categories) || categories.length === 0) return;
+
+      let cancelled = false;
+      const AVAIL_CACHE_KEY = 'category_overview_availability_v1';
+      const AVAIL_TTL_MS = 5 * 60 * 1000;
+
+      const loadAvailability = async () => {
+        try {
+          const cached = loadCache(AVAIL_CACHE_KEY);
+          if (cached && Date.now() - cached.ts < AVAIL_TTL_MS && cached.data) {
+            if (!cancelled) setOverviewAvailability(cached.data);
+            return;
+          }
+
+          const pages = collectAvailabilityRequests(categories);
+          if (!pages.length) {
+            if (!cancelled) setOverviewAvailability({});
+            return;
+          }
+
+          const res = await fetch('/api/category-pages/availability', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ pages }),
+          });
+          const data = await res.json();
+          if (cancelled) return;
+
+          const map = data?.success && data.availability ? data.availability : {};
+          setOverviewAvailability(map);
+          saveCache(AVAIL_CACHE_KEY, map);
+        } catch (err) {
+          console.error('Failed to load category overview availability:', err);
+          if (!cancelled) setOverviewAvailability({});
+        }
+      };
+
+      loadAvailability();
+      return () => {
+        cancelled = true;
+      };
+    }, [categories, collectAvailabilityRequests]);
     const [sortOption, setSortOption] = useState('');
     const [hoveredCategory, setHoveredCategory] = useState(null);
     const [dropdownLeft, setDropdownLeft] = useState(0);
@@ -1256,14 +1336,11 @@ const Header = () => {
       return base.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
     };
     const getCategorySlug = (cat) =>cat?.category_slug || cat?.slug || safeSlugify(cat?.category_name, cat?._id || "category");
-    // NEW: compute href for node based on level (parent/child)
-    const getNodeHref = (ancestorSlugs = [], nodeSlug) => {
-      // Join all ancestors + current node
-      const fullPath = [...ancestorSlugs, nodeSlug]
-        .map((slug) => encodeURIComponent(slug))
-        .join("/");
-
-      return `/category/${fullPath}`;
+    // Compute href for node based on hierarchy + dynamic overview availability
+    const getNodeHref = (ancestorSlugs = [], node, level = 0) => {
+      const nodeSlug = getCategorySlug(node);
+      const fullSlugs = [...ancestorSlugs, nodeSlug];
+      return resolveCategoryNavHref(fullSlugs, node?._id, level);
     };
     // NEW: recursive renderer for unlimited category levels
     function renderCategoryLevel(nodes, ancestorSlugs = [], level = 0) {
@@ -1283,7 +1360,7 @@ const Header = () => {
     const isOpen = !!openCategories[node._id];
     const nodeSlug = getCategorySlug(node);
     const slugs = [...ancestorSlugs, nodeSlug];
-    const href = getNodeHref(ancestorSlugs, nodeSlug, level);
+    const href = getNodeHref(ancestorSlugs, node, level);
     const rowJustify = hasChildren ? "justify-between" : "justify-start";
 
     return (
@@ -1298,25 +1375,7 @@ const Header = () => {
         >
           <Link
             href={href}
-            onClick={async (e) => {
-              if (level === 0 || hasChildren) {
-                e.preventDefault();
-                e.stopPropagation();
-                await ensureSubcategories(node._id);
-                setOpenCategories((prev) => {
-                  const next = { ...prev };
-                  const willOpen = !prev[node._id];
-                  if (level === 0) {
-                    Object.keys(next).forEach((k) => delete next[k]);
-                    if (willOpen) next[node._id] = true;
-                    return next;
-                  }
-                  next[node._id] = willOpen;
-                  return next;
-                });
-                setIsMobileMenuOpen(true);
-                return;
-              }
+            onClick={() => {
               setIsMobileMenuOpen(false);
             }}
             className="flex-1 text-left truncate"
@@ -2150,7 +2209,7 @@ const Header = () => {
                                 {categories.map((category) => (
                                     <SwiperSlide key={category._id} className="!w-auto">
                                         <div ref={(el) => (slideRefs.current[category._id] = el)} onMouseEnter={() => handleMouseEnter(category._id)} onMouseLeave={() => startHide(120)} className="px-5 py-2 flex flex-col items-center text-center" >
-                                            <Link href={`/category/${category.category_slug}`} className="text-sm text-base text-white hover:text-[#fbe002] whitespace-nowrap" >
+                                            <Link href={resolveCategoryNavHref([category.category_slug], category._id, 0)} className="text-sm text-base text-white hover:text-[#fbe002] whitespace-nowrap" >
                                                 {category.category_name} 
                                             </Link>
                                             
@@ -2292,7 +2351,11 @@ const Header = () => {
                       </div>
                     )}
                  <Link
-          href={`/category/${hoveredCategory.category_slug}/${sub.category_slug}`}
+          href={resolveCategoryNavHref(
+            [hoveredCategory.category_slug, sub.category_slug],
+            sub._id,
+            1
+          )}
             style={{
                    fontSize: '13px',
                    fontWeight: isActive ? 700 : 600,
@@ -2309,7 +2372,11 @@ const Header = () => {
             })}
             <div style={{ padding: '10px 16px' }}>
   <Link
-    href={`/category/${hoveredCategory.category_slug}`}
+    href={resolveCategoryNavHref(
+      [hoveredCategory.category_slug],
+      hoveredCategory._id,
+      0
+    )}
     onClick={() => setHoveredCategory(null)}
     style={{
       display: 'flex', alignItems: 'center', gap: '4px',
@@ -2343,7 +2410,15 @@ const Header = () => {
             return children.map((child) => ({
               key: child._id,
               label: child.category_name,
-              href: `/category/${hoveredCategory.category_slug}/${sub.category_slug}/${child.category_slug}`,
+              href: resolveCategoryNavHref(
+                [
+                  hoveredCategory.category_slug,
+                  sub.category_slug,
+                  child.category_slug,
+                ],
+                child._id,
+                2
+              ),
               kind: 'child',
             }));
           }
@@ -2449,7 +2524,11 @@ const Header = () => {
                 ))}
               {brands.length > 10 && (
                 <Link
-                  href={`/category/${hoveredCategory.category_slug}`}
+                  href={resolveCategoryNavHref(
+                    [hoveredCategory.category_slug],
+                    hoveredCategory._id,
+                    0
+                  )}
                   onClick={() => setHoveredCategory(null)}
                   style={{ display: 'flex', alignItems: 'center', gap: '2px', padding: '5px 6px', fontSize: '11px', fontWeight: 600, color: '#d72828', textDecoration: 'none' }}
                 >
@@ -2467,7 +2546,11 @@ const Header = () => {
                   <>
                     <div style={{ marginBottom: '10px', paddingBottom: '8px', borderBottom: 'none' }}>
                       <Link
-                        href={`/category/${hoveredCategory.category_slug}/${activeSub.category_slug}`}
+                        href={resolveCategoryNavHref(
+                          [hoveredCategory.category_slug, activeSub.category_slug],
+                          activeSub._id,
+                          1
+                        )}
                         onClick={() => setHoveredCategory(null)}
                         style={{
                           fontSize: '13px', fontWeight: 700, color: '#d72828',
@@ -2496,7 +2579,11 @@ const Header = () => {
                               padLeft: true,
                               header: (
                                 <Link
-                                  href={`/category/${hoveredCategory.category_slug}/${sub.category_slug}`}
+                                  href={resolveCategoryNavHref(
+                                    [hoveredCategory.category_slug, sub.category_slug],
+                                    sub._id,
+                                    1
+                                  )}
                                   onClick={() => setHoveredCategory(null)}
                                   style={{
                                     fontSize: '13px', fontWeight: 700, color: '#d72828',
@@ -2530,7 +2617,11 @@ const Header = () => {
                             padLeft: si > 0,
                             header: (
                               <Link
-                                href={`/category/${hoveredCategory.category_slug}/${sub.category_slug}`}
+                                href={resolveCategoryNavHref(
+                                  [hoveredCategory.category_slug, sub.category_slug],
+                                  sub._id,
+                                  1
+                                )}
                                 onClick={() => setHoveredCategory(null)}
                                 style={{
                                   display: 'block', fontSize: '13px', fontWeight: 700,
@@ -2558,7 +2649,11 @@ const Header = () => {
                 borderLeft: '1px solid #e5e7eb', overflow: 'hidden',
               }}>
                 <Link
-                  href={`/category/${hoveredCategory.category_slug}`}
+                  href={resolveCategoryNavHref(
+                    [hoveredCategory.category_slug],
+                    hoveredCategory._id,
+                    0
+                  )}
                   onClick={() => setHoveredCategory(null)}
                   style={{ display: 'block', width: '100%', height: '100%' }}
                 >

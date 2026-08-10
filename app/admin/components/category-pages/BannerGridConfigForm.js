@@ -2,11 +2,22 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Icon } from "@iconify/react";
+import {
+  CATEGORY_PAGE_IMAGE_ACCEPT,
+  CATEGORY_PAGE_IMAGE_ACCEPT_HINT,
+} from "@/lib/categoryPageComponents/registry";
 
 const MIN_W = 1;
 const MIN_H = 1;
 const MAX_W = 600;
 const MAX_H = 600;
+const MIN_PRODUCTS = 6;
+
+function productImageSrc(product) {
+  const image = product?.images?.[0];
+  if (!image) return "";
+  return image.startsWith("http") ? image : `/uploads/products/${image}`;
+}
 
 function emptyBanner() {
   return {
@@ -54,6 +65,7 @@ function readShowGap(value) {
  */
 export default function BannerGridConfigForm({
   pageId,
+  categoryId,
   categoryName,
   instanceId,
   setLabel,
@@ -72,11 +84,19 @@ export default function BannerGridConfigForm({
   const [banners, setBanners] = useState(
     Array.from({ length: 4 }, emptyBanner)
   );
+  const [productName, setProductName] = useState("");
+  const [selected, setSelected] = useState([]);
+  const [query, setQuery] = useState("");
+  const [suggestions, setSuggestions] = useState([]);
+  const [searching, setSearching] = useState(false);
+  const [dropOpen, setDropOpen] = useState(false);
   const [loading, setLoading] = useState(!isListMode);
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
   const [error, setError] = useState("");
   const referenceDims = useRef(null);
+  const searchTimer = useRef(null);
+  const productSearchRef = useRef(null);
 
   useEffect(() => {
     if (!instanceId) {
@@ -98,6 +118,8 @@ export default function BannerGridConfigForm({
           setStatus(d.status || "active");
           setShowGap(readShowGap(d.showGap));
           setImageCount(count);
+          setProductName(d.productName || "");
+          setSelected(data.products || []);
           const rows = [...(d.banners || [])].sort(
             (a, b) => (a.order ?? 0) - (b.order ?? 0)
           );
@@ -122,6 +144,8 @@ export default function BannerGridConfigForm({
           setImageCount(4);
           setShowGap(false);
           setBanners(Array.from({ length: 4 }, emptyBanner));
+          setProductName("");
+          setSelected([]);
           setStatus("active");
           referenceDims.current = null;
         }
@@ -133,6 +157,79 @@ export default function BannerGridConfigForm({
     };
     load();
   }, [instanceId]);
+
+  useEffect(() => {
+    const closeProducts = (event) => {
+      if (
+        productSearchRef.current &&
+        !productSearchRef.current.contains(event.target)
+      ) {
+        setDropOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", closeProducts);
+    return () => document.removeEventListener("mousedown", closeProducts);
+  }, []);
+
+  useEffect(() => {
+    if (!categoryId || !query.trim()) {
+      setSuggestions([]);
+      return undefined;
+    }
+
+    clearTimeout(searchTimer.current);
+    searchTimer.current = setTimeout(async () => {
+      setSearching(true);
+      try {
+        const res = await fetch(
+          `/api/category-product-carousel/search?categoryId=${categoryId}&q=${encodeURIComponent(
+            query.trim()
+          )}`
+        );
+        const data = await res.json();
+        if (data.success) {
+          const selectedIds = new Set(
+            selected.map((product) => String(product._id))
+          );
+          setSuggestions(
+            (data.products || []).filter(
+              (product) => !selectedIds.has(String(product._id))
+            )
+          );
+          setDropOpen(true);
+        }
+      } catch {
+        setSuggestions([]);
+      } finally {
+        setSearching(false);
+      }
+    }, 280);
+
+    return () => clearTimeout(searchTimer.current);
+  }, [query, categoryId, selected]);
+
+  const addProduct = (product) => {
+    setSelected((current) => [...current, product]);
+    setQuery("");
+    setSuggestions([]);
+    setDropOpen(false);
+  };
+
+  const removeProduct = (productId) => {
+    setSelected((current) =>
+      current.filter((product) => String(product._id) !== String(productId))
+    );
+  };
+
+  const moveProduct = (index, direction) => {
+    setSelected((current) => {
+      const next = [...current];
+      const target = index + direction;
+      if (target < 0 || target >= next.length) return current;
+      [next[index], next[target]] = [next[target], next[index]];
+      return next;
+    });
+  };
 
   const handleImageCountChange = (count) => {
     setImageCount(count);
@@ -148,12 +245,23 @@ export default function BannerGridConfigForm({
   const pickBannerImage = async (index, file) => {
     if (!file) return;
     setError("");
+
+    // Keep the selected file immediately. Browser-side dimension decoding can
+    // fail for valid formats (notably AVIF on some systems), but the server can
+    // still process them with Sharp.
+    const imagePreview = URL.createObjectURL(file);
+    updateBanner(index, {
+      imageFile: file,
+      imagePreview,
+      width: null,
+      height: null,
+    });
+
     try {
       const { width, height } = await readImageDimensions(file);
       const dimErr = validateDimensions(width, height);
       if (dimErr) {
         setError(dimErr);
-        return;
       }
 
       if (referenceDims.current) {
@@ -162,7 +270,6 @@ export default function BannerGridConfigForm({
           setError(
             `All images must be the same height and width. Expected ${ref.width}×${ref.height}px, got ${width}×${height}px.`
           );
-          return;
         }
       } else {
         for (let i = 0; i < imageCount; i++) {
@@ -173,7 +280,6 @@ export default function BannerGridConfigForm({
               setError(
                 `All images must be the same height and width. Image ${i + 1} is ${b.width}×${b.height}px.`
               );
-              return;
             }
             referenceDims.current = { width: b.width, height: b.height };
             break;
@@ -185,13 +291,12 @@ export default function BannerGridConfigForm({
       }
 
       updateBanner(index, {
-        imageFile: file,
-        imagePreview: URL.createObjectURL(file),
         width,
         height,
       });
-    } catch (e) {
-      setError(e.message);
+    } catch {
+      // Preview and upload remain valid even when the browser cannot inspect
+      // dimensions; server-side image validation still runs on save.
     }
   };
 
@@ -230,6 +335,16 @@ export default function BannerGridConfigForm({
         return;
       }
     }
+    if (productName.trim() || selected.length > 0) {
+      if (!productName.trim()) {
+        setError("Enter a products name for the selected products.");
+        return;
+      }
+      if (selected.length < MIN_PRODUCTS) {
+        setError(`Add at least ${MIN_PRODUCTS} products, or leave the product section empty.`);
+        return;
+      }
+    }
 
     setSaving(true);
     try {
@@ -237,6 +352,7 @@ export default function BannerGridConfigForm({
       fd.append("instanceId", instanceId);
       fd.append("pageId", pageId);
       fd.append("name", name.trim());
+      fd.append("productName", productName.trim());
       fd.append("status", status);
       fd.append("showGap", showGap ? "true" : "false");
       fd.append("imageCount", String(imageCount));
@@ -252,6 +368,10 @@ export default function BannerGridConfigForm({
       banners.slice(0, imageCount).forEach((b, i) => {
         if (b.imageFile) fd.append(`bannerImage_${i}`, b.imageFile);
       });
+      fd.append(
+        "productIds",
+        JSON.stringify(selected.map((product) => product._id))
+      );
 
       const res = await fetch("/api/category-banner-grid", {
         method: "POST",
@@ -278,10 +398,10 @@ export default function BannerGridConfigForm({
         <div className="flex items-start justify-between gap-3">
           <div>
             <h3 className="text-lg font-semibold text-gray-900">
-              Banner Grid (2–4)
+              Banner Grid (2–4) + Products
             </h3>
             <p className="text-xs text-gray-500 mt-0.5">
-              Add 2, 3, or 4 banners with links for{" "}
+              Add 2, 3, or 4 banners with an optional product row for{" "}
               <span className="font-medium text-gray-700">
                 {categoryName || "this category"}
               </span>
@@ -491,10 +611,13 @@ export default function BannerGridConfigForm({
               />
               <input
                 type="file"
-                accept="image/*,.heic,.heif"
+                accept={CATEGORY_PAGE_IMAGE_ACCEPT}
                 onChange={(e) => pickBannerImage(index, e.target.files?.[0])}
                 className="block w-full text-sm"
               />
+              <p className="text-[10px] text-gray-400">
+                {CATEGORY_PAGE_IMAGE_ACCEPT_HINT}
+              </p>
               {banner.width && banner.height ? (
                 <p className="text-[10px] text-gray-500">
                   {banner.width}×{banner.height}px
@@ -510,6 +633,119 @@ export default function BannerGridConfigForm({
               ) : null}
             </div>
           ))}
+        </div>
+      </div>
+
+      <div className="rounded-xl border border-gray-200 p-4 space-y-4 bg-gray-50/40">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Products name (optional)
+          </label>
+          <input
+            type="text"
+            value={productName}
+            onChange={(event) => setProductName(event.target.value)}
+            placeholder="e.g. Featured Products"
+            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+          />
+        </div>
+
+        <div ref={productSearchRef} className="relative">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Add products (optional; minimum {MIN_PRODUCTS} when used)
+          </label>
+          <input
+            type="text"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            onFocus={() => suggestions.length && setDropOpen(true)}
+            placeholder="Search product name / code…"
+            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+            autoComplete="off"
+          />
+          {searching && (
+            <p className="text-[11px] text-gray-400 mt-1">Searching…</p>
+          )}
+          {dropOpen && suggestions.length > 0 && (
+            <ul className="absolute z-20 mt-1 max-h-56 w-full overflow-auto rounded-lg border border-gray-200 bg-white shadow-lg">
+              {suggestions.map((product) => (
+                <li key={product._id}>
+                  <button
+                    type="button"
+                    onClick={() => addProduct(product)}
+                    className="flex w-full items-center gap-3 px-3 py-2 text-left text-sm hover:bg-gray-50"
+                  >
+                    {productImageSrc(product) ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={productImageSrc(product)}
+                        alt=""
+                        className="h-10 w-10 object-contain bg-gray-50 border rounded"
+                      />
+                    ) : (
+                      <div className="h-10 w-10 bg-gray-100 rounded" />
+                    )}
+                    <span className="line-clamp-2">{product.name}</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        <div>
+          <h4 className="text-sm font-semibold mb-1">
+            Selected products ({selected.length}/{MIN_PRODUCTS} min)
+          </h4>
+          {selected.length === 0 ? (
+            <p className="text-xs text-gray-500">No products added yet.</p>
+          ) : (
+            <ul className="space-y-2">
+              {selected.map((product, index) => (
+                <li
+                  key={product._id}
+                  className="flex items-center gap-3 rounded-lg border border-gray-200 px-3 py-2 bg-white"
+                >
+                  {productImageSrc(product) ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={productImageSrc(product)}
+                      alt=""
+                      className="h-12 w-12 object-contain bg-white border rounded"
+                    />
+                  ) : (
+                    <div className="h-12 w-12 bg-gray-100 rounded" />
+                  )}
+                  <div className="flex-1 min-w-0 text-sm font-medium line-clamp-2">
+                    {product.name}
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <button
+                      type="button"
+                      onClick={() => moveProduct(index, -1)}
+                      className="text-xs text-gray-500"
+                    >
+                      ↑
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => moveProduct(index, 1)}
+                      className="text-xs text-gray-500"
+                    >
+                      ↓
+                    </button>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => removeProduct(product._id)}
+                    className="text-xs text-red-600"
+                  >
+                    Remove
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       </div>
 

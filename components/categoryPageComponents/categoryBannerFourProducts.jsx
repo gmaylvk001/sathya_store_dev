@@ -257,7 +257,7 @@ function RelatedProducts({ products, seeAllHref, name }) {
 }
 
 /**
- * Storefront: top banner + 4 tiles on colored BG + related products.
+ * Storefront: top banner + 3 or 4 tiles on colored BG + related products.
  * Banner & tiles: display at exact uploaded size; if too large, shrink to fit
  * (tiles max 450×450) without cropping.
  */
@@ -338,7 +338,13 @@ export default function CategoryBannerFourProducts({ config }) {
   const products = (config?.products || []).filter((p) => p?._id || p?.slug);
   const name = config?.name || "";
 
-  if (!bannerDesktop || tiles.length < 4) return null;
+  if (!bannerDesktop || tiles.length < 3) return null;
+
+  const visibleTiles = tiles.slice(0, 4);
+  const tileGridClass =
+    visibleTiles.length === 3
+      ? "grid-cols-1 sm:grid-cols-3"
+      : "grid-cols-2 md:grid-cols-4";
 
   return (
     <section className="w-full mb-8 bg-white">
@@ -358,8 +364,10 @@ export default function CategoryBannerFourProducts({ config }) {
         className="w-full px-2 sm:px-3 py-3 sm:py-4 rounded-sm"
         style={{ backgroundColor: tilesBgColor }}
       >
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3 place-items-center">
-          {tiles.slice(0, 4).map((tile, idx) => {
+        <div
+          className={`grid ${tileGridClass} gap-2 sm:gap-3 place-items-center`}
+        >
+          {visibleTiles.map((tile, idx) => {
             const href = resolveHref(tile.url);
             return (
               <BannerLink

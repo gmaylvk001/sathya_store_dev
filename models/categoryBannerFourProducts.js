@@ -23,7 +23,7 @@ const ProductRefSchema = new mongoose.Schema(
 );
 
 /**
- * Top banner + 4 image tiles (shared BG color) + related products row.
+ * Top banner + 3 or 4 image tiles (shared BG color) + related products row.
  * See All on products uses bannerUrl.
  */
 const CategoryBannerFourProductsSchema = new mongoose.Schema(
@@ -42,7 +42,7 @@ const CategoryBannerFourProductsSchema = new mongoose.Schema(
     bannerDesktop: { type: String, default: "" },
     bannerMobile: { type: String, default: "" },
     bannerUrl: { type: String, default: "" },
-    /** Background behind the 4 tiles */
+    /** Background behind the tile images */
     tilesBgColor: { type: String, default: "#0d9488" },
     tiles: { type: [TileSchema], default: [] },
     /** Related products section title */

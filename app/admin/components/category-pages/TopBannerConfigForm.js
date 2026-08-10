@@ -2,6 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { Icon } from "@iconify/react";
+import {
+  CATEGORY_PAGE_IMAGE_ACCEPT,
+  CATEGORY_PAGE_IMAGE_ACCEPT_HINT,
+} from "@/lib/categoryPageComponents/registry";
 
 const emptyBanner = () => ({
   desktopImage: "",
@@ -196,7 +200,7 @@ export default function TopBannerConfigForm({
               </label>
               <input
                 type="file"
-                accept="image/*"
+                accept={CATEGORY_PAGE_IMAGE_ACCEPT}
                 onChange={(e) => {
                   const file = e.target.files?.[0];
                   if (!file) return;
@@ -207,6 +211,9 @@ export default function TopBannerConfigForm({
                 }}
                 className="w-full text-sm"
               />
+              <p className="mt-1 text-[11px] text-gray-400">
+                {CATEGORY_PAGE_IMAGE_ACCEPT_HINT}
+              </p>
               {banner.desktopPreview && (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
@@ -222,7 +229,7 @@ export default function TopBannerConfigForm({
               </label>
               <input
                 type="file"
-                accept="image/*"
+                accept={CATEGORY_PAGE_IMAGE_ACCEPT}
                 onChange={(e) => {
                   const file = e.target.files?.[0];
                   if (!file) return;

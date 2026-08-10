@@ -2,6 +2,10 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Icon } from "@iconify/react";
+import {
+  CATEGORY_PAGE_IMAGE_ACCEPT,
+  CATEGORY_PAGE_IMAGE_ACCEPT_HINT,
+} from "@/lib/categoryPageComponents/registry";
 
 function productImageSrc(product) {
   const img = product?.images?.[0];
@@ -20,10 +24,13 @@ function ImageUploadField({ label, preview, onPick, hint }) {
       ) : null}
       <input
         type="file"
-        accept="image/*,.heic,.heif"
+        accept={CATEGORY_PAGE_IMAGE_ACCEPT}
         onChange={(e) => onPick(e.target.files?.[0] || null)}
         className="block w-full text-sm text-gray-600 file:mr-3 file:rounded-lg file:border-0 file:bg-gray-100 file:px-3 file:py-2 file:text-sm file:font-medium hover:file:bg-gray-200"
       />
+      <p className="mt-1 text-[11px] text-gray-400">
+        {CATEGORY_PAGE_IMAGE_ACCEPT_HINT}
+      </p>
       {preview ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img

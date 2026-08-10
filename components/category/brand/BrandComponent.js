@@ -17,6 +17,7 @@ import {
 } from "@/lib/filterUrl";
 import { useCategoryFilterUrl } from "@/hooks/useCategoryFilterUrl";
 import ProductFilters from "@/components/filters/ProductFilters";
+import { CATEGORY_PAGE_SHELL_CLASS } from "@/lib/categoryPageComponents/layout";
 
 export default function CategoryBrandComponent({ categorySlug, brandSlug }) {
   const [categoryData, setCategoryData] = useState({
@@ -404,25 +405,28 @@ console.log("Fetched products:", products);
   const handleFilterChange = (type, value) => {
     setSelectedFilters(prev => {
       const newFilters = { ...prev };
+      const id = value != null ? String(value) : value;
+      const hasId = (list, item) =>
+        (list || []).some((x) => String(x) === String(item));
       
       if (type === 'brands') {
-        newFilters.brands = prev.brands.includes(value)
-          ? prev.brands.filter(item => item !== value)
-          : [...prev.brands, value];
+        newFilters.brands = hasId(prev.brands, id)
+          ? prev.brands.filter(item => String(item) !== id)
+          : [...prev.brands, id];
       } else if (type === 'price') {
         newFilters.price = value;
       } else if (type === 'categories') {
-        newFilters.categories = prev.categories.includes(value)
-          ? prev.categories.filter(item => item !== value)
-          : [...prev.categories, value];
+        newFilters.categories = hasId(prev.categories, id)
+          ? prev.categories.filter(item => String(item) !== id)
+          : [...prev.categories, id];
       } else if (type === 'subcategories') {
-        newFilters.subcategories = prev.subcategories.includes(value)
-          ? prev.subcategories.filter(item => item !== value)
-          : [...prev.subcategories, value];
+        newFilters.subcategories = hasId(prev.subcategories, id)
+          ? prev.subcategories.filter(item => String(item) !== id)
+          : [...prev.subcategories, id];
       } else {
-        newFilters.filters = prev.filters.includes(value)
-          ? prev.filters.filter(item => item !== value)
-          : [...prev.filters, value];
+        newFilters.filters = hasId(prev.filters, id)
+          ? prev.filters.filter(item => String(item) !== id)
+          : [...prev.filters, id];
       }
       return newFilters;
     });
@@ -598,7 +602,7 @@ console.log("Fetched products:", products);
   }
 
   return (
-    <div className="container mx-auto px-4 py-2 pb-3 max-w-7xl">
+    <div className={`${CATEGORY_PAGE_SHELL_CLASS} py-2 pb-3`}>
       {/* Breadcrumb */}
     
 

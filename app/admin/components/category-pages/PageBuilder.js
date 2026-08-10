@@ -17,6 +17,7 @@ import ProductCarouselConfigForm from "./ProductCarouselConfigForm";
 import BannerSideProductsConfigForm from "./BannerSideProductsConfigForm";
 import BannerFourProductsConfigForm from "./BannerFourProductsConfigForm";
 import BannerGridConfigForm from "./BannerGridConfigForm";
+import ImageColumnsConfigForm from "./ImageColumnsConfigForm";
 import SingleBannerProductsConfigForm from "./SingleBannerProductsConfigForm";
 import BrandCarouselConfigForm from "./BrandCarouselConfigForm";
 import ImageHotspotBannerConfigForm from "./ImageHotspotBannerConfigForm";
@@ -35,6 +36,7 @@ export default function PageBuilder() {
   const [error, setError] = useState("");
   const [configType, setConfigType] = useState(null);
   const [configInstanceId, setConfigInstanceId] = useState(null);
+  const [deletingInstanceId, setDeletingInstanceId] = useState(null);
   const [message, setMessage] = useState("");
 
   const load = useCallback(async () => {
@@ -62,31 +64,31 @@ export default function PageBuilder() {
     acc[c.type] = (acc[c.type] || 0) + 1;
     return acc;
   }, {});
+  const topBannerInstance = components.find(
+    (c) => c.type === COMPONENT_TYPES.TOP_BANNER
+  );
 
-  const selectComponent = async (type) => {
+  const selectComponent = (type) => {
     setMessage("");
-    const meta = getComponentMeta(type);
+    setConfigType(type);
+    setConfigInstanceId(null);
+  };
 
-    // allowMultiple: open component page (list + ADD NEW) — do not auto-create
-    if (meta?.allowMultiple) {
-      setConfigType(type);
-      setConfigInstanceId(null);
-      return;
-    }
-
+  const addNewTopBanner = async () => {
+    setMessage("");
     try {
       const res = await fetch(`/api/category-pages/${id}/components`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type }),
+        body: JSON.stringify({ type: COMPONENT_TYPES.TOP_BANNER }),
       });
       const data = await res.json();
       if (!data.success) throw new Error(data.message);
       setPage(data.page);
-      setConfigType(type);
+      setConfigType(COMPONENT_TYPES.TOP_BANNER);
       setConfigInstanceId(data.instance?.instanceId || null);
       if (data.alreadyExists) {
-        setMessage("Top Banner already on this page — editing existing carousel.");
+        setMessage("Top Banner already exists. Opening it for editing.");
       }
     } catch (e) {
       alert(e.message);
@@ -237,6 +239,24 @@ export default function PageBuilder() {
     }
   };
 
+  const addNewImageColumnsSet = async () => {
+    setMessage("");
+    try {
+      const res = await fetch(`/api/category-pages/${id}/components`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: COMPONENT_TYPES.IMAGE_COLUMNS }),
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.message);
+      setPage(data.page);
+      setConfigType(COMPONENT_TYPES.IMAGE_COLUMNS);
+      setConfigInstanceId(data.instance?.instanceId || null);
+    } catch (e) {
+      alert(e.message);
+    }
+  };
+
   const addNewSingleBannerProductsSet = async () => {
     setMessage("");
     try {
@@ -259,6 +279,44 @@ export default function PageBuilder() {
     setConfigType(c.type);
     setConfigInstanceId(c.instanceId);
     setMessage("");
+  };
+
+  const deleteInstance = async (component) => {
+    const label =
+      instanceLabels[component.instanceId] ||
+      getComponentMeta(component.type)?.label ||
+      "this component";
+    if (
+      !window.confirm(
+        `Delete "${label}"? Its saved configuration will also be removed. This cannot be undone.`
+      )
+    ) {
+      return;
+    }
+
+    setDeletingInstanceId(component.instanceId);
+    setMessage("");
+    try {
+      const res = await fetch(
+        `/api/category-pages/${id}/components?instanceId=${encodeURIComponent(
+          component.instanceId
+        )}`,
+        { method: "DELETE" }
+      );
+      const data = await res.json();
+      if (!data.success) throw new Error(data.message || "Delete failed");
+
+      setPage(data.page);
+      if (configInstanceId === component.instanceId) {
+        setConfigInstanceId(null);
+        setConfigType(null);
+      }
+      setMessage(`${label} deleted.`);
+    } catch (e) {
+      alert(e.message);
+    } finally {
+      setDeletingInstanceId(null);
+    }
   };
 
   if (loading) {
@@ -320,8 +378,8 @@ export default function PageBuilder() {
             <div className="shrink-0 mb-4">
               <h2 className="text-sm font-semibold mb-1">Components</h2>
               <p className="text-xs text-gray-500">
-                Select a component image to open its page. Image Carousel shows
-                existing sets; use ADD NEW to create another.
+                Select a component to view its existing sets. A component is
+                created only after you click Add New.
               </p>
             </div>
             <div className="space-y-3 overflow-y-auto flex-1 min-h-0 pr-1 overscroll-contain">
@@ -395,30 +453,111 @@ export default function PageBuilder() {
                               getComponentMeta(c.type)?.label ||
                               c.type}
                           </span>
-                          <button
-                            type="button"
-                            className="text-[#d72828] text-xs"
-                            onClick={() => openEditInstance(c)}
-                          >
-                            Edit
-                          </button>
+                          <div className="flex items-center gap-3">
+                            <button
+                              type="button"
+                              className="text-[#d72828] text-xs font-medium"
+                              onClick={() => openEditInstance(c)}
+                            >
+                              Edit
+                            </button>
+                            <button
+                              type="button"
+                              className="text-red-600 text-xs font-medium disabled:cursor-not-allowed disabled:opacity-50"
+                              onClick={() => deleteInstance(c)}
+                              disabled={deletingInstanceId === c.instanceId}
+                            >
+                              {deletingInstanceId === c.instanceId
+                                ? "Deleting..."
+                                : "Delete"}
+                            </button>
+                          </div>
                         </li>
                       ))}
                   </ul>
                 )}
               </div>
+            ) : configType === COMPONENT_TYPES.TOP_BANNER &&
+              !configInstanceId ? (
+              <div>
+                <div className="flex items-start justify-between gap-4 mb-5">
+                  <div>
+                    <h2 className="text-lg font-semibold">Top Banner</h2>
+                    <p className="text-sm text-gray-500 mt-1">
+                      Select an existing banner to edit it, or use Add New to
+                      create the component.
+                    </p>
+                  </div>
+                  {!topBannerInstance && (
+                    <button
+                      type="button"
+                      onClick={addNewTopBanner}
+                      className="shrink-0 inline-flex items-center gap-1.5 rounded-lg bg-[#d72828] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#b82222]"
+                    >
+                      <Icon icon="mdi:plus" />
+                      Add New
+                    </button>
+                  )}
+                </div>
+
+                {topBannerInstance ? (
+                  <div className="flex items-center justify-between gap-3 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
+                    <div>
+                      <div className="text-sm font-medium">Top Banner</div>
+                      <div className="text-xs text-gray-500 mt-0.5">
+                        One banner carousel is configured for this page.
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setConfigInstanceId(topBannerInstance.instanceId)
+                        }
+                        className="text-sm font-semibold text-[#d72828] hover:underline"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => deleteInstance(topBannerInstance)}
+                        disabled={
+                          deletingInstanceId === topBannerInstance.instanceId
+                        }
+                        className="text-sm font-semibold text-red-600 hover:underline disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        {deletingInstanceId === topBannerInstance.instanceId
+                          ? "Deleting..."
+                          : "Delete"}
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 px-5 py-10 text-center">
+                    <Icon
+                      icon="mdi:image-area"
+                      className="mx-auto mb-2 text-3xl text-gray-400"
+                    />
+                    <p className="text-sm text-gray-600">
+                      No Top Banner has been added.
+                    </p>
+                    <p className="mt-1 text-xs text-gray-400">
+                      Click Add New when you are ready to create it.
+                    </p>
+                  </div>
+                )}
+              </div>
             ) : configType === COMPONENT_TYPES.TOP_BANNER ? (
               <TopBannerConfigForm
+                key={configInstanceId}
                 categoryId={page.categoryId}
                 pageType={page.pageType}
                 categoryName={page.categoryName}
                 onCancel={() => {
-                  setConfigType(null);
                   setConfigInstanceId(null);
                 }}
                 onSaved={() => {
                   setMessage("Top Banner carousel saved.");
-                  setConfigType(null);
                   setConfigInstanceId(null);
                   load();
                 }}
@@ -571,7 +710,7 @@ export default function PageBuilder() {
                     label:
                       instanceLabels[c.instanceId] ||
                       c.title ||
-                      "Banner + 4 Images + Products",
+                      "Banner + 3/4 Images + Products",
                   }))}
                 onAddNew={addNewBannerFourProductsSet}
                 onEditSet={(instanceId) => {
@@ -579,7 +718,7 @@ export default function PageBuilder() {
                   setMessage("");
                 }}
                 onDeleteSet={() => {
-                  setMessage("Banner + 4 Images + Products set deleted.");
+                  setMessage("Banner + 3/4 Images + Products set deleted.");
                   load();
                 }}
                 onBackToList={() => {
@@ -587,7 +726,7 @@ export default function PageBuilder() {
                   load();
                 }}
                 onSaved={() => {
-                  setMessage("Banner + 4 Images + Products set saved.");
+                  setMessage("Banner + 3/4 Images + Products set saved.");
                   setConfigInstanceId(null);
                   load();
                 }}
@@ -596,6 +735,7 @@ export default function PageBuilder() {
               <BannerGridConfigForm
                 key={configInstanceId || "bg-list"}
                 pageId={page._id}
+                categoryId={page.categoryId}
                 categoryName={page.categoryName}
                 instanceId={configInstanceId}
                 setLabel={
@@ -629,6 +769,45 @@ export default function PageBuilder() {
                 }}
                 onSaved={() => {
                   setMessage("Banner Grid set saved.");
+                  load();
+                }}
+              />
+            ) : configType === COMPONENT_TYPES.IMAGE_COLUMNS ? (
+              <ImageColumnsConfigForm
+                key={configInstanceId || "ic-list"}
+                pageId={page._id}
+                instanceId={configInstanceId}
+                setLabel={
+                  configInstanceId
+                    ? instanceLabels[configInstanceId]
+                    : null
+                }
+                existingSets={[...components]
+                  .filter((c) => c.type === COMPONENT_TYPES.IMAGE_COLUMNS)
+                  .sort((a, b) => a.order - b.order)
+                  .map((c) => ({
+                    instanceId: c.instanceId,
+                    title: c.title || "",
+                    label:
+                      instanceLabels[c.instanceId] ||
+                      c.title ||
+                      "Image Columns",
+                  }))}
+                onAddNew={addNewImageColumnsSet}
+                onEditSet={(instanceId) => {
+                  setConfigInstanceId(instanceId);
+                  setMessage("");
+                }}
+                onDeleteSet={() => {
+                  setMessage("Image Columns set deleted.");
+                  load();
+                }}
+                onBackToList={() => {
+                  setConfigInstanceId(null);
+                  load();
+                }}
+                onSaved={() => {
+                  setMessage("Image Columns set saved.");
                   load();
                 }}
               />

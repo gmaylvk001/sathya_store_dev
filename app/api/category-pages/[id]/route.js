@@ -7,6 +7,7 @@ import CategoryProductCarousel from "@/models/categoryProductCarousel";
 import CategoryBannerSideProducts from "@/models/categoryBannerSideProducts";
 import CategoryBannerFourProducts from "@/models/categoryBannerFourProducts";
 import CategoryBannerGrid from "@/models/categoryBannerGrid";
+import CategoryImageColumns from "@/models/categoryImageColumns";
 import CategorySingleBannerProducts from "@/models/categorySingleBannerProducts";
 import CategoryBrandCarousel from "@/models/categoryBrandCarousel";
 import CategoryImageHotspotBanner from "@/models/categoryImageHotspotBanner";
@@ -85,6 +86,7 @@ export async function DELETE(_req, { params }) {
     await CategoryBannerSideProducts.deleteMany({ pageId: page._id });
     await CategoryBannerFourProducts.deleteMany({ pageId: page._id });
     await CategoryBannerGrid.deleteMany({ pageId: page._id });
+    await CategoryImageColumns.deleteMany({ pageId: page._id });
     await CategorySingleBannerProducts.deleteMany({ pageId: page._id });
     await CategoryBrandCarousel.deleteMany({ pageId: page._id });
     await CategoryImageHotspotBanner.deleteMany({ pageId: page._id });

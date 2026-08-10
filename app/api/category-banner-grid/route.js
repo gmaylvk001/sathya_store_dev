@@ -1,8 +1,12 @@
 import { NextResponse } from "next/server";
+import mongoose from "mongoose";
 import dbConnect from "@/lib/db";
 import CategoryBannerGrid from "@/models/categoryBannerGrid";
 import CategoryPage from "@/models/categoryPage";
+import Product from "@/models/product";
 import { saveCategoryBannerGridImage } from "@/lib/categoryBannerGridUpload";
+
+const MIN_PRODUCTS = 6;
 
 function parseShowGap(value) {
   return value === true || value === "true" || value === "1";
@@ -31,10 +35,28 @@ export async function GET(req) {
     }
 
     if (!doc) {
-      return NextResponse.json({ success: true, data: null });
+      return NextResponse.json({ success: true, data: null, products: [] });
     }
 
-    return NextResponse.json({ success: true, data: doc });
+    const refs = [...(doc.products || [])].sort(
+      (a, b) => (a.order ?? 0) - (b.order ?? 0)
+    );
+    const ids = refs.map((ref) => ref.productId).filter(Boolean);
+    const found = ids.length
+      ? await Product.find({ _id: { $in: ids }, status: "Active" })
+          .select(
+            "name slug images price special_price model_number item_code stock_status quantity brand"
+          )
+          .lean()
+      : [];
+    const byId = Object.fromEntries(
+      found.map((product) => [String(product._id), product])
+    );
+    const products = refs
+      .map((ref) => byId[String(ref.productId)])
+      .filter(Boolean);
+
+    return NextResponse.json({ success: true, data: doc, products });
   } catch (err) {
     return NextResponse.json(
       { success: false, message: err.message },
@@ -53,11 +75,14 @@ export async function POST(req) {
     const instanceId = formData.get("instanceId");
     const pageId = formData.get("pageId");
     const name = String(formData.get("name") || "").trim();
+    const productName = String(formData.get("productName") || "").trim();
     const status = formData.get("status") || "active";
     const imageCountRaw = parseInt(String(formData.get("imageCount") || "4"), 10);
     const imageCount = [2, 3, 4].includes(imageCountRaw) ? imageCountRaw : 4;
     const bannersMetaRaw = formData.get("bannersMeta");
     const bannersMeta = bannersMetaRaw ? JSON.parse(String(bannersMetaRaw)) : [];
+    const productIdsRaw = formData.get("productIds");
+    const productIds = productIdsRaw ? JSON.parse(String(productIdsRaw)) : [];
     const showGap = parseShowGap(formData.get("showGap"));
 
     if (!instanceId || !pageId) {
@@ -65,6 +90,27 @@ export async function POST(req) {
         { success: false, message: "instanceId and pageId required" },
         { status: 400 }
       );
+    }
+
+    const validProductIds = (Array.isArray(productIds) ? productIds : []).filter(
+      (id) => mongoose.Types.ObjectId.isValid(id)
+    );
+    if (productName || validProductIds.length > 0) {
+      if (!productName) {
+        return NextResponse.json(
+          { success: false, message: "Products name is required when products are selected" },
+          { status: 400 }
+        );
+      }
+      if (validProductIds.length < MIN_PRODUCTS) {
+        return NextResponse.json(
+          {
+            success: false,
+            message: `Add at least ${MIN_PRODUCTS} products, or leave the product section empty`,
+          },
+          { status: 400 }
+        );
+      }
     }
 
     const page = await CategoryPage.findById(pageId);
@@ -101,6 +147,11 @@ export async function POST(req) {
       status: status === "inactive" ? "inactive" : "active",
       imageCount,
       banners,
+      productName,
+      products: validProductIds.map((id, index) => ({
+        productId: new mongoose.Types.ObjectId(id),
+        order: index,
+      })),
       showGap,
       categoryId: page.categoryId,
       pageId: page._id,

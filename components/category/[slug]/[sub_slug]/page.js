@@ -8,8 +8,6 @@ import { ChevronLeft, ChevronRight } from "react-feather";
 import ProductCard from "@/components/ProductCard";
 import Addtocart from "@/components/AddToCart";
 import { ToastContainer, toast } from 'react-toastify';
-import CategoryPageRenderer from "@/components/categoryPageComponents/CategoryPageRenderer";
-import { PAGE_TYPES } from "@/lib/categoryPageComponents/registry";
 import {
   buildFilterLookupMaps,
   searchParamsToSelectedFilters,
@@ -19,6 +17,7 @@ import {
 } from "@/lib/filterUrl";
 import { useCategoryFilterUrl } from "@/hooks/useCategoryFilterUrl";
 import ProductFilters from "@/components/filters/ProductFilters";
+import { CATEGORY_PAGE_SHELL_CLASS } from "@/lib/categoryPageComponents/layout";
 
 
 export default function CategoryPage() {
@@ -43,7 +42,6 @@ export default function CategoryPage() {
   const filterGroupsRef = useRef({});
   const filterCatalogRef = useRef(null);
   const skipNextFilterFetch = useRef(true);
-  const [hasCustomDesign, setHasCustomDesign] = useState(null);
   
   const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
   const [isSortPanelOpen, setIsSortPanelOpen] = useState(false);
@@ -51,34 +49,6 @@ export default function CategoryPage() {
   const [filterGroups, setFilterGroups] = useState({});
   const [loading, setLoading] = useState(true);
   const { slug,sub_slug } = useParams();
-
-  useEffect(() => {
-    if (!sub_slug) {
-      setHasCustomDesign(false);
-      return;
-    }
-    let cancelled = false;
-    (async () => {
-      try {
-        const params = new URLSearchParams({
-          pageType: PAGE_TYPES.SUB_CATEGORY,
-          slug: String(sub_slug),
-        });
-        const res = await fetch(`/api/category-pages/render?${params}`);
-        const data = await res.json();
-        if (!cancelled) {
-          setHasCustomDesign(
-            Boolean(data.success && (data.components || []).length > 0)
-          );
-        }
-      } catch {
-        if (!cancelled) setHasCustomDesign(false);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [sub_slug]);
   const [sortOption, setSortOption] = useState('');
   const [wishlist, setWishlist] = useState([]); 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -350,6 +320,21 @@ const scroll = (direction) => {
       ...prev,
       brands: filteredBrands,
       }));
+      setFilterCatalog((prev) =>
+        prev
+          ? {
+              ...prev,
+              brands: (() => {
+                const byId = new Map();
+                for (const b of [...(prev.brands || []), ...filteredBrands]) {
+                  const id = b?._id?.toString?.() || b?._id;
+                  if (id) byId.set(String(id), b);
+                }
+                return [...byId.values()];
+              })(),
+            }
+          : prev
+      );
       }
        if (filteredFilters) {
       const groups = {};
@@ -368,6 +353,9 @@ const scroll = (direction) => {
         }
       });
       setFilterGroups(groups);
+      setFilterCatalog((prev) =>
+        prev ? { ...prev, filterGroups: { ...prev.filterGroups, ...groups } } : prev
+      );
     }  
       // Update pagination state
       setPagination({
@@ -476,22 +464,25 @@ const scroll = (direction) => {
   const handleFilterChange = (type, value) => {
     setSelectedFilters(prev => {
       const newFilters = { ...prev };
+      const id = value != null ? String(value) : value;
+      const hasId = (list, item) =>
+        (list || []).some((x) => String(x) === String(item));
       
       if (type === 'brands') {
-        newFilters.brands = prev.brands.includes(value)
-          ? prev.brands.filter(item => item !== value)
-          : [...prev.brands, value];
+        newFilters.brands = hasId(prev.brands, id)
+          ? prev.brands.filter(item => String(item) !== id)
+          : [...prev.brands, id];
       } else if (type === 'price') {
         newFilters.price = value;
       } else  if (type === 'categories') {
-        newFilters.categories = prev.categories.includes(value)
-          ? prev.categories.filter(item => item !== value)
-          : [...prev.categories, value];
+        newFilters.categories = hasId(prev.categories, id)
+          ? prev.categories.filter(item => String(item) !== id)
+          : [...prev.categories, id];
       }
        else {
-        newFilters.filters = prev.filters.includes(value)
-          ? prev.filters.filter(item => item !== value)
-          : [...prev.filters, value];
+        newFilters.filters = hasId(prev.filters, id)
+          ? prev.filters.filter(item => String(item) !== id)
+          : [...prev.filters, id];
       }
       return newFilters;
     });
@@ -659,30 +650,8 @@ const handlePageChange = (page) => {
 
 //console.log('categoryData: ',categoryData);
 
-  if (hasCustomDesign === null) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-        </div>
-      </div>
-    );
-  }
-
-  if (hasCustomDesign) {
-    return (
-      <div className="container mx-auto px-4 py-2 pb-3 max-w-7xl">
-        <CategoryPageRenderer
-          pageType={PAGE_TYPES.SUB_CATEGORY}
-          categoryId={categoryData.main_category?._id}
-          slug={sub_slug}
-        />
-      </div>
-    );
-  }
-   
   return (
-    <div className="container mx-auto px-4 py-2 pb-3 max-w-7xl">
+    <div className={`${CATEGORY_PAGE_SHELL_CLASS} py-2 pb-3`}>
       {categoryData.main_category.banners && categoryData.main_category.banners.length > 0 && (
         <div className="relative w-full mb-8 rounded-lg overflow-hidden shadow-md">
           <div className="relative w-full aspect-[16/6] sm:aspect-[16/7] lg:aspect-[16/5] cursor-pointer"

@@ -2,6 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { Icon } from "@iconify/react";
+import {
+  CATEGORY_PAGE_IMAGE_ACCEPT,
+  CATEGORY_PAGE_IMAGE_ACCEPT_HINT,
+} from "@/lib/categoryPageComponents/registry";
 
 const emptyItem = () => ({
   image: "",
@@ -35,6 +39,7 @@ export default function BrandCarouselConfigForm({
   const [name, setName] = useState("");
   const [status, setStatus] = useState("active");
   const [showGap, setShowGap] = useState(false);
+  const [autoBrandsFromCategory, setAutoBrandsFromCategory] = useState(false);
   const [items, setItems] = useState([emptyItem()]);
   const [loading, setLoading] = useState(!isListMode);
   const [saving, setSaving] = useState(false);
@@ -83,6 +88,7 @@ export default function BrandCarouselConfigForm({
           setName(data.data.name || "");
           setStatus(data.data.status || "active");
           setShowGap(readShowGap(data.data.showGap));
+          setAutoBrandsFromCategory(Boolean(data.data.autoBrandsFromCategory));
           const rows = data.data.items || [];
           setItems(
             rows.length
@@ -99,6 +105,7 @@ export default function BrandCarouselConfigForm({
           setName("");
           setItems([emptyItem()]);
           setShowGap(false);
+          setAutoBrandsFromCategory(false);
           setStatus("active");
         }
       } catch (e) {
@@ -123,10 +130,12 @@ export default function BrandCarouselConfigForm({
       setError("Section name is required (shown at top of the component).");
       return;
     }
-    for (let i = 0; i < items.length; i++) {
-      if (!items[i].imageFile && !items[i].image) {
-        setError(`Brand #${i + 1}: image is required.`);
-        return;
+    if (!autoBrandsFromCategory) {
+      for (let i = 0; i < items.length; i++) {
+        if (!items[i].imageFile && !items[i].image) {
+          setError(`Brand #${i + 1}: image is required.`);
+          return;
+        }
       }
     }
 
@@ -139,19 +148,25 @@ export default function BrandCarouselConfigForm({
       fd.append("status", status);
       fd.append("showGap", showGap ? "true" : "false");
       fd.append(
-        "itemsMeta",
-        JSON.stringify(
-          items.map((it, i) => ({
-            image: it.image || "",
-            url: it.url || "",
-            isActive: it.isActive !== false,
-            order: i,
-          }))
-        )
+        "autoBrandsFromCategory",
+        autoBrandsFromCategory ? "true" : "false"
       );
-      items.forEach((it, i) => {
-        if (it.imageFile) fd.append(`image_${i}`, it.imageFile);
-      });
+      if (!autoBrandsFromCategory) {
+        fd.append(
+          "itemsMeta",
+          JSON.stringify(
+            items.map((it, i) => ({
+              image: it.image || "",
+              url: it.url || "",
+              isActive: it.isActive !== false,
+              order: i,
+            }))
+          )
+        );
+        items.forEach((it, i) => {
+          if (it.imageFile) fd.append(`image_${i}`, it.imageFile);
+        });
+      }
 
       const res = await fetch("/api/category-brand-carousel", {
         method: "POST",
@@ -161,6 +176,7 @@ export default function BrandCarouselConfigForm({
       if (!data.success) throw new Error(data.message || "Save failed");
       if (data.data) {
         setShowGap(readShowGap(data.data.showGap));
+        setAutoBrandsFromCategory(Boolean(data.data.autoBrandsFromCategory));
       }
       onSaved?.(data);
     } catch (err) {
@@ -342,6 +358,35 @@ export default function BrandCarouselConfigForm({
         </div>
       </div>
 
+      <div className="rounded-xl border-2 border-[#d72828]/30 bg-[#fffdf5] p-4">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <label className="block text-sm font-semibold text-gray-900 mb-1">
+              Auto Brands From Category
+            </label>
+            <p className="text-xs text-gray-600">
+              ON automatically shows brands that have products in this category
+              (including child categories). Manual brand images and URLs are not
+              required.
+            </p>
+          </div>
+          <label className="relative inline-flex items-center cursor-pointer shrink-0 mt-0.5">
+            <input
+              type="checkbox"
+              checked={autoBrandsFromCategory}
+              onChange={(e) => setAutoBrandsFromCategory(e.target.checked)}
+              className="sr-only peer"
+            />
+            <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-[#d72828] after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full" />
+          </label>
+        </div>
+        {autoBrandsFromCategory ? (
+          <p className="mt-3 text-xs text-[#b82222] font-medium">
+            Manual brand configuration is disabled while Auto mode is ON.
+          </p>
+        ) : null}
+      </div>
+
       <div className="flex items-center gap-3">
         <label className="relative inline-flex items-center cursor-pointer">
           <input
@@ -357,6 +402,23 @@ export default function BrandCarouselConfigForm({
         <span className="text-sm font-medium">Set Active</span>
       </div>
 
+      {autoBrandsFromCategory ? (
+        <div className="rounded-xl border border-dashed border-gray-300 bg-white px-4 py-8 text-center">
+          <Icon
+            icon="mdi:storefront-outline"
+            className="mx-auto text-3xl text-[#d72828] mb-2"
+          />
+          <p className="text-sm font-medium text-gray-800">
+            Brands will load automatically from this category
+          </p>
+          <p className="text-xs text-gray-500 mt-1 max-w-md mx-auto">
+            On the storefront overview page, this carousel will show brand logos
+            and links for brands that currently have products under this
+            category context.
+          </p>
+        </div>
+      ) : (
+        <>
       <div className="flex items-center justify-between">
         <div>
           <h4 className="text-sm font-semibold">Brands ({items.length})</h4>
@@ -399,7 +461,7 @@ export default function BrandCarouselConfigForm({
             </label>
             <input
               type="file"
-              accept="image/jpeg,image/png,image/webp,image/gif,image/avif,image/heic,image/heif,.jpg,.jpeg,.png,.webp,.gif,.avif,.heic,.heif"
+              accept={CATEGORY_PAGE_IMAGE_ACCEPT}
               onChange={(e) => {
                 const file = e.target.files?.[0];
                 if (!file) return;
@@ -412,7 +474,7 @@ export default function BrandCarouselConfigForm({
               className="w-full text-sm"
             />
             <p className="text-[11px] text-gray-500 mt-1">
-              JPG, PNG, WebP, AVIF, or HEIC (HEIC is converted to JPG automatically).
+              {CATEGORY_PAGE_IMAGE_ACCEPT_HINT}
             </p>
             {item.imagePreview && (
               // eslint-disable-next-line @next/next/no-img-element
@@ -455,6 +517,8 @@ export default function BrandCarouselConfigForm({
           </div>
         </div>
       ))}
+        </>
+      )}
 
       <div className="flex justify-end gap-2 pt-2 border-t">
         <button

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import {
   buildFilterLookupMaps,
   selectedFiltersToQueryString,
@@ -28,10 +28,55 @@ function readSearchKey() {
   return window.location.search.replace(/^\?/, "");
 }
 
+function mergeById(primary = [], secondary = []) {
+  const map = new Map();
+  for (const item of [...(primary || []), ...(secondary || [])]) {
+    const id = item?._id?.toString?.() || item?._id;
+    if (!id) continue;
+    map.set(String(id), item);
+  }
+  return [...map.values()];
+}
+
+function mergeFilterGroups(primary = {}, secondary = {}) {
+  const merged = { ...(primary || {}) };
+  for (const [key, group] of Object.entries(secondary || {})) {
+    if (!group) continue;
+    if (!merged[key]) {
+      merged[key] = group;
+      continue;
+    }
+    const byId = new Map();
+    for (const f of [
+      ...(merged[key].filters || []),
+      ...(group.filters || []),
+    ]) {
+      const id = f?._id?.toString?.() || f?._id;
+      if (!id) continue;
+      byId.set(String(id), f);
+    }
+    merged[key] = {
+      ...merged[key],
+      ...group,
+      filters: [...byId.values()],
+    };
+  }
+  return merged;
+}
+
+function replaceUrlQuietly(url) {
+  if (typeof window === "undefined") return;
+  window.history.replaceState(
+    { ...(window.history.state || {}), as: url, url },
+    "",
+    url
+  );
+}
+
 /**
  * Sync category listing selectedFilters ↔ SEO-friendly URL query params.
- * Uses window.location (not useSearchParams) to avoid Suspense hangs.
- * Uses a stable filterCatalog so facet refreshes cannot cause fetch loops.
+ * Uses window.history.replaceState (not router.replace) so filter changes
+ * update the address bar without remounting the listing page.
  */
 export function useCategoryFilterUrl({
   selectedFilters,
@@ -46,9 +91,9 @@ export function useCategoryFilterUrl({
   ready = false,
   omitUrlKeys = [],
 }) {
-  const router = useRouter();
   const pathname = usePathname();
   const skipWriteRef = useRef(false);
+  const writingRef = useRef(false);
   const lastWrittenRef = useRef("");
   const lastSelectionKeyRef = useRef("");
   const hydratedRef = useRef(false);
@@ -72,15 +117,24 @@ export function useCategoryFilterUrl({
   const catalogSubcategories =
     filterCatalog?.subcategoryTree ?? subcategoryTree;
 
+  const mergedBrands = useMemo(
+    () => mergeById(catalogBrands, brands),
+    [catalogBrands, brands]
+  );
+  const mergedGroups = useMemo(
+    () => mergeFilterGroups(catalogGroups, filterGroups),
+    [catalogGroups, filterGroups]
+  );
+
   const maps = useMemo(
     () =>
       buildFilterLookupMaps({
-        brands: catalogBrands,
-        filterGroups: catalogGroups,
+        brands: mergedBrands,
+        filterGroups: mergedGroups,
         categoryTree: catalogCategories,
         subcategoryTree: catalogSubcategories,
       }),
-    [catalogBrands, catalogGroups, catalogCategories, catalogSubcategories]
+    [mergedBrands, mergedGroups, catalogCategories, catalogSubcategories]
   );
 
   const priceMin = priceRange?.[0] ?? 0;
@@ -119,6 +173,12 @@ export function useCategoryFilterUrl({
   useEffect(() => {
     if (!enabled || !ready) return;
 
+    // Ignore the searchKey update that we ourselves just wrote.
+    if (writingRef.current) {
+      writingRef.current = false;
+      return;
+    }
+
     const params = new URLSearchParams(searchKey);
     const parsed = searchParamsToSelectedFilters(params, maps, [
       priceMin,
@@ -137,7 +197,13 @@ export function useCategoryFilterUrl({
       return;
     }
 
-    applyParsed(parsed, hasActiveFilterParams(params));
+    // After hydrate: only push URL → state when URL has filter params,
+    // or when URL was cleared (so Clear All / back can reset).
+    if (hasActiveFilterParams(params)) {
+      applyParsed(parsed, true);
+    } else {
+      applyParsed(parsed, false);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enabled, ready, searchKey, priceMin, priceMax]);
 
@@ -154,14 +220,11 @@ export function useCategoryFilterUrl({
       return;
     }
 
-    const key = selectionKey(selectedFilters, omitSet.has("brand"));
-    if (key === lastSelectionKeyRef.current) return;
-    lastSelectionKeyRef.current = key;
-
     const filtersForUrl = omitSet.has("brand")
       ? { ...selectedFilters, brands: [] }
       : selectedFilters;
 
+    const key = selectionKey(selectedFilters, omitSet.has("brand"));
     const qs = selectedFiltersToQueryString(filtersForUrl, maps, [
       priceMin,
       priceMax,
@@ -169,11 +232,25 @@ export function useCategoryFilterUrl({
     const nextUrl = qs ? `${pathname}?${qs}` : pathname;
     const currentUrl = searchKey ? `${pathname}?${searchKey}` : pathname;
 
-    if (nextUrl === currentUrl || nextUrl === lastWrittenRef.current) return;
+    // URL already matches desired state
+    if (nextUrl === currentUrl) {
+      lastSelectionKeyRef.current = key;
+      return;
+    }
 
+    // Avoid duplicate writes for the same selection + URL
+    if (
+      key === lastSelectionKeyRef.current &&
+      nextUrl === lastWrittenRef.current
+    ) {
+      return;
+    }
+
+    lastSelectionKeyRef.current = key;
     lastWrittenRef.current = nextUrl;
+    writingRef.current = true;
     setSearchKey(qs);
-    router.replace(nextUrl, { scroll: false });
+    replaceUrlQuietly(nextUrl);
   }, [
     enabled,
     ready,
@@ -182,7 +259,6 @@ export function useCategoryFilterUrl({
     priceMin,
     priceMax,
     pathname,
-    router,
     searchKey,
     omitSet,
   ]);

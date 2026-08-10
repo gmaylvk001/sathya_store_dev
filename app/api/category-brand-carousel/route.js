@@ -66,6 +66,9 @@ export async function POST(req) {
     const name = String(formData.get("name") || "").trim();
     const status = formData.get("status") || "active";
     const showGap = parseShowGap(formData.get("showGap"));
+    const autoBrandsFromCategory =
+      formData.get("autoBrandsFromCategory") === "true" ||
+      formData.get("autoBrandsFromCategory") === "1";
 
     if (!instanceId || !pageId) {
       return NextResponse.json(
@@ -82,33 +85,50 @@ export async function POST(req) {
       );
     }
 
-    const metaRaw = formData.get("itemsMeta");
-    const meta = metaRaw ? JSON.parse(String(metaRaw)) : [];
-    const items = [];
+    let doc = await CategoryBrandCarousel.findOne({ instanceId });
+    let items = Array.isArray(doc?.items) ? [...doc.items] : [];
 
-    for (let i = 0; i < meta.length; i++) {
-      const item = meta[i] || {};
-      let image = item.image || "";
-      const file = formData.get(`image_${i}`);
-      if (file && typeof file === "object" && file.size > 0) {
-        const saved = await saveCategoryBrandCarouselImage(file);
-        image = saved.path;
+    // Manual mode: rebuild items from uploaded meta/files.
+    // Auto mode: keep existing manual items so toggling OFF restores them.
+    if (!autoBrandsFromCategory) {
+      const metaRaw = formData.get("itemsMeta");
+      const meta = metaRaw ? JSON.parse(String(metaRaw)) : [];
+      items = [];
+
+      for (let i = 0; i < meta.length; i++) {
+        const item = meta[i] || {};
+        let image = item.image || "";
+        const file = formData.get(`image_${i}`);
+        if (file && typeof file === "object" && file.size > 0) {
+          const saved = await saveCategoryBrandCarouselImage(file);
+          image = saved.path;
+        }
+        if (!image) continue;
+        items.push({
+          image,
+          url: item.url || "",
+          notes: "",
+          isActive: item.isActive !== false,
+          order: typeof item.order === "number" ? item.order : i,
+        });
       }
-      if (!image) continue;
-      items.push({
-        image,
-        url: item.url || "",
-        notes: "",
-        isActive: item.isActive !== false,
-        order: typeof item.order === "number" ? item.order : i,
-      });
+
+      if (!items.length) {
+        return NextResponse.json(
+          {
+            success: false,
+            message: "Add at least one brand image, or enable Auto Brands From Category",
+          },
+          { status: 400 }
+        );
+      }
     }
 
-    let doc = await CategoryBrandCarousel.findOne({ instanceId });
     const payload = {
       name,
       status,
       showGap,
+      autoBrandsFromCategory,
       items,
       categoryId: page.categoryId,
       pageId: page._id,

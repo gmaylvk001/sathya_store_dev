@@ -2,8 +2,13 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Icon } from "@iconify/react";
+import {
+  CATEGORY_PAGE_IMAGE_ACCEPT,
+  CATEGORY_PAGE_IMAGE_ACCEPT_HINT,
+} from "@/lib/categoryPageComponents/registry";
 
-const TILE_COUNT = 4;
+const MIN_TILE_COUNT = 3;
+const MAX_TILE_COUNT = 4;
 
 function emptyTile() {
   return {
@@ -21,7 +26,7 @@ function productImageSrc(product) {
 }
 
 /**
- * Admin: top banner + 4 tiles (image + URL only) + BG color + related products.
+ * Admin: top banner + 3 or 4 tiles + BG color + related products.
  * See All on storefront uses banner URL.
  */
 export default function BannerFourProductsConfigForm({
@@ -48,8 +53,9 @@ export default function BannerFourProductsConfigForm({
   const [bannerMobilePreview, setBannerMobilePreview] = useState("");
   const [bannerDesktopFile, setBannerDesktopFile] = useState(null);
   const [bannerMobileFile, setBannerMobileFile] = useState(null);
+  const [tileCount, setTileCount] = useState(MAX_TILE_COUNT);
   const [tiles, setTiles] = useState(
-    Array.from({ length: TILE_COUNT }, emptyTile)
+    Array.from({ length: MAX_TILE_COUNT }, emptyTile)
   );
   const [selected, setSelected] = useState([]);
   const [query, setQuery] = useState("");
@@ -91,8 +97,11 @@ export default function BannerFourProductsConfigForm({
           const rows = [...(d.tiles || [])].sort(
             (a, b) => (a.order ?? 0) - (b.order ?? 0)
           );
+          setTileCount(
+            rows.length === MIN_TILE_COUNT ? MIN_TILE_COUNT : MAX_TILE_COUNT
+          );
           setTiles(
-            Array.from({ length: TILE_COUNT }, (_, i) => {
+            Array.from({ length: MAX_TILE_COUNT }, (_, i) => {
               const t = rows[i];
               return t
                 ? {
@@ -113,7 +122,8 @@ export default function BannerFourProductsConfigForm({
           setBannerMobile("");
           setBannerDesktopPreview("");
           setBannerMobilePreview("");
-          setTiles(Array.from({ length: TILE_COUNT }, emptyTile));
+          setTileCount(MAX_TILE_COUNT);
+          setTiles(Array.from({ length: MAX_TILE_COUNT }, emptyTile));
           setSelected([]);
           setStatus("active");
         }
@@ -232,9 +242,9 @@ export default function BannerFourProductsConfigForm({
       setError("Top banner image is required.");
       return;
     }
-    for (let i = 0; i < TILE_COUNT; i++) {
+    for (let i = 0; i < tileCount; i++) {
       if (!tiles[i].imagePreview && !tiles[i].image) {
-        setError(`Image ${i + 1} of 4 is required.`);
+        setError(`Image ${i + 1} of ${tileCount} is required.`);
         return;
       }
     }
@@ -252,7 +262,7 @@ export default function BannerFourProductsConfigForm({
       fd.append(
         "tilesMeta",
         JSON.stringify(
-          tiles.map((t) => ({
+          tiles.slice(0, tileCount).map((t) => ({
             image: t.image,
             url: t.url,
           }))
@@ -265,7 +275,7 @@ export default function BannerFourProductsConfigForm({
 
       if (bannerDesktopFile) fd.append("bannerDesktop", bannerDesktopFile);
       if (bannerMobileFile) fd.append("bannerMobile", bannerMobileFile);
-      tiles.forEach((t, i) => {
+      tiles.slice(0, tileCount).forEach((t, i) => {
         if (t.imageFile) fd.append(`tileImage_${i}`, t.imageFile);
       });
 
@@ -289,10 +299,10 @@ export default function BannerFourProductsConfigForm({
         <div className="flex items-start justify-between gap-3">
           <div>
             <h3 className="text-lg font-semibold text-gray-900">
-              Banner + 4 Images + Products
+              Banner + 3/4 Images + Products
             </h3>
             <p className="text-xs text-gray-500 mt-0.5">
-              Top banner, 4 tiles with shared BG color, and related products for{" "}
+              Top banner, 3 or 4 tiles with shared BG color, and related products for{" "}
               <span className="font-medium text-gray-700">
                 {categoryName || "this category"}
               </span>
@@ -379,7 +389,7 @@ export default function BannerFourProductsConfigForm({
             <Icon icon="mdi:arrow-left" /> Back to sets
           </button>
           <h3 className="text-lg font-semibold text-gray-900">
-            {setLabel || "New Banner + 4 Images + Products"}
+            {setLabel || "New Banner + 3/4 Images + Products"}
           </h3>
         </div>
         <button
@@ -425,7 +435,7 @@ export default function BannerFourProductsConfigForm({
             </p>
             <input
               type="file"
-              accept="image/*,.heic,.heif"
+              accept={CATEGORY_PAGE_IMAGE_ACCEPT}
               onChange={(e) => {
                 const f = e.target.files?.[0] || null;
                 setBannerDesktopFile(f);
@@ -433,6 +443,9 @@ export default function BannerFourProductsConfigForm({
               }}
               className="block w-full text-sm"
             />
+            <p className="mt-1 text-[11px] text-gray-400">
+              {CATEGORY_PAGE_IMAGE_ACCEPT_HINT}
+            </p>
             {bannerDesktopPreview ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
@@ -448,7 +461,7 @@ export default function BannerFourProductsConfigForm({
             </label>
             <input
               type="file"
-              accept="image/*,.heic,.heif"
+              accept={CATEGORY_PAGE_IMAGE_ACCEPT}
               onChange={(e) => {
                 const f = e.target.files?.[0] || null;
                 setBannerMobileFile(f);
@@ -472,7 +485,7 @@ export default function BannerFourProductsConfigForm({
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
             <h4 className="text-sm font-semibold text-gray-900">
-              4 images (tiles)
+              {tileCount} images (tiles)
             </h4>
             <p className="text-[11px] text-red-600 mt-0.5">
               Displayed at exact image size. If larger than 450×450, scaled down
@@ -481,7 +494,18 @@ export default function BannerFourProductsConfigForm({
           </div>
           <div className="min-w-[200px]">
             <label className="block text-xs font-medium text-gray-600 mb-1">
-              Background color for 4 images *
+              Number of images
+            </label>
+            <select
+              value={tileCount}
+              onChange={(e) => setTileCount(Number(e.target.value))}
+              className="mb-3 w-full rounded-lg border border-gray-300 bg-white px-2 py-1.5 text-sm"
+            >
+              <option value={3}>3 images</option>
+              <option value={4}>4 images</option>
+            </select>
+            <label className="block text-xs font-medium text-gray-600 mb-1">
+              Background color for {tileCount} images *
             </label>
             <div className="flex items-center gap-2">
               <input
@@ -503,7 +527,7 @@ export default function BannerFourProductsConfigForm({
               />
             </div>
             <p className="text-[11px] text-gray-500 mt-1">
-              Applied behind all 4 tile images on the storefront.
+              Applied behind all {tileCount} tile images on the storefront.
             </p>
           </div>
         </div>
@@ -517,10 +541,16 @@ export default function BannerFourProductsConfigForm({
           }}
         >
           <p className="text-[10px] text-white/90 mb-2 font-medium">
-            Preview — 4 image strip background
+            Preview — {tileCount} image strip background
           </p>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            {tiles.map((tile, index) => (
+          <div
+            className={`grid gap-2 ${
+              tileCount === 3
+                ? "grid-cols-1 sm:grid-cols-3"
+                : "grid-cols-2 sm:grid-cols-4"
+            }`}
+          >
+            {tiles.slice(0, tileCount).map((tile, index) => (
               <div
                 key={index}
                 className="rounded-md overflow-hidden min-h-[72px] flex items-center justify-center"
@@ -548,7 +578,7 @@ export default function BannerFourProductsConfigForm({
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {tiles.map((tile, index) => (
+          {tiles.slice(0, tileCount).map((tile, index) => (
             <div
               key={index}
               className="rounded-lg border border-gray-200 bg-white p-3 space-y-2"
@@ -565,7 +595,7 @@ export default function BannerFourProductsConfigForm({
               />
               <input
                 type="file"
-                accept="image/*,.heic,.heif"
+                accept={CATEGORY_PAGE_IMAGE_ACCEPT}
                 onChange={(e) => pickTileImage(index, e.target.files?.[0])}
                 className="block w-full text-sm"
               />

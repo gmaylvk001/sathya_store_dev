@@ -11,8 +11,6 @@ import ReactPaginate from "react-paginate";
 import { ToastContainer, toast } from 'react-toastify';
 
 import { FaShareAlt } from "react-icons/fa";
-import CategoryPageRenderer from "@/components/categoryPageComponents/CategoryPageRenderer";
-import { PAGE_TYPES } from "@/lib/categoryPageComponents/registry";
 import {
   buildFilterLookupMaps,
   searchParamsToSelectedFilters,
@@ -22,6 +20,7 @@ import {
 } from "@/lib/filterUrl";
 import { useCategoryFilterUrl } from "@/hooks/useCategoryFilterUrl";
 import ProductFilters from "@/components/filters/ProductFilters";
+import { CATEGORY_PAGE_SHELL_CLASS } from "@/lib/categoryPageComponents/layout";
 
 export default function CategoryPage() {
   
@@ -40,7 +39,6 @@ export default function CategoryPage() {
   const [filterCatalog, setFilterCatalog] = useState(null);
   const [isFiltering, setIsFiltering] = useState(false);
   const skipNextFilterFetch = useRef(true);
-  const [hasCustomDesign, setHasCustomDesign] = useState(null);
 
   const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
   const [isSortPanelOpen, setIsSortPanelOpen] = useState(false);
@@ -64,35 +62,6 @@ export default function CategoryPage() {
     enabled: true,
     ready: filterUrlReady && !!filterCatalog,
   });
-
-  useEffect(() => {
-    if (!sub_slug_one) {
-      setHasCustomDesign(false);
-      return;
-    }
-    let cancelled = false;
-    (async () => {
-      try {
-        const params = new URLSearchParams({
-          pageType: PAGE_TYPES.CHILD_CATEGORY,
-          slug: String(sub_slug_one),
-        });
-        const res = await fetch(`/api/category-pages/render?${params}`);
-        const data = await res.json();
-        if (!cancelled) {
-          setHasCustomDesign(
-            Boolean(data.success && (data.components || []).length > 0)
-          );
-        }
-      } catch {
-        if (!cancelled) setHasCustomDesign(false);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [sub_slug_one]);
-
 
   const [currentCategoryBannerIndex, setCurrentCategoryBannerIndex] = useState(0);
   const [nofound,setNofound]=useState(false);
@@ -390,17 +359,20 @@ const getSortedProducts = () => {
   const handleFilterChange = (type, value) => {
     setSelectedFilters(prev => {
       const newFilters = { ...prev };
+      const id = value != null ? String(value) : value;
+      const hasId = (list, item) =>
+        (list || []).some((x) => String(x) === String(item));
       
       if (type === 'brands') {
-        newFilters.brands = prev.brands.includes(value)
-          ? prev.brands.filter(item => item !== value)
-          : [...prev.brands, value];
+        newFilters.brands = hasId(prev.brands, id)
+          ? prev.brands.filter(item => String(item) !== id)
+          : [...prev.brands, id];
       } else if (type === 'price') {
         newFilters.price = value;
       } else {
-        newFilters.filters = prev.filters.includes(value)
-          ? prev.filters.filter(item => item !== value)
-          : [...prev.filters, value];
+        newFilters.filters = hasId(prev.filters, id)
+          ? prev.filters.filter(item => String(item) !== id)
+          : [...prev.filters, id];
       }
       return newFilters;
     });
@@ -605,30 +577,8 @@ const handlePageChange = (page) => {
      values[1] = MAX;
    }
 
-  if (hasCustomDesign === null) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-        </div>
-      </div>
-    );
-  }
-
-  if (hasCustomDesign) {
-    return (
-      <div className="container mx-auto px-4 py-2 pb-3 max-w-7xl">
-        <CategoryPageRenderer
-          pageType={PAGE_TYPES.CHILD_CATEGORY}
-          categoryId={categoryData.category?._id}
-          slug={sub_slug_one}
-        />
-      </div>
-    );
-  }
- 
   return(
-    <div className="container mx-auto px-4 py-2 pb-3 max-w-7xl">
+    <div className={`${CATEGORY_PAGE_SHELL_CLASS} py-2 pb-3`}>
       {categoryData.category.banners && categoryData.category.banners.length > 0 && (
         <div className="relative w-full mb-8 rounded-lg overflow-hidden shadow-md">
           <div className="relative w-full aspect-[16/6] sm:aspect-[16/7] lg:aspect-[16/5] cursor-pointer"

@@ -2,6 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { Icon } from "@iconify/react";
+import {
+  CATEGORY_PAGE_IMAGE_ACCEPT,
+  CATEGORY_PAGE_IMAGE_ACCEPT_HINT,
+} from "@/lib/categoryPageComponents/registry";
 
 const emptyItem = () => ({
   image: "",
@@ -399,7 +403,7 @@ export default function ImageCarouselConfigForm({
             </label>
             <input
               type="file"
-              accept="image/jpeg,image/png,image/webp,image/gif,image/avif,image/heic,image/heif,.jpg,.jpeg,.png,.webp,.gif,.avif,.heic,.heif"
+              accept={CATEGORY_PAGE_IMAGE_ACCEPT}
               onChange={(e) => {
                 const file = e.target.files?.[0];
                 if (!file) return;
@@ -412,7 +416,7 @@ export default function ImageCarouselConfigForm({
               className="w-full text-sm"
             />
             <p className="text-[11px] text-gray-500 mt-1">
-              JPG, PNG, WebP, AVIF, or HEIC (HEIC is converted to JPG automatically).
+              {CATEGORY_PAGE_IMAGE_ACCEPT_HINT}
             </p>
             {item.imagePreview && (
               // eslint-disable-next-line @next/next/no-img-element

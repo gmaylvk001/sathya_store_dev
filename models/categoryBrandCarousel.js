@@ -29,6 +29,8 @@ const CategoryBrandCarouselSchema = new mongoose.Schema(
       required: true,
     },
     name: { type: String, default: "" },
+    /** When true, storefront ignores manual items and loads brands for this category. */
+    autoBrandsFromCategory: { type: Boolean, default: false },
     items: { type: [BrandItemSchema], default: [] },
     showGap: { type: Boolean, default: false },
     status: {

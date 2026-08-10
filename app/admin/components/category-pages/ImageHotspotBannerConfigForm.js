@@ -3,6 +3,10 @@
 import { useEffect, useState } from "react";
 import { Icon } from "@iconify/react";
 import HotspotEditor from "./HotspotEditor";
+import {
+  CATEGORY_PAGE_IMAGE_ACCEPT,
+  CATEGORY_PAGE_IMAGE_ACCEPT_HINT,
+} from "@/lib/categoryPageComponents/registry";
 
 function createHotspotId() {
   return `hs-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -329,7 +333,7 @@ export default function ImageHotspotBannerConfigForm({
         <h4 className="text-sm font-semibold text-gray-900">Banner image *</h4>
         <input
           type="file"
-          accept="image/*,.heic,.heif"
+          accept={CATEGORY_PAGE_IMAGE_ACCEPT}
           onChange={(e) => {
             const f = e.target.files?.[0] || null;
             setBannerFile(f);
@@ -342,8 +346,8 @@ export default function ImageHotspotBannerConfigForm({
           className="block w-full text-sm"
         />
         <p className="text-[11px] text-gray-500">
-          Replacing the image clears existing hotspots on this form until you
-          re-draw them.
+          {CATEGORY_PAGE_IMAGE_ACCEPT_HINT} Replacing the image clears existing
+          hotspots on this form until you re-draw them.
         </p>
       </div>
 

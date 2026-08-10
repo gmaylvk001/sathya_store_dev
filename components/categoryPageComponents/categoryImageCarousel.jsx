@@ -285,7 +285,7 @@ export default function CategoryImageCarousel({ config }) {
       )}
 
       <div
-        className="relative px-10 sm:px-12 bg-white"
+        className="relative px-8 sm:px-10 lg:px-10 bg-white"
         onMouseEnter={() => setPaused(true)}
         onMouseLeave={() => setPaused(false)}
         onTouchStart={() => setPaused(true)}
