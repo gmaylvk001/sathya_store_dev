@@ -25,7 +25,7 @@ import { filterAndRankProducts } from '@/lib/searchMatch';
 import { PAGE_TYPES } from '@/lib/categoryPageComponents/registry';
 import {
   buildCategoryHref,
-  hasOverviewAvailability,
+  hasOverviewAvailability as categoryHasOverviewDesign,
   pageTypeFromLevel,
 } from '@/lib/categoryPageComponents/categoryHref';
 
@@ -226,7 +226,7 @@ const Header = () => {
 
     const handleCategoryClick = useCallback((categorySlug, categoryName, categoryId = null) => {
         const hasOverview = categoryId
-          ? hasOverviewAvailability(overviewAvailability, categoryId, PAGE_TYPES.CATEGORY)
+          ? categoryHasOverviewDesign(overviewAvailability, categoryId, PAGE_TYPES.CATEGORY)
           : false;
         const path = buildCategoryHref([categorySlug], hasOverview);
         setSelectedCategory(categoryName);
@@ -499,7 +499,7 @@ const Header = () => {
 
     const resolveCategoryNavHref = useCallback((slugs = [], categoryId, level = 0) => {
       const pageType = pageTypeFromLevel(level);
-      const hasOverview = hasOverviewAvailability(
+      const hasOverview = categoryHasOverviewDesign(
         overviewAvailability,
         categoryId,
         pageType
@@ -508,30 +508,46 @@ const Header = () => {
     }, [overviewAvailability]);
 
     useEffect(() => {
+      try {
+        localStorage.removeItem('category_overview_availability_v1');
+        localStorage.removeItem('category_overview_availability_v2');
+      } catch {
+        /* ignore */
+      }
+    }, []);
+
+    useEffect(() => {
       if (!Array.isArray(categories) || categories.length === 0) return;
 
       let cancelled = false;
-      const AVAIL_CACHE_KEY = 'category_overview_availability_v1';
-      const AVAIL_TTL_MS = 5 * 60 * 1000;
+      // Bump key to drop stale v1 caches that kept /overview links off.
+      const AVAIL_CACHE_KEY = 'category_overview_availability_v3';
+      const AVAIL_TTL_MS = 2 * 60 * 1000;
 
       const loadAvailability = async () => {
         try {
-          const cached = loadCache(AVAIL_CACHE_KEY);
-          if (cached && Date.now() - cached.ts < AVAIL_TTL_MS && cached.data) {
-            if (!cancelled) setOverviewAvailability(cached.data);
-            return;
-          }
-
           const pages = collectAvailabilityRequests(categories);
           if (!pages.length) {
             if (!cancelled) setOverviewAvailability({});
             return;
           }
 
+          // Stale-while-revalidate: paint cached map immediately, always refetch.
+          const cached = loadCache(AVAIL_CACHE_KEY);
+          if (
+            cached &&
+            Date.now() - cached.ts < AVAIL_TTL_MS &&
+            cached.data &&
+            typeof cached.data === 'object'
+          ) {
+            if (!cancelled) setOverviewAvailability(cached.data);
+          }
+
           const res = await fetch('/api/category-pages/availability', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ pages }),
+            cache: 'no-store',
           });
           const data = await res.json();
           if (cancelled) return;
@@ -541,7 +557,7 @@ const Header = () => {
           saveCache(AVAIL_CACHE_KEY, map);
         } catch (err) {
           console.error('Failed to load category overview availability:', err);
-          if (!cancelled) setOverviewAvailability({});
+          if (!cancelled) setOverviewAvailability((prev) => prev || {});
         }
       };
 
@@ -550,6 +566,13 @@ const Header = () => {
         cancelled = true;
       };
     }, [categories, collectAvailabilityRequests]);
+
+    const overviewAvailabilityKey = useMemo(() => {
+      const keys = Object.keys(overviewAvailability || {}).filter(
+        (k) => overviewAvailability[k]
+      );
+      return keys.sort().join('|');
+    }, [overviewAvailability]);
     const [sortOption, setSortOption] = useState('');
     const [hoveredCategory, setHoveredCategory] = useState(null);
     const [dropdownLeft, setDropdownLeft] = useState(0);
@@ -2205,11 +2228,33 @@ const Header = () => {
                 <div className="w-full relative">
                     <div className="relative">
                         <div className="flex justify-center overflow-x-auto scrollbar-hide">
-                            <Swiper modules={[Navigation]} navigation={{ prevEl: ".custom-swiper-prev", nextEl: ".custom-swiper-next", }} spaceBetween={20} slidesPerView="auto" watchOverflow={true} className="pl-10 pr-14">
+                            <Swiper
+                              key={`cat-bar-${overviewAvailabilityKey || 'pending'}`}
+                              modules={[Navigation]}
+                              navigation={{ prevEl: ".custom-swiper-prev", nextEl: ".custom-swiper-next" }}
+                              spaceBetween={20}
+                              slidesPerView="auto"
+                              watchOverflow={true}
+                              observer={true}
+                              observeParents={true}
+                              className="pl-10 pr-14"
+                            >
                                 {categories.map((category) => (
                                     <SwiperSlide key={category._id} className="!w-auto">
                                         <div ref={(el) => (slideRefs.current[category._id] = el)} onMouseEnter={() => handleMouseEnter(category._id)} onMouseLeave={() => startHide(120)} className="px-5 py-2 flex flex-col items-center text-center" >
-                                            <Link href={resolveCategoryNavHref([category.category_slug], category._id, 0)} className="text-sm text-base text-white hover:text-[#fbe002] whitespace-nowrap" >
+                                            <Link
+                                              href={resolveCategoryNavHref([category.category_slug], category._id, 0)}
+                                              onClick={(e) => {
+                                                // Ensure latest availability is used even if Swiper cached the slide href.
+                                                e.preventDefault();
+                                                handleCategoryClick(
+                                                  category.category_slug,
+                                                  category.category_name,
+                                                  category._id
+                                                );
+                                              }}
+                                              className="text-sm text-base text-white hover:text-[#fbe002] whitespace-nowrap"
+                                            >
                                                 {category.category_name} 
                                             </Link>
                                             
