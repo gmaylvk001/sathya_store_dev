@@ -28,6 +28,7 @@
     "framer-motion": "^12.6.2",
     "fs": "^0.0.1-security",
     "googleapis": "^171.4.0",
+    "heic-convert": "^2.1.0",
     "hide": "^6.0.0",
     "html-pdf": "^3.0.1",
     "html2canvas": "^1.4.1",
@@ -81,4 +82,3 @@
     "vite": "^7.1.12"
   }
 }
-
