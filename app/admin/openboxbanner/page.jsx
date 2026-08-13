@@ -242,7 +242,7 @@ export default function OpenBoxBannerPage() {
         <div className="flex items-center gap-3">
           <button
             onClick={handleSave}
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+            className="bg-[#d72828] text-white px-4 py-2 rounded hover:bg-[#d72828]"
           >
             {openBoxBanners ? "Update Banners" : "Save Banners"}
           </button>

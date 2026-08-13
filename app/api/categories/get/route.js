@@ -55,8 +55,8 @@ function buildDescendantMap(categories) {
 
 /**
  * GET /api/categories/get
- * Same response shape as before: category fields + parentid string + brands[].
- * Optimized: 3–4 DB queries total instead of N+1 per category.
+ * Response format: { data: [...] }
+ * Defensive: DB connection & query errors return { data: [] } to avoid 500 UI crashes.
  */
 export async function GET() {
   try {
@@ -66,7 +66,7 @@ export async function GET() {
       cacheStore.data &&
       now - cacheStore.at < CATEGORIES_CACHE_TTL_MS
     ) {
-      return NextResponse.json(cacheStore.data, { status: 200 });
+      return NextResponse.json({ data: cacheStore.data }, { status: 200 });
     }
 
     await dbConnect();
@@ -82,23 +82,32 @@ export async function GET() {
     }
 
     const categories = await Category.find().sort({ position: 1 }).lean();
+    if (!categories || !Array.isArray(categories)) {
+      return NextResponse.json({ data: [] }, { status: 200 });
+    }
+
     const getDescendants = buildDescendantMap(categories);
 
     // One aggregation: category → set of brand ids
-    const brandByCategory = await Product.aggregate([
-      {
-        $match: {
-          brand: { $exists: true, $nin: [null, ""] },
-          category: { $exists: true, $nin: [null, ""] },
+    let brandByCategory = [];
+    try {
+      brandByCategory = await Product.aggregate([
+        {
+          $match: {
+            brand: { $exists: true, $nin: [null, ""] },
+            category: { $exists: true, $nin: [null, ""] },
+          },
         },
-      },
-      {
-        $group: {
-          _id: "$category",
-          brands: { $addToSet: "$brand" },
+        {
+          $group: {
+            _id: "$category",
+            brands: { $addToSet: "$brand" },
+          },
         },
-      },
-    ]);
+      ]);
+    } catch (aggErr) {
+      console.warn("Product brand aggregation skipped:", aggErr?.message);
+    }
 
     const brandsByCategoryId = new Map();
     for (const row of brandByCategory) {
@@ -130,10 +139,15 @@ export async function GET() {
     }
 
     const allBrandIds = [...allBrandIdSet];
-    const brands =
-      allBrandIds.length > 0
-        ? await Brand.find({ _id: { $in: allBrandIds } }).lean()
-        : [];
+    let brands = [];
+    try {
+      brands =
+        allBrandIds.length > 0
+          ? await Brand.find({ _id: { $in: allBrandIds } }).lean()
+          : [];
+    } catch (brandErr) {
+      console.warn("Brand fetch skipped:", brandErr?.message);
+    }
 
     const brandMap = new Map(brands.map((b) => [b._id.toString(), b]));
 
@@ -152,12 +166,12 @@ export async function GET() {
     cacheStore.data = categoriesWithProducts;
     cacheStore.at = now;
 
-    return NextResponse.json(categoriesWithProducts, { status: 200 });
+    return NextResponse.json({ data: categoriesWithProducts }, { status: 200 });
   } catch (error) {
     console.error("❌ Error fetching categories with products/brands:", error);
     return NextResponse.json(
-      { error: "Failed to fetch categories", details: error.message },
-      { status: 500 },
+      { data: [], error: "Failed to fetch categories", details: error?.message || String(error) },
+      { status: 200 },
     );
   }
 }

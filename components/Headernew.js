@@ -360,19 +360,23 @@ const Header = () => {
       let mounted = true;
 
       const buildNestedAndCache = (rawData) => {
-        const activeCategories = Array.isArray(rawData)
-          ? rawData.filter((cat) => cat.status === "Active")
+        const rawArr = extractCategoryArray(rawData);
+        const activeCategories = Array.isArray(rawArr)
+          ? rawArr.filter((cat) => cat && cat.status === "Active")
           : [];
 
         const categoryMap = {};
         activeCategories.forEach((cat) => {
-          categoryMap[cat._id] = { ...cat, subcategories: [] };
+          if (cat && cat._id) {
+            categoryMap[cat._id] = { ...cat, subcategories: [] };
+          }
         });
 
         const nestedCategories = [];
         activeCategories.forEach((cat) => {
+          if (!cat) return;
           if (cat.parentid === "none") {
-            nestedCategories.push(categoryMap[cat._id]);
+            if (categoryMap[cat._id]) nestedCategories.push(categoryMap[cat._id]);
           } else if (categoryMap[cat.parentid]) {
             categoryMap[cat.parentid].subcategories.push(categoryMap[cat._id]);
           }
@@ -393,7 +397,7 @@ const Header = () => {
           // 1) Nested cache for mega-menu
           const nestedCached = loadCache(nestedKey);
           if (nestedCached && (Date.now() - nestedCached.ts) < CACHE_TTL_MS) {
-            if (mounted) setCategories(nestedCached.data);
+            if (mounted) setCategories(Array.isArray(nestedCached.data) ? nestedCached.data : []);
           }
 
           // 2) Raw cache for search placeholder words (+ build nested if missing)
@@ -408,6 +412,14 @@ const Header = () => {
           } else {
             // Single network fetch shared by menu + placeholder words
             const res = await fetch("/api/categories/get");
+            if (!res.ok) {
+              if (mounted) {
+                setCategories([]);
+                setCategorieslist([]);
+                setWords(ensureWordsNotEmpty([]));
+              }
+              return;
+            }
             const raw = await res.json();
             if (!mounted) return;
             saveCache(rawKey, raw);
@@ -416,7 +428,11 @@ const Header = () => {
           }
         } catch (err) {
           console.error("Failed to fetch or build categories:", err);
-          if (mounted) setWords(ensureWordsNotEmpty([]));
+          if (mounted) {
+            setCategories([]);
+            setCategorieslist([]);
+            setWords(ensureWordsNotEmpty([]));
+          }
         }
 
         // Auth once after categories settle (not duplicated elsewhere on mount)
@@ -525,40 +541,7 @@ const Header = () => {
       const AVAIL_TTL_MS = 2 * 60 * 1000;
 
       const loadAvailability = async () => {
-        try {
-          const pages = collectAvailabilityRequests(categories);
-          if (!pages.length) {
-            if (!cancelled) setOverviewAvailability({});
-            return;
-          }
-
-          // Stale-while-revalidate: paint cached map immediately, always refetch.
-          const cached = loadCache(AVAIL_CACHE_KEY);
-          if (
-            cached &&
-            Date.now() - cached.ts < AVAIL_TTL_MS &&
-            cached.data &&
-            typeof cached.data === 'object'
-          ) {
-            if (!cancelled) setOverviewAvailability(cached.data);
-          }
-
-          const res = await fetch('/api/category-pages/availability', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ pages }),
-            cache: 'no-store',
-          });
-          const data = await res.json();
-          if (cancelled) return;
-
-          const map = data?.success && data.availability ? data.availability : {};
-          setOverviewAvailability(map);
-          saveCache(AVAIL_CACHE_KEY, map);
-        } catch (err) {
-          console.error('Failed to load category overview availability:', err);
-          if (!cancelled) setOverviewAvailability((prev) => prev || {});
-        }
+        if (!cancelled) setOverviewAvailability({});
       };
 
       loadAvailability();
@@ -1000,14 +983,22 @@ const Header = () => {
         const fetchOffers = async () => {
             try {
                 const response = await fetch("/api/offers/get");
+                if (!response.ok) {
+                    setOffers([]);
+                    return;
+                }
                 const result = await response.json();
 
                 // Process and format dates before setting state
-                const activeOffers = result.data
-                    .filter((offer) => offer.fest_offer_status === "active")
+                const activeOffers = Array.isArray(result?.data)
+                    ? result.data.filter((offer) => offer && offer.fest_offer_status === "active")
+                    : Array.isArray(result)
+                    ? result.filter((offer) => offer && offer.fest_offer_status === "active")
+                    : [];
                 setOffers(activeOffers);
             } catch (err) {
                 console.error("Failed to fetch offers", err);
+                setOffers([]);
             }
         };
         fetchOffers();
@@ -1043,9 +1034,10 @@ const Header = () => {
         }, delay);
     };
     const handleMouseEnter = (categoryId) => {
+        if (!categoryId) return;
+        const cat = categories.find((c) => c && c._id === categoryId);
+        if (!cat || !cat.category_name || !String(cat.category_name).trim()) return;
         cancelHide();
-        const cat = categories.find((c) => c._id === categoryId);
-        if (!cat) return;
         setHoveredCategory(cat);
         const sortedSubs = [...(cat.subcategories || [])]
      .sort((a, b) => alphaSortString(a.category_name, b.category_name));
@@ -1326,7 +1318,8 @@ const Header = () => {
         }
 
         // rebuild nested tree
-        const active = Array.isArray(raw) ? raw.filter((c) => c.status === 'Active') : [];
+        const rawArr = extractCategoryArray(raw);
+        const active = Array.isArray(rawArr) ? rawArr.filter((c) => c && c.status === 'Active') : [];
         const map = {};
         active.forEach((c) => { map[c._id] = { ...c, subcategories: [] }; });
         active.forEach((c) => {
@@ -1558,7 +1551,7 @@ const Header = () => {
                 0%,100%{background:#ef4444;color:#fff;box-shadow:0 0 6px rgba(239,68,68,.6)}
                 25%{background:#f59e0b;color:#fff;box-shadow:0 0 6px rgba(245,158,11,.6)}
                 50%{background:#22c55e;color:#fff;box-shadow:0 0 6px rgba(34,197,94,.6)}
-                75%{background:#3b82f6;color:#fff;box-shadow:0 0 6px rgba(59,130,246,.6)}
+                75%{background:#d72828;color:#fff;box-shadow:0 0 6px rgba(59,130,246,.6)}
               }
               .loyalty-new-badge{
                 animation:loyaltyNewBlink 1.1s ease-in-out infinite;
@@ -2224,79 +2217,63 @@ const Header = () => {
             <div
               className="hidden sm:flex relative w-full min-h-[56px] items-center bg-[#d72828] shadow"
               style={{ borderTop: "4px solid #fbe002" }}
+              onMouseLeave={() => startHide(120)}
             >
-                <div className="w-full relative">
-                    <div className="relative">
-                        <div className="flex justify-center overflow-x-auto scrollbar-hide">
+                <div className="w-full relative px-4 sm:px-6">
+                    <div className="relative overflow-hidden">
+                        <div className="w-full overflow-x-auto scrollbar-hide">
                             <Swiper
                               key={`cat-bar-${overviewAvailabilityKey || 'pending'}`}
                               modules={[Navigation]}
-                              navigation={{ prevEl: ".custom-swiper-prev", nextEl: ".custom-swiper-next" }}
+                              navigation={{
+                                prevEl: ".custom-swiper-prev",
+                                nextEl: ".custom-swiper-next",
+                              }}
                               spaceBetween={20}
                               slidesPerView="auto"
                               watchOverflow={true}
+                              slidesOffsetBefore={0}
+                              slidesOffsetAfter={0}
+                              resistanceRatio={0}
                               observer={true}
                               observeParents={true}
-                              className="pl-10 pr-14"
+                              className="w-full"
                             >
-                                {categories.map((category) => (
-                                    <SwiperSlide key={category._id} className="!w-auto">
-                                        <div ref={(el) => (slideRefs.current[category._id] = el)} onMouseEnter={() => handleMouseEnter(category._id)} onMouseLeave={() => startHide(120)} className="px-5 py-2 flex flex-col items-center text-center" >
-                                            <Link
-                                              href={resolveCategoryNavHref([category.category_slug], category._id, 0)}
-                                              onClick={(e) => {
-                                                // Ensure latest availability is used even if Swiper cached the slide href.
-                                                e.preventDefault();
-                                                handleCategoryClick(
-                                                  category.category_slug,
-                                                  category.category_name,
-                                                  category._id
-                                                );
-                                              }}
-                                              className="text-sm text-base text-white hover:text-[#fbe002] whitespace-nowrap"
-                                            >
-                                                {category.category_name} 
-                                            </Link>
-                                            
-                                        </div>
-                                    </SwiperSlide>
-                                ))}
-                                <SwiperSlide className="!w-[140px] overflow-visible flex justify-center">
-  <Link
-    href="/open-box"
-    className="relative flex items-center justify-center h-[40px]"
-  >
-    <video
-      src="/assets/open-box-video.mp4"
-      autoPlay
-      loop
-      muted
-      playsInline
-      preload="none"
-      className="h-[110px] w-auto object-contain rounded pointer-events-none"
-    />
-  </Link>
-</SwiperSlide>
-                                <SwiperSlide className="!w-[140px] overflow-visible flex justify-center">
-                                  <Link
-                                    href="/loyalty"
-                                    className="relative flex items-center justify-center h-[40px]"
-                                    aria-label="Loyalty"
-                                  >
-                                    <Image
-                                      src="/uploads/loyaltyIcon.png"
-                                      alt="Loyalty"
-                                      width={150}
-                                      height={125}
-                                      className="h-[125px] w-auto object-contain hover:opacity-90 transition-opacity"
-                                      unoptimized
-                                    />
-                                  </Link>
-                                </SwiperSlide>
- </Swiper>
-  </div>
-       </div>
-            </div>
+                                {categories
+                                    .filter((category) => category && category._id && category.category_name && String(category.category_name).trim() !== "")
+                                    .map((category) => (
+                                     <SwiperSlide key={category._id} className="!w-auto">
+                                         <div
+                                           ref={(el) => {
+                                             if (el && category._id) slideRefs.current[category._id] = el;
+                                           }}
+                                           onMouseEnter={() => handleMouseEnter(category._id)}
+                                           onMouseLeave={() => startHide(120)}
+                                           className="px-3 py-2 flex flex-col items-center text-center"
+                                         >
+                                             <Link
+                                               href={resolveCategoryNavHref([category.category_slug], category._id, 0)}
+                                               onClick={(e) => {
+                                                 // Ensure latest availability is used even if Swiper cached the slide href.
+                                                 e.preventDefault();
+                                                 handleCategoryClick(
+                                                   category.category_slug,
+                                                   category.category_name,
+                                                   category._id
+                                                 );
+                                               }}
+                                               className="text-sm text-base text-white hover:text-[#fbe002] whitespace-nowrap"
+                                             >
+                                                 {category.category_name} 
+                                             </Link>
+                                             
+                                         </div>
+                                     </SwiperSlide>
+                                 ))}
+                            </Swiper>
+                        </div>
+                    </div>
+                </div>
             </div>
               
 {hoveredCategory && hoveredCategory.subcategories?.length > 0 && (

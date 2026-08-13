@@ -303,7 +303,7 @@ const removeProductRow = (index) => {
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-14 items-start">
                         {/* LEFT CONTENT */}
                         <div>
-                            <p className="text-[#2563eb] uppercase tracking-[3px] font-bold text-sm mb-4">Complete Electronics & Appliance Solutions</p>
+                            <p className="text-[#d72828] uppercase tracking-[3px] font-bold text-sm mb-4">Complete Electronics & Appliance Solutions</p>
                             <h2 className="text-[34px] md:text-[34px] font-extrabold text-[#081028] leading-[1.1] mb-4">Solutions Built for <br />Businesses Like Yours</h2>
                             <div className="space-y-3 text-gray-600 leading-8 text-[17px]">
                             <p>
@@ -331,7 +331,7 @@ const removeProductRow = (index) => {
                                 {/* ITEM */}
                                 <div className="flex gap-5 items-start">
                                     <div className="w-[70px] h-[70px] rounded-[22px] bg-[#edf4ff] flex items-center justify-center shrink-0">
-                                        <FaHandshake className="text-[#2563eb] text-[30px]" />
+                                        <FaHandshake className="text-[#d72828] text-[30px]" />
                                     </div>
                                     <div>
                                         <h3 className="text-[20px] font-bold text-[#081028] mb-2 leading-tight">
@@ -347,7 +347,7 @@ const removeProductRow = (index) => {
                                 {/* ITEM */}
                                 <div className="flex gap-5 items-start">
                                     <div className="w-[70px] h-[70px] rounded-[22px] bg-[#edf4ff] flex items-center justify-center shrink-0">
-                                        <FaUserTie className="text-[#2563eb] text-[30px]" />
+                                        <FaUserTie className="text-[#d72828] text-[30px]" />
                                     </div>
 
                                     <div>
@@ -364,7 +364,7 @@ const removeProductRow = (index) => {
                                 {/* ITEM */}
                                 <div className="flex gap-5 items-start">
                                     <div className="w-[70px] h-[70px] rounded-[22px] bg-[#edf4ff] flex items-center justify-center shrink-0">
-                                        <FaTruck className="text-[#2563eb] text-[30px]" />
+                                        <FaTruck className="text-[#d72828] text-[30px]" />
                                     </div>
                                     <div>
                                         <h3 className="text-[20px] font-bold text-[#081028] mb-2 leading-tight">
@@ -380,7 +380,7 @@ const removeProductRow = (index) => {
                                 {/* ITEM */}
                                 <div className="flex gap-5 items-start">
                                     <div className="w-[70px] h-[70px] rounded-[22px] bg-[#edf4ff] flex items-center justify-center shrink-0">
-                                        <FaShieldAlt className="text-[#2563eb] text-[30px]" />
+                                        <FaShieldAlt className="text-[#d72828] text-[30px]" />
                                     </div>
                                     <div>
                                         <h3 className="text-[20px] font-bold text-[#081028] mb-2 leading-tight">
@@ -405,7 +405,7 @@ const removeProductRow = (index) => {
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-7">
                         {/* CARD */}
                         <div className="bg-white border border-gray-200 rounded-[28px] p-8 text-center hover:shadow-xl transition-all duration-300">
-                            <div className="w-14 h-14 rounded-[28px] bg-[#edf4ff] flex items-center justify-center text-[#2563eb] text-3xl mx-auto mb-2">
+                            <div className="w-14 h-14 rounded-[28px] bg-[#edf4ff] flex items-center justify-center text-[#d72828] text-3xl mx-auto mb-2">
                                 <FaCheck />
                             </div>
 
@@ -416,7 +416,7 @@ const removeProductRow = (index) => {
 
                         {/* CARD */}
                         <div className="bg-white border border-gray-200 rounded-[28px] p-8 text-center hover:shadow-xl transition-all duration-300">
-                            <div className="w-14 h-14 rounded-[28px] bg-[#edf4ff] flex items-center justify-center text-[#2563eb] text-3xl mx-auto mb-2">
+                            <div className="w-14 h-14 rounded-[28px] bg-[#edf4ff] flex items-center justify-center text-[#d72828] text-3xl mx-auto mb-2">
                                 <FaGift />
                             </div>
                             <h3 className="text-[20px] font-bold text-[#081028] mb-4">Employee & Festival Gifting</h3>
@@ -425,7 +425,7 @@ const removeProductRow = (index) => {
 
                         {/* CARD */}
                         <div className="bg-white border border-gray-200 rounded-[28px] p-8 text-center hover:shadow-xl transition-all duration-300">
-                            <div className="w-14 h-14 rounded-[28px] bg-[#edf4ff] flex items-center justify-center text-[#2563eb] text-3xl mx-auto mb-2">
+                            <div className="w-14 h-14 rounded-[28px] bg-[#edf4ff] flex items-center justify-center text-[#d72828] text-3xl mx-auto mb-2">
                                 <FaBolt />
                             </div>
                             <h3 className="text-[20px] font-bold text-[#081028] mb-4">Institutional Requirements</h3>
@@ -434,7 +434,7 @@ const removeProductRow = (index) => {
 
                         {/* CARD */}
                         <div className="bg-white border border-gray-200 rounded-[28px] p-8 text-center hover:shadow-xl transition-all duration-300">
-                            <div className="w-14 h-14 rounded-[28px] bg-[#edf4ff] flex items-center justify-center text-[#2563eb] text-3xl mx-auto mb-2">
+                            <div className="w-14 h-14 rounded-[28px] bg-[#edf4ff] flex items-center justify-center text-[#d72828] text-3xl mx-auto mb-2">
                                 <FaPhoneAlt />
                             </div>
                             <h3 className="text-[20px] font-bold text-[#081028] mb-4">Dedicated B2B Support</h3>
@@ -457,32 +457,32 @@ const removeProductRow = (index) => {
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 mb-8">
   
   <div className="flex flex-col items-center text-center">
-    <BedDouble size={56} strokeWidth={1.8} className="text-[#2563eb] mb-3" />
+    <BedDouble size={56} strokeWidth={1.8} className="text-[#d72828] mb-3" />
     <h3 className="text-sm font-semibold text-[#081028] whitespace-nowrap">Hotels</h3>
   </div>
 
   <div className="flex flex-col items-center text-center">
-    <Building2 size={56} strokeWidth={1.8} className="text-[#2563eb] mb-3" />
+    <Building2 size={56} strokeWidth={1.8} className="text-[#d72828] mb-3" />
     <h3 className="text-sm font-semibold text-[#081028] whitespace-nowrap">Offices</h3>
   </div>
 
   <div className="flex flex-col items-center text-center">
-    <Construction size={56} strokeWidth={1.8} className="text-[#2563eb] mb-3" />
+    <Construction size={56} strokeWidth={1.8} className="text-[#d72828] mb-3" />
     <h3 className="text-sm font-semibold text-[#081028] whitespace-nowrap">Builders</h3>
   </div>
 
   <div className="flex flex-col items-center text-center">
-    <GraduationCap size={56} strokeWidth={1.8} className="text-[#2563eb] mb-3" />
+    <GraduationCap size={56} strokeWidth={1.8} className="text-[#d72828] mb-3" />
     <h3 className="text-sm font-semibold text-[#081028] whitespace-nowrap">Schools & Colleges</h3>
   </div>
 
   <div className="flex flex-col items-center text-center">
-    <ShoppingCart size={56} strokeWidth={1.8} className="text-[#2563eb] mb-3" />
+    <ShoppingCart size={56} strokeWidth={1.8} className="text-[#d72828] mb-3" />
     <h3 className="text-sm font-semibold text-[#081028] whitespace-nowrap">Retail Chains</h3>
   </div>
 
   <div className="flex flex-col items-center text-center">
-    <Cross size={56} strokeWidth={1.8} className="text-[#2563eb] mb-3" />
+    <Cross size={56} strokeWidth={1.8} className="text-[#d72828] mb-3" />
     <h3 className="text-sm font-semibold text-[#081028] whitespace-nowrap">Hospitals</h3>
   </div>
 
@@ -496,42 +496,42 @@ const removeProductRow = (index) => {
                                 <h2 className="text-[32px] md:text-[30px] font-extrabold text-[#081028] mb-8">Why Businesses Choose Sathya Stores</h2>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-5 gap-x-8">
                                     <div className="flex items-start gap-3">
-                                        <span className="w-6 h-6 rounded-full bg-[#2563eb] text-white flex items-center justify-center text-[13px] shrink-0 mt-1">✓</span>
+                                        <span className="w-6 h-6 rounded-full bg-[#d72828] text-white flex items-center justify-center text-[13px] shrink-0 mt-1">✓</span>
                                         <p className="text-gray-700 text-[16px]">Competitive Bulk Pricing</p>
                                     </div>
 
                                     <div className="flex items-start gap-3">
-                                        <span className="w-6 h-6 rounded-full bg-[#2563eb] text-white flex items-center justify-center text-[13px] shrink-0 mt-1">✓</span>
+                                        <span className="w-6 h-6 rounded-full bg-[#d72828] text-white flex items-center justify-center text-[13px] shrink-0 mt-1">✓</span>
                                         <p className="text-gray-700 text-[16px]">Delivery Across Tamil Nadu</p>
                                     </div>
 
                                     <div className="flex items-start gap-3">
-                                        <span className="w-6 h-6 rounded-full bg-[#2563eb] text-white flex items-center justify-center text-[13px] shrink-0 mt-1">✓</span>
+                                        <span className="w-6 h-6 rounded-full bg-[#d72828] text-white flex items-center justify-center text-[13px] shrink-0 mt-1">✓</span>
                                         <p className="text-gray-700 text-[16px]">Multi-Brand Availability</p>
                                     </div>
 
                                     <div className="flex items-start gap-3">
-                                        <span className="w-6 h-6 rounded-full bg-[#2563eb] text-white flex items-center justify-center text-[13px] shrink-0 mt-1">✓</span>
+                                        <span className="w-6 h-6 rounded-full bg-[#d72828] text-white flex items-center justify-center text-[13px] shrink-0 mt-1">✓</span>
                                         <p className="text-gray-700 text-[16px]">Installation & After-Sales Support</p>
                                     </div>
 
                                     <div className="flex items-start gap-3">
-                                        <span className="w-6 h-6 rounded-full bg-[#2563eb] text-white flex items-center justify-center text-[13px] shrink-0 mt-1">✓</span>
+                                        <span className="w-6 h-6 rounded-full bg-[#d72828] text-white flex items-center justify-center text-[13px] shrink-0 mt-1">✓</span>
                                         <p className="text-gray-700 text-[16px]">Dedicated Relationship Manager</p>
                                     </div>
 
                                     <div className="flex items-start gap-3">
-                                        <span className="w-6 h-6 rounded-full bg-[#2563eb] text-white flex items-center justify-center text-[13px] shrink-0 mt-1">✓</span>
+                                        <span className="w-6 h-6 rounded-full bg-[#d72828] text-white flex items-center justify-center text-[13px] shrink-0 mt-1">✓</span>
                                         <p className="text-gray-700 text-[16px]">Trusted Retail Network</p>
                                     </div>
 
                                     <div className="flex items-start gap-3">
-                                        <span className="w-6 h-6 rounded-full bg-[#2563eb] text-white flex items-center justify-center text-[13px] shrink-0 mt-1">✓</span>
+                                        <span className="w-6 h-6 rounded-full bg-[#d72828] text-white flex items-center justify-center text-[13px] shrink-0 mt-1">✓</span>
                                         <p className="text-gray-700 text-[16px]">GST Billing Available</p>
                                     </div>
 
                                     <div className="flex items-start gap-3">
-                                        <span className="w-6 h-6 rounded-full bg-[#2563eb] text-white flex items-center justify-center text-[13px] shrink-0 mt-1">✓</span>
+                                        <span className="w-6 h-6 rounded-full bg-[#d72828] text-white flex items-center justify-center text-[13px] shrink-0 mt-1">✓</span>
                                         <p className="text-gray-700 text-[16px]">Fast Quotation & Processing</p>
                                     </div>
                                 </div>
@@ -633,7 +633,7 @@ const removeProductRow = (index) => {
                         <div className="grid grid-cols-1 lg:grid-cols-[380px_1fr]">
                             {/* LEFT CONTENT */}
                             <div className="bg-[#f8fbff] p-1 md:p-1 border-[#dce8ff]">
-                                <p className="text-[#2563eb] uppercase tracking-[2px] text-sm font-bold mb-4">Contact Our Corporate Team</p>
+                                <p className="text-[#d72828] uppercase tracking-[2px] text-sm font-bold mb-4">Contact Our Corporate Team</p>
                                 <h2 className="text-[24px] leading-[1.5] font-extrabold text-[#081028] mb-2">Share Your Requirements<br />We'll Take Care of the Rest</h2>
                                 <p className="text-gray-600 leading-6 text-[15px] mb-2">Fill in your business requirements and our corporate solutions team will get in touch with you shortly.</p>
 
@@ -641,7 +641,7 @@ const removeProductRow = (index) => {
                                 <div className="space-y-7">
                                     {/* ITEM */}
                                     <div className="flex gap-4">
-                                        <div className="w-14 h-14 rounded-2xl bg-[#edf4ff] text-[#2563eb] flex items-center justify-center text-2xl shrink-0">⚡</div>
+                                        <div className="w-14 h-14 rounded-2xl bg-[#edf4ff] text-[#d72828] flex items-center justify-center text-2xl shrink-0">⚡</div>
                                         <div>
                                             <h3 className="font-bold text-[#081028] text-[15px] mb-1">Quick Response</h3>
                                             <p className="text-gray-600 text-[15px]">We respond within 24 hours</p>
@@ -650,7 +650,7 @@ const removeProductRow = (index) => {
 
                                     {/* ITEM */}
                                     <div className="flex gap-4">
-                                        <div className="w-14 h-14 rounded-2xl bg-[#edf4ff] text-[#2563eb] flex items-center justify-center text-2xl shrink-0">🎧</div>
+                                        <div className="w-14 h-14 rounded-2xl bg-[#edf4ff] text-[#d72828] flex items-center justify-center text-2xl shrink-0">🎧</div>
                                         <div>
                                             <h3 className="font-bold text-[#081028] text-[15px] mb-1">Dedicated Support</h3>
                                             <p className="text-gray-600 text-[15px]">One point of contact for all your needs</p>
@@ -659,7 +659,7 @@ const removeProductRow = (index) => {
 
                                     {/* ITEM */}
                                     <div className="flex gap-4">
-                                        <div className="w-14 h-14 rounded-2xl bg-[#edf4ff] text-[#2563eb] flex items-center justify-center text-2xl shrink-0">🔒</div>
+                                        <div className="w-14 h-14 rounded-2xl bg-[#edf4ff] text-[#d72828] flex items-center justify-center text-2xl shrink-0">🔒</div>
                                         <div>
                                             <h3 className="font-bold text-[#081028] text-[15px] mb-1">Secure & Reliable</h3>
                                             <p className="text-gray-600 text-[15px]">Your information is 100% safe with us</p>
@@ -926,7 +926,7 @@ const removeProductRow = (index) => {
                                                                         </div>
                                                                         
                                                                         {/* Add Button */}
-                                                                        <button type="button" onClick={addProductRow} className="h-12 w-12 rounded-xl bg-blue-700 text-white text-2xl flex items-center justify-center">+</button>
+                                                                        <button type="button" onClick={addProductRow} className="h-12 w-12 rounded-xl bg-[#d72828] text-white text-2xl flex items-center justify-center">+</button>
                                                                         {/* Delete Button */}
                                                                         {products.length > 1 && (
                                                                             <button type="button" onClick={() => removeProductRow(index)} className="h-12 w-12 rounded-2xl bg-red-500 text-white text-3xl flex items-center justify-center">×</button>
@@ -963,7 +963,7 @@ const removeProductRow = (index) => {
 
                                     {/* Submit */}
                                     <div className="md:col-span-3">
-                                        <button type="submit" disabled={loading} className="w-full h-12 rounded-lg bg-blue-700 hover:bg-blue-800 text-white font-semibold flex items-center justify-center gap-2">
+                                        <button type="submit" disabled={loading} className="w-full h-12 rounded-lg bg-[#d72828] hover:bg-[#d72828] text-white font-semibold flex items-center justify-center gap-2">
                                             {loading ? "Submitting..." : "Get Corporate Pricing"}
                                             <span>›</span>
                                         </button>
@@ -1051,7 +1051,7 @@ const removeProductRow = (index) => {
                         <div className="bg-[#f8fbff] border border-[#dce8ff] rounded-[24px] p-5">
                             <div className="flex items-start gap-1">
                                 {/* ICON */}
-                                <div className="w-16 h-16 rounded-2xl bg-[#edf4ff] flex items-center justify-center text-[#2563eb] text-3xl shrink-0">📞</div>
+                                <div className="w-16 h-16 rounded-2xl bg-[#edf4ff] flex items-center justify-center text-[#d72828] text-3xl shrink-0">📞</div>
                                 {/* CONTENT */}
                                 <div>
                                     <h3 className="font-bold text-[15px] text-[#081028] mb-2">Call Us</h3>
@@ -1065,12 +1065,12 @@ const removeProductRow = (index) => {
                         <div className="bg-[#f8fbff] border border-[#dce8ff] rounded-[24px] p-5">
                             <div className="flex items-start gap-1">
                                 {/* ICON */}
-                                <div className="w-16 h-16 rounded-2xl bg-[#edf4ff] flex items-center justify-center text-[#2563eb] text-3xl shrink-0">✉️</div>
+                                <div className="w-16 h-16 rounded-2xl bg-[#edf4ff] flex items-center justify-center text-[#d72828] text-3xl shrink-0">✉️</div>
                                 {/* CONTENT */}
                                 <div>
                                     <h3 className="font-bold text-[15px] text-[#081028] mb-2">Mail Us</h3>
                                     <p className="text-[15px] font-bold text-[#081028] mb-3 break-all leading-7">
-                                        <a href="mailto:corporate@sathya.store" className="text-[15px] font-bold text-blue-600 mb-3 break-all leading-7 hover:text-blue-600">corporate@sathya.store</a>
+                                        <a href="mailto:corporate@sathya.store" className="text-[15px] font-bold text-[#d72828] mb-3 break-all leading-7 hover:text-[#d72828]">corporate@sathya.store</a>
                                     </p>
                                     <p className="text-gray-600 text-[13px]">We reply within 24 hours</p>
                                 </div>
@@ -1081,7 +1081,7 @@ const removeProductRow = (index) => {
                         <div className="bg-[#f8fbff] border border-[#dce8ff] rounded-[24px] p-5">
                             <div className="flex items-start gap-1">
                                 {/* ICON */}
-                                <div className="w-16 h-16 rounded-2xl bg-[#edf4ff] flex items-center justify-center text-[#2563eb] text-3xl shrink-0">🕒</div>
+                                <div className="w-16 h-16 rounded-2xl bg-[#edf4ff] flex items-center justify-center text-[#d72828] text-3xl shrink-0">🕒</div>
                                 {/* CONTENT */}
                                 <div>
                                     <h3 className="font-bold text-[15px] text-[#081028] mb-2">Working Hours</h3>

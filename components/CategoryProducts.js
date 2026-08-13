@@ -217,7 +217,7 @@ const getBannerRedirectUrls = (urls) => {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#d72828]"></div>
       </div>
     );
   }
@@ -228,7 +228,7 @@ const getBannerRedirectUrls = (urls) => {
     <>
       {navigating && (
         <div className="fixed inset-0 z-[9999] flex justify-center items-center bg-black bg-opacity-30">
-          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-600"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#d72828]"></div>
         </div>
       )}
       <motion.section id="category-products" initial="hidden" animate="visible" className="category-products px-3 sm:px-6 pt-6 ">
@@ -419,14 +419,14 @@ const getBannerRedirectUrls = (urls) => {
                           >
                           {/* Category Links Section — fully dynamic from /api/categories/hierarchy */}
                           <div className={`flex flex-wrap items-center gap-2 mb-3 text-sm font-medium ${ alignment === "right" ? "justify-start" : "justify-end" }`} >
-                            <Link href={showallLink} className="px-3 py-1 text-blue-600 hover:underline">
+                            <Link href={showallLink} className="px-3 py-1 text-[#d72828] hover:underline">
                               Show All
                             </Link>
                             {dynamicChildren.map((child) => (
                               <Link
                                 key={child._id}
                                 href={`${showallLink}/${child.category_slug}`}
-                                className="px-3 py-1 text-gray-500 hover:text-blue-600 transition hover:underline"
+                                className="px-3 py-1 text-gray-500 hover:text-[#d72828] transition hover:underline"
                               >
                                 {child.category_name}
                               </Link>
@@ -489,7 +489,7 @@ const getBannerRedirectUrls = (urls) => {
                                        {/* Info */}
                                        <div className="p-2 flex flex-col h-full">
                                          <h4 className="text-[10px] sm:text-xs text-gray-500 mb-1 uppercase">
-                                           <Link href={`/brand/${brandMap[product.brand]?.toLowerCase().replace(/\s+/g, "-") || ""}`} className="hover:text-blue-600">
+                                           <Link href={`/brand/${brandMap[product.brand]?.toLowerCase().replace(/\s+/g, "-") || ""}`} className="hover:text-[#d72828]">
                                              {brandMap[product.brand] || ""}
                                            </Link>
                                          </h4>
@@ -499,7 +499,7 @@ const getBannerRedirectUrls = (urls) => {
                                           onClick={() => handleProductClick(product)}
                                           className="block mb-1"
                                         >
-                                          <h3 className="text-xs sm:text-sm font-medium text-[#0069c6] hover:text-[#00badb] min-h-[32px] sm:min-h-[40px]">
+                                          <h3 className="text-xs sm:text-sm font-medium text-[#d72828] hover:text-[#c02020] min-h-[32px] sm:min-h-[40px]">
                                             {(() => {
                                               const model = product.model_number ? `(${product.model_number.trim()})` : "";
                                               const name = product.name ? product.name.trim() : "";
@@ -561,7 +561,7 @@ const getBannerRedirectUrls = (urls) => {
                                            {/* <button
                     type="button"
                     onClick={() => handleShare(product)}
-                    className="bg-blue-600 hover:bg-blue-700 text-white p-1.5 rounded-full transition-colors duration-300 flex items-center justify-center flex-shrink-0"
+                    className="bg-[#d72828] hover:bg-[#d72828] text-white p-1.5 rounded-full transition-colors duration-300 flex items-center justify-center flex-shrink-0"
                     title="Share this product"
                   >
                     <FaShareAlt className="w-5 h-5" />

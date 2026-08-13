@@ -47,8 +47,9 @@ export async function GET() {
   try {
     await dbConnect();
     const banners = await SingleBannerNew.find({}).sort({ order: 1 });
-    return NextResponse.json({ success: true, banners });
+    return NextResponse.json({ success: true, banners: banners || [] });
   } catch (err) {
+    console.error("Error in GET /api/singlebanner:", err);
     return NextResponse.json(
       { success: false, message: err.message },
       { status: 500 }

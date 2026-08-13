@@ -98,7 +98,7 @@ export default function TestCategoryPage() {
         >
           {categoriess.map((cat, index) => (
             <SwiperSlide key={index}>
-              <div className="bg-[#2453D3] rounded-xl flex flex-col items-center">
+              <div className="bg-[#d72828] rounded-xl flex flex-col items-center">
                 <img
                   src={cat.img}
                   alt={cat.name}
@@ -203,7 +203,7 @@ export default function TestCategoryPage() {
                   </p>
 
                   {/* ✅ Product Name */}
-                  <h3 className="text-sm font-medium text-blue-600 line-clamp-2 mb-2">
+                  <h3 className="text-sm font-medium text-[#d72828] line-clamp-2 mb-2">
                     {product.name}
                   </h3>
 
@@ -224,7 +224,7 @@ export default function TestCategoryPage() {
 
                   {/* ✅ Buttons */}
                   <div className="mt-auto flex items-center gap-2">
-                    <button className="flex-1 bg-blue-600 text-white text-xs py-2 rounded hover:bg-blue-700">
+                    <button className="flex-1 bg-[#d72828] text-white text-xs py-2 rounded hover:bg-[#d72828]">
                       🛒 Add to Cart
                     </button>
 
@@ -331,7 +331,7 @@ export default function TestCategoryPage() {
                   </p>
 
                   {/* ✅ Product Name */}
-                  <h3 className="text-sm font-medium text-blue-600 line-clamp-2 mb-2">
+                  <h3 className="text-sm font-medium text-[#d72828] line-clamp-2 mb-2">
                     {product.name}
                   </h3>
 
@@ -352,7 +352,7 @@ export default function TestCategoryPage() {
 
                   {/* ✅ Buttons */}
                   <div className="mt-auto flex items-center gap-2">
-                    <button className="flex-1 bg-blue-600 text-white text-xs py-2 rounded hover:bg-blue-700">
+                    <button className="flex-1 bg-[#d72828] text-white text-xs py-2 rounded hover:bg-[#d72828]">
                       🛒 Add to Cart
                     </button>
 
@@ -459,7 +459,7 @@ export default function TestCategoryPage() {
                   </p>
 
                   {/* ✅ Product Name */}
-                  <h3 className="text-sm font-medium text-blue-600 line-clamp-2 mb-2">
+                  <h3 className="text-sm font-medium text-[#d72828] line-clamp-2 mb-2">
                     {product.name}
                   </h3>
 
@@ -480,7 +480,7 @@ export default function TestCategoryPage() {
 
                   {/* ✅ Buttons */}
                   <div className="mt-auto flex items-center gap-2">
-                    <button className="flex-1 bg-blue-600 text-white text-xs py-2 rounded hover:bg-blue-700">
+                    <button className="flex-1 bg-[#d72828] text-white text-xs py-2 rounded hover:bg-[#d72828]">
                       🛒 Add to Cart
                     </button>
 
@@ -587,7 +587,7 @@ export default function TestCategoryPage() {
                   </p>
 
                   {/* ✅ Product Name */}
-                  <h3 className="text-sm font-medium text-blue-600 line-clamp-2 mb-2">
+                  <h3 className="text-sm font-medium text-[#d72828] line-clamp-2 mb-2">
                     {product.name}
                   </h3>
 
@@ -608,7 +608,7 @@ export default function TestCategoryPage() {
 
                   {/* ✅ Buttons */}
                   <div className="mt-auto flex items-center gap-2">
-                    <button className="flex-1 bg-blue-600 text-white text-xs py-2 rounded hover:bg-blue-700">
+                    <button className="flex-1 bg-[#d72828] text-white text-xs py-2 rounded hover:bg-[#d72828]">
                       🛒 Add to Cart
                     </button>
 

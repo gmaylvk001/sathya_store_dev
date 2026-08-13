@@ -573,7 +573,7 @@ const handlePageChange = (page) => {
           onClick={() => handlePageChange(i)}
           className={`px-3 py-1 rounded-md ${
             pagination.currentPage === i
-              ? 'bg-blue-600 text-white'
+              ? 'bg-[#d72828] text-white'
               : 'bg-white text-gray-700 hover:bg-gray-100'
           }`}
         >
@@ -633,7 +633,7 @@ const handlePageChange = (page) => {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#d72828]"></div>
         </div>
       </div>
     );
@@ -701,7 +701,7 @@ const handlePageChange = (page) => {
                       }`}
                     >
                       {index === currentCategoryBannerIndex && (
-                        <span className="w-1.5 h-1.5 rounded-full bg-blue-600"></span>
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#d72828]"></span>
                       )}
                     </span>
                   </label>
@@ -829,7 +829,7 @@ const handlePageChange = (page) => {
         <select
           value={sortOption}
           onChange={(e) => setSortOption(e.target.value)}
-          className="px-4 py-2 border rounded-md text-sm bg-white shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="px-4 py-2 border rounded-md text-sm bg-white shadow-sm focus:ring-2 focus:ring-red-500 focus:border-[#d72828]"
         >
           <option value="">Featured</option>
           <option value="price-low-high">Price: Low to High</option>
@@ -874,7 +874,7 @@ const handlePageChange = (page) => {
                   {/* <label className="block text-gray-600 text-sm font-medium mb-2">Sort by</label> */}
                 <ul className="divide-y divide-gray-200 text-sm">
             <li
-              className={`py-3 cursor-pointer ${sortOption === '' ? 'text-blue-600 font-semibold' : 'text-gray-700'}`}
+              className={`py-3 cursor-pointer ${sortOption === '' ? 'text-[#d72828] font-semibold' : 'text-gray-700'}`}
               onClick={() => {
                 setSortOption('');
                 setIsSortPanelOpen(false);
@@ -883,7 +883,7 @@ const handlePageChange = (page) => {
               Featured
             </li>
             <li
-              className={`py-3 cursor-pointer ${sortOption === 'price-low-high' ? 'text-blue-600 font-semibold' : 'text-gray-700'}`}
+              className={`py-3 cursor-pointer ${sortOption === 'price-low-high' ? 'text-[#d72828] font-semibold' : 'text-gray-700'}`}
               onClick={() => {
                 setSortOption('price-low-high');
                 setIsSortPanelOpen(false);
@@ -892,7 +892,7 @@ const handlePageChange = (page) => {
               Price: Low to High
             </li>
             <li
-              className={`py-3 cursor-pointer ${sortOption === 'price-high-low' ? 'text-blue-600 font-semibold' : 'text-gray-700'}`}
+              className={`py-3 cursor-pointer ${sortOption === 'price-high-low' ? 'text-[#d72828] font-semibold' : 'text-gray-700'}`}
               onClick={() => {
                 setSortOption('price-high-low');
                 setIsSortPanelOpen(false);
@@ -901,7 +901,7 @@ const handlePageChange = (page) => {
               Price: High to Low
             </li>
             <li
-              className={`py-3 cursor-pointer ${sortOption === 'name-a-z' ? 'text-blue-600 font-semibold' : 'text-gray-700'}`}
+              className={`py-3 cursor-pointer ${sortOption === 'name-a-z' ? 'text-[#d72828] font-semibold' : 'text-gray-700'}`}
               onClick={() => {
                 setSortOption('name-a-z');
                 setIsSortPanelOpen(false);
@@ -910,7 +910,7 @@ const handlePageChange = (page) => {
               Name: A-Z
             </li>
             <li
-              className={`py-3 cursor-pointer ${sortOption === 'name-z-a' ? 'text-blue-600 font-semibold' : 'text-gray-700'}`}
+              className={`py-3 cursor-pointer ${sortOption === 'name-z-a' ? 'text-[#d72828] font-semibold' : 'text-gray-700'}`}
               onClick={() => {
                 setSortOption('name-z-a');
                 setIsSortPanelOpen(false);
@@ -957,7 +957,7 @@ const handlePageChange = (page) => {
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3">
                 {getSortedProducts().map(product => (
-                  <div key={product._id} className="group relative bg-white rounded-lg border hover:border-blue-200 transition-all shadow-sm hover:shadow-md flex flex-col h-full">
+                  <div key={product._id} className="group relative bg-white rounded-lg border hover:border-red-200 transition-all shadow-sm hover:shadow-md flex flex-col h-full">
                     {/* Product Image */}
                     <div className="relative aspect-square bg-white">
                       <Link
@@ -1006,7 +1006,7 @@ const handlePageChange = (page) => {
                       <h4 className="text-xs text-gray-500 mb-2 uppercase">
                         <Link
                           href={`/brand/${brandMap[product.brand] ? brandMap[product.brand].toLowerCase().replace(/\s+/g, "-") : ""}`}
-                          className="hover:text-blue-600"
+                          className="hover:text-[#d72828]"
                         >
                           {brandMap[product.brand] || ""}
                         </Link>
@@ -1018,7 +1018,7 @@ const handlePageChange = (page) => {
                     className="block mb-2 flex-1"
                     onClick={() => handleProductClick(product)}
                   >
-                   <h3 className="text-xs sm:text-sm font-medium text-[#0069c6] hover:text-[#00badb] min-h-[32px] sm:min-h-[40px]">
+                   <h3 className="text-xs sm:text-sm font-medium text-[#d72828] hover:text-[#c02020] min-h-[32px] sm:min-h-[40px]">
                                             {(() => {
                                               const model = product.model_number ? `(${product.model_number.trim()})` : "";
                                               const name = product.name ? product.name.trim() : "";
@@ -1035,7 +1035,7 @@ const handlePageChange = (page) => {
                                             })()}
                                           </h3>
                                           {/* Tooltip */}
-                  <div className="absolute hidden group-hover:block left-3 -translate-y-full translate-y-[-1px] bg-[#0069c6] text-white text-xs rounded px-2 py-1 max-w-[200px] whitespace-normal break-words shadow-md z-50">
+                  <div className="absolute hidden group-hover:block left-3 -translate-y-full translate-y-[-1px] bg-[#d72828] text-white text-xs rounded px-2 py-1 max-w-[200px] whitespace-normal break-words shadow-md z-50">
                     {product.name}
                   </div>
                   </Link>
@@ -1105,7 +1105,7 @@ const handlePageChange = (page) => {
                          {/* <button
                     type="button"
                     onClick={() => handleShare(product)}
-                    className="bg-blue-600 hover:bg-blue-700 text-white p-1.5 rounded-full transition-colors duration-300 flex items-center justify-center flex-shrink-0"
+                    className="bg-[#d72828] hover:bg-[#d72828] text-white p-1.5 rounded-full transition-colors duration-300 flex items-center justify-center flex-shrink-0"
                     title="Share this product"
                   >
                     <FaShareAlt className="w-5 h-5" />
@@ -1131,7 +1131,7 @@ const handlePageChange = (page) => {
 
           {loading && (
             <div className="text-center py-4">
-              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500 mx-auto"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#d72828] mx-auto"></div>
             </div>
           )}
         </div>

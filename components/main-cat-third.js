@@ -179,7 +179,7 @@ export default function CategoryMainPage({ categorySlug = "large-appliance" }) {
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#d72828]"></div>
       </div>
     );
   }
@@ -285,7 +285,7 @@ export default function CategoryMainPage({ categorySlug = "large-appliance" }) {
               >
                 {featuredProducts[idx].map((product) => (
                   <SwiperSlide key={product._id}>
-                    <div className="group relative bg-white rounded-lg border hover:border-blue-200 transition-all shadow-sm hover:shadow-md flex flex-col h-full">
+                    <div className="group relative bg-white rounded-lg border hover:border-red-200 transition-all shadow-sm hover:shadow-md flex flex-col h-full">
                       {/* Product Image */}
                       <div className="relative aspect-square bg-white">
                         <Link
@@ -350,7 +350,7 @@ export default function CategoryMainPage({ categorySlug = "large-appliance" }) {
                                     .replace(/\s+/g, "-")
                                 : ""
                             }`}
-                            className="hover:text-blue-600"
+                            className="hover:text-[#d72828]"
                           >
                             {brandMap[product.brand] || ""}
                           </Link>
@@ -360,7 +360,7 @@ export default function CategoryMainPage({ categorySlug = "large-appliance" }) {
                           href={`/product/${product.slug}`}
                           className="block mb-2 flex-1"
                         >
-                          <h3 className="text-xs sm:text-sm font-medium text-[#0069c6] hover:text-[#00badb] min-h-[32px] sm:min-h-[40px]">
+                          <h3 className="text-xs sm:text-sm font-medium text-[#d72828] hover:text-[#c02020] min-h-[32px] sm:min-h-[40px]">
                             {(() => {
                               const model = product.model_number
                                 ? `(${product.model_number.trim()})`
@@ -385,7 +385,7 @@ export default function CategoryMainPage({ categorySlug = "large-appliance" }) {
                             })()}
                           </h3>
                           {/* Tooltip */}
-                  <div className="absolute hidden group-hover:block left-3 -translate-y-full translate-y-[-1px] bg-[#0069c6] text-white text-xs rounded px-2 py-1 max-w-[200px] whitespace-normal break-words shadow-md z-50">
+                  <div className="absolute hidden group-hover:block left-3 -translate-y-full translate-y-[-1px] bg-[#d72828] text-white text-xs rounded px-2 py-1 max-w-[200px] whitespace-normal break-words shadow-md z-50">
                     {product.name}
                   </div>
                         </Link>
@@ -456,7 +456,7 @@ export default function CategoryMainPage({ categorySlug = "large-appliance" }) {
                            {/* <button
                     type="button"
                     onClick={() => handleShare(product)}
-                    className="bg-blue-600 hover:bg-blue-700 text-white p-1.5 rounded-full transition-colors duration-300 flex items-center justify-center flex-shrink-0"
+                    className="bg-[#d72828] hover:bg-[#d72828] text-white p-1.5 rounded-full transition-colors duration-300 flex items-center justify-center flex-shrink-0"
                     title="Share this product"
                   >
                     <FaShareAlt className="w-5 h-5" />

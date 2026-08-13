@@ -64,7 +64,7 @@ return (
 
     <Link
       href="/location"
-      className="mt-3 inline-flex items-center gap-1 text-sm text-blue-600 hover:underline font-medium"
+      className="mt-3 inline-flex items-center gap-1 text-sm text-[#d72828] hover:underline font-medium"
     >
       View all 47+ stores
     </Link>
@@ -98,45 +98,48 @@ function StarRating({ value, onChange }) {
 function DynamicTabs({ tabs, activeName, onTabChange }) {
     const titleize = (s) => {
       if (s === "manufacturer") return "Manufacturer Details";
+      if (s === "specifications") return "Details & Specs";
+      if (s === "overview") return "Overview";
+      if (s === "reviews") return "Reviews";
+      if (s === "faq") return "FAQ";
       return s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
     };
 
     return (
-      <div>
-<div className={`flex overflow-x-auto scrollbar-hide border-b border-gray-200 gap-6 sm:gap-10 px-1 ${poppins.className}`}>
-          {tabs.map((tab) => (
-            <button
-              key={tab.name}
-              onClick={() => onTabChange && onTabChange(tab.name)}
-           className={`py-3 sm:py-4 text-base sm:text-lg transition-all duration-200 border-b-[3px] -mb-[2px] whitespace-nowrap flex-shrink-0 ${
-  activeName === tab.name
-    ? "border-blue-600 text-blue-600 font-bold"
-    : "border-transparent text-gray-600 font-medium hover:text-gray-900"
-}`}
-            >
-              {titleize(tab.name)}
-            </button>
-          ))}
+      <div className="w-full bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm">
+        {/* Horizontal Tabs Header Strip */}
+        <div className="flex overflow-x-auto scrollbar-hide border-b border-gray-200 bg-gray-50 px-2 sm:px-4 pt-2 gap-1.5 sm:gap-2">
+          {tabs.map((tab) => {
+            const isActive = activeName === tab.name;
+            return (
+              <button
+                key={tab.name}
+                onClick={() => onTabChange && onTabChange(tab.name)}
+                className={`py-2.5 px-3.5 sm:px-5 text-xs sm:text-sm font-bold uppercase tracking-wider transition-all duration-200 whitespace-nowrap flex-shrink-0 rounded-t-md ${
+                  isActive
+                    ? "bg-[#d72828] text-white shadow-sm border-t-2 border-x-2 border-[#d72828]"
+                    : "text-gray-700 hover:text-[#d72828] hover:bg-gray-100 font-semibold border-t-2 border-x-2 border-transparent"
+                }`}
+              >
+                {titleize(tab.name)}
+              </button>
+            );
+          })}
         </div>
 
-        {/* Keep all tabs mounted; only the active one is visible.
-           This preserves Flix DOM so it doesn't need to reload. */}
+        {/* Keep all tabs mounted; only the active one is visible. */}
         {tabs.map((tab) => (
           <div
             key={tab.name}
             style={{ display: activeName === tab.name ? "block" : "none" }}
-            className={
-  tab.name === "overview"
-    ? "w-full px-4 py-6 text-left bg-gray-50"
-    : "w-full px-4 py-6 text-left"
-}
+            className="w-full p-4 sm:p-6 bg-white text-left"
           >
             {tab.content}
           </div>
         ))}
       </div>
     );
-  }
+}
  function ReviewsTab({ reviewForm, setReviewForm, handleReviewSubmit, submitting, tabData, formatReviewDate, poppins }) {
   return (
     <div>
@@ -158,7 +161,7 @@ function DynamicTabs({ tabs, activeName, onTabChange }) {
           className="w-full border rounded p-2 mb-2"
           rows="3"
         />
-        <button type="submit" disabled={submitting} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+        <button type="submit" disabled={submitting} className="bg-[#d72828] text-white px-4 py-2 rounded hover:bg-[#c02020]">
           {submitting ? "Submitting..." : "Submit Review"}
         </button>
       </form>
@@ -901,7 +904,7 @@ useEffect(() => {
       <div key={product._id} className="border rounded-lg p-2 sm:p-3 hover:shadow-md transition-shadow relative">
         {discountPercentage > 0 && (
           <span className={`px-1 sm:px-2 py-1 text-xs font-bold tracking-wider text-white rounded absolute top-1 sm:top-2 left-1 sm:left-2 ${
-            discountPercentage > 30 ? "bg-blue-500" : "bg-orange-500"
+            discountPercentage > 30 ? "bg-[#d72828]" : "bg-orange-500"
           }`}>
             -{discountPercentage}% OFF
           </span>
@@ -923,7 +926,7 @@ useEffect(() => {
         </Link>
 
         <Link href={`/product/${product.slug || product._id}`}>
-          <h3 className="text-xs sm:text-sm font-medium mt-1 sm:mt-2 hover:text-blue-600 line-clamp-2">{product.name}</h3>
+          <h3 className="text-xs sm:text-sm font-medium mt-1 sm:mt-2 hover:text-[#d72828] line-clamp-2">{product.name}</h3>
         </Link>
         <p className="text-gray-600 text-xs">By {product.brand?.brand_name || "Our Store"}</p>
         <div className="flex items-center mt-1">
@@ -939,14 +942,14 @@ useEffect(() => {
         </div>
         <button 
           className="w-full mt-1 sm:mt-2 py-1 sm:py-2 text-xs sm:text-sm font-bold rounded-lg flex items-center justify-center gap-1 sm:gap-2 transition duration-300"
-          style={{ backgroundColor: '#e0e7ff', color: '#1d4ed8' }}
+          style={{ backgroundColor: '#e0e7ff', color: '#c02020' }}
           onMouseEnter={(e) => {
-            e.target.style.backgroundColor = '#1d4ed8';
+            e.target.style.backgroundColor = '#c02020';
             e.target.style.color = '#ffffff';
           }}
           onMouseLeave={(e) => {
             e.target.style.backgroundColor = '#e0e7ff';
-            e.target.style.color = '#1d4ed8';
+            e.target.style.color = '#c02020';
           }}
         >
           Add To Cart <FaShoppingCart className="text-xs sm:text-sm" />
@@ -1054,297 +1057,175 @@ const overviewContent = (
       <div id="flix-placeholder" className="hidden" />
     </div>
 
-    {product.overviewdescription && (
-      <div className="mb-4">
-        <h2 className="text-base font-bold text-gray-900 mb-2">{product.name} Overview</h2>
-        <p className="text-sm text-gray-700 leading-relaxed">{product.overviewdescription}</p>
-      </div>
-    )}
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      {/* Left Column — Product Overview & Features */}
+      <div>
+        {product.overviewdescription && (
+          <div className="mb-4">
+            <h2 className="text-base font-bold text-gray-900 mb-2">{product.name} Overview</h2>
+            <p className="text-sm text-gray-700 leading-relaxed">{product.overviewdescription}</p>
+          </div>
+        )}
 
-    {keyFeatures.length > 0 && (
-      <div className="mb-4">
-        <h3 className="text-base font-bold text-gray-900 mb-3">Key Features</h3>
-        <ul className="space-y-2">
-          {keyFeatures.map((feature, index) => (
-              <li key={index} className="flex items-start gap-2 text-sm text-gray-700">
-                <span className="text-green-500 mt-0.5 flex-shrink-0">✓</span>
-                {feature.charAt(0).toUpperCase() + feature.slice(1)}
-              </li>
-            ))}
-        </ul>
+        {productHighlights.length > 0 ? (
+          <div className="mb-4">
+            <h3 className="text-base font-bold text-gray-900 mb-3">Product Highlights</h3>
+            <ul className="space-y-2">
+              {productHighlights.map((item, index) => {
+                const cleaned = item.replace(/[\[\]{}"]/g, '').trim();
+                const [key, ...rest] = cleaned.split(':');
+                const value = rest.join(':').trim();
+                return (
+                  <li key={index} className="flex items-start gap-2 text-sm text-gray-700">
+                    <span className="text-green-500 mt-0.5 flex-shrink-0">✓</span>
+                    <span><strong>{key?.trim()}</strong>{value ? `: ${value}` : ''}</span>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        ) : keyFeatures.length > 0 ? (
+          <div className="mb-4">
+            <h3 className="text-base font-bold text-gray-900 mb-3">Key Features</h3>
+            <ul className="space-y-2">
+              {keyFeatures.map((feature, index) => (
+                <li key={index} className="flex items-start gap-2 text-sm text-gray-700">
+                  <span className="text-green-500 mt-0.5 flex-shrink-0">✓</span>
+                  {feature.charAt(0).toUpperCase() + feature.slice(1)}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+
+        {!product.overviewdescription &&
+         productHighlights.length === 0 &&
+         keyFeatures.length === 0 && (
+          <p className="text-gray-500 text-sm py-4">There is no product overview available for this item.</p>
+        )}
       </div>
-    )}
-    {!product.overviewdescription &&
-     keyFeatures.length === 0 &&
-     productHighlights.length === 0 && (
-      <p className="text-gray-500 text-sm py-4">There is no product overview available for this item.</p>
-    )}
+
+      {/* Right Column — Available Near You */}
+      <div>
+        <AvailableNearYou />
+      </div>
+    </div>
   </div>
 );
 const descriptionContent = (() => {
-  // Enhanced sanitize function to detect "<p>null</p>" and other null patterns
   const isNullContent = (value) => {
     if (!value) return true;
     const strValue = String(value).trim().toLowerCase();
-    
-    // Check for various null patterns including HTML null
     const nullPatterns = [
       "", "null", "undefined", "n/a", "none", "-", 
       "null null", "undefined undefined", "nan",
       "<p>null</p>", "<p>undefined</p>", "<p>n/a</p>",
       "&lt;p&gt;null&lt;/p&gt;", "&lt;p&gt;undefined&lt;/p&gt;"
     ];
-    
     return nullPatterns.includes(strValue) || 
            strValue.replace(/<[^>]*>/g, '').trim() === 'null' ||
            strValue === '<p></p>' ||
            strValue === '<p> </p>';
   };
 
-  // Check if we have any real content
-  const hasRealContent = () => {
-    // Check description
-    if (product?.description && !isNullContent(product.description)) {
-      return true;
+  const decodeAndClean = (html) => {
+    if (!html) return "";
+    let cleaned = html;
+    cleaned = cleaned.replace(/^"+|"+$/g, "");
+    cleaned = cleaned.replace(/^<p>"/, "").replace(/"<\/p>$/, "");
+    cleaned = cleaned.replace(/\\"/g, '"');
+    cleaned = cleaned.replace(/\\\//g, "/");
+    cleaned = cleaned.replace(/\\u200e/g, "");
+    if (typeof document !== "undefined") {
+      const txt = document.createElement("textarea");
+      txt.innerHTML = cleaned;
+      cleaned = txt.value;
     }
-    
-    // Check specifications
-    const specs = [
-      product?.ingredients,
-      product?.weight,
-      product?.dimensions,
-      product?.item_code
-    ];
-    
-    return specs.some(spec => spec && !isNullContent(spec));
+    return cleaned;
   };
 
-  // If no real content, return null to hide the entire tab
-  if (!hasRealContent()) {
-    return null;
+  // Build key-value specification pairs
+  const descObj = parseJSONSafe(product?.description);
+  const specRows = [];
+
+  // 1. Add standard product fields if valid
+  const brandVal = Array.isArray(brand) ? brand.find((b) => b.value === product.brand)?.label : brandName;
+  if (brandVal && !isNullContent(brandVal)) specRows.push({ key: "Brand", value: brandVal });
+  if (product?.model_number && !isNullContent(product.model_number)) specRows.push({ key: "Model Number", value: product.model_number });
+  if (product?.item_code && !isNullContent(product.item_code)) specRows.push({ key: "Item Code", value: product.item_code });
+  if (product?.capacity && !isNullContent(product.capacity)) specRows.push({ key: "Capacity", value: product.capacity });
+  if (product?.color && !isNullContent(product.color)) specRows.push({ key: "Color", value: product.color });
+  if (product?.ingredients && !isNullContent(product.ingredients)) specRows.push({ key: "Ingredients", value: product.ingredients });
+  if (product?.weight && !isNullContent(product.weight)) specRows.push({ key: "Weight", value: product.weight });
+  if (product?.dimensions && !isNullContent(product.dimensions)) specRows.push({ key: "Dimensions", value: product.dimensions });
+
+  // 2. Add parsed JSON description entries
+  if (descObj && typeof descObj === "object") {
+    Object.entries(descObj).forEach(([k, v]) => {
+      const cleanK = decodeAndClean(k);
+      const cleanV = decodeAndClean(String(v));
+      if (cleanK && cleanV && !isNullContent(cleanK) && !isNullContent(cleanV)) {
+        if (!specRows.some(row => row.key.toLowerCase() === cleanK.toLowerCase())) {
+          specRows.push({ key: cleanK, value: cleanV });
+        }
+      }
+    });
   }
 
-  const descObj = parseJSONSafe(product?.description);
-  const hasValidDescription = descObj && typeof descObj === "object" && Object.keys(descObj).length > 0;
-  
-  // Only show plain description if it's not null content
-  const hasPlainDescription = product?.description && 
-                            !isNullContent(product.description) && 
-                            !descObj;
-
-  // Build specifications - filter out null values
-  const specifications = [
-    {
-      icon: <TbBrandAppgallery size={14} className="text-white" />,
-      label: "Brand",
-      value: Array.isArray(brand) ? brand.find((b) => b.value === product.brand)?.label : "",
-    },
-    {
-      icon: <FiHash size={16} className="text-white" />,
-      label: "Item Code", 
-      value: product?.item_code,
-    },
-    {
-      icon: <FiBox size={14} className="text-white" />,
-      label: "Ingredients",
-      value: product?.ingredients,
-    },
-    {
-      icon: <FiBox size={14} className="text-white" />,
-      label: "Weight",
-      value: product?.weight,
-    },
-    {
-      icon: <FiBox size={14} className="text-white" />,
-      label: "Dimensions",
-      value: product?.dimensions, 
-    }
-  ].filter(item => {
-    const value = item.value;
-    return value && !isNullContent(value);
-  });
-
-  const hasSpecifications = specifications.length > 0;
-
-  const decodeAndClean = (html) => {
-  if (!html) return "";
-
-  let cleaned = html;
-
-  // remove starting/ending quotes
-  cleaned = cleaned.replace(/^"+|"+$/g, "");
-
-  // remove <p>" and "</p>
-  cleaned = cleaned.replace(/^<p>"/, "").replace(/"<\/p>$/, "");
-
-  // decode escaped slashes
-  cleaned = cleaned.replace(/\\"/g, '"');
-  cleaned = cleaned.replace(/\\\//g, "/");
-
-  // remove unicode invisible chars
-  cleaned = cleaned.replace(/\\u200e/g, "");
-
-  // decode html entities
-  const txt = document.createElement("textarea");
-  txt.innerHTML = cleaned;
-  cleaned = txt.value;
-
-  return cleaned;
-};
-
-
+  // 3. Check for HTML description tables
+  const cleanedDescription = decodeAndClean(String(product?.description || ""));
+  const hasTableHtml = cleanedDescription.includes("<table") || cleanedDescription.includes("&lt;table");
+  const hasPlainHtmlDescription = product?.description && !isNullContent(product.description) && !descObj;
 
   return (
-    <div>
-      {/* Product Description - only show if we have valid content */}
-      {/* {(hasValidDescription || hasPlainDescription) && (
-        <>
-          <h2 className={`text-sm font-bold text-left ${poppins.className}`}>
-            Product Description
-          </h2>
+    <div className="w-full text-left">
+      <h3 className="text-sm sm:text-base font-bold text-gray-900 mb-3 uppercase tracking-wide border-b border-gray-200 pb-2">
+        General
+      </h3>
 
-          {hasValidDescription ? (
-            <div className="mt-3 text-xs sm:text-sm text-gray-700 space-y-1">
-              {Object.entries(descObj)
-                .filter(([key, val]) => {
-                  return key && val && !isNullContent(key) && !isNullContent(val);
-                })
-                .map(([key, val]) => {
-                  const cleanKey = decodeAndClean(key);
-                  const cleanVal = decodeAndClean(val);
-                  return (
-                    <div
-                      key={cleanKey}
-                      className="grid grid-cols-[150px,1fr] gap-x-2 items-start"
-                    >
-                      <div className={`text-xs sm:text-sm font-bold ${poppins.className}`}>
-                        {cleanKey}:
-                      </div>
-                      <div className={`text-xs sm:text-sm ${poppins.className}`}>
-                        {cleanVal}
-                      </div>
-                    </div>
-                  );
-                })}
-            </div>
-          ) : (
-            <div
-              className="mt-3 text-xs sm:text-sm text-gray-700 prose prose-gray max-w-none text-left [&_table]:w-full [&_table]:border-collapse [&_table]:border [&_th]:border [&_td]:border [&_th]:p-2 [&_td]:p-2 [&_tr:nth-child(even)]:bg-gray-50 [&_th]:bg-gray-100 [&_th]:font-semibold"
-              dangerouslySetInnerHTML={{
-                __html: decodeAndClean(String(product?.description || "")),
-              }}
-            />
-          )}
-        </>
-      )} */}
-
-      {(hasValidDescription || hasPlainDescription) && (
-        <>
-          <h2 className={`text-sm font-bold text-left ${poppins.className}`}>Product Description</h2>
-          {hasValidDescription ? (
-            <div className="mt-3 text-xs sm:text-sm text-gray-700 space-y-1">
-              {Object.entries(descObj)
-                .filter(([key, val]) => {
-                  return (
-                    key &&
-                    val &&
-                    !isNullContent(key) &&
-                    !isNullContent(val)
-                  );
-                })
-                .map(([key, val]) => {
-                  const cleanKey = decodeAndClean(key);
-                  const cleanVal = decodeAndClean(val);
-
-                  return (
-                    <div key={cleanKey} className="grid grid-cols-[150px,1fr] gap-x-2 items-start">
-                      <div className={`text-xs sm:text-sm font-bold ${poppins.className}`}>{cleanKey}:</div>
-                      <div className={`text-xs sm:text-sm ${poppins.className}`}>{cleanVal}</div>
-                    </div>
-                  );
-                })}
-            </div>
-          ) : (
-            (() => {
-              const cleanedDescription = decodeAndClean(
-                String(product?.description || "")
-              );
-
-              // table html iruka check
-              const hasTableHtml = cleanedDescription.includes("<table") || cleanedDescription.includes("&lt;table");
-
-              return (
-                <div
-                  className={
-                    hasTableHtml
-                      ? `
-                        mt-3
-                        text-xs sm:text-sm
-                        text-gray-700
-                        prose
-                        prose-gray
-                        max-w-none
-                        text-left
-                        overflow-x-auto
-
-                        [&_table]:w-full
-                        [&_table]:border
-                        [&_table]:border-collapse
-
-                        [&_th]:border
-                        [&_td]:border
-
-                        [&_th]:p-2
-                        [&_td]:p-2
-
-                        [&_th]:bg-gray-100
-                        [&_th]:font-semibold
-
-                        [&_tr:nth-child(even)]:bg-gray-50
-                      `
-                      : `
-                        mt-3
-                        text-xs sm:text-sm
-                        text-gray-700
-                        prose
-                        prose-gray
-                        max-w-none
-                        text-left
-                      `
-                  }
-                  dangerouslySetInnerHTML={{
-                    __html: cleanedDescription,
-                  }}
-                />
-              );
-            })()
-          )}
-        </>
+      {/* Production-grade 2-Column Specification Table */}
+      {specRows.length > 0 && (
+        <div className="border border-gray-200 rounded-lg overflow-hidden mb-6 shadow-sm">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-gray-100 border-b border-gray-200">
+                <th className="w-1/3 py-2.5 px-4 text-xs font-bold text-gray-800 uppercase tracking-wider">Specification</th>
+                <th className="w-2/3 py-2.5 px-4 text-xs font-bold text-gray-800 uppercase tracking-wider">Value</th>
+              </tr>
+            </thead>
+            <tbody>
+              {specRows.map((row, idx) => (
+                <tr key={idx} className={`border-b border-gray-200 last:border-0 hover:bg-gray-50 transition-colors ${idx % 2 === 1 ? 'bg-gray-50/40' : 'bg-white'}`}>
+                  <td className="w-1/3 py-3 px-4 text-xs sm:text-sm font-semibold text-gray-800 border-r border-gray-100">{row.key}</td>
+                  <td className="w-2/3 py-3 px-4 text-xs sm:text-sm text-gray-700 font-medium">{row.value}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
 
-      {/* Product Specifications - only show if we have valid specifications */}
-      {hasSpecifications && (
-        <>
-          <h2 className={`text-sm font-bold mt-3 text-left ${poppins.className}`}>
-            Product Specifications
-          </h2>
+      {/* Plain HTML / Rich Table Description */}
+      {hasPlainHtmlDescription && (
+        <div className="mt-4">
+          <h4 className="text-xs font-bold text-gray-900 mb-2 uppercase tracking-wide">Detailed Specifications</h4>
+          <div
+            className={
+              hasTableHtml
+                ? `text-xs sm:text-sm text-gray-700 prose max-w-none text-left overflow-x-auto
+                   [&_table]:w-full [&_table]:border-collapse [&_table]:border [&_table]:border-gray-200 [&_table]:rounded-lg [&_table]:overflow-hidden
+                   [&_th]:bg-gray-100 [&_th]:p-3 [&_th]:font-bold [&_th]:text-gray-800 [&_th]:border-b [&_th]:border-gray-200 [&_th]:text-xs [&_th]:uppercase
+                   [&_td]:p-3 [&_td]:border-b [&_td]:border-gray-200 [&_td]:text-xs [&_td]:sm:text-sm [&_tr:nth-child(even)]:bg-gray-50/50
+                   [&_td:first-child]:font-semibold [&_td:first-child]:text-gray-800 [&_td:first-child]:w-1/3 [&_td:last-child]:w-2/3`
+                : `text-xs sm:text-sm text-gray-700 prose max-w-none text-left`
+            }
+            dangerouslySetInnerHTML={{ __html: cleanedDescription }}
+          />
+        </div>
+      )}
 
-          <ul className="mt-1 sm:mt-2 text-gray-700 text-xs sm:text-sm space-y-1">
-            {specifications.map((item, idx) => (
-              <li key={idx} className="flex items-center">
-                <div className="w-5 h-5 flex items-center justify-center bg-gray-600 rounded-md mr-2">
-                  {item.icon}
-                </div>
-                <div className="flex gap-x-1">
-                  <strong className={`text-xs sm:text-sm ${poppins.className}`}>
-                    {item.label}:
-                  </strong>
-                  <span className={`${poppins.className}`}>{item.value}</span>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </>
+      {specRows.length === 0 && !hasPlainHtmlDescription && (
+        <p className="text-sm text-gray-500 py-4">No detailed specifications available for this product.</p>
       )}
     </div>
   );
@@ -1385,7 +1266,7 @@ const descriptionContent = (() => {
           <details key={index} className="border border-gray-200 rounded-lg p-3 cursor-pointer">
             <summary className="font-medium text-sm text-gray-800 flex justify-between items-center">
               {faq.question}
-              <span className="text-blue-600 text-lg">+</span>
+              <span className="text-[#d72828] text-lg">+</span>
             </summary>
             <p className="mt-2 text-sm text-gray-600">{faq.answer}</p>
           </details>
@@ -1403,8 +1284,8 @@ const manufacturerContent = (
 
         {/* Header */}
         <div className="flex items-center gap-4 p-5 border-b border-gray-100">
-          <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center flex-shrink-0">
-            <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-blue-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+          <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center flex-shrink-0">
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-[#d72828]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 21h18M5 21V7l6-4v18M19 21V11l-6-4M9 9h.01M9 12h.01M9 15h.01" />
             </svg>
           </div>
@@ -1417,8 +1298,8 @@ const manufacturerContent = (
         {/* Manufacturer */}
         {manufacturerName && (
           <div className="flex items-center gap-4 p-5 border-b border-gray-100">
-            <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center flex-shrink-0">
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-blue-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+            <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center flex-shrink-0">
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-[#d72828]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
               </svg>
             </div>
@@ -1432,8 +1313,8 @@ const manufacturerContent = (
         {/* Address */}
         {manufacturerAddress && (
           <div className="flex items-center gap-4 p-5 border-b border-gray-100">
-            <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center flex-shrink-0">
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-blue-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+            <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center flex-shrink-0">
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-[#d72828]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a2 2 0 01-2.828 0l-4.243-4.243a8 8 0 1111.314 0z" />
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
@@ -1448,8 +1329,8 @@ const manufacturerContent = (
         {/* Brand */}
         {brandName && (
           <div className="flex items-center gap-4 p-5">
-            <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center flex-shrink-0">
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-blue-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+            <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center flex-shrink-0">
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-[#d72828]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 <path strokeLinecap="round" strokeLinejoin="round" d="M3.6 9h16.8M3.6 15h16.8M11.5 3a17 17 0 000 18M12.5 3a17 17 0 010 18" />
               </svg>
@@ -1508,77 +1389,14 @@ const tabsForUI = useMemo(() => [
 
   
 return (
- <div className="mt-1 sm:mt-2 w-full">
-    <ToastContainer position="top-right" autoClose={5000} />
+  <div className="mt-4 w-full">
     
-    {/* Section 1 — Key Features + Available Near You */}
-    <div className="bg-white py-6 px-4 w-full">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        
-        {/* Left — Key Features + Highlights */}
-        <div className="text-left">
-          {product.overviewdescription && (
-            <div className="mb-4">
-              <h2 className="text-base font-bold text-gray-900 mb-2">{product.name} Overview</h2>
-              <p className="text-sm text-gray-700 leading-relaxed">{product.overviewdescription}</p>
-            </div>
-          )}
-          {productHighlights.length > 0 ? (
-            <div className="mb-4">
-              <h3 className="text-base font-bold text-gray-900 mb-3">Product Highlights</h3>
-              <ul className="space-y-2">
-                {productHighlights.map((item, index) => {
-                    const cleaned = item.replace(/[\[\]{}"]/g, '').trim();
-                    const [key, ...rest] = cleaned.split(':');
-                    const value = rest.join(':').trim();
-                    return (
-                      <li key={index} className="flex items-start gap-2 text-sm text-gray-700">
-                        <span className="text-green-500 mt-0.5 flex-shrink-0">✓</span>
-                        <span><strong>{key?.trim()}</strong>{value ? `: ${value}` : ''}</span>
-                      </li>
-                    );
-                  })}
-              </ul>
-            </div>
-          ) : keyFeatures.length > 0 ? (
-            <div className="mb-4">
-              <h3 className="text-base font-bold text-gray-900 mb-3">Key Features</h3>
-              <ul className="space-y-2">
-                {keyFeatures.map((feature, index) => (
-                  <li key={index} className="flex items-start gap-2 text-sm text-gray-700">
-                    <span className="text-green-500 mt-0.5 flex-shrink-0">✓</span>
-                    {feature.charAt(0).toUpperCase() + feature.slice(1)}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ) : null}
-
-          {!product.overviewdescription &&
-           productHighlights.length === 0 &&
-           keyFeatures.length === 0 && (
-            <p className="text-gray-500 text-sm">No overview available.</p>
-          )}
-        </div>
-
-        {/* Right — Available Near You */}
-        <div>
-          <AvailableNearYou />
-        </div>
-
-      </div>
-    </div>
-
-    {/* Section 2 — Tabs */}
-    <div className="bg-gray-100 py-4 px-2 sm:px-4 max-w-7xl mx-auto">
-     <DynamicTabs
-  tabs={tabsForUI}
-  activeName={activeTab}
-  onTabChange={setActiveTab}
-  poppins={poppins}
-/>
-    </div>
-
+    <DynamicTabs
+      tabs={tabsForUI}
+      activeName={activeTab}
+      onTabChange={setActiveTab}
+      poppins={poppins}
+    />
   </div>
 );
 }

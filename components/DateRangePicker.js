@@ -94,8 +94,8 @@ const DateRangePicker = ({ onDateChange }) => {
               <button
                 key={preset.value}
                 onClick={() => selectPreset(preset.value)}
-                className={`w-full text-left py-1 px-2 text-sm hover:bg-blue-600 hover:text-white rounded ${
-                  selectedPreset === preset.value ? 'bg-blue-100' : ''
+                className={`w-full text-left py-1 px-2 text-sm hover:bg-[#d72828] hover:text-white rounded ${
+                  selectedPreset === preset.value ? 'bg-red-100' : ''
                 }`}
               >
                 {preset.label}

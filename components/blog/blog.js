@@ -384,7 +384,7 @@ export default function BlogComponent() {
 
             <div className="p-8 bg-gray-900 text-white text-center">
 
-              <a href={blog.video} target="_blank" rel="noreferrer" className="underline text-blue-400">
+              <a href={blog.video} target="_blank" rel="noreferrer" className="underline text-[#d72828]">
 
                 Open video in new tab
 
@@ -460,7 +460,7 @@ export default function BlogComponent() {
 
             </h1>
 
-            <h2 className="text-xl md:text-2xl font-semibold mb-4 text-blue-100">
+            <h2 className="text-xl md:text-2xl font-semibold mb-4 text-[#d72828]">
 
               Electronics & Home Appliance Buying Guides & Expert Advice
 
@@ -500,7 +500,7 @@ export default function BlogComponent() {
 
                     <div className="font-bold text-xl leading-none text-white">{stat.value}</div>
 
-                    <div className="text-xs text-blue-200 mt-1">{stat.label}</div>
+                    <div className="text-xs text-[#d72828] mt-1">{stat.label}</div>
 
                   </div>
 
@@ -540,9 +540,9 @@ export default function BlogComponent() {
 
         {/* ===== 2. SEARCH BAR ===== */}
 
-        <div className="bg-blue-50 rounded-xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] p-3 flex flex-col md:flex-row items-center gap-4 border border-blue-50 mb-14 relative z-20">
+        <div className="bg-red-50 rounded-xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] p-3 flex flex-col md:flex-row items-center gap-4 border border-red-50 mb-14 relative z-20">
 
-          <span className="font-bold text-blue-700 whitespace-nowrap px-4 text-sm">
+          <span className="font-bold text-[#d72828] whitespace-nowrap px-4 text-sm">
 
             What are you looking for?
 
@@ -572,7 +572,7 @@ export default function BlogComponent() {
 
               placeholder="Search guides, products, topics..."
 
-              className="w-full bg-gray-50 border border-gray-200 rounded-lg py-2.5 pl-4 pr-12 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="w-full bg-gray-50 border border-gray-200 rounded-lg py-2.5 pl-4 pr-12 text-sm focus:outline-none focus:ring-1 focus:ring-red-500"
 
             />
 
@@ -586,7 +586,7 @@ export default function BlogComponent() {
 
               }}
 
-              className="absolute right-0 top-0 bottom-0 bg-blue-700 text-white w-12 flex items-center justify-center rounded-r-lg hover:bg-blue-800 transition"
+              className="absolute right-0 top-0 bottom-0 bg-[#d72828] text-white w-12 flex items-center justify-center rounded-r-lg hover:bg-[#d72828] transition"
 
             >
 
@@ -614,7 +614,7 @@ export default function BlogComponent() {
 
                   onClick={() => { setSearchQuery(topic); setHeroSearchQuery(topic); }}
 
-                  className="text-blue-700 bg-blue-50/50 px-2.5 py-1.5 rounded cursor-pointer hover:bg-blue-100 transition whitespace-nowrap"
+                  className="text-[#d72828] bg-red-50/50 px-2.5 py-1.5 rounded cursor-pointer hover:bg-red-100 transition whitespace-nowrap"
 
                 >
 
@@ -656,7 +656,7 @@ export default function BlogComponent() {
 
             </h3>
 
-            <Link href="/blog" className="text-blue-700 font-bold text-sm flex items-center gap-1 hover:underline">
+            <Link href="/blog" className="text-[#d72828] font-bold text-sm flex items-center gap-1 hover:underline">
 
               View all guides <span className="text-lg leading-none">→</span>
 
@@ -702,7 +702,7 @@ export default function BlogComponent() {
 
                     <div className="relative h-44 bg-gray-100 w-full overflow-hidden">
 
-                      <div className="absolute top-4 left-4 bg-blue-700 text-white w-7 h-7 flex items-center justify-center rounded-full text-xs font-bold z-10 shadow-md ring-4 ring-white/50">
+                      <div className="absolute top-4 left-4 bg-[#d72828] text-white w-7 h-7 flex items-center justify-center rounded-full text-xs font-bold z-10 shadow-md ring-4 ring-white/50">
 
                         {idx + 1}
 
@@ -722,7 +722,7 @@ export default function BlogComponent() {
 
                       ) : (
 
-                        <div className="w-full h-full bg-blue-50 flex items-center justify-center text-blue-200 text-4xl">📰</div>
+                        <div className="w-full h-full bg-red-50 flex items-center justify-center text-[#d72828] text-4xl">📰</div>
 
                       )}
 
@@ -730,7 +730,7 @@ export default function BlogComponent() {
 
                     <div className="p-5 flex flex-col flex-1">
 
-                      <h4 className="font-bold text-gray-900 mb-2 leading-snug text-[15px] group-hover:text-blue-700 transition-colors">
+                      <h4 className="font-bold text-gray-900 mb-2 leading-snug text-[15px] group-hover:text-[#d72828] transition-colors">
 
                         {guide.blog_name}
 
@@ -752,7 +752,7 @@ export default function BlogComponent() {
 
                         href={`/blog/${guide.blog_slug}`}
 
-                        className="text-blue-700 font-bold text-[13px] hover:underline mt-auto flex items-center gap-1"
+                        className="text-[#d72828] font-bold text-[13px] hover:underline mt-auto flex items-center gap-1"
 
                       >
 
@@ -804,7 +804,7 @@ export default function BlogComponent() {
 
       <div key={i} className="flex flex-col items-center gap-3 cursor-pointer group min-w-[100px]">
 
-        <div className="w-16 h-16 rounded-full bg-white border-2 border-blue-300 flex items-center justify-center">
+        <div className="w-16 h-16 rounded-full bg-white border-2 border-[#d72828] flex items-center justify-center">
 
           <img
 
@@ -818,13 +818,13 @@ export default function BlogComponent() {
 
         </div>
 
-        <span className="text-[12px] font-bold text-gray-800 text-center leading-tight group-hover:text-blue-700">
+        <span className="text-[12px] font-bold text-gray-800 text-center leading-tight group-hover:text-[#d72828]">
 
           {cat.name}
 
           <br />
 
-          <span className="font-semibold text-gray-500 group-hover:text-blue-600">Guides</span>
+          <span className="font-semibold text-gray-500 group-hover:text-[#d72828]">Guides</span>
 
         </span>
 
@@ -836,13 +836,13 @@ export default function BlogComponent() {
 
 
 
-  <div className="mt-4 bg-gradient-to-r from-blue-50 to-blue-100/50 border border-blue-200 rounded-lg p-4 flex justify-between items-center flex-col sm:flex-row gap-4">
+  <div className="mt-4 bg-gradient-to-r from-red-50 to-red-100/50 border border-red-200 rounded-lg p-4 flex justify-between items-center flex-col sm:flex-row gap-4">
 
     <div className="flex items-center gap-3">
 
       <div className="w-7 h-7 flex-shrink-0">
 
-        <svg className="w-full h-full text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className="w-full h-full text-[#d72828]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
 
@@ -852,7 +852,7 @@ export default function BlogComponent() {
 
       <p className="text-[13px] text-gray-700">
 
-        <span className="font-bold text-blue-700">Shopping Tip:</span> Not sure which product is right for you? Check our expert guides and make the right choice.
+        <span className="font-bold text-[#d72828]">Shopping Tip:</span> Not sure which product is right for you? Check our expert guides and make the right choice.
 
       </p>
 
@@ -862,7 +862,7 @@ export default function BlogComponent() {
 
       href="/blog"
 
-      className="bg-blue-700 text-white text-[13px] font-bold py-2.5 px-6 rounded hover:bg-blue-800 whitespace-nowrap transition-colors shadow-sm"
+      className="bg-[#d72828] text-white text-[13px] font-bold py-2.5 px-6 rounded hover:bg-[#d72828] whitespace-nowrap transition-colors shadow-sm"
 
     >
 
@@ -1046,7 +1046,7 @@ export default function BlogComponent() {
 
                             ) : (
 
-                              <div className="w-full h-full bg-blue-900/40 flex items-center justify-center" />
+                              <div className="w-full h-full bg-[#d72828]/40 flex items-center justify-center" />
 
                             )}
 
@@ -1196,7 +1196,7 @@ export default function BlogComponent() {
 
                         ) : (
 
-                          <div className="w-full h-full bg-blue-50 flex items-center justify-center text-2xl">📰</div>
+                          <div className="w-full h-full bg-red-50 flex items-center justify-center text-2xl">📰</div>
 
                         )}
 
@@ -1216,7 +1216,7 @@ export default function BlogComponent() {
 
                           </div>
 
-                          <h4 className="text-[13px] font-bold text-gray-900 leading-snug group-hover:text-blue-700 transition-colors line-clamp-2">
+                          <h4 className="text-[13px] font-bold text-gray-900 leading-snug group-hover:text-[#d72828] transition-colors line-clamp-2">
 
                             {blog.blog_name}
 
@@ -1228,7 +1228,7 @@ export default function BlogComponent() {
 
                           href={`/blog/${blog.blog_slug}`}
 
-                          className="text-blue-700 font-bold text-[10px] hover:underline flex items-center gap-0.5"
+                          className="text-[#d72828] font-bold text-[10px] hover:underline flex items-center gap-0.5"
 
                         >
 
@@ -1258,7 +1258,7 @@ export default function BlogComponent() {
 
                   onClick={() => { setSearchQuery(""); setHeroSearchQuery(""); }}
 
-                  className="text-blue-700 font-bold text-[12px] hover:underline flex items-center gap-1"
+                  className="text-[#d72828] font-bold text-[12px] hover:underline flex items-center gap-1"
 
                 >
 
@@ -1270,7 +1270,7 @@ export default function BlogComponent() {
 
               {!searchQuery && (
 
-                <Link href="/blog" className="text-blue-700 font-bold text-[12px] hover:underline flex items-center gap-1">
+                <Link href="/blog" className="text-[#d72828] font-bold text-[12px] hover:underline flex items-center gap-1">
 
                   View all articles <span>&rarr;</span>
 
@@ -1304,7 +1304,7 @@ export default function BlogComponent() {
 
                   placeholder="Search articles, topics..."
 
-                  className="w-full bg-white py-2 pl-3 pr-9 text-[12px] focus:outline-none focus:border-blue-400"
+                  className="w-full bg-white py-2 pl-3 pr-9 text-[12px] focus:outline-none focus:border-[#d72828]"
 
                 />
 
@@ -1312,7 +1312,7 @@ export default function BlogComponent() {
 
                   onClick={() => document.getElementById("latest-articles")?.scrollIntoView({ behavior: "smooth" })}
 
-                  className="absolute right-0 top-0 bottom-0 bg-[#0a1d56] text-white w-9 flex items-center justify-center hover:bg-blue-800"
+                  className="absolute right-0 top-0 bottom-0 bg-[#0a1d56] text-white w-9 flex items-center justify-center hover:bg-[#d72828]"
 
                 >
 
@@ -1354,7 +1354,7 @@ export default function BlogComponent() {
 
                   <li key={i} className="flex items-center justify-between group cursor-pointer">
 
-                    <div className="flex items-center gap-3 text-gray-700 group-hover:text-blue-700 transition-colors">
+                    <div className="flex items-center gap-3 text-gray-700 group-hover:text-[#d72828] transition-colors">
 
                       <div className="w-5 h-5 rounded flex items-center justify-center border border-[#e8efff] text-[#143ceb] bg-[#f5f8ff]">
 
@@ -1440,13 +1440,13 @@ export default function BlogComponent() {
 
                         ) : (
 
-                          <div className="w-12 h-8 bg-blue-50 rounded flex-shrink-0 flex items-center justify-center text-sm">📰</div>
+                          <div className="w-12 h-8 bg-red-50 rounded flex-shrink-0 flex items-center justify-center text-sm">📰</div>
 
                         )}
 
                         <div className="flex-1 min-w-0">
 
-                          <h5 className="text-[13px] font-bold text-[#0a1d56] leading-tight group-hover:text-blue-700 line-clamp-2">
+                          <h5 className="text-[13px] font-bold text-[#0a1d56] leading-tight group-hover:text-[#d72828] line-clamp-2">
 
                             {post.blog_name}
 
@@ -1543,7 +1543,7 @@ export default function BlogComponent() {
 
               </p>
 
-              <button className="bg-[#0a1d56] text-white text-[12px] font-bold py-2.5 px-4 rounded hover:bg-blue-900 relative z-10 flex items-center gap-1 w-[130px] justify-center">
+              <button className="bg-[#0a1d56] text-white text-[12px] font-bold py-2.5 px-4 rounded hover:bg-[#d72828] relative z-10 flex items-center gap-1 w-[130px] justify-center">
 
                 Talk to Expert <span>&rarr;</span>
 
@@ -1571,7 +1571,7 @@ export default function BlogComponent() {
 
               <div className="flex items-center gap-2 mb-2">
 
-                <div className="w-7 h-7 bg-blue-50 rounded text-blue-600 flex items-center justify-center flex-shrink-0">
+                <div className="w-7 h-7 bg-red-50 rounded text-[#d72828] flex items-center justify-center flex-shrink-0">
 
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 
@@ -1597,11 +1597,11 @@ export default function BlogComponent() {
 
                 placeholder="Enter your email address"
 
-                className="w-full border border-gray-200 rounded py-2.5 px-3 text-[12px] mb-3 focus:outline-none focus:border-blue-500"
+                className="w-full border border-gray-200 rounded py-2.5 px-3 text-[12px] mb-3 focus:outline-none focus:border-[#d72828]"
 
               />
 
-              <button className="bg-[#0a1d56] text-white font-bold py-2.5 px-6 rounded hover:bg-blue-900 text-[12px] transition-colors w-[130px]">
+              <button className="bg-[#0a1d56] text-white font-bold py-2.5 px-6 rounded hover:bg-[#d72828] text-[12px] transition-colors w-[130px]">
 
                 Subscribe
 
@@ -1647,7 +1647,7 @@ export default function BlogComponent() {
 
                     }}
 
-                    className="bg-gray-50 border border-gray-200 text-gray-700 text-[12px] font-bold px-2.5 py-1.5 rounded hover:border-blue-300 hover:text-blue-700 transition-colors whitespace-nowrap"
+                    className="bg-gray-50 border border-gray-200 text-gray-700 text-[12px] font-bold px-2.5 py-1.5 rounded hover:border-[#d72828] hover:text-[#d72828] transition-colors whitespace-nowrap"
 
                   >
 
@@ -1691,7 +1691,7 @@ export default function BlogComponent() {
 
                   <div key={i} className="flex gap-2">
 
-                    <div className="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center flex-shrink-0 text-xl">
+                    <div className="w-12 h-12 rounded-full bg-red-50 text-[#d72828] flex items-center justify-center flex-shrink-0 text-xl">
 
                       <img src={point.img} alt={point.title} className="w-full h-full object-contain" />
 
@@ -1725,7 +1725,7 @@ export default function BlogComponent() {
 
             </h3>
 
-            <div className="bg-gradient-to-b from-blue-600 to-blue-800 rounded-lg border border-blue-700 shadow-lg p-4 relative overflow-hidden flex flex-col justify-between min-h-[220px]">
+            <div className="bg-gradient-to-b from-[#d72828] to-[#d72828] rounded-lg border border-[#d72828] shadow-lg p-4 relative overflow-hidden flex flex-col justify-between min-h-[220px]">
 
               <div className="absolute inset-0 opacity-10">
 
@@ -1741,7 +1741,7 @@ export default function BlogComponent() {
 
                 </h3>
 
-                <p className="text-blue-100 text-[13px] leading-relaxed mb-4">
+                <p className="text-[#d72828] text-[13px] leading-relaxed mb-4">
 
                   Talk to a Sathya Stores Expert or visit your nearest store.
 
@@ -1763,7 +1763,7 @@ export default function BlogComponent() {
 
                 </button>
 
-                <button className="bg-white hover:bg-gray-100 text-blue-700 font-bold py-1.5 px-3 rounded flex items-center justify-center gap-1.5 transition-colors text-[13px] shadow-md">
+                <button className="bg-white hover:bg-gray-100 text-[#d72828] font-bold py-1.5 px-3 rounded flex items-center justify-center gap-1.5 transition-colors text-[13px] shadow-md">
 
                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 

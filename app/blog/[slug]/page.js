@@ -69,7 +69,7 @@ export default async function BlogPost({ params }) {
           <p className="text-gray-600 mb-6">The requested blog post could not be found.</p>
           <Link
             href="/blog"
-            className="inline-block px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+            className="inline-block px-6 py-2 bg-[#d72828] text-white rounded-md hover:bg-[#d72828] transition-colors"
           >
             Back to Blog
           </Link>
@@ -86,16 +86,16 @@ export default async function BlogPost({ params }) {
 
         {/* Breadcrumb */}
         <nav className="mb-6 text-sm text-gray-500 flex items-center gap-2">
-          <Link href="/" className="hover:text-blue-600 transition-colors">Home</Link>
+          <Link href="/" className="hover:text-[#d72828] transition-colors">Home</Link>
           <span>/</span>
-          <Link href="/blog" className="hover:text-blue-600 transition-colors">Blog</Link>
+          <Link href="/blog" className="hover:text-[#d72828] transition-colors">Blog</Link>
           <span>/</span>
           <span className="text-gray-800 font-medium line-clamp-1">{blog.blog_name}</span>
         </nav>
 
         {/* Category badge */}
         {blog.category?.category_name && (
-          <span className="inline-block bg-blue-100 text-blue-700 text-xs font-bold px-3 py-1 rounded-full mb-4">
+          <span className="inline-block bg-red-100 text-[#d72828] text-xs font-bold px-3 py-1 rounded-full mb-4">
             {blog.category.category_name}
           </span>
         )}
@@ -117,7 +117,7 @@ export default async function BlogPost({ params }) {
             {hasVideo && (
               <>
                 <span>•</span>
-                <span className="flex items-center gap-1 text-blue-600 font-medium">
+                <span className="flex items-center gap-1 text-[#d72828] font-medium">
                   <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M8 5v14l11-7z" />
                   </svg>
@@ -185,7 +185,7 @@ export default async function BlogPost({ params }) {
           </div>
           <Link
             href="/blog"
-            className="text-blue-600 hover:text-blue-800 font-medium transition-colors text-sm"
+            className="text-[#d72828] hover:text-[#d72828] font-medium transition-colors text-sm"
           >
             ← Back to all posts
           </Link>

@@ -114,7 +114,7 @@ function ContactForm() {
   };
 
   const inp = (hasErr) =>
-    `w-full border rounded px-3 py-[9px] text-[13px] text-gray-700 placeholder-gray-400 focus:outline-none focus:border-blue-500 transition-colors ${
+    `w-full border rounded px-3 py-[9px] text-[13px] text-gray-700 placeholder-gray-400 focus:outline-none focus:border-[#d72828] transition-colors ${
       hasErr ? "border-red-400 bg-red-50" : "border-gray-300 bg-white"
     }`;
 
@@ -192,7 +192,7 @@ function ContactForm() {
       </div>
       {/* Submit */}
       <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 pt-1">
-        <button type="submit" disabled={loading} className="flex items-center gap-2 bg-blue-700 hover:bg-blue-800 disabled:opacity-60 text-white font-semibold rounded-lg px-5 py-2.5 text-[13px] transition-colors">
+        <button type="submit" disabled={loading} className="flex items-center gap-2 bg-[#d72828] hover:bg-[#d72828] disabled:opacity-60 text-white font-semibold rounded-lg px-5 py-2.5 text-[13px] transition-colors">
           <FaPaperPlane size={12} />
           {loading ? "Submitting..." : "Submit Message"}
         </button>
@@ -214,17 +214,17 @@ function StoreCard({ store }) {
   return (
     <div className="bg-white border border-gray-200 rounded-lg overflow-hidden flex flex-col w-full min-w-[170px] max-w-[200px] sm:min-w-[180px]">
       {/* Image */}
-      <div className="relative w-full bg-blue-900 overflow-hidden flex-shrink-0 h-[100px] sm:h-[110px]">
+      <div className="relative w-full bg-[#d72828] overflow-hidden flex-shrink-0 h-[100px] sm:h-[110px]">
         {store.banners?.[0] ? (
           <img src={store.banners[0]} alt={store.organisation_name} className="w-full h-full object-cover" onError={(e) => { e.target.style.display = "none"; }} />
         ) : store.logo ? (
           <img src={store.logo} alt={store.organisation_name} className="w-full h-full object-cover" onError={(e) => { e.target.style.display = "none"; }} />
         ) : (
-          <div className="w-full h-full flex items-center justify-center"><span className="text-blue-300 font-bold text-sm">Sathya Stores</span></div>
+          <div className="w-full h-full flex items-center justify-center"><span className="text-[#d72828] font-bold text-sm">Sathya Stores</span></div>
         )}
         {/* City badge */}
         {store.city && (
-          <span className="absolute top-1.5 left-1.5 bg-blue-700 text-white text-[9.5px] font-bold px-1.5 py-0.5 rounded">
+          <span className="absolute top-1.5 left-1.5 bg-[#d72828] text-white text-[9.5px] font-bold px-1.5 py-0.5 rounded">
             {capitalize(store.city)}
           </span>
         )}
@@ -241,7 +241,7 @@ function StoreCard({ store }) {
           </p>
         )}
         {store.phone && (
-          <a href={`tel:${store.phone}`} className="flex items-center gap-1.5 text-[11px] text-blue-600 font-medium mb-3 hover:underline">
+          <a href={`tel:${store.phone}`} className="flex items-center gap-1.5 text-[11px] text-[#d72828] font-medium mb-3 hover:underline">
             <FaPhoneAlt size={9} className="flex-shrink-0" />
             {store.phone}
           </a>
@@ -249,12 +249,12 @@ function StoreCard({ store }) {
         {/* Buttons */}
         <div className="flex gap-2 mt-auto">
           <a href={mapsUrl} target="_blank" rel="noopener noreferrer" className="flex-1">
-            <button className="w-full border border-blue-600 text-blue-600 hover:bg-blue-50 rounded py-1.5 text-[11px] font-semibold transition-colors">
+            <button className="w-full border border-[#d72828] text-[#d72828] hover:bg-red-50 rounded py-1.5 text-[11px] font-semibold transition-colors">
               Get Directions
             </button>
           </a>
           <Link href={`/store/${store.slug}`} className="flex-1">
-            <button className="w-full bg-blue-700 hover:bg-blue-800 text-white rounded py-1.5 text-[11px] font-semibold transition-colors">
+            <button className="w-full bg-[#d72828] hover:bg-[#d72828] text-white rounded py-1.5 text-[11px] font-semibold transition-colors">
               View Store
             </button>
           </Link>
@@ -423,7 +423,7 @@ const results = stores.filter(
 
           {/* Talk to Experts */}
           <div className="border border-gray-200 rounded-xl p-3 sm:p-4 flex items-start gap-2.5 sm:gap-3">
-            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
+            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[#d72828] flex items-center justify-center flex-shrink-0">
               <FaPhoneAlt className="text-white text-[15px] sm:text-[17px]" />
             </div>
             <div>
@@ -431,7 +431,7 @@ const results = stores.filter(
               <p className="text-[12px] text-gray-500 leading-relaxed mb-2">
                 Our support team is ready to assist you with your product, orders or general enquiries.
               </p>
-              <a href="tel:9842344323" className="text-blue-700 font-bold text-[13px] block hover:underline">
+              <a href="tel:9842344323" className="text-[#d72828] font-bold text-[13px] block hover:underline">
                 ☎ 98423 44323
               </a>
               <div className="text-[11px] text-gray-400 mt-0.5">Mon to Sun: 10:00 AM – 9:00 PM</div>
@@ -440,7 +440,7 @@ const results = stores.filter(
 
           {/* Email Support */}
           <div className="border border-gray-200 rounded-xl p-3 sm:p-4 flex items-start gap-2.5 sm:gap-3">
-            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
+            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[#d72828] flex items-center justify-center flex-shrink-0">
               <FaEnvelope className="text-white text-[15px] sm:text-[17px]" />
             </div>
             <div>
@@ -448,7 +448,7 @@ const results = stores.filter(
               <p className="text-[12px] text-gray-500 leading-relaxed mb-2">
                 Drop us an email. We typically respond within 24 hours.
               </p>
-              <a href="mailto:customercare@sathya.store" className="text-blue-700 font-bold text-[12px] hover:underline break-all">
+              <a href="mailto:customercare@sathya.store" className="text-[#d72828] font-bold text-[12px] hover:underline break-all">
                 customercare@<br/>sathya.store
               </a>
             </div>
@@ -476,7 +476,7 @@ const results = stores.filter(
 
           {/* Visit Our Stores */}
           <div className="border border-gray-200 rounded-xl p-3 sm:p-4 flex items-start gap-2.5 sm:gap-3">
-            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
+            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[#d72828] flex items-center justify-center flex-shrink-0">
               <FaStore className="text-white text-[15px] sm:text-[17px]" />
             </div>
             <div>
@@ -484,7 +484,7 @@ const results = stores.filter(
               <p className="text-[12px] text-gray-500 leading-relaxed mb-2">
                 {totalStores > 0 ? `${totalStores}+` : "47+"} showrooms across Tamil Nadu. Find the one near you.
               </p>
-              <Link href="/location" className="text-blue-700 font-bold text-[13px] hover:underline inline-flex items-center gap-1">
+              <Link href="/location" className="text-[#d72828] font-bold text-[13px] hover:underline inline-flex items-center gap-1">
                 Store Locator <FaArrowRight size={11} />
               </Link>
             </div>
@@ -534,13 +534,13 @@ const results = stores.filter(
               </div>
               <div className="flex items-center gap-2.5">
                 <FaPhoneAlt size={12} className="text-gray-600 flex-shrink-0" />
-                <a href="tel:9842344323" className="text-[12.5px] text-gray-700 hover:text-blue-600">
+                <a href="tel:9842344323" className="text-[12.5px] text-gray-700 hover:text-[#d72828]">
                   98423 44323
                 </a>
               </div>
               <div className="flex items-center gap-2.5">
                 <FaEnvelope size={12} className="text-gray-600 flex-shrink-0" />
-                <a href="mailto:customercare@sathya.store" className="text-[12.5px] text-blue-600 hover:underline">
+                <a href="mailto:customercare@sathya.store" className="text-[12.5px] text-[#d72828] hover:underline">
                   customercare@sathya.store
                 </a>
               </div>
@@ -575,7 +575,7 @@ const results = stores.filter(
             />
             <button
               onClick={handleSearch}
-              className="w-full sm:w-auto bg-blue-700 hover:bg-blue-800 text-white px-6 py-2.5 text-[13px] sm:text-[13.5px] font-semibold flex items-center justify-center gap-2 transition-colors flex-shrink-0"
+              className="w-full sm:w-auto bg-[#d72828] hover:bg-[#d72828] text-white px-6 py-2.5 text-[13px] sm:text-[13.5px] font-semibold flex items-center justify-center gap-2 transition-colors flex-shrink-0"
             >
               <FaSearch size={13} />
               Search
@@ -609,7 +609,7 @@ const results = stores.filter(
               {/* View All Stores */}
               <div className="text-center mt-2">
                 <Link href="/location">
-                  <button className="inline-flex items-center justify-center gap-2 border border-blue-700 text-blue-700 hover:bg-blue-50 rounded-lg px-5 sm:px-8 py-2.5 text-[13px] sm:text-[14px] font-bold transition-colors w-full sm:w-auto max-w-xs sm:max-w-none">
+                  <button className="inline-flex items-center justify-center gap-2 border border-[#d72828] text-[#d72828] hover:bg-red-50 rounded-lg px-5 sm:px-8 py-2.5 text-[13px] sm:text-[14px] font-bold transition-colors w-full sm:w-auto max-w-xs sm:max-w-none">
                     View All Stores ({totalStores > 0 ? `${totalStores}+` : "47+"}) <FaArrowRight size={13} />
                   </button>
                 </Link>

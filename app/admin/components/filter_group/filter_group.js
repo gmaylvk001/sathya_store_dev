@@ -315,7 +315,7 @@ useEffect(() => {
             </button>
           <button
             onClick={() => setIsFilterModalOpen(true)}
-            className="bg-blue-500 text-white px-4 py-2 rounded-md"
+            className="bg-[#d72828] text-white px-4 py-2 rounded-md"
           >
             ⬆️ Bulk Upload
           </button>
@@ -499,11 +499,11 @@ useEffect(() => {
       </button>
       
       <h2 className="text-xl font-semibold mb-4">Bulk Upload</h2>
-      <div className="border border-gray-200 rounded-lg p-6 hover:border-blue-500 transition-colors">
+      <div className="border border-gray-200 rounded-lg p-6 hover:border-[#d72828] transition-colors">
         <div className="mb-4">
           <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
             <svg
-              className="w-5 h-5 text-blue-500"
+              className="w-5 h-5 text-[#d72828]"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -527,7 +527,7 @@ useEffect(() => {
             type="file"
             accept=".xlsx,.csv"
             onChange={(e) => setExcelFile(e.target.files?.[0] || null)}
-            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-[#d72828] hover:file:bg-red-100"
             required
           />
         </div>
@@ -535,7 +535,7 @@ useEffect(() => {
         <button
           type="button"
           onClick={handleSampleDownload}
-          className="inline-flex items-center pt-5 text-sm text-blue-600 hover:text-blue-800 transition-colors"
+          className="inline-flex items-center pt-5 text-sm text-[#d72828] hover:text-[#d72828] transition-colors"
         >
           <svg
             className="w-4 h-4 mr-2"
@@ -557,7 +557,7 @@ useEffect(() => {
           <button
             onClick={handleSubmit}
             disabled={isLoading}
-            className="px-6 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:outline-none disabled:opacity-50 transition-colors flex items-center"
+            className="px-6 py-2.5 bg-[#d72828] text-white font-medium rounded-lg hover:bg-[#d72828] focus:outline-none disabled:opacity-50 transition-colors flex items-center"
           >
             {isLoading ? (
               <>

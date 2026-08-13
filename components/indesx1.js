@@ -1069,7 +1069,7 @@ useEffect(() => {
 
               {/* Deal Card 2 */}
               <motion.div whileHover={{ y: -5 }} className="min-w-[250px] p-4 bg-white rounded-lg shadow-md hover:shadow-lg transition">
-                <span className="bg-blue-500 text-white text-xs px-2 py-1 rounded">Best Sale</span>
+                <span className="bg-[#d72828] text-white text-xs px-2 py-1 rounded">Best Sale</span>
                 <Image src="/images/thumbs/bread.png" alt="Whole Grains Bread" width={200} height={160} className="w-full h-40 object-contain  mb-20" />
                 <h3 className="text-sm font-semibold mt-2">Whole Grains and Seeds Organic Bread</h3>
                 <p className="text-green-600 text-sm">$14.99 <span className="line-through text-gray-400">$28.99</span></p>

@@ -46,8 +46,9 @@ export async function GET() {
   try {
     await dbConnect();
     const categoryBanners = await CategoryBanner.findOne({});
-    return NextResponse.json({ success: true, categoryBanners });
+    return NextResponse.json({ success: true, categoryBanners: categoryBanners || null });
   } catch (err) {
+    console.error("Error in GET /api/categorybanner:", err);
     return NextResponse.json(
       { success: false, message: err.message },
       { status: 500 }

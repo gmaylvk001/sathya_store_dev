@@ -72,7 +72,7 @@ export async function GET(request) {
       data: logs,
     });
   } catch (error) {
-    console.error(error);
+    console.error("Error in GET /api/visitorlog:", error);
 
     return NextResponse.json(
       {
@@ -88,19 +88,19 @@ export async function POST(request) {
   try {
     await dbConnect();
 
-    const body = await request.json();
+    const body = await request.json().catch(() => ({}));
     const ip = getClientIp(request);
 
     await VisitorLog.create({
       ip,
-      page: body.page,
-      referer: body.referer,
-      userAgent: body.userAgent,
+      page: body?.page || "",
+      referer: body?.referer || "",
+      userAgent: body?.userAgent || "",
     });
 
     return NextResponse.json({ success: true, ip });
   } catch (error) {
-    console.error(error);
+    console.error("Error in POST /api/visitorlog:", error);
 
     return NextResponse.json(
       {

@@ -165,7 +165,7 @@ const renderPagination = () => {
           </li>
           
           {pageNumbers.map((number) => (
-            <li key={number} className={`page-item ${currentPage === number ? 'bg-blue-500 text-white' : ''}`}>
+            <li key={number} className={`page-item ${currentPage === number ? 'bg-[#d72828] text-white' : ''}`}>
               <button
                 onClick={() => paginate(number)}
                 className="px-3 py-1.5 border border-gray-300 rounded-md bg-white text-black hover:bg-gray-100"
@@ -210,7 +210,7 @@ const renderPagination = () => {
 
       {isLoading ? (
         <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#d72828]"></div>
         </div>
       ) : (
         <div className="bg-white shadow-md rounded-lg p-5 h-[500px] overflow-x-auto">
@@ -227,7 +227,7 @@ const renderPagination = () => {
           placeholder="Search Zone..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 pr-3 py-2 border border-gray-300 rounded-md w-full text-sm focus:outline-none focus:ring-2 focus:ring-blue-200"
+                  className="pl-10 pr-3 py-2 border border-gray-300 rounded-md w-full text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
                 />
               </div>
             </div>
@@ -238,7 +238,7 @@ const renderPagination = () => {
               <select
                 value={statusFilter}
                onChange={(e) => setStatusFilter(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-sm"
+                className="w-full p-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-[#d72828] text-sm"
               >
                 <option value="">All Statuses</option>
                 <option value="Active">Active</option>
@@ -251,7 +251,7 @@ const renderPagination = () => {
             <div>
               <button
                onClick={() => setIsModalOpen(true)}
-                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium shadow-sm transition duration-150"
+                className="bg-[#d72828] hover:bg-[#d72828] text-white px-4 py-2 rounded-md text-sm font-medium shadow-sm transition duration-150"
               >
                 + Add Zone
               </button>
@@ -293,7 +293,7 @@ const renderPagination = () => {
                         setEditZone(zone);
                         setIsUpdateModalOpen(true);
                       }}
-                                className="w-7 h-7 bg-blue-100 text-blue-600 rounded-full inline-flex items-center justify-center hover:bg-blue-200 transition"
+                                className="w-7 h-7 bg-red-100 text-[#d72828] rounded-full inline-flex items-center justify-center hover:bg-red-200 transition"
                                 title="Edit"
                               >
                                 <FaEdit className="mr-1" />
@@ -376,7 +376,7 @@ const renderPagination = () => {
                 </button>
                 <button
                   type="submit"
-                  className="bg-blue-600 text-white px-4 py-2 rounded"
+                  className="bg-[#d72828] text-white px-4 py-2 rounded"
                 >
                   Save
                 </button>
@@ -439,7 +439,7 @@ const renderPagination = () => {
                 </button>
                 <button
                   type="submit"
-                  className="bg-blue-600 text-white px-4 py-2 rounded"
+                  className="bg-[#d72828] text-white px-4 py-2 rounded"
                 >
                   Update
                 </button>

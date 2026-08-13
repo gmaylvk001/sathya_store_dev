@@ -394,7 +394,7 @@ export default function AddProductPage() {
                 <button
                   type="button"
                   onClick={handleAddVariantAttribute}
-                  className="bg-blue-200 px-4 py-2 rounded"
+                  className="bg-red-200 px-4 py-2 rounded"
                 >
                   Add Variant Attribute
                 </button>
@@ -493,7 +493,7 @@ export default function AddProductPage() {
           <button
             type="button"
             onClick={handleAddFilter}
-            className="bg-blue-200 px-4 py-2 rounded mb-4"
+            className="bg-red-200 px-4 py-2 rounded mb-4"
           >
             Add Filter
           </button>
@@ -534,7 +534,7 @@ export default function AddProductPage() {
           </select>
         </div>
 
-        <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+        <button type="submit" className="bg-[#d72828] text-white px-4 py-2 rounded hover:bg-[#d72828]">
           Add Product
         </button>
       </form>

@@ -19,7 +19,7 @@ const ProductCard = ({ product }) => {
 const ProductSection = ({ title, products }) => {
   return (
     <div className="bg-gray-100 p-6 rounded-lg">
-      <h2 className="text-lg font-bold text-blue-600 mb-4">{title}</h2>
+      <h2 className="text-lg font-bold text-[#d72828] mb-4">{title}</h2>
       <div className="space-y-4">
         {products.map((product, index) => (
           <ProductCard key={index} product={product} />

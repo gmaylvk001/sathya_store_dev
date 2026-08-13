@@ -376,3 +376,22 @@ body::-webkit-scrollbar {
     aspect-ratio: 2;
   }
 }
+
+.recommended-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.recommended-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+

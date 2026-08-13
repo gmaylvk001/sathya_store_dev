@@ -258,7 +258,7 @@ export default function CategoryBannerManager() {
               <button
                 type="submit"
                 disabled={loading}
-                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                className="bg-[#d72828] text-white px-4 py-2 rounded hover:bg-[#d72828]"
               >
                 {loading ? "Saving..." : "Save"}
               </button>
@@ -299,7 +299,7 @@ export default function CategoryBannerManager() {
             <p className="text-lg font-medium">{messageModal}</p>
             <button
               onClick={() => setMessageModal(null)}
-              className="mt-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+              className="mt-4 bg-[#d72828] text-white px-4 py-2 rounded hover:bg-[#d72828]"
             >
               OK
             </button>

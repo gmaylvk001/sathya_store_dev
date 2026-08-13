@@ -111,21 +111,27 @@ export default function HomeComponent() {
     const fetchBrand = async () => {
       try {
         const response = await fetch("/api/brand");
+        if (!response.ok) return;
         const result = await response.json();
-        if (result.error) {
-          console.error(result.error);
-        } else {
-          const data = result.data;
-    
-          // Store as map for quick access
-          const map = {};
-          data.forEach((b) => {
+
+        const brandList = Array.isArray(result?.data)
+          ? result.data
+          : Array.isArray(result?.brands)
+          ? result.brands
+          : Array.isArray(result)
+          ? result
+          : [];
+
+        // Store as map for quick access
+        const map = {};
+        brandList.forEach((b) => {
+          if (b && b._id && b.brand_name) {
             map[b._id] = b.brand_name;
-          });
-          setBrandMap(map);
-        }
+          }
+        });
+        setBrandMap(map);
       } catch (error) {
-        console.error(error.message);
+        // Safe fallback without triggering dev error overlay
       }
     };
     useEffect(() => {
@@ -271,12 +277,18 @@ export default function HomeComponent() {
             try {
                 const response = await fetch('/api/brand/get');
                 if (!response.ok) {
-                    throw new Error('Network response was not ok');
+                    setBrands([]);
+                    return;
                 }
-                const data = await response.json();
-                if (data.success) {
-                    setBrands(data.brands || []);
-                }
+                const result = await response.json();
+                const brandList = Array.isArray(result?.data)
+                    ? result.data
+                    : Array.isArray(result?.brands)
+                    ? result.brands
+                    : Array.isArray(result)
+                    ? result
+                    : [];
+                setBrands(brandList);
             } catch (error) {
                 console.error("Error fetching brands:", error);
                 setBrands([]);
@@ -287,21 +299,38 @@ export default function HomeComponent() {
         const fetchCategories = async () => {
           try {
             const response = await fetch("/api/categories/get");
-            const data    = await response.json();
+            if (!response.ok) {
+              setCategories([]);
+              setParentCategories([]);
+              setSelectedCategory(null);
+              return;
+            }
+            const result = await response.json();
+            const data = Array.isArray(result?.data)
+              ? result.data
+              : Array.isArray(result?.categories)
+              ? result.categories
+              : Array.isArray(result)
+              ? result
+              : [];
+
             setCategories(data);
-            const rootIds = data
-            .filter(cat => cat.parentid === "none" && cat.status === "Active")
-            .map(cat => cat._id);
-            console.log(rootIds);
+            const rootIds = (Array.isArray(data) ? data : [])
+              .filter(cat => cat && cat.parentid === "none" && cat.status === "Active")
+              .map(cat => cat._id);
+
             // 2. Get only categories whose parentid is in rootIds → second level
-            const secondLevelCategories = data.filter(
-              cat => rootIds.includes(cat.parentid) && cat.status === "Active"
+            const secondLevelCategories = (Array.isArray(data) ? data : []).filter(
+              cat => cat && rootIds.includes(cat.parentid) && cat.status === "Active"
             );
-            console.log(secondLevelCategories);
+
             setParentCategories(secondLevelCategories);
-            setSelectedCategory(secondLevelCategories[0]);
+            setSelectedCategory(secondLevelCategories[0] || null);
           } catch (error) {
               console.error("Error fetching categories:", error);
+              setCategories([]);
+              setParentCategories([]);
+              setSelectedCategory(null);
           }
         };
         {/* 
@@ -528,10 +557,16 @@ export default function HomeComponent() {
           if (!response.ok) {
             throw new Error(`Network response was not ok (${response.status})`);
           }
-          const data = await response.json();
+          const rawData = await response.json();
+          const data = Array.isArray(rawData?.data)
+            ? rawData.data
+            : Array.isArray(rawData?.categories)
+            ? rawData.categories
+            : Array.isArray(rawData)
+            ? rawData
+            : [];
 
-          if (!Array.isArray(data)) {
-            console.warn('Unexpected categories payload, expected array:', data);
+          if (!Array.isArray(data) || data.length === 0) {
             return;
           }
 
@@ -943,7 +978,6 @@ export default function HomeComponent() {
     useEffect(() => {
       fetchSingleBannerTwoData();
     }, []);
-    console.log(categoryBanner);
     const renderSection = (sectionName) => {
       switch(sectionName) {
           case 'category_banner':
@@ -1079,7 +1113,7 @@ export default function HomeComponent() {
       >
         {isFlashSalesLoading ? (
           <div className="flex justify-center items-center h-64">
-            <div className="rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600 animate-spin"></div>
+            <div className="rounded-full h-12 w-12 border-t-2 border-b-2 border-[#d72828] animate-spin"></div>
           </div>
         ) : (
           flashSalesData
@@ -1224,7 +1258,7 @@ export default function HomeComponent() {
 
                               {isBrandsLoading ? (
                                   <div className="flex justify-center items-center h-32">
-                                      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
+                                      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#d72828]"></div>
                                   </div>
                               ) : (
                                   <motion.div variants={itemVariants}>
@@ -1270,12 +1304,12 @@ export default function HomeComponent() {
       <div className="relative">
         {isBannerLoading ? (
           <div className="p-6 flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#d72828]"></div>
           </div>
         ) : bannerData.banner.items.length > 0 ? (
           bannerData.banner.items.length > 1 ? (
             <Slider {...settings} className="relative">
-              {bannerData.banner.items.map((banner) => (
+              {bannerData.banner.items.map((banner, index) => (
                 <motion.div
                   key={banner.id}
                   className="relative w-full aspect-[2000/667] max-h-auto"
@@ -1289,7 +1323,7 @@ export default function HomeComponent() {
                       quality={100}
                       className="object-fill w-full h-full"
                       style={{ objectPosition: "center 30%" }}
-                      priority
+                      priority={index === 0}
                       unoptimized
                     />
                   </div>
@@ -1328,7 +1362,7 @@ export default function HomeComponent() {
                       quality={100}
                       className="object-fill w-full h-full"
                       style={{ objectPosition: "center 30%" }}
-                      priority
+                      priority={index === 0}
                       unoptimized
                     />
                   </div>
@@ -1370,7 +1404,7 @@ export default function HomeComponent() {
                 <div className="relative">
                   {isSingleBannerNewLoading ? (
                     <div className="p-6 flex justify-center items-center h-64">
-                      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
+                      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#d72828]"></div>
                     </div>
                   ) : singleBannerNewData.singlebanner_new.items.length > 0 ? (
                     singleBannerNewData.singlebanner_new.items.length > 1 ? (
@@ -1388,7 +1422,6 @@ export default function HomeComponent() {
                                 fill
                                 quality={100}
                                 className="object-fill w-full h-full"
-                                priority
                               />
                             </Link>
                           </motion.div>
@@ -1403,7 +1436,6 @@ export default function HomeComponent() {
                             width={1900}
                             height={400}
                             className="w-full h-auto object-fill"
-                            priority
                           />
                         </Link>
                       </motion.div>
@@ -1424,7 +1456,7 @@ export default function HomeComponent() {
                 <div className="relative">
                   {isSingleBannerTwoLoading ? (
                     <div className="p-6 flex justify-center items-center h-64">
-                      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
+                      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#d72828]"></div>
                     </div>
                   ) : singleBannerTwoData.singlebanner_two.items.length > 0 ? (
                     singleBannerTwoData.singlebanner_two.items.length > 1 ? (
@@ -1442,7 +1474,6 @@ export default function HomeComponent() {
                                 fill
                                 quality={100}
                                 className="object-fill w-full h-full"
-                                priority
                               />
                             </Link>
                           </motion.div>
@@ -1460,7 +1491,6 @@ export default function HomeComponent() {
                             width={1900}
                             height={400}
                             className="w-full h-auto object-fill"
-                            priority
                           />
                         </Link>
                       </motion.div>
@@ -1735,13 +1765,13 @@ return (
           {navigating && (
             <div className="fixed inset-0 z-[9999] flex justify-center items-center bg-black bg-opacity-30">
               <div className="p-4  shadow-lg">
-                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-600 mx-auto"></div>
+                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#d72828] mx-auto"></div>
               </div>
             </div>
           )}
             {isLoading && (
               <div className="preloader fixed inset-0 z-[9999] flex justify-center items-center bg-white">
-                  <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500 mx-auto"></div>
+                  <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#d72828] mx-auto"></div>
                 </div>
             )}
             {/* main div start */}
@@ -1750,7 +1780,7 @@ return (
                 <div className="home-container">
                   {isSectionLoading ? (
                       <div className="flex justify-center items-center h-64">
-                          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
+                          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#d72828]"></div>
                       </div>
                       ) : homeSectionData.sections.length > 0 ? (
                       // Render sections in the order specified by homeSectionData
@@ -1771,7 +1801,7 @@ return (
                       </>
                   )}
                 </div>
-                <ToastContainer />
+                
                 <RecentlyViewedProducts />
             </div>
         </>

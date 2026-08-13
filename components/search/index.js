@@ -360,7 +360,7 @@ const CategoryTree = ({ categories, selectedCategories, selectedSubcategories, o
               name="searchCategory"
               checked={selectedCategories.length === 0}
               onChange={() => onFilterChange("reset")}
-              className="h-4 w-4 text-blue-600"
+              className="h-4 w-4 text-[#d72828]"
             />
             <span className="text-sm font-medium text-gray-700">All Categories</span>
           </label>
@@ -376,9 +376,9 @@ const CategoryTree = ({ categories, selectedCategories, selectedSubcategories, o
                   name="searchCategory"
                   checked={isSelected}
                   onChange={() => onFilterChange("parent", catId)}
-                  className="h-4 w-4 text-blue-600"
+                  className="h-4 w-4 text-[#d72828]"
                 />
-                <span className={`text-sm ${isSelected ? "text-blue-600 font-medium" : "text-gray-600"}`}>
+                <span className={`text-sm ${isSelected ? "text-[#d72828] font-medium" : "text-gray-600"}`}>
                   {cat.category_name}
                 </span>
               </label>
@@ -401,7 +401,7 @@ const CategoryTree = ({ categories, selectedCategories, selectedSubcategories, o
                   name="searchSubCategory"
                   checked={selectedSubcategories.length === 0}
                   onChange={() => onFilterChange("allChildren", selectedCategories[0])}
-                  className="h-4 w-4 text-blue-600"
+                  className="h-4 w-4 text-[#d72828]"
                 />
                 <span className="text-sm font-medium text-gray-700">
                   All {selectedParent.category_name}
@@ -419,9 +419,9 @@ const CategoryTree = ({ categories, selectedCategories, selectedSubcategories, o
                       name="searchSubCategory"
                       checked={isChildSelected}
                       onChange={() => onFilterChange("child", childId, selectedCategories[0])}
-                      className="h-4 w-4 text-blue-600"
+                      className="h-4 w-4 text-[#d72828]"
                     />
-                    <span className={`text-sm ${isChildSelected ? "text-blue-600 font-medium" : "text-gray-600"}`}>
+                    <span className={`text-sm ${isChildSelected ? "text-[#d72828] font-medium" : "text-gray-600"}`}>
                       {child.category_name}
                     </span>
                   </label>
@@ -498,7 +498,7 @@ useEffect(() => {
         {(selectedBrands.length > 0 || selectedFilters.length > 0 || hasActivePriceFilter) && (
           <div className="flex flex-wrap gap-2 mb-4">
             {selectedBrands.map((id) => (
-              <span key={`chip-brand-${id}`} className="flex items-center gap-2 bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs">
+              <span key={`chip-brand-${id}`} className="flex items-center gap-2 bg-red-100 text-[#d72828] px-3 py-1 rounded-full text-xs">
                 {brandMap[id] || id}
                 <button onClick={() => removeBrandChip(id)} className="ml-1 font-bold">×</button>
               </span>
@@ -565,7 +565,7 @@ useEffect(() => {
                   <span>₹{values[1]}</span>
                 </div>
                 <div className="mt-3 flex gap-2">
-                  <button onClick={() => applyPrice(values[0], values[1])} className="px-3 py-1 bg-blue-600 text-white rounded text-sm">Apply</button>
+                  <button onClick={() => applyPrice(values[0], values[1])} className="px-3 py-1 bg-[#d72828] text-white rounded text-sm">Apply</button>
                 </div>
               </div>
             </div>
@@ -632,11 +632,11 @@ useEffect(() => {
             </div>
 
             {loading ? (
-          <div className="flex justify-center items-center h-64"><FaSpinner className="animate-spin text-4xl text-blue-500" /></div>
+          <div className="flex justify-center items-center h-64"><FaSpinner className="animate-spin text-4xl text-[#d72828]" /></div>
             ) : products.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                 {products.map((p) => (
-                  <div key={p._id} className="group relative bg-white rounded-lg border hover:border-blue-200 transition-all shadow-sm hover:shadow-md flex flex-col h-full">
+                  <div key={p._id} className="group relative bg-white rounded-lg border hover:border-red-200 transition-all shadow-sm hover:shadow-md flex flex-col h-full">
                     <div className="relative aspect-square bg-white">
                       <Link href={`/product/${p.slug}`} className="block mb-2">
                         {p.images?.[0] && (
@@ -661,11 +661,11 @@ useEffect(() => {
 
                     <div className="p-3 flex flex-col h-full">
                       <h4 className="text-xs text-gray-500 mb-2 uppercase">
-                        <Link href={`/brand/${(brandMap[p.brand] || "").toLowerCase().replace(/\s+/g, "-")}`} className="hover:text-blue-600">{brandMap[p.brand] || ""}</Link>
+                        <Link href={`/brand/${(brandMap[p.brand] || "").toLowerCase().replace(/\s+/g, "-")}`} className="hover:text-[#d72828]">{brandMap[p.brand] || ""}</Link>
                       </h4>
 
                       <Link href={`/product/${p.slug}`} className="block mb-1">
-                        <h3 className="text-xs sm:text-sm font-medium text-[#0069c6] hover:text-[#00badb] min-h-[32px] sm:min-h-[40px]">
+                        <h3 className="text-xs sm:text-sm font-medium text-[#d72828] hover:text-[#c02020] min-h-[32px] sm:min-h-[40px]">
                           {(p.name || "").length > 60 ? (p.name || "").slice(0, 57) + "..." : p.name}
                         </h3>
                       </Link>
@@ -691,7 +691,7 @@ useEffect(() => {
                          {/* <button
                     type="button"
                     onClick={() => handleShare(p)}
-                    className="bg-blue-600 hover:bg-blue-700 text-white p-1.5 rounded-full transition-colors duration-300 flex items-center justify-center flex-shrink-0"
+                    className="bg-[#d72828] hover:bg-[#d72828] text-white p-1.5 rounded-full transition-colors duration-300 flex items-center justify-center flex-shrink-0"
                     title="Share this product"
                   >
                     <FaShareAlt className="w-5 h-5" />

@@ -5,9 +5,10 @@ import ecom_brand_info from "@/models/ecom_brand_info";
 export async function GET(req) {
   try {
     await dbConnect();
-    const brands = await ecom_brand_info.find();
-    return Response.json({ data: brands }, {status: 200} );
+    const brands = await ecom_brand_info.find().sort({ position: 1 }).lean();
+    return NextResponse.json({ success: true, data: brands || [] }, { status: 200 });
   } catch (error) {
-    return Response.json({ error: "Error fetching brands" }, { status: 500 });
+    console.error("Error in GET /api/brand:", error);
+    return NextResponse.json({ success: false, error: "Error fetching brands", message: error?.message }, { status: 500 });
   }
 }

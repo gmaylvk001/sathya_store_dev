@@ -195,7 +195,7 @@ const [openSuccess, setOpenSuccess] = useState(false);
                         <button
                         type="submit"
                         disabled={loading}
-                        className="bg-blue-600 text-white px-6 py-2 rounded-md"
+                        className="bg-[#d72828] text-white px-6 py-2 rounded-md"
                         >
                         {loading ? "Submitting..." : "Submit"}
                         </button>
@@ -220,7 +220,7 @@ const [openSuccess, setOpenSuccess] = useState(false);
         {/* CLICK TO CALL */}
         <a
           href="tel:9842344323"
-          className="font-bold text-blue-700 hover:underline"
+          className="font-bold text-[#d72828] hover:underline"
         >
           9842344323
         </a>

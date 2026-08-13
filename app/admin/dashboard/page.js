@@ -71,7 +71,7 @@ export default function DashboardPage() {
                   "#fbbf24", // yellow - pending
                   "#ef4444", // red - cancelled
                   "#22c55e", // green - shipped
-                  "#3b82f6", // blue - delivered or others
+                  "#d72828", // blue - delivered or others
                   "#9ca3af", // gray - unknown or others
                 ],
                 borderColor: "#fff",
@@ -138,7 +138,7 @@ export default function DashboardPage() {
     //             data: data.data.map((item) => item.count),
     //             backgroundColor: [
     //               "#6366f1",
-    //               "#3b82f6",
+    //               "#d72828",
     //               "#10b981",
     //               "#ef4444",
     //               "#f59e0b",
@@ -192,7 +192,7 @@ export default function DashboardPage() {
     if (data.success) {
       // Extended color palette with more unique colors
       const colorPalette = [
-        "#6366f1", "#3b82f6", "#10b981", "#ef4444", "#f59e0b",
+        "#6366f1", "#d72828", "#10b981", "#ef4444", "#f59e0b",
         "#ec4899", "#d97706", "#0f172a", "#14b8a6", "#e11d48",
         "#8b5cf6", "#64748b", "#84cc16", "#f97316", "#06b6d4",
         "#a855f7", "#d946ef", "#f43f5e", "#22d3ee", "#4ade80",
@@ -401,7 +401,7 @@ export default function DashboardPage() {
 {/* Summary Cards */}
 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 3xl:grid-cols-5 gap-6">
   {/* Total Orders */}
-  <div className="card shadow-none border border-gray-200 dark:border-neutral-600 dark:bg-neutral-700 rounded-lg h-full bg-gradient-to-r from-blue-600/10 to-white">
+  <div className="card shadow-none border border-gray-200 dark:border-neutral-600 dark:bg-neutral-700 rounded-lg h-full bg-gradient-to-r from-[#d72828]/10 to-white">
     <div className="card-body p-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
@@ -410,7 +410,7 @@ export default function DashboardPage() {
           </p>
           <h6 className="mb-0 dark:text-white">{orders.length}</h6>
         </div>
-        <div className="w-[50px] h-[50px] bg-blue-600 rounded-full flex justify-center items-center">
+        <div className="w-[50px] h-[50px] bg-[#d72828] rounded-full flex justify-center items-center">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="9" cy="21" r="1"></circle>
             <circle cx="20" cy="21" r="1"></circle>

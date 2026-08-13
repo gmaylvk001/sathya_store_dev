@@ -48,7 +48,7 @@ const ConfirmModal = ({ show, onClose, onConfirm }) => (
               Cancel
             </button>
             <button
-              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+              className="px-4 py-2 bg-[#d72828] text-white rounded-lg hover:bg-[#d72828]"
               onClick={onConfirm}
             >
               Yes, Delete
@@ -111,12 +111,12 @@ const CouponModal = ({ show, onClose, coupon, onApply, onChange, couponError, is
               value={coupon}
               onChange={onChange}
               placeholder="Enter coupon code"
-              className="flex-1 px-4 py-2 border rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="flex-1 px-4 py-2 border rounded-l-lg focus:outline-none focus:ring-2 focus:ring-red-500"
             />
             <button
               onClick={onApply}
               disabled={isValidating}
-              className="px-4 py-2 bg-blue-500 text-white rounded-r-lg hover:bg-blue-600 disabled:bg-blue-300"
+              className="px-4 py-2 bg-[#d72828] text-white rounded-r-lg hover:bg-[#d72828] disabled:bg-[#d72828]"
             >
               {isValidating ? 'Applying...' : 'Apply'}
             </button>
@@ -601,8 +601,8 @@ const validateCoupon = async () => {
   if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center p-6 bg-blue-50 rounded-lg max-w-md mx-4">
-          <p className="text-blue-500 font-medium">{error}</p>
+        <div className="text-center p-6 bg-red-50 rounded-lg max-w-md mx-4">
+          <p className="text-[#d72828] font-medium">{error}</p>
           <button 
             onClick={() => window.location.reload()}
             className="mt-4 px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600"
@@ -663,8 +663,8 @@ const validateCoupon = async () => {
 
     {/* Header */}
       <div className=" sm:pl-[3rem] sm:pr-[2rem] flex flex-col sm:flex-row justify-between items-center gap-2 my-[35px]">
-        <div style={{ "--heading-color": "#0069c6" }}>
-          <h1 className="font-bold text-[1.75rem] text-[#0069c6]"> My Cart</h1>
+        <div style={{ "--heading-color": "#d72828" }}>
+          <h1 className="font-bold text-[1.75rem] text-[#d72828]"> My Cart</h1>
         </div>
         
       </div>
@@ -704,13 +704,13 @@ const validateCoupon = async () => {
                                   {/* Vertical stack for item info */}
                                   <div className="flex flex-col gap-1">
                                     {/* Item Code */}
-                                    <h3 className="py-1 text-gray-500 text-xs font-semibold cursor-pointer hover:text-[#00badb]"cstyle={{ fontSize: ".95rem" }}>
+                                    <h3 className="py-1 text-gray-500 text-xs font-semibold cursor-pointer hover:text-[#c02020]"cstyle={{ fontSize: ".95rem" }}>
                                       {item.item_code}
                                     </h3>
 
                                     {/* Product Name */}
                                     <Link href={`/product/${slugify(item.name)}`}>
-                                      <p className="py-1  font-semibold text-xs  text-[#0069c6] hover:text-[#00badb] break-words whitespace-normal" style={{ fontSize: ".95rem" }}>
+                                      <p className="py-1  font-semibold text-xs  text-[#d72828] hover:text-[#c02020] break-words whitespace-normal" style={{ fontSize: ".95rem" }}>
                                         {item.name.length > 35 ? item.name.slice(0, 35) + "..." : item.name}
                                       </p>
                                     </Link>
@@ -732,7 +732,7 @@ const validateCoupon = async () => {
                                 <td className="py-4 px-4 text-center ">
                                   <div className="flex justify-center items-center gap-2 border border-gray-300 rounded p-1">
                                     <button
-                                      className="px-2 py-1 text-black  hover:text-[#0069c6] transition-colors rounded"
+                                      className="px-2 py-1 text-black  hover:text-[#d72828] transition-colors rounded"
                                       onClick={() => updateQuantity(item.productId, item.quantity - 1, null)}
                                       disabled={item.quantity <= 1}
                                     >
@@ -740,7 +740,7 @@ const validateCoupon = async () => {
                                     </button>
                                     <span>{item.quantity}</span>
                                     <button
-                                      className="px-2 py-1 text-black  hover:text-[#0069c6] transition-colors rounded"
+                                      className="px-2 py-1 text-black  hover:text-[#d72828] transition-colors rounded"
                                       onClick={() =>
                                         updateQuantity(item.productId, item.quantity + 1, item.original_quantity)
                                       }
@@ -750,7 +750,7 @@ const validateCoupon = async () => {
                                     
                                   </div>
                                   <button
-                                    className="text-gray-500 text-xs font-semibold cursor-pointer hover:text-[#00badb]"
+                                    className="text-gray-500 text-xs font-semibold cursor-pointer hover:text-[#c02020]"
                                     onClick={() => confirmRemoveItem(item.productId)}
                                   >
                                     Remove
@@ -881,17 +881,17 @@ const validateCoupon = async () => {
                       onClick={() => setShowCouponModal(true)}
                       className="w-full py-2 rounded-lg text-sm font-semibold cursor-pointer transition-colors"
                       style={{
-                        border: "1px solid #0069c6",
-                        color: "#0069c6",
+                        border: "1px solid #d72828",
+                        color: "#d72828",
                         backgroundColor: "transparent",
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = "#0069c6"; // light blue
+                        e.currentTarget.style.backgroundColor = "#d72828"; // light blue
                         e.currentTarget.style.color = "white"; // optional if you want white text on hover
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.style.backgroundColor = "transparent";
-                        e.currentTarget.style.color = "#0069c6";
+                        e.currentTarget.style.color = "#d72828";
                       }}
                     >
                       Apply Coupon
@@ -942,7 +942,7 @@ const validateCoupon = async () => {
               
               <button
                 className="mt-4 text-white w-full py-3 rounded-md hover:brightness-110 transition-all text-gray-500 text-sm font-semibold cursor-pointer"
-                style={{ backgroundColor: "#2453D3" }}
+                style={{ backgroundColor: "#d72828" }}
                 onClick={proceedToCheckout}
               >
                 Checkout

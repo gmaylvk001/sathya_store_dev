@@ -147,7 +147,7 @@ export default function MapView({ selectedStore }) {
               {selectedStore.phone && (
                 <a
                   href={`tel:${selectedStore.phone}`}
-                  className="flex items-center gap-1 text-xs text-blue-600 mt-1.5 hover:underline"
+                  className="flex items-center gap-1 text-xs text-[#d72828] mt-1.5 hover:underline"
                 >
                   <svg
                     className="w-3 h-3 flex-shrink-0"

@@ -544,7 +544,7 @@ formData.append("businessHours", JSON.stringify(newStore.businessHours || []));
                 <button
                   type="button"
                   onClick={() => addListItem("featuredProducts", { image: null, title: "" })}
-                  className="px-3 py-1 bg-blue-600 text-white rounded"
+                  className="px-3 py-1 bg-[#d72828] text-white rounded"
                 >
                   + Add
                 </button>
@@ -566,7 +566,7 @@ formData.append("businessHours", JSON.stringify(newStore.businessHours || []));
             {/* <section className="border rounded p-4">
               <div className="flex justify-between items-center mb-3">
                 <h3 className="text-lg font-semibold">Offers</h3>
-                <button type="button" onClick={() => addListItem("offers", { title: "", validTill: "", image: null, description: "" })} className="px-3 py-1 bg-blue-600 text-white rounded">+ Add</button>
+                <button type="button" onClick={() => addListItem("offers", { title: "", validTill: "", image: null, description: "" })} className="px-3 py-1 bg-[#d72828] text-white rounded">+ Add</button>
               </div>
 
               {(newStore.offers || []).map((o, idx) => (
@@ -589,7 +589,7 @@ formData.append("businessHours", JSON.stringify(newStore.businessHours || []));
             {/* <section className="border rounded p-4">
               <div className="flex justify-between items-center mb-3">
                 <h3 className="text-lg font-semibold">Highlights</h3>
-                <button type="button" onClick={() => addListItem("highlights", { label: "", image: null })} className="px-3 py-1 bg-blue-600 text-white rounded">+ Add</button>
+                <button type="button" onClick={() => addListItem("highlights", { label: "", image: null })} className="px-3 py-1 bg-[#d72828] text-white rounded">+ Add</button>
               </div>
 
               {(newStore.highlights || []).map((h, idx) => (
@@ -608,7 +608,7 @@ formData.append("businessHours", JSON.stringify(newStore.businessHours || []));
             {/* <section className="border rounded p-4">
               <div className="flex justify-between items-center mb-3">
                 <h3 className="text-lg font-semibold">Nearby Stores</h3>
-                <button type="button" onClick={() => addListItem("nearbyStores", { name: "", address: "", rating: "" })} className="px-3 py-1 bg-blue-600 text-white rounded">+ Add</button>
+                <button type="button" onClick={() => addListItem("nearbyStores", { name: "", address: "", rating: "" })} className="px-3 py-1 bg-[#d72828] text-white rounded">+ Add</button>
               </div>
 
               {(newStore.nearbyStores || []).map((s, idx) => (
@@ -624,7 +624,7 @@ formData.append("businessHours", JSON.stringify(newStore.businessHours || []));
             <section className="border rounded p-4">
               <div className="flex justify-between items-center mb-3">
                 <h3 className="text-lg font-semibold">Business Hours</h3>
-                <button type="button" onClick={() => addListItem("businessHours", { day: "", timing: "" })} className="px-3 py-1 bg-blue-600 text-white rounded">+ Add</button>
+                <button type="button" onClick={() => addListItem("businessHours", { day: "", timing: "" })} className="px-3 py-1 bg-[#d72828] text-white rounded">+ Add</button>
               </div>
 
               {(newStore.businessHours || []).map((b, idx) => (
@@ -639,7 +639,7 @@ formData.append("businessHours", JSON.stringify(newStore.businessHours || []));
             {/* <section className="border rounded p-4">
               <div className="flex justify-between items-center mb-3">
                 <h3 className="text-lg font-semibold">Social Timeline</h3>
-                <button type="button" onClick={() => addListItem("socialTimeline", { media: "", text: "", postedOn: "", thumbnail: "", thumbnailPreview: "", thumbnailFile: null })} className="px-3 py-1 bg-blue-600 text-white rounded">+ Add</button>
+                <button type="button" onClick={() => addListItem("socialTimeline", { media: "", text: "", postedOn: "", thumbnail: "", thumbnailPreview: "", thumbnailFile: null })} className="px-3 py-1 bg-[#d72828] text-white rounded">+ Add</button>
               </div>
 
               {(newStore.socialTimeline || []).map((item, idx) => (

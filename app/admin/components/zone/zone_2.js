@@ -87,7 +87,7 @@ export default function ZonePage() {
         <h2 className="text-2xl font-bold">Zone List</h2>
         <button
           onClick={() => setIsModalOpen(true)}
-          className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+          className="bg-[#d72828] text-white px-4 py-2 rounded-md hover:bg-[#d72828]"
         >
           + Add Zone
         </button>
@@ -151,7 +151,7 @@ export default function ZonePage() {
                         setEditZone(zone);
                         setIsUpdateModalOpen(true);
                       }}
-                      className="w-7 h-7 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center"
+                      className="w-7 h-7 bg-red-100 text-[#d72828] rounded-full flex items-center justify-center"
                       title="Edit"
                     >
                       <FaEdit className="w-3 h-3" />
@@ -191,7 +191,7 @@ export default function ZonePage() {
               key={i}
               onClick={() => setCurrentPage(i)}
               className={`px-3 py-1 border rounded ${
-                currentPage === i ? "bg-blue-500 text-white" : ""
+                currentPage === i ? "bg-[#d72828] text-white" : ""
               }`}
             >
               {i + 1}
@@ -264,7 +264,7 @@ export default function ZonePage() {
                 </button>
                 <button
                   type="submit"
-                  className="bg-blue-600 text-white px-4 py-2 rounded"
+                  className="bg-[#d72828] text-white px-4 py-2 rounded"
                 >
                   Save
                 </button>
@@ -327,7 +327,7 @@ export default function ZonePage() {
                 </button>
                 <button
                   type="submit"
-                  className="bg-blue-600 text-white px-4 py-2 rounded"
+                  className="bg-[#d72828] text-white px-4 py-2 rounded"
                 >
                   Update
                 </button>

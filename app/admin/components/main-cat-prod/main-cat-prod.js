@@ -367,7 +367,7 @@ console.log("sending bgColor:", formData.banners.map(b => b.bgColor));
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-semibold">Category Banner Manager</h2>
         <button
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
+          className="bg-[#d72828] text-white px-4 py-2 rounded hover:bg-[#d72828] transition-colors"
           onClick={() => setShowModal(true)}
         >
           + Add Banner
@@ -442,7 +442,7 @@ console.log("sending bgColor:", formData.banners.map(b => b.bgColor));
                   Select Category
                 </label>
                 <select
-                  className="border border-gray-300 rounded p-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="border border-gray-300 rounded p-2 w-full focus:outline-none focus:ring-2 focus:ring-red-500"
                   value={formData.category}
                   onChange={(e) =>
                     setFormData({ ...formData, category: e.target.value })
@@ -463,7 +463,7 @@ console.log("sending bgColor:", formData.banners.map(b => b.bgColor));
                   Category Status
                 </label>
                 <select
-                  className="border border-gray-300 rounded p-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="border border-gray-300 rounded p-2 w-full focus:outline-none focus:ring-2 focus:ring-red-500"
                   value={formData.status}
                   onChange={(e) =>
                     setFormData({ ...formData, status: e.target.value })
@@ -502,7 +502,7 @@ console.log("sending bgColor:", formData.banners.map(b => b.bgColor));
                  
                   {/* TOP Banner */}
                   <div className="mb-4 p-4 border border-gray-300 bg-white rounded">
-                    <h5 className="font-semibold mb-3 text-blue-600 text-lg">
+                    <h5 className="font-semibold mb-3 text-[#d72828] text-lg">
                       Top Banner(1900 x 400)
                     </h5>
 
@@ -512,7 +512,7 @@ console.log("sending bgColor:", formData.banners.map(b => b.bgColor));
                         Banner Name
                       </label>
                       <input
-                        className="border border-gray-300 rounded p-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="border border-gray-300 rounded p-2 w-full focus:outline-none focus:ring-2 focus:ring-red-500"
                         placeholder="Enter banner name"
                         value={group.topBanner.name || ""}
                         onChange={(e) => {
@@ -530,7 +530,7 @@ console.log("sending bgColor:", formData.banners.map(b => b.bgColor));
                       </label>
                       <input
                         type="file"
-                        className="border border-gray-300 rounded p-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="border border-gray-300 rounded p-2 w-full focus:outline-none focus:ring-2 focus:ring-red-500"
                         onChange={(e) => handleFileUpload(e, bIndex, "top")}
                       />
                     </div>
@@ -575,7 +575,7 @@ console.log("sending bgColor:", formData.banners.map(b => b.bgColor));
                         Redirect URL
                       </label>
                       <input
-                        className="border border-gray-300 rounded p-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="border border-gray-300 rounded p-2 w-full focus:outline-none focus:ring-2 focus:ring-red-500"
                         placeholder="https://example.com"
                         value={group.topBanner.url || ""}
                         onChange={(e) => {
@@ -592,7 +592,7 @@ console.log("sending bgColor:", formData.banners.map(b => b.bgColor));
                         Status
                       </label>
                       <select
-                        className="border border-gray-300 rounded p-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="border border-gray-300 rounded p-2 w-full focus:outline-none focus:ring-2 focus:ring-red-500"
                         value={group.topBanner.status}
                         onChange={(e) => {
                           const updated = [...formData.banners];
@@ -676,7 +676,7 @@ console.log("sending bgColor:", formData.banners.map(b => b.bgColor));
                             Banner Name
                           </label>
                           <input
-                            className="border border-gray-300 rounded p-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="border border-gray-300 rounded p-2 w-full focus:outline-none focus:ring-2 focus:ring-red-500"
                             placeholder="Enter sub banner name"
                             value={sb.name || ""}
                             onChange={(e) => {
@@ -695,7 +695,7 @@ console.log("sending bgColor:", formData.banners.map(b => b.bgColor));
                           </label>
                           <input
                             type="file"
-                            className="border border-gray-300 rounded p-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="border border-gray-300 rounded p-2 w-full focus:outline-none focus:ring-2 focus:ring-red-500"
                             onChange={(e) =>
                               handleFileUpload(e, bIndex, "sub", sbIndex)
                             }
@@ -721,7 +721,7 @@ console.log("sending bgColor:", formData.banners.map(b => b.bgColor));
                             Redirect URL
                           </label>
                           <input
-                            className="border border-gray-300 rounded p-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="border border-gray-300 rounded p-2 w-full focus:outline-none focus:ring-2 focus:ring-red-500"
                             placeholder="https://example.com"
                             value={sb.url || ""}
                             onChange={(e) => {
@@ -739,7 +739,7 @@ console.log("sending bgColor:", formData.banners.map(b => b.bgColor));
                             Status
                           </label>
                           <select
-                            className="border border-gray-300 rounded p-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="border border-gray-300 rounded p-2 w-full focus:outline-none focus:ring-2 focus:ring-red-500"
                             value={sb.status}
                             onChange={(e) => {
                               const updated = [...formData.banners];
@@ -776,7 +776,7 @@ console.log("sending bgColor:", formData.banners.map(b => b.bgColor));
                 Cancel
               </button>
               <button
-                className="px-5 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                className="px-5 py-2 bg-[#d72828] text-white rounded hover:bg-[#d72828] transition-colors"
                 onClick={editBannerId ? handleUpdate : submitForm}
               >
                 {editBannerId ? "Update Banner" : "Save Banner"}

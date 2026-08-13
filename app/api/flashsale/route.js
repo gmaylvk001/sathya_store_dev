@@ -46,8 +46,9 @@ export async function GET() {
   try {
     await dbConnect();
     const flashSales = await FlashSale.find({});
-    return NextResponse.json({ success: true, flashSales });
+    return NextResponse.json({ success: true, flashSales: flashSales || [] });
   } catch (err) {
+    console.error("Error in GET /api/flashsale:", err);
     return NextResponse.json(
       { success: false, message: err.message },
       { status: 500 }

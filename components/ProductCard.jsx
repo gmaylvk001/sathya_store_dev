@@ -25,22 +25,11 @@ const AddToWishlistButton = ({ productId, onAfterWishlist, className, label, ico
     
     try {
       const token = localStorage.getItem('token');
-    
-      // Check authentication
-      const response = await fetch('/api/auth/check', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': token ? `Bearer ${token}` : '',
-        }
-      });
-      
-      const data = await response.json();
-       
-     if (!data.loggedIn) {
+      if (!token) {
         openAuthModal(() => {
           handleWishlistAction(); // Retry after login
         }, 'You must be logged in to add to wishlist.');
+        setIsLoading(false);
         return;
       }
 
@@ -57,6 +46,14 @@ const AddToWishlistButton = ({ productId, onAfterWishlist, className, label, ico
         },
         body: JSON.stringify({ productId }),
       });
+
+      if (wishlistResponse.status === 401) {
+        localStorage.removeItem('token');
+        openAuthModal(() => {
+          handleWishlistAction();
+        }, 'Session expired. Please log in again.');
+        return;
+      }
 
       if (!wishlistResponse.ok) {
         throw new Error(`Failed to ${isCurrentlyWishlisted ? 'remove from' : 'add to'} wishlist`);

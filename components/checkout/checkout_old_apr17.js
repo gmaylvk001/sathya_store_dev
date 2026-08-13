@@ -565,7 +565,7 @@ export default function CheckoutPage() {
             <button
               className={`pb-2 px-1 ${
                 activeTab === 'login' 
-                  ? 'border-b-2 border-blue-500 text-blue-600' 
+                  ? 'border-b-2 border-[#d72828] text-[#d72828]' 
                   : 'text-gray-500 hover:text-gray-700'
               }`}
               onClick={() => setActiveTab('login')}
@@ -575,7 +575,7 @@ export default function CheckoutPage() {
             <button
               className={`pb-2 px-1 ${
                 activeTab === 'register'
-                  ? 'border-b-2 border-blue-500 text-blue-600'
+                  ? 'border-b-2 border-[#d72828] text-[#d72828]'
                   : 'text-gray-500 hover:text-gray-700'
               }`}
               onClick={() => setActiveTab('register')}
@@ -591,7 +591,7 @@ export default function CheckoutPage() {
                 placeholder="Name"
                 value={formData.name}
                 onChange={(e) => setFormData({...formData, name: e.target.value})}
-                className="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500"
                 required
               />
             )}
@@ -600,7 +600,7 @@ export default function CheckoutPage() {
               placeholder="Email"
               value={formData.email}
               onChange={(e) => setFormData({...formData, email: e.target.value})}
-              className="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500"
               required
             />
             {activeTab === 'register' && (
@@ -609,7 +609,7 @@ export default function CheckoutPage() {
                 placeholder="mobile"
                 value={formData.mobile}
                 onChange={(e) => setFormData({...formData, mobile: e.target.value})}
-                className="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500"
                 required
               />
             )}
@@ -618,7 +618,7 @@ export default function CheckoutPage() {
               placeholder="Password"
               value={formData.password}
               onChange={(e) => setFormData({...formData, password: e.target.value})}
-              className="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500"
               required
             />
             
@@ -631,7 +631,7 @@ export default function CheckoutPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 disabled:bg-gray-400 transition-colors duration-200"
+              className="w-full bg-[#d72828] text-white py-2 px-4 rounded hover:bg-[#d72828] disabled:bg-gray-400 transition-colors duration-200"
             >
               {loading ? 'Processing...' : activeTab === 'login' ? 'Login' : 'Register'}
             </button>
@@ -648,7 +648,7 @@ export default function CheckoutPage() {
     <div className="bg-white min-h-screen">
             <ToastContainer position="top-right" autoClose={5000} />
       {/* 🟠 Wishlist Header Bar */}
-      <div className="bg-blue-50 py-6 px-8 flex justify-between items-center">
+      <div className="bg-red-50 py-6 px-8 flex justify-between items-center">
         <h2 className="text-xl font-bold text-gray-800">Checkout</h2>
         <div className="flex items-center space-x-2">
           <span className="text-gray-600">🏠 Home</span>

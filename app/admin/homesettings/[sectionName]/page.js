@@ -66,7 +66,7 @@ export default function SectionSettingsPage() {
               <a
                 href={banner.redirectUrl}
                 target="_blank"
-                className="text-blue-600 underline"
+                className="text-[#d72828] underline"
               >
                 {banner.redirectUrl}
               </a>
@@ -86,7 +86,7 @@ export default function SectionSettingsPage() {
               <a
                 href={img.redirectUrl}
                 target="_blank"
-                className="text-blue-600 underline text-sm"
+                className="text-[#d72828] underline text-sm"
               >
                 {img.redirectUrl}
               </a>

@@ -97,9 +97,14 @@ const Footer = () => {
     };
 
     const makeGrouped = (data) => {
-      const active = Array.isArray(data)
-        ? data.filter((cat) => cat.status === "Active")
+      const arr = Array.isArray(data?.data)
+        ? data.data
+        : Array.isArray(data?.categories)
+        ? data.categories
+        : Array.isArray(data)
+        ? data
         : [];
+      const active = arr.filter((cat) => cat && cat.status === "Active");
       const main = active.filter((cat) => cat.parentid === "none");
       const subs = {};
       active.forEach((cat) => {

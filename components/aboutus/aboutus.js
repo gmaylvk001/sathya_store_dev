@@ -91,11 +91,11 @@ const AboutUs = () => {
     return (
         <>
          {/* 🟠 About us Header Bar */}
-            <div className="bg-blue-50 py-6 px-4 md:px-8 lg:px-10 flex justify-between items-center">
+            <div className="bg-red-50 py-6 px-4 md:px-8 lg:px-10 flex justify-between items-center">
                 <div className="flex items-center space-x-2">
-                <Link href="/" className="text-gray-600 hover:text-blue-600">🏠 Home</Link>
+                <Link href="/" className="text-gray-600 hover:text-[#d72828]">🏠 Home</Link>
                 <span className="text-gray-500">›</span>
-                <span className="text-blue-600 font-semibold">About us</span>
+                <span className="text-[#d72828] font-semibold">About us</span>
                 </div>
             </div>
 <section className="w-full">
@@ -114,14 +114,14 @@ const AboutUs = () => {
         <div className="w-[50%] lg:w-[45%] xl:w-[40%] 2xl:w-[35%]">
             <p className="text-sm xl:text-base 2xl:text-lg text-gray-500 mb-1">Tamil Nadu's</p>
             <h1 className="text-2xl lg:text-3xl xl:text-4xl 2xl:text-6xl font-bold leading-tight text-[#0a1d56]">Most Trusted <br />Electronics Destination</h1>
-           <h2 className="text-2xl lg:text-3xl xl:text-4xl 2xl:text-6xl font-bold text-[#2453d3] mt-2">Since 1987</h2>
+           <h2 className="text-2xl lg:text-3xl xl:text-4xl 2xl:text-6xl font-bold text-[#d72828] mt-2">Since 1987</h2>
             <p className="mt-2 text-gray-600 text-sm xl:text-base 2xl:text-xl leading-7 2xl:leading-9">Sathya Agencies Limited is one of South India&apos;s largest consumer durables and electronics retailers, with 427+ stores across Tamil Nadu, Andhra Pradesh, Kerala, Karnataka and Puducherry.</p>
             <div className="flex flex-wrap gap-3 mt-6">
-                <button onClick={() => router.push("/location")} className="bg-[#2453d3] text-white px-5 py-2.5 2xl:px-7 2xl:py-3 rounded-lg font-semibold text-sm 2xl:text-base flex items-center gap-2 hover:bg-[#1d45b8] transition">
+                <button onClick={() => router.push("/location")} className="bg-[#d72828] text-white px-5 py-2.5 2xl:px-7 2xl:py-3 rounded-lg font-semibold text-sm 2xl:text-base flex items-center gap-2 hover:bg-[#1d45b8] transition">
                     <FiMapPin size={16} />
                     Explore Our Stores
                 </button>
-                <button onClick={() => router.push("/")} className="border border-[#2453d3] text-[#2453d3] px-5 py-2.5 2xl:px-7 2xl:py-3 rounded-lg font-semibold text-sm 2xl:text-base flex items-center gap-2 hover:bg-[#2453d3] hover:text-white transition">
+                <button onClick={() => router.push("/")} className="border border-[#d72828] text-[#d72828] px-5 py-2.5 2xl:px-7 2xl:py-3 rounded-lg font-semibold text-sm 2xl:text-base flex items-center gap-2 hover:bg-[#d72828] hover:text-white transition">
                     <FiShoppingCart size={16} />
                     Shop Now
                 </button>
@@ -144,14 +144,14 @@ const AboutUs = () => {
         <div className="px-4 md:px-8 py-10 bg-gradient-to-b from-[#f5f8ff] to-white">
             <p className="text-sm text-gray-500 mb-1">Tamil Nadu's</p>
             <h1 className="text-2xl font-bold leading-tight text-[#0a1d56]">Most Trusted <br />Electronics Destination</h1>
-            <h2 className="text-2xl font-bold text-[#2453d3] mt-2">Since 1987</h2>
+            <h2 className="text-2xl font-bold text-[#d72828] mt-2">Since 1987</h2>
             <p className="mt-2 text-gray-600 text-sm leading-7">Sathya Agencies Limited is one of South India&apos;s largest consumer durables and electronics retailers, with 427+ stores across Tamil Nadu, Andhra Pradesh, Kerala, Karnataka and Puducherry.</p>
             <div className="flex flex-wrap gap-3 mt-6">
-                <button onClick={() => router.push("/location")} className="bg-[#2453d3] text-white px-5 py-2.5 rounded-lg font-semibold text-sm flex items-center gap-2 hover:bg-[#1d45b8] transition">
+                <button onClick={() => router.push("/location")} className="bg-[#d72828] text-white px-5 py-2.5 rounded-lg font-semibold text-sm flex items-center gap-2 hover:bg-[#1d45b8] transition">
                     <FiMapPin size={16} />
                     Explore Our Stores
                 </button>
-                <button onClick={() => router.push("/")} className="border border-[#2453d3] text-[#2453d3] px-5 py-2.5 rounded-lg font-semibold text-sm flex items-center gap-2 hover:bg-[#2453d3] hover:text-white transition">
+                <button onClick={() => router.push("/")} className="border border-[#d72828] text-[#d72828] px-5 py-2.5 rounded-lg font-semibold text-sm flex items-center gap-2 hover:bg-[#d72828] hover:text-white transition">
                     <FiShoppingCart size={16} />
                     Shop Now
                 </button>
@@ -169,39 +169,39 @@ const AboutUs = () => {
                             {[{
                                 count: "25+",
                                 label: (<>Years of <br />Excellence</>),
-                                icon: <FiAward size={32} className="text-[#2453d3]" />
+                                icon: <FiAward size={32} className="text-[#d72828]" />
                             },
                             {
                                 count: "427+",
                                 label: (<>Showrooms <br />Across Tamil Nadu </>),
-                                icon: <FiHome size={32} className="text-[#2453d3]" />
+                                icon: <FiHome size={32} className="text-[#d72828]" />
                             },
                             {
                                 count: "17+",
                                 label: (<>Cities <br /> We Serve</>),
-                                icon: <FiMapPin size={32} className="text-[#2453d3]" />
+                                icon: <FiMapPin size={32} className="text-[#d72828]" />
                             },
                             {
                                 count: "50 Lakh+",
                                 label: (<>Happy <br /> Customers</>),
-                                icon: <FiUsers size={32} className="text-[#2453d3]" />
+                                icon: <FiUsers size={32} className="text-[#d72828]" />
                             },
                             {
                                 count: "30+",
                                 label: (<>Leading <br />Brand Partners</>),
-                                icon: <FiBriefcase size={32} className="text-[#2453d3]" />
+                                icon: <FiBriefcase size={32} className="text-[#d72828]" />
                             },
                             {
                                 count: "5000+",
                                 label: (<>Products <br /> Across Categories</>),
-                                icon: <FiPackage size={32} className="text-[#2453d3]" />
+                                icon: <FiPackage size={32} className="text-[#d72828]" />
                             },].map((item, i) => (
                                 <div key={i} className={`flex items-center gap-4 px-4 py-0 ${ i !== 5 ? "lg:border-r border-gray-200" : ""}`}>
                                     {/* Left Icon */}
                                     <div className="flex-shrink-0">{item.icon}</div>
                                     {/* Right Content */}
                                     <div>
-                                        <h3 className="text-2xl font-bold text-[#2453d3]">{item.count}</h3>
+                                        <h3 className="text-2xl font-bold text-[#d72828]">{item.count}</h3>
                                         <p className="text-gray-600 text-sm leading-5">{item.label}</p>
                                     </div>
                                 </div>
@@ -216,7 +216,7 @@ const AboutUs = () => {
                 <div className="w-full px-4 md:px-8 lg:px-10">
                     <div className="text-center mb-10">
                         <h2 className="text-2xl font-bold text-[#2b3a79]">Why Customers Choose Sathya Stores?</h2>
-                        <div className="w-12 h-1 bg-[#2453d3] mx-auto mt-2 rounded-full"></div>
+                        <div className="w-12 h-1 bg-[#d72828] mx-auto mt-2 rounded-full"></div>
                     </div>
                     <div className="grid md:grid-cols-3 lg:grid-cols-6 gap-4">
                         {chooseData.map((item, i) => (
@@ -225,7 +225,7 @@ const AboutUs = () => {
                                 <div className="relative">
                                     <img src={item.image} alt={item.title} className="w-full h-30 object-cover"/>
                                     {/* Floating Icon */}
-                                    <div className="absolute -bottom-4 left-4 w-9 h-9 rounded-full bg-white border-2 border-[#2453d3] flex items-center justify-center text-[#2453d3] shadow-md">{item.icon}</div>
+                                    <div className="absolute -bottom-4 left-4 w-9 h-9 rounded-full bg-white border-2 border-[#d72828] flex items-center justify-center text-[#d72828] shadow-md">{item.icon}</div>
                                 </div>
 
                                 {/* Content */}
@@ -258,7 +258,7 @@ const AboutUs = () => {
                                     "Google Meet / WhatsApp Video",
                                 ].map((item) => (
                                     <li key={item} className="flex items-center gap-2 text-sm font-medium text-[#0a1d56]">
-                                        <span className="text-[#2453d3] font-bold shrink-0">✓</span>
+                                        <span className="text-[#d72828] font-bold shrink-0">✓</span>
                                         {item}
                                     </li>
                                 ))}
@@ -290,7 +290,7 @@ const AboutUs = () => {
                 <div className="w-full px-4 md:px-8 lg:px-10">
                     <div className="text-center mb-5">
                         <h2 className="text-2xl font-bold text-[#2b3a79]">Experience Sathya Stores</h2>
-                        <div className="w-12 h-1 bg-[#2453d3] mx-auto mt-2 rounded-full"></div>
+                        <div className="w-12 h-1 bg-[#d72828] mx-auto mt-2 rounded-full"></div>
                     </div>
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
 
@@ -334,7 +334,7 @@ const AboutUs = () => {
                             <h2 className="text-2xl font-bold text-[#1f3bb3] mb-8">Our Journey</h2>
                             <div className="relative">
                                 {/* Connecting Line */}
-                               <div className="hidden md:block absolute top-7 left-[8%] right-[8%] h-[3px] bg-gradient-to-r from-blue-400 via-purple-400 to-orange-400"></div>
+                               <div className="hidden md:block absolute top-7 left-[8%] right-[8%] h-[3px] bg-gradient-to-r from-[#d72828] via-purple-400 to-orange-400"></div>
                                <div className="grid grid-cols-3 md:grid-cols-6 gap-2 relative z-10">
                                     {[
                                         {
@@ -342,7 +342,7 @@ const AboutUs = () => {
                                             title: "Our Beginning",
                                             desc: "Established in Tuticorin, Tamil Nadu as a proprietorship venture.",
                                             icon: <FiHome size={22} />,
-                                            color: "bg-blue-500",
+                                            color: "bg-[#d72828]",
                                         },
                                         {
                                             year: "1990",
@@ -370,7 +370,7 @@ const AboutUs = () => {
                                             title: "Digital Transformation",
                                             desc: "Enhanced online presence and customer experience.",
                                             icon: <FiMapPin size={22} />,
-                                            color: "bg-blue-600",
+                                            color: "bg-[#d72828]",
                                         },
                                         {
                                             year: "2026",
@@ -413,38 +413,38 @@ const AboutUs = () => {
                                 <div>
                                     <ul className="space-y-3 text-sm text-gray-700">
                                         <li className="flex gap-2">
-                                            <span className="text-[#2453d3]">📍</span>Coimbatore
+                                            <span className="text-[#d72828]">📍</span>Coimbatore
                                         </li>
 
                                         <li className="flex items-center gap-2">
-                                            <span className="text-[#2453d3]">📍</span>Salem
+                                            <span className="text-[#d72828]">📍</span>Salem
                                         </li>
 
                                         <li className="flex items-center gap-2">
-                                            <span className="text-[#2453d3]">📍</span>Erode
+                                            <span className="text-[#d72828]">📍</span>Erode
                                         </li>
 
                                         <li className="flex items-center gap-2">
-                                            <span className="text-[#2453d3]">📍</span>Tirupur
+                                            <span className="text-[#d72828]">📍</span>Tirupur
                                         </li>
 
                                         <li className="flex items-center gap-2">
-                                            <span className="text-[#2453d3]">📍</span>Namakkal
+                                            <span className="text-[#d72828]">📍</span>Namakkal
                                         </li>
 
                                         <li className="flex items-center gap-2">
-                                            <span className="text-[#2453d3]">📍</span>Trichy
+                                            <span className="text-[#d72828]">📍</span>Trichy
                                         </li>
 
                                         <li className="flex items-center gap-2">
-                                            <span className="text-[#2453d3]">📍</span>Dharmapuri
+                                            <span className="text-[#d72828]">📍</span>Dharmapuri
                                         </li>
 
                                         <li className="flex items-center gap-2">
-                                            <span className="text-[#2453d3]">📍</span>Krishnagiri
+                                            <span className="text-[#d72828]">📍</span>Krishnagiri
                                         </li>
 
-                                        <li className="text-[#2453d3] font-medium text-sm pt-1">
+                                        <li className="text-[#d72828] font-medium text-sm pt-1">
                                             <a href="/location">and many more...</a>
                                         </li>
                                     </ul>
@@ -525,7 +525,7 @@ const AboutUs = () => {
                                         {/* User Info */}
                                         <div className="flex items-center gap-3">
                                             {/* Option 2: If no image, use icon */}
-                                            <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center text-[#1f3bb3]">
+                                            <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center text-[#1f3bb3]">
                                                 <FiUser size={20} />
                                             </div>
                                             <div>

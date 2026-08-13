@@ -84,7 +84,7 @@ export default function ComboOffersList() {
           </button>
           <Link
             href="/admin/combo-offers/create"
-            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
+            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-[#d72828] rounded-md hover:bg-[#d72828]"
           >
             <Icon icon="mdi:plus" width={18} />
             Create Combo Offer
@@ -93,7 +93,7 @@ export default function ComboOffersList() {
       </div>
 
       {syncMsg ? (
-        <p className="mb-4 text-sm text-blue-700 bg-blue-50 border border-blue-100 rounded px-3 py-2">
+        <p className="mb-4 text-sm text-[#d72828] bg-red-50 border border-red-100 rounded px-3 py-2">
           {syncMsg}
         </p>
       ) : null}
@@ -113,7 +113,7 @@ export default function ComboOffersList() {
             <p className="mt-3 text-gray-600">No combo offers yet</p>
             <Link
               href="/admin/combo-offers/create"
-              className="inline-block mt-4 text-blue-600 text-sm font-medium"
+              className="inline-block mt-4 text-[#d72828] text-sm font-medium"
             >
               Create your first combo
             </Link>
@@ -167,7 +167,7 @@ export default function ComboOffersList() {
                       <div className="flex items-center gap-2">
                         <Link
                           href={`/admin/combo-offers/${c._id}`}
-                          className="text-blue-600 hover:underline"
+                          className="text-[#d72828] hover:underline"
                         >
                           Edit
                         </Link>

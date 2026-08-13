@@ -39,7 +39,7 @@ export default function Order() {
   return (
     <div className="bg-gray-50 min-h-screen">
       {/* Header */}
-      <div className="bg-blue-50 py-6 px-8 flex justify-between items-center border-b border-gray-200 shadow-sm">
+      <div className="bg-red-50 py-6 px-8 flex justify-between items-center border-b border-gray-200 shadow-sm">
         <h2 className="text-2xl font-bold text-gray-800">My Orders</h2>
         <div className="flex items-center space-x-2 text-sm mt-1">
           <span className="text-gray-600">🏠 Home</span>
@@ -79,7 +79,7 @@ export default function Order() {
                         ? status === "cancelled"
                           ? "bg-red-100 text-red-700"
                           : status === "shipped"
-                          ? "bg-blue-100 text-blue-800"
+                          ? "bg-red-100 text-[#d72828]"
                           : status === "pending"
                           ? "bg-amber-100 text-amber-800"
                           : "bg-customBlue text-white"
@@ -99,7 +99,7 @@ export default function Order() {
                   <FiShoppingBag className="mx-auto text-4xl text-gray-300 mb-4" />
                   <h3 className="text-lg font-medium text-gray-700">No orders found</h3>
                   <p className="text-gray-500 mt-1">You haven't placed any orders yet</p>
-                  <button className="mt-6 px-6 py-2 bg-customBlue text-white rounded-lg hover:bg-blue-700">
+                  <button className="mt-6 px-6 py-2 bg-customBlue text-white rounded-lg hover:bg-[#d72828]">
                     Start Shopping
                   </button>
                 </div>
@@ -145,7 +145,7 @@ export default function Order() {
                             </div>
                           </div>
                           <div className="mt-6 flex flex-wrap gap-3">
-                            <button className="px-4 py-2 bg-blue-50 text-customBlue rounded-md hover:bg-blue-100 flex items-center">
+                            <button className="px-4 py-2 bg-red-50 text-customBlue rounded-md hover:bg-red-100 flex items-center">
                               <FiShoppingBag className="mr-2" />
                               Buy it Again
                             </button>

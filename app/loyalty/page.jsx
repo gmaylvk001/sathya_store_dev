@@ -148,9 +148,9 @@ export default function LoyaltyPage() {
                   <button
                     onClick={handleCheckPoints}
                     disabled={checkLoading || checkPhone.length < 10}
-                    className="flex-shrink-0 bg-[#1D4ED8] text-white px-4 py-3 text-sm font-bold hover:bg-[#1a44c4] transition disabled:bg-[#94A3B8] disabled:text-white whitespace-nowrap"
+                    className="flex-shrink-0 bg-[#c02020] text-white px-4 py-3 text-sm font-bold hover:bg-[#1a44c4] transition disabled:bg-[#94A3B8] disabled:text-white whitespace-nowrap"
                   >
-                    {checkLoading ? <div className="w-4 h-4 border-2 border-[#94A3B8] border-t-[#1D4ED8] rounded-full animate-spin" /> : "Check"}
+                    {checkLoading ? <div className="w-4 h-4 border-2 border-[#94A3B8] border-t-[#c02020] rounded-full animate-spin" /> : "Check"}
                   </button>
                 </div>
 
@@ -166,7 +166,7 @@ export default function LoyaltyPage() {
                   <div className="bg-[#FBBF24]/10 border border-[#FBBF24]/30 rounded-xl p-4">
                     <p className="text-[#FBBF24] text-[10px] font-bold uppercase tracking-widest mb-1">Your Points</p>
                     <p className="text-white font-black text-2xl">{points.toLocaleString()} <span className="text-sm font-normal text-white/50">= ₹{points.toLocaleString()}</span></p>
-                    <button onClick={() => router.push("/checkout")} className="mt-3 w-full bg-[#1D4ED8] text-white text-sm font-bold py-2.5 rounded-lg hover:bg-[#1a44c4] transition">
+                    <button onClick={() => router.push("/checkout")} className="mt-3 w-full bg-[#c02020] text-white text-sm font-bold py-2.5 rounded-lg hover:bg-[#1a44c4] transition">
                       Use at Checkout →
                     </button>
                   </div>
@@ -193,7 +193,7 @@ export default function LoyaltyPage() {
       <section className="py-14 px-4 bg-white">
         <div className="max-w-5xl mx-auto">
           <h2 className="text-center text-2xl sm:text-3xl font-black text-[#1a2236] mb-2">Why Join Sathya Stores Loyalty?</h2>
-          <div className="flex justify-center mb-10"><div className="w-12 h-1 rounded-full bg-[#1D4ED8]" /></div>
+          <div className="flex justify-center mb-10"><div className="w-12 h-1 rounded-full bg-[#c02020]" /></div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
             {whyJoin.map((item, i) => (
               <div key={i} className="flex flex-col items-center text-center p-5 rounded-2xl hover:shadow-md hover:-translate-y-1 transition-all duration-200">
@@ -257,7 +257,7 @@ export default function LoyaltyPage() {
                   <span className="text-[#FBBF24] text-base leading-none">★</span>
                   Your Sathya Stores Rewards Wallet
                 </div>
-                <button onClick={() => router.push("/checkout")} className="flex items-center gap-2 bg-[#1D4ED8] text-white text-[13px] font-bold px-5 py-2.5 rounded-[10px] hover:bg-[#1e45c2] transition active:scale-[0.98]">
+                <button onClick={() => router.push("/checkout")} className="flex items-center gap-2 bg-[#c02020] text-white text-[13px] font-bold px-5 py-2.5 rounded-[10px] hover:bg-[#1e45c2] transition active:scale-[0.98]">
                   Use Points at Checkout
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round">
                     <line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" />
@@ -277,8 +277,8 @@ export default function LoyaltyPage() {
                         {points.toLocaleString()}<span className="text-xs font-normal text-[#64748B]">Pts</span>
                       </p>
                     </div>
-                    <div className="w-[46px] h-[46px] rounded-[10px] bg-[#1D4ED8]/20 flex items-center justify-center flex-shrink-0">
-                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                    <div className="w-[46px] h-[46px] rounded-[10px] bg-[#c02020]/20 flex items-center justify-center flex-shrink-0">
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#d72828" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
                         <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
                       </svg>
                     </div>
@@ -305,7 +305,7 @@ export default function LoyaltyPage() {
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="w-[34px] h-[34px] rounded-full bg-[#1D4ED8] flex items-center justify-center text-sm flex-shrink-0">🏅</div>
+                    <div className="w-[34px] h-[34px] rounded-full bg-[#c02020] flex items-center justify-center text-sm flex-shrink-0">🏅</div>
                     <div>
                       <p className="text-[10px] font-semibold uppercase tracking-widest text-[#64748B] mb-0.5">Member Since</p>
                       <p className="text-[14px] font-bold text-white">May 2025</p>
@@ -324,7 +324,7 @@ export default function LoyaltyPage() {
               <div className="text-3xl mb-3">★</div>
               <h3 className="text-[18px] font-black text-white mb-2">Your Sathya Stores Rewards Wallet</h3>
               <p className="text-[#94A3B8] text-sm mb-5">Login to view your points, savings value and membership details.</p>
-              <button onClick={() => router.push("/")} className="bg-[#1D4ED8] text-white text-sm font-bold px-7 py-3 rounded-[10px] hover:bg-[#1e45c2] transition">Login to Your Account →</button>
+              <button onClick={() => router.push("/")} className="bg-[#c02020] text-white text-sm font-bold px-7 py-3 rounded-[10px] hover:bg-[#1e45c2] transition">Login to Your Account →</button>
               <div className="text-[#64748B] text-xs my-4">— or check your balance as guest —</div>
               <div className="flex gap-2 justify-center flex-wrap">
                 <input
@@ -334,7 +334,7 @@ export default function LoyaltyPage() {
                   className="bg-white/10 border border-white/10 rounded-[10px] px-4 py-2.5 text-sm text-white placeholder-[#4B5563] outline-none w-52"
                 />
                 <button onClick={handleCheckPoints} disabled={checkLoading || checkPhone.length < 10}
-                  className="bg-[#1D4ED8] text-white text-sm font-bold px-5 py-2.5 rounded-[10px] hover:bg-[#1e45c2] transition disabled:bg-white/10 disabled:text-white/30">
+                  className="bg-[#c02020] text-white text-sm font-bold px-5 py-2.5 rounded-[10px] hover:bg-[#1e45c2] transition disabled:bg-white/10 disabled:text-white/30">
                   {checkLoading ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin mx-auto" /> : "Check"}
                 </button>
               </div>
@@ -354,7 +354,7 @@ export default function LoyaltyPage() {
       <section className="py-14 px-4 bg-white border-t border-[#E8EDF5]">
         <div className="max-w-5xl mx-auto">
           <h2 className="text-center text-2xl sm:text-3xl font-black text-[#1a2236] mb-2">More Than Just Rewards</h2>
-          <div className="flex justify-center mb-10"><div className="w-12 h-1 rounded-full bg-[#1D4ED8]" /></div>
+          <div className="flex justify-center mb-10"><div className="w-12 h-1 rounded-full bg-[#c02020]" /></div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
             {extras.map((item, i) => (
               <div key={i} className="flex flex-col items-center text-center p-5 rounded-2xl hover:shadow-md hover:-translate-y-1 transition-all duration-200">
@@ -375,7 +375,7 @@ export default function LoyaltyPage() {
       <section className="bg-[#F8FAFD] border-t border-[#E8EDF5] py-14 px-4">
         <div className="max-w-4xl mx-auto">
           <h2 className="text-center text-2xl sm:text-3xl font-black text-[#1a2236] mb-2">Frequently Asked Questions</h2>
-          <div className="flex justify-center mb-10"><div className="w-12 h-1 rounded-full bg-[#1D4ED8]" /></div>
+          <div className="flex justify-center mb-10"><div className="w-12 h-1 rounded-full bg-[#c02020]" /></div>
 
           <div className="flex flex-col md:flex-row gap-3 items-start">
             {/* Left column: index 0,2,4,6 */}
@@ -384,10 +384,10 @@ export default function LoyaltyPage() {
                 const faq = faqs[i];
                 const isOpen = openFaq === i;
                 return (
-                  <div key={i} className={`border rounded-2xl overflow-hidden transition-all duration-200 bg-white ${isOpen ? "border-[#1D4ED8] shadow-sm" : "border-[#D1DCF0] hover:border-[#B0C4E8]"}`}>
+                  <div key={i} className={`border rounded-2xl overflow-hidden transition-all duration-200 bg-white ${isOpen ? "border-[#c02020] shadow-sm" : "border-[#D1DCF0] hover:border-[#B0C4E8]"}`}>
                     <button onClick={() => setOpenFaq(isOpen ? null : i)} className="w-full flex justify-between items-center px-5 py-5 text-left gap-4 min-h-[64px]">
                       <span className="font-semibold text-[#1a2236] text-sm">{faq.q}</span>
-                      <span className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 transition-all duration-300 ${isOpen ? "bg-[#EBF0FF] text-[#1D4ED8] rotate-45" : "bg-[#F0F4FA] text-[#4B6087]"}`}>
+                      <span className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 transition-all duration-300 ${isOpen ? "bg-[#EBF0FF] text-[#c02020] rotate-45" : "bg-[#F0F4FA] text-[#4B6087]"}`}>
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                           <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
                         </svg>
@@ -407,10 +407,10 @@ export default function LoyaltyPage() {
                 const faq = faqs[i];
                 const isOpen = openFaq === i;
                 return (
-                  <div key={i} className={`border rounded-2xl overflow-hidden transition-all duration-200 bg-white ${isOpen ? "border-[#1D4ED8] shadow-sm" : "border-[#D1DCF0] hover:border-[#B0C4E8]"}`}>
+                  <div key={i} className={`border rounded-2xl overflow-hidden transition-all duration-200 bg-white ${isOpen ? "border-[#c02020] shadow-sm" : "border-[#D1DCF0] hover:border-[#B0C4E8]"}`}>
                     <button onClick={() => setOpenFaq(isOpen ? null : i)} className="w-full flex justify-between items-center px-5 py-5 text-left gap-4 min-h-[64px]">
                       <span className="font-semibold text-[#1a2236] text-sm">{faq.q}</span>
-                      <span className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 transition-all duration-300 ${isOpen ? "bg-[#EBF0FF] text-[#1D4ED8] rotate-45" : "bg-[#F0F4FA] text-[#4B6087]"}`}>
+                      <span className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 transition-all duration-300 ${isOpen ? "bg-[#EBF0FF] text-[#c02020] rotate-45" : "bg-[#F0F4FA] text-[#4B6087]"}`}>
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                           <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
                         </svg>

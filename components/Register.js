@@ -99,13 +99,13 @@ export default function Register() {
             {errors.confirmPassword && <p className="text-red-500 text-sm mt-1">{errors.confirmPassword.message}</p>}
           </div>
 
-          <button type="submit" disabled={loading} className="w-full px-4 py-2 text-white bg-blue-500 rounded-lg">
+          <button type="submit" disabled={loading} className="w-full px-4 py-2 text-white bg-[#d72828] rounded-lg">
             {loading ? "Registering..." : "Register"}
           </button>
         </form>
 
         <p className="mt-4 text-sm text-center text-gray-600">
-          Already have an account? <a href="admin/login" className="text-blue-500 hover:underline">Login</a>
+          Already have an account? <a href="admin/login" className="text-[#d72828] hover:underline">Login</a>
         </p>
       </div>
     </div>

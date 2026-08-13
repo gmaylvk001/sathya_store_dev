@@ -21,12 +21,12 @@ const PrivacyPolicy = () => {
 
         <div>
             {/* 🟠 About us Header Bar */}
-            <div className="bg-blue-50 py-6 px-8 flex justify-between items-center">
+            <div className="bg-red-50 py-6 px-8 flex justify-between items-center">
                 <h2 className="text-xl font-bold text-gray-800">Privacy Policy</h2>
                     <div className="flex items-center space-x-2">
-                        <Link href="/" className="text-gray-600 hover:text-blue-600">🏠 Home</Link>
+                        <Link href="/" className="text-gray-600 hover:text-[#d72828]">🏠 Home</Link>
                             <span className="text-gray-500">›</span>
-                            <span className="text-blue-600 font-semibold">Privacy policy</span>
+                            <span className="text-[#d72828] font-semibold">Privacy policy</span>
                     </div>
             </div>
 
@@ -34,8 +34,8 @@ const PrivacyPolicy = () => {
                  <div className="max-w-9xl mx-auto ">
                     {/* Header Section */}
                     <div className="text-center mb-16 animate-fade-in-up">
-                        <div className="bg-blue-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
-                            <FiShield className="text-blue-600 text-3xl" />
+                        <div className="bg-red-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <FiShield className="text-[#d72828] text-3xl" />
                         </div>
                         <h1 className="text-3xl md:text-4xl font-bold text-customBlue mb-4">Privacy Policy</h1>
                             {currentDate && (
@@ -46,7 +46,7 @@ const PrivacyPolicy = () => {
                     </div>
 
                     {/* Policy Content */}
-                    <div className=" rounded-xl shadow-md overflow-hidden animate-fade-in-up delay-100  bg-gradient-to-br from-blue-50 to-indigo-50">
+                    <div className=" rounded-xl shadow-md overflow-hidden animate-fade-in-up delay-100  bg-gradient-to-br from-red-50 to-indigo-50">
                         {/* Introduction */}
                         <div className="p-8 border-b border-gray-100">
                             <h2 className="text-2xl font-bold text-customBlue mb-4 flex items-center gap-2">
@@ -65,7 +65,7 @@ const PrivacyPolicy = () => {
                         </div>
 
                         {/* Policy Updates */}
-                        <div className="p-8 border-b border-gray-100 bg-blue-50/30">
+                        <div className="p-8 border-b border-gray-100 bg-red-50/30">
                         <h3 className="text-xl font-semibold text-gray-800 mb-3 flex items-center gap-2"><MdPolicy className="text-2xl" />
                             Policy Updates
                        </h3>
@@ -91,7 +91,7 @@ const PrivacyPolicy = () => {
                         </div>
 
                         {/* Use of Information */}
-                        <div className="p-8 border-b border-gray-100 bg-blue-50/30">
+                        <div className="p-8 border-b border-gray-100 bg-red-50/30">
                             <h3 className="text-xl font-semibold text-gray-800 mb-3 flex items-center gap-2"><MdOutlineCollectionsBookmark className="text-2xl"/>How We Use Your Information</h3>
                                 <p className="text-gray-600 mb-4">
                                     We require this information to understand your needs and provide better service, 
@@ -127,7 +127,7 @@ const PrivacyPolicy = () => {
                         </div>
 
                         {/* Cookies */}
-                        <div className="p-8 border-b border-gray-100 bg-blue-50/30">
+                        <div className="p-8 border-b border-gray-100 bg-red-50/30">
                             <h3 className="text-xl font-semibold text-customBlue mb-3 flex items-center gap-2">
                                 <FaCookieBite className="text-customBlue" />How We Use Cookies
                             </h3>
@@ -178,7 +178,7 @@ const PrivacyPolicy = () => {
                             </p>
                             <a 
                                 href="mailto:customercare@sathya.store" 
-                                className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-lg transition-colors duration-300"
+                                className="inline-block bg-[#d72828] hover:bg-[#d72828] text-white font-medium py-3 px-6 rounded-lg transition-colors duration-300"
                             >
                                 customercare@sathya.store
                             </a>

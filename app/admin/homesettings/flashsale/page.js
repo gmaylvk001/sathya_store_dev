@@ -294,7 +294,7 @@ export default function FlashSalePage() {
               <div className="flex gap-2">
                 <button
                   onClick={handleSave}
-                  className="bg-blue-600 text-white px-4 py-2 rounded flex items-center gap-2"
+                  className="bg-[#d72828] text-white px-4 py-2 rounded flex items-center gap-2"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                     <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
@@ -355,7 +355,7 @@ export default function FlashSalePage() {
                   disabled={!editingStates[flashSale._id]?.background_image}
                   className={`p-2 rounded flex items-center ${
                     editingStates[flashSale._id]?.background_image
-                      ? "bg-blue-500 text-white hover:bg-blue-600"
+                      ? "bg-[#d72828] text-white hover:bg-[#d72828]"
                       : "bg-gray-300 text-gray-500 cursor-not-allowed"
                   }`}
                   title="Save Background Image"
@@ -390,7 +390,7 @@ export default function FlashSalePage() {
                   disabled={!editingStates[flashSale._id]?.banner_image}
                   className={`p-2 rounded flex items-center ${
                     editingStates[flashSale._id]?.banner_image
-                      ? "bg-blue-500 text-white hover:bg-blue-600"
+                      ? "bg-[#d72828] text-white hover:bg-[#d72828]"
                       : "bg-gray-300 text-gray-500 cursor-not-allowed"
                   }`}
                   title="Save Banner Image"
@@ -419,7 +419,7 @@ export default function FlashSalePage() {
                   disabled={!editingStates[flashSale._id]?.hasChanges}
                   className={`p-2 rounded flex items-center ${
                     editingStates[flashSale._id]?.hasChanges 
-                      ? "bg-blue-500 text-white hover:bg-blue-600" 
+                      ? "bg-[#d72828] text-white hover:bg-[#d72828]" 
                       : "bg-gray-300 text-gray-500 cursor-not-allowed"
                   }`}
                   title="Save Title"
@@ -448,7 +448,7 @@ export default function FlashSalePage() {
                   disabled={!editingStates[flashSale._id]?.hasChanges}
                   className={`p-2 rounded flex items-center ${
                     editingStates[flashSale._id]?.hasChanges 
-                      ? "bg-blue-500 text-white hover:bg-blue-600" 
+                      ? "bg-[#d72828] text-white hover:bg-[#d72828]" 
                       : "bg-gray-300 text-gray-500 cursor-not-allowed"
                   }`}
                   title="Save URL"
@@ -478,7 +478,7 @@ export default function FlashSalePage() {
                   disabled={!editingStates[flashSale._id]?.hasChanges}
                   className={`p-2 rounded flex items-center ${
                     editingStates[flashSale._id]?.hasChanges 
-                      ? "bg-blue-500 text-white hover:bg-blue-600" 
+                      ? "bg-[#d72828] text-white hover:bg-[#d72828]" 
                       : "bg-gray-300 text-gray-500 cursor-not-allowed"
                   }`}
                   title="Save Status"

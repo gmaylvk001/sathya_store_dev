@@ -3,6 +3,7 @@ const UPLOADS_ORIGIN =
   process.env.UPLOADS_ORIGIN || "https://bea.thamirabaranithiruvizha.in";
 
 const nextConfig = {
+  devIndicators: false,
   images: {
     formats: ["image/avif", "image/webp"],
     remotePatterns: [
