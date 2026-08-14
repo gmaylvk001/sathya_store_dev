@@ -1,4 +1,4 @@
-﻿import { Poppins } from "next/font/google";
+import { Poppins } from "next/font/google";
 import "./globals.css";
 import ClientLayout from "@/app/ClientLayout";
 import Script from "next/script";
@@ -24,7 +24,7 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={`${poppins.variable} ${poppins.className}`}>
+    <html lang="en" className={`${poppins.variable} ${poppins.className}`} suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
@@ -48,7 +48,11 @@ export default function RootLayout({ children }) {
                 js.id = idd;
                 js.aun_id = "GXNFAIR40psC";
                 js.src = "https://pixel.adtarbo.com/pixelTrack1.js";
-                ajs.parentNode.insertBefore(js, ajs)
+                if (ajs && ajs.parentNode) {
+                  ajs.parentNode.insertBefore(js, ajs);
+                } else if (dd.head) {
+                  dd.head.appendChild(js);
+                }
               } (document, 'script', 'adtarbo-js-v2'));
             `,
           }}
@@ -80,7 +84,7 @@ export default function RootLayout({ children }) {
           }}
         />
       </head>
-      <body className={`${poppins.className} font-sans antialiased`}>
+      <body className={`${poppins.className} font-sans antialiased`} suppressHydrationWarning>
         <noscript>
           <iframe
             src="https://www.googletagmanager.com/ns.html?id=GTM-P7LW8D7X"

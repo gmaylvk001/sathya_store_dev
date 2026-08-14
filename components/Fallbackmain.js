@@ -1228,14 +1228,14 @@ const handlePageChange = (page) => {
                       product.special_price < product.price
                         ? Math.round(product.special_price)
                         : Math.round(product.price)
-                    ).toLocaleString()}
+                    ).toLocaleString('en-IN')}
                   </span>
 
                   {product.special_price > 0 &&
                     product.special_price !== '0' &&
                     product.special_price < product.price && (
                       <span className="text-xs text-gray-500 line-through">
-                        ₹ {Math.round(product.price).toLocaleString()}
+                        ₹ {Math.round(product.price).toLocaleString('en-IN')}
                       </span>
                   )}
                 </div>

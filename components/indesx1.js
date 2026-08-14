@@ -229,7 +229,7 @@ const bannerData = {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const apiUrl = typeof window !== 'undefined' ? `${window.location.origin}/api/products/get` : '/api/products/get';
+        const apiUrl = typeof window !== 'undefined' ? `${window.location.origin}/api/product/get` : '/api/product/get';
         const response = await fetch(apiUrl, { method: 'GET' });
         
         if (!response.ok) {

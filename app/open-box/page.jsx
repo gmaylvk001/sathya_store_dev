@@ -748,12 +748,12 @@ const handleShare = async (product) => {
                     product.special_price < product.price
                       ? Math.round(product.special_price)
                       : Math.round(product.price)
-                    ).toLocaleString()}
+                    ).toLocaleString('en-IN')}
                   </span>
                   {product.special_price > 0 &&
                     product.special_price < product.price && (
                       <span className="text-xs text-gray-500 line-through">
-                        ₹{Math.round(product.price).toLocaleString()}
+                        ₹{Math.round(product.price).toLocaleString('en-IN')}
                       </span>
                     )}
                 </div>
@@ -985,11 +985,11 @@ const handleShare = async (product) => {
           <div className="mt-1">
             {hasDiscount && (
               <span className="text-xs text-gray-400 line-through block leading-none mb-1">
-                ₹{Math.round(product.price).toLocaleString()}
+                ₹{Math.round(product.price).toLocaleString('en-IN')}
               </span>
             )}
             <span className="text-xl sm:text-2xl font-bold text-[#1E5FA8] leading-tight">
-              ₹{salePrice.toLocaleString()}
+              ₹{salePrice.toLocaleString('en-IN')}
             </span>
           </div>
           <Link
@@ -1357,8 +1357,8 @@ const handleShare = async (product) => {
               }}
             />
             <div className="flex justify-between text-sm text-gray-600 mt-6">
-              <span>₹{values[0].toLocaleString()}</span>
-              <span>₹{values[1].toLocaleString()}</span>
+              <span>₹{values[0].toLocaleString('en-IN')}</span>
+              <span>₹{values[1].toLocaleString('en-IN')}</span>
             </div>
           </div>
 
@@ -1726,12 +1726,12 @@ const handleShare = async (product) => {
                           product.special_price < product.price
                             ? Math.round(product.special_price)
                             : Math.round(product.price)
-                          ).toLocaleString()}
+                          ).toLocaleString('en-IN')}
                         </span>
                         {product.special_price > 0 &&
                           product.special_price < product.price && (
                             <span className="text-xs text-gray-500 line-through">
-                              ₹{Math.round(product.price).toLocaleString()}
+                              ₹{Math.round(product.price).toLocaleString('en-IN')}
                             </span>
                           )}
                       </div>

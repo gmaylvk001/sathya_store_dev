@@ -10,7 +10,13 @@ const nextConfig = {
         protocol: "http",
         hostname: "localhost",
         port: "3000",
-        pathname: "/uploads/categories/**",
+        pathname: "/uploads/**",
+      },
+      {
+        protocol: "http",
+        hostname: "localhost",
+        port: "3001",
+        pathname: "/uploads/**",
       },
       {
         protocol: "https",
@@ -19,13 +25,18 @@ const nextConfig = {
       },
     ],
   },
-  // No local public/uploads/products — send browsers straight to prod so
+  // Send browser requests for uploads straight to origin so
   // Next.js isn't flooded with 404 image requests during local dev.
   async redirects() {
     return [
       {
-        source: "/uploads/products/:path*",
-        destination: `${UPLOADS_ORIGIN}/uploads/products/:path*`,
+        source: "/uploads/:folder((?!sathyalogo\\.webp).*)/:path*",
+        destination: `${UPLOADS_ORIGIN}/uploads/:folder/:path*`,
+        permanent: false,
+      },
+      {
+        source: "/uploads/:file((?!sathyalogo\\.webp$).*\\.[a-zA-Z0-9]+)",
+        destination: `${UPLOADS_ORIGIN}/uploads/:file`,
         permanent: false,
       },
       {

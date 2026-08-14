@@ -58,16 +58,19 @@ function findBrand(brands, brandId) {
   return (brands || []).find((b) => String(b._id) === String(brandId));
 }
 
-function clampRangeValues(values, min, max) {
+function alignToStep(val, min, max, step = 1) {
+  const n = Number(val);
+  if (!Number.isFinite(n)) return min;
+  const snapped = Math.round((n - min) / step) * step + min;
+  return Math.min(max, Math.max(min, snapped));
+}
+
+function clampRangeValues(values, min, max, step = 100) {
   const lo = Number.isFinite(Number(min)) ? Number(min) : 0;
   const hi =
-    Number.isFinite(Number(max)) && Number(max) > lo ? Number(max) : lo + 1;
-  let a = Number(values?.[0]);
-  let b = Number(values?.[1]);
-  if (!Number.isFinite(a)) a = lo;
-  if (!Number.isFinite(b)) b = hi;
-  a = Math.min(hi, Math.max(lo, a));
-  b = Math.min(hi, Math.max(lo, b));
+    Number.isFinite(Number(max)) && Number(max) > lo ? Number(max) : lo + step;
+  let a = alignToStep(values?.[0] ?? lo, lo, hi, step);
+  let b = alignToStep(values?.[1] ?? hi, lo, hi, step);
   if (a > b) a = b;
   return [a, b];
 }
@@ -282,12 +285,13 @@ export default function ProductFilters({
   const [showAllFilterGroups, setShowAllFilterGroups] = useState(false);
 
   const MIN = Number.isFinite(Number(priceRange[0])) ? Number(priceRange[0]) : 0;
-  const MAX = Math.max(
-    Number.isFinite(Number(priceRange[1])) ? Number(priceRange[1]) : MIN + 1,
-    MIN + 1
-  );
+  const rawMax = Number.isFinite(Number(priceRange[1])) ? Number(priceRange[1]) : MIN + 100;
   const STEP = 100;
-  const sliderValues = clampRangeValues(values, MIN, MAX);
+  const MAX = Math.max(
+    MIN + STEP,
+    Math.ceil((rawMax - MIN) / STEP) * STEP + MIN
+  );
+  const sliderValues = clampRangeValues(values, MIN, MAX, STEP);
 
   const sortedFilterGroups = getSortedFilterGroups(filterGroups);
   const visibleFilterGroups = getVisibleFilterGroups(
@@ -446,9 +450,9 @@ export default function ProductFilters({
           step={STEP}
           min={MIN}
           max={MAX}
-          onChange={(newValues) => setValues?.(clampRangeValues(newValues, MIN, MAX))}
+          onChange={(newValues) => setValues?.(clampRangeValues(newValues, MIN, MAX, STEP))}
           onFinalChange={(newValues) =>
-            onPriceChange?.(clampRangeValues(newValues, MIN, MAX))
+            onPriceChange?.(clampRangeValues(newValues, MIN, MAX, STEP))
           }
           renderTrack={({ props, children }) => (
             <div
@@ -488,14 +492,14 @@ export default function ProductFilters({
             className="flex-1 rounded-lg border border-red-100 px-2.5 py-1.5 text-center text-sm font-semibold"
             style={{ backgroundColor: BRAND.cream }}
           >
-            ₹{Number(sliderValues[0]).toLocaleString()}
+            ₹{Number(sliderValues[0]).toLocaleString('en-IN')}
           </div>
           <span className="text-xs font-bold text-gray-400">to</span>
           <div
             className="flex-1 rounded-lg border border-red-100 px-2.5 py-1.5 text-center text-sm font-semibold"
             style={{ backgroundColor: BRAND.cream }}
           >
-            ₹{Number(sliderValues[1]).toLocaleString()}
+            ₹{Number(sliderValues[1]).toLocaleString('en-IN')}
           </div>
         </div>
       </div>

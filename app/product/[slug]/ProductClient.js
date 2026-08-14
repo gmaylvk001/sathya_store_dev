@@ -957,7 +957,7 @@ const fetchBrand = async () => {
     <div className="mt-3 border-t border-gray-200 pt-3">
 <div className="flex flex-col leading-tight">
   <span className="text-2xl font-bold text-[#d72828]">
-    ₹ {Number(product.special_price > 0 ? product.special_price : product.price).toLocaleString()}
+    ₹ {Number(product.special_price > 0 ? product.special_price : product.price).toLocaleString('en-IN')}
   </span>
   {product.special_price > 0 && (
     <span className="text-xs text-gray-500 mt-0.5">Special Price</span>
@@ -968,7 +968,7 @@ const fetchBrand = async () => {
   <div className="flex w-full items-start justify-between gap-4 sm:gap-6 mt-3">
     <div className="flex flex-col leading-tight flex-1 min-w-0 pr-3 border-r border-gray-200">
       <span className="text-sm text-gray-500 line-through whitespace-nowrap">
-        MRP ₹ {Number(product.price).toLocaleString()}
+        MRP ₹ {Number(product.price).toLocaleString('en-IN')}
       </span>
       <span className="text-xs text-gray-500 mt-1 whitespace-nowrap">
         (Inclusive of all taxes)
@@ -980,7 +980,7 @@ const fetchBrand = async () => {
         <svg className="w-3.5 h-3.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
           <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
         </svg>
-        You Save ₹ {Number(product.price - product.special_price).toLocaleString()}
+        You Save ₹ {Number(product.price - product.special_price).toLocaleString('en-IN')}
       </p>
       <span className="text-xs text-gray-400 mt-1">
         Price includes all applicable taxes
@@ -1116,7 +1116,7 @@ const fetchBrand = async () => {
                   <h3 className="text-xs font-medium hover:text-[#d72828] line-clamp-2">{item.name}</h3>
                 </Link>
                 <span className="text-sm font-semibold text-red-600">
-                  ₹ {(item.special_price > 0 ? item.special_price : item.price).toLocaleString()}
+                  ₹ {(item.special_price > 0 ? item.special_price : item.price).toLocaleString('en-IN')}
                 </span>
               </div>
             </div>
@@ -1256,7 +1256,7 @@ const fetchBrand = async () => {
                   <h3 className="text-xs font-medium hover:text-[#d72828] line-clamp-2">{item.name}</h3>
                 </Link>
                 <span className="text-sm font-semibold text-red-600">
-                  ₹ {(item.special_price && item.special_price > 0 && item.special_price < item.price ? item.special_price : item.price).toLocaleString()}
+                  ₹ {(item.special_price && item.special_price > 0 && item.special_price < item.price ? item.special_price : item.price).toLocaleString('en-IN')}
                 </span>
               </div>
             </div>
@@ -1276,7 +1276,7 @@ const fetchBrand = async () => {
             <span className="text-sm font-semibold">Cart Total</span>
           </div>
           <div className="flex flex-col items-end">
-            <span className="text-sm font-semibold">₹{cartTotal.toLocaleString()}</span>
+            <span className="text-sm font-semibold">₹{cartTotal.toLocaleString('en-IN')}</span>
             <Link href="/cart" className="text-[11px] text-white hover:underline">View Cart</Link>
           </div>
         </div>

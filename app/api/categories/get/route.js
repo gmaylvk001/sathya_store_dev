@@ -11,7 +11,11 @@ const g = globalThis;
 if (!g.__sathyaCategoriesCache) {
   g.__sathyaCategoriesCache = { data: null, at: 0 };
 }
+if (!g.__sathyaComboLastSyncAt) {
+  g.__sathyaComboLastSyncAt = 0;
+}
 const CATEGORIES_CACHE_TTL_MS = 60 * 1000; // 60s
+const COMBO_SYNC_INTERVAL_MS = 5 * 60 * 1000; // 5 mins
 
 /**
  * Build parent → child id map and descendant sets in memory
@@ -71,14 +75,19 @@ export async function GET() {
 
     await dbConnect();
 
-    // Keep Combo Offers category Active only when ≥1 storefront-visible combo exists
-    try {
-      const { syncComboCategoryVisibility } = await import(
-        "@/lib/comboOffers/categoryVisibilityService"
-      );
-      await syncComboCategoryVisibility();
-    } catch (syncErr) {
-      console.warn("Combo category visibility sync skipped:", syncErr?.message);
+    // Keep Combo Offers category Active only when ≥1 storefront-visible combo exists (run at most every 5m)
+    if (now - g.__sathyaComboLastSyncAt > COMBO_SYNC_INTERVAL_MS) {
+      g.__sathyaComboLastSyncAt = now;
+      try {
+        const { syncComboCategoryVisibility } = await import(
+          "@/lib/comboOffers/categoryVisibilityService"
+        );
+        syncComboCategoryVisibility().catch((syncErr) => {
+          console.warn("Combo category visibility sync error:", syncErr?.message);
+        });
+      } catch (syncErr) {
+        console.warn("Combo category visibility sync skipped:", syncErr?.message);
+      }
     }
 
     const categories = await Category.find().sort({ position: 1 }).lean();

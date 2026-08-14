@@ -352,9 +352,8 @@ const Header = () => {
       let mounted = true;
 
       const buildNestedAndCache = (rawData) => {
-        const activeCategories = Array.isArray(rawData)
-          ? rawData.filter((cat) => cat.status === "Active")
-          : [];
+        const rawArr = extractCategoryArray(rawData);
+        const activeCategories = rawArr.filter((cat) => cat.status === "Active");
 
         const categoryMap = {};
         activeCategories.forEach((cat) => {
@@ -1393,14 +1392,16 @@ const Header = () => {
       try {
         // use raw cache if available, otherwise fetch
         let raw = loadCache('categories_raw_cache')?.data;
-        if (!Array.isArray(raw) || raw.length === 0) {
+        let rawArr = extractCategoryArray(raw);
+        if (!Array.isArray(rawArr) || rawArr.length === 0) {
           const res = await fetch('/api/categories/get');
           raw = await res.json();
           saveCache('categories_raw_cache', raw);
+          rawArr = extractCategoryArray(raw);
         }
 
         // rebuild nested tree
-        const active = Array.isArray(raw) ? raw.filter((c) => c.status === 'Active') : [];
+        const active = rawArr.filter((c) => c.status === 'Active');
         const map = {};
         active.forEach((c) => { map[c._id] = { ...c, subcategories: [] }; });
         active.forEach((c) => {

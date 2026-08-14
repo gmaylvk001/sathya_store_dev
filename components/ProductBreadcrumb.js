@@ -11,19 +11,15 @@ export default function ProductBreadcrumb({ product, className = "mb-4" }) {
   useEffect(() => {
     const fetchCategoryHierarchy = async () => {
       try {
-        if (!product?.category || !product?.sub_category) {
-          console.warn('No category or sub_category found in product');
+        if (!product?.category && !product?.sub_category) {
+          setLoading(false);
           return;
         }
 
-        console.log('Building hierarchy for category ID:', product.category);
-        console.log('Sub category ID:', product.sub_category);
-
         // Fetch all categories
         const allCategoriesRes = await fetch('/api/categories/breadcrumb');
-        const allCategories = await allCategoriesRes.json();
-        
-        console.log('All categories from API:', allCategories);
+        const rawRes = await allCategoriesRes.json();
+        const allCategories = Array.isArray(rawRes) ? rawRes : rawRes?.data || [];
 
         // Helper function to find category by ID
         const findCategoryById = (id) => {

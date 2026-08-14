@@ -536,10 +536,17 @@ export default function HomeComponent() {
           if (!response.ok) {
             throw new Error(`Network response was not ok (${response.status})`);
           }
-          const data = await response.json();
+          const resJson = await response.json();
+          const data = Array.isArray(resJson)
+            ? resJson
+            : Array.isArray(resJson?.data)
+            ? resJson.data
+            : Array.isArray(resJson?.categories)
+            ? resJson.categories
+            : [];
 
-          if (!Array.isArray(data)) {
-            console.warn('Unexpected categories payload, expected array:', data);
+          if (!data.length && !Array.isArray(resJson?.data) && !Array.isArray(resJson)) {
+            console.warn('Unexpected categories payload, expected array:', resJson);
             return;
           }
 
