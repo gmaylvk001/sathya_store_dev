@@ -3,6 +3,7 @@
 import { useModal } from '@/context/ModalContext';
 import { AuthModal } from './AuthModal';
 import LiveDemoModal from './LiveDemoModal';
+import RegionSelectorModal from './RegionSelectorModal';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -19,6 +20,7 @@ const GlobalModals = () => {
   return (
     <>
       <ToastContainer position="top-right" autoClose={4000} />
+      <RegionSelectorModal />
       {showAuthModal && (
         <AuthModal
           error={authError}

@@ -1,7 +1,7 @@
 // 'use client';
 import Link from "next/link";
 import Image from 'next/image';
-import { FiSearch, FiUser, FiMenu, FiX, FiChevronRight } from "react-icons/fi";
+import { FiSearch, FiUser, FiMenu, FiX, FiChevronRight, FiMapPin } from "react-icons/fi";
 import { FaBars, FaShoppingBag, FaUserShield, FaSearch } from "react-icons/fa";
 import {
   HiOutlineHeart,
@@ -21,6 +21,7 @@ import 'swiper/css/scrollbar';
 import { useRouter } from 'next/navigation';
 import { Navigation, Scrollbar } from 'swiper/modules';
 import { useHeaderdetails } from "@/context/HeaderContext"; 
+import { useRegion } from "@/context/RegionContext"; 
 import { filterAndRankProducts } from '@/lib/searchMatch';
 import { PAGE_TYPES } from '@/lib/categoryPageComponents/registry';
 import {
@@ -62,6 +63,8 @@ const Header = () => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const { wishlistCount } = useWishlist();
     const { cartCount, updateCartCount } = useCart();
+    const { selectedRegion, openRegionModal } = useRegion();
+    const [loyaltyPoints, setLoyaltyPoints] = useState(0);
     const [overviewAvailability, setOverviewAvailability] = useState({});
 
     // ADD: Cross-tab cart sync helpers
@@ -1635,9 +1638,21 @@ const Header = () => {
             <div className={`${isMobileMenuOpen ? "fixed inset-0 mt-0 pt-0 z-50 overflow-y-auto overflow-x-hidden" : "bg-white px-3 sm:px-6 md:px-6 py-1 sticky top-0 z-40 overflow-x-hidden"}`}>
                 {/* NEW MOBILE TOP ROW — compact so it never overflows viewport */}
                 <div className="sm:hidden flex items-center justify-between w-full max-w-full min-w-0 relative">
-                    <Link href="/" className="p-1 rounded-lg flex-shrink-0">
-                      <img src="/uploads/sathyalogo.webp" alt="Logo" width={64} height={40} className="h-9 w-auto" />
-                    </Link>
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <Link href="/" className="p-1 rounded-lg flex-shrink-0">
+                        <img src="/uploads/sathyalogo.webp" alt="Logo" width={64} height={40} className="h-9 w-auto" />
+                      </Link>
+                      <button
+                        type="button"
+                        onClick={openRegionModal}
+                        className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-50 hover:bg-red-100 text-[#d72828] text-[10px] font-bold border border-red-200/80 transition-all flex-shrink-0 max-w-[95px]"
+                        title="Change State / Region"
+                      >
+                        <FiMapPin size={11} className="text-[#d72828] flex-shrink-0" />
+                        <span className="truncate">{selectedRegion?.code || 'TN'}</span>
+                        <span className="text-[9px] opacity-70">▾</span>
+                      </button>
+                    </div>
                     <div className="flex items-center gap-1.5 text-brandRed flex-shrink-0">
                         <Link href="/wishlist" className={`${HEADER_ACTION_LINK_CLASS} relative min-w-[36px]`}>
                           <div className={HEADER_ACTION_ICON_WRAP_SM_CLASS}>
@@ -1844,6 +1859,21 @@ const Header = () => {
                         {/* Mobile Search Button (Hidden on desktop) */}
                         <button onClick={toggleMobileMenu} className="sm:hidden text-brandRed">
                             <FiSearch size={20} />
+                        </button>
+
+                        {/* State / Region Selector Button */}
+                        <button
+                          type="button"
+                          onClick={openRegionModal}
+                          className={`${HEADER_ACTION_LINK_CLASS} hidden sm:flex min-w-[54px] cursor-pointer`}
+                          title={`Selected State: ${selectedRegion?.name || 'Tamil Nadu'}. Click to change.`}
+                        >
+                            <div className={HEADER_ACTION_ICON_WRAP_CLASS}>
+                              <FiMapPin size={18} strokeWidth={1.75} />
+                            </div>
+                            <span className={`text-[10px] ${HEADER_ACTION_LABEL_CLASS} max-w-[62px] truncate`}>
+                              {selectedRegion?.code || 'Region'} ▾
+                            </span>
                         </button>
 
                         <Link href="/contact" className={`${HEADER_ACTION_LINK_CLASS} hidden sm:flex min-w-[52px]`}>

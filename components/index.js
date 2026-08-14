@@ -288,21 +288,26 @@ export default function HomeComponent() {
         const fetchCategories = async () => {
           try {
             const response = await fetch("/api/categories/get");
-            const data    = await response.json();
+            const resJson = await response.json();
+            const data = Array.isArray(resJson)
+              ? resJson
+              : Array.isArray(resJson?.data)
+              ? resJson.data
+              : [];
             setCategories(data);
             const rootIds = data
-            .filter(cat => cat.parentid === "none" && cat.status === "Active")
-            .map(cat => cat._id);
-            console.log(rootIds);
+              .filter((cat) => cat && cat.parentid === "none" && cat.status === "Active")
+              .map((cat) => cat._id);
             // 2. Get only categories whose parentid is in rootIds → second level
             const secondLevelCategories = data.filter(
-              cat => rootIds.includes(cat.parentid) && cat.status === "Active"
+              (cat) => cat && rootIds.includes(cat.parentid) && cat.status === "Active"
             );
-            console.log(secondLevelCategories);
             setParentCategories(secondLevelCategories);
-            setSelectedCategory(secondLevelCategories[0]);
+            if (secondLevelCategories.length > 0) {
+              setSelectedCategory(secondLevelCategories[0]);
+            }
           } catch (error) {
-              console.error("Error fetching categories:", error);
+            console.error("Error fetching categories:", error);
           }
         };
         {/* 

@@ -9,24 +9,27 @@ import { ModalProvider } from "@/context/ModalContext";
 import { WishlistProvider } from "@/context/WishlistContext";
 import { CartProvider } from "@/context/CartContext";
 import { HeaderProvider } from "@/context/HeaderContext";
+import { RegionProvider } from "@/context/RegionContext";
 
 export default function ClientLayout({ children }) {
   const pathname = usePathname();
 
   return (
-    <HeaderProvider>
-      <ModalProvider>
-        <WishlistProvider>
-          <CartProvider>
-            <AuthProvider>
-              {!pathname?.startsWith("/admin") && <CustomHeader />}
-              <main className="relative">{children}</main>
-              {!pathname?.startsWith("/admin") && <CustomFooter />}
-              <GlobalModals />
-            </AuthProvider>
-          </CartProvider>
-        </WishlistProvider>
-      </ModalProvider>
-    </HeaderProvider>
+    <RegionProvider>
+      <HeaderProvider>
+        <ModalProvider>
+          <WishlistProvider>
+            <CartProvider>
+              <AuthProvider>
+                {!pathname?.startsWith("/admin") && <CustomHeader />}
+                <main className="relative">{children}</main>
+                {!pathname?.startsWith("/admin") && <CustomFooter />}
+                <GlobalModals />
+              </AuthProvider>
+            </CartProvider>
+          </WishlistProvider>
+        </ModalProvider>
+      </HeaderProvider>
+    </RegionProvider>
   );
 }
