@@ -65,7 +65,7 @@ export default function FlashCategorySlider({ slug }) {
           <p className="text-red-500 mb-4">Failed to load categories</p>
           <button
             onClick={fetchFlashCategories}
-            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+            className="bg-[#d72828] text-white px-4 py-2 rounded hover:bg-[#d72828]"
           >
             Retry
           </button>
@@ -111,8 +111,8 @@ export default function FlashCategorySlider({ slug }) {
                   rel="noopener noreferrer"
                   className="block"
                 >
-                  {/* <div className="bg-[#2453D3] rounded-xl overflow-hidden hover:shadow-lg transition-shadow duration-300"> */}
-                  <div className="bg-[#2453D3] rounded-xl flex flex-col items-center">
+                  {/* <div className="bg-[#d72828] rounded-xl overflow-hidden hover:shadow-lg transition-shadow duration-300"> */}
+                  <div className="bg-[#d72828] rounded-xl flex flex-col items-center">
                     <img
                       src={category.banner_image}
                       alt={category.banner_name}
@@ -127,7 +127,7 @@ export default function FlashCategorySlider({ slug }) {
                   href={`/category/${category.category_slug}`}
                   className="block"
                 >
-                  <div className="bg-[#2453D3] rounded-xl flex flex-col items-center">
+                  <div className="bg-[#d72828] rounded-xl flex flex-col items-center">
                     <img
                       src={category.banner_image}
                       alt={category.banner_name}

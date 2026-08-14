@@ -81,7 +81,7 @@ export default function OfferComponent() {
                   e.stopPropagation();
                   toggleCategory(category._id);
                 }}
-                className="mr-2 text-blue-500"
+                className="mr-2 text-[#d72828]"
               >
                 {expandedCategories[category._id] ? <FaMinus /> : <FaPlus />}
               </button>
@@ -287,7 +287,7 @@ export default function OfferComponent() {
         <h2 className="text-2xl font-bold">Offer List</h2>
         <button
           onClick={() => setIsModalOpen(true)}
-          className="bg-blue-500 text-white px-4 py-2 rounded-md"
+          className="bg-[#d72828] text-white px-4 py-2 rounded-md"
         >
           + Add Offer
         </button>
@@ -381,7 +381,7 @@ export default function OfferComponent() {
                 key={i + 1}
                 onClick={() => paginate(i + 1)}
                 className={`px-3 py-2 border rounded mx-1 ${
-                  currentPage === i + 1 ? "bg-blue-500 text-white" : "text-gray-700 hover:bg-gray-100"
+                  currentPage === i + 1 ? "bg-[#d72828] text-white" : "text-gray-700 hover:bg-gray-100"
                 }`}
               >
                 {i + 1}

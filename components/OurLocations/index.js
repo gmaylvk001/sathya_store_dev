@@ -6,7 +6,7 @@ const MapView = dynamic(() => import("./MapView"), {
   ssr: false,
   loading: () => (
     <div className="w-full h-full flex items-center justify-center bg-gray-100">
-      <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-600"></div>
+      <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-[#d72828]"></div>
     </div>
   ),
 });
@@ -115,7 +115,7 @@ function StoreDetail({ store, onBack }) {
 
         <div className="flex flex-col gap-2 text-sm border-t pt-3">
           {store.phone && (
-            <a href={`tel:${store.phone}`} className="flex items-center gap-2 text-gray-700 hover:text-blue-600">
+            <a href={`tel:${store.phone}`} className="flex items-center gap-2 text-gray-700 hover:text-[#d72828]">
               <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h2.28a1 1 0 01.95.684l1.518 4.553a1 1 0 01-.272 1.06l-1.2 1.2a16.001 16.001 0 006.586 6.586l1.2-1.2a1 1 0 011.06-.272l4.553 1.518a1 1 0 01.684.95V19a2 2 0 01-2 2h-1C9.163 21 3 14.837 3 7V5z" />
               </svg>
@@ -123,7 +123,7 @@ function StoreDetail({ store, onBack }) {
             </a>
           )}
           {store.website && (
-            <a href={store.website.startsWith("http") ? store.website : `https://${store.website}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-blue-600 hover:underline truncate">
+            <a href={store.website.startsWith("http") ? store.website : `https://${store.website}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-[#d72828] hover:underline truncate">
               <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
               </svg>
@@ -131,7 +131,7 @@ function StoreDetail({ store, onBack }) {
             </a>
           )}
           {store.email && (
-            <a href={`mailto:${store.email}`} className="flex items-center gap-2 text-blue-600 hover:underline truncate">
+            <a href={`mailto:${store.email}`} className="flex items-center gap-2 text-[#d72828] hover:underline truncate">
               <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
               </svg>
@@ -327,7 +327,7 @@ export default function OurLocations() {
                         onClick={() => handleSelect(store)}
                         className={`cursor-pointer border-b border-r p-2 transition-colors ${
                           isSelected
-                            ? "bg-blue-50 border-l-4 border-l-blue-600"
+                            ? "bg-red-50 border-l-4 border-l-blue-600"
                             : "hover:bg-gray-50"
                         }`}
                       >
@@ -353,8 +353,8 @@ export default function OurLocations() {
                         <p
                           className={`text-xs font-semibold leading-tight ${
                             isSelected
-                              ? "text-blue-700"
-                              : "text-blue-900"
+                              ? "text-[#d72828]"
+                              : "text-[#d72828]"
                           }`}
                         >
                           {store.organisation_name}
@@ -379,7 +379,7 @@ export default function OurLocations() {
       <div className="flex-1 relative overflow-hidden h-[55vh] md:h-auto">
         {geocoding && (
           <div className="absolute top-3 left-1/2 -translate-x-1/2 z-[9999] bg-white shadow rounded-full px-3 py-1 text-xs text-gray-600 flex items-center gap-2">
-            <div className="animate-spin rounded-full h-3 w-3 border-t-2 border-blue-600"></div>
+            <div className="animate-spin rounded-full h-3 w-3 border-t-2 border-[#d72828]"></div>
             Locating on map...
           </div>
         )}

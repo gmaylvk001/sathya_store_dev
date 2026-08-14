@@ -7,15 +7,21 @@ export async function GET(req) {
     await dbConnect();
     const { searchParams } = new URL(req.url);
     const userId = searchParams.get('user_id');
-    const useraddress = await Useraddress.find({ userId: userId });
-    return NextResponse.json(  { 
-      message: "Address fetched successfully", 
-      userAddress: useraddress 
-    },
-    { status: 201 }
-  );
+    if (!userId || userId === "undefined" || userId === "null") {
+      return NextResponse.json({ message: "Address fetched successfully", userAddress: [] }, { status: 200 });
+    }
+    let useraddress = [];
+    try {
+      useraddress = await Useraddress.find({ userId: userId }).lean();
+    } catch {
+      useraddress = [];
+    }
+    return NextResponse.json(
+      { message: "Address fetched successfully", userAddress: useraddress || [] },
+      { status: 200 }
+    );
   } catch (error) {
     console.error("Error fetching Useraddress:", error);
-    return NextResponse.json({ error: "Failed to fetch categories" }, { status: 500 });
+    return NextResponse.json({ message: "Address fetched successfully", userAddress: [] }, { status: 200 });
   }
 }

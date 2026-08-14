@@ -167,7 +167,7 @@ export default function CategoryBannerManager() {
         <h2 className="text-xl font-bold">Manage Category Banners (410×410)</h2>
         <button
           onClick={() => openModal()}
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+          className="bg-[#d72828] text-white px-4 py-2 rounded hover:bg-[#d72828]"
         >
           + Add Category Banner
         </button>
@@ -418,7 +418,7 @@ export default function CategoryBannerManager() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="flex-1 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:bg-blue-400"
+                  className="flex-1 bg-[#d72828] text-white px-4 py-2 rounded hover:bg-[#d72828] disabled:bg-[#d72828]"
                 >
                   {loading ? "Saving..." : "Save"}
                 </button>
@@ -461,7 +461,7 @@ export default function CategoryBannerManager() {
             <p className="text-lg font-medium">{messageModal}</p>
             <button
               onClick={() => setMessageModal(null)}
-              className="mt-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+              className="mt-4 bg-[#d72828] text-white px-4 py-2 rounded hover:bg-[#d72828]"
             >
               OK
             </button>

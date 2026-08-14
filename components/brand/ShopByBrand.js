@@ -99,7 +99,7 @@ export default function ShopByBrand({ categorySlug }) {
     <section className="bg-white px-5 sm:px-8 py-6 mt-6 mb-6">
       {/* Header */}
       <div className="flex items-center gap-3 mb-5">
-        <span className="inline-block w-1 h-6 rounded-full bg-blue-500" />
+        <span className="inline-block w-1 h-6 rounded-full bg-[#d72828]" />
         <h2 className="text-base sm:text-lg font-bold text-gray-800">
           Shop by Brand
         </h2>
@@ -130,7 +130,7 @@ export default function ShopByBrand({ categorySlug }) {
               className="flex flex-col items-center gap-2 group"
             >
               {/* Brand logo */}
-              <div className="w-full aspect-square rounded-xl border border-gray-100 bg-gray-50 flex items-center justify-center overflow-hidden p-3 group-hover:border-blue-300 group-hover:shadow-md transition-all duration-300">
+              <div className="w-full aspect-square rounded-xl border border-gray-100 bg-gray-50 flex items-center justify-center overflow-hidden p-3 group-hover:border-[#d72828] group-hover:shadow-md transition-all duration-300">
                 {brand.image ? (
                   <Image
                     src={`/uploads/Brands/${brand.image}`}
@@ -148,7 +148,7 @@ export default function ShopByBrand({ categorySlug }) {
               </div>
 
               {/* Brand name */}
-              <span className="text-xs text-center text-gray-600 font-medium line-clamp-1 group-hover:text-blue-600 transition-colors duration-200">
+              <span className="text-xs text-center text-gray-600 font-medium line-clamp-1 group-hover:text-[#d72828] transition-colors duration-200">
                 {brand.brand_name}
               </span>
             </Link>

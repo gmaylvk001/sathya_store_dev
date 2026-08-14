@@ -74,7 +74,7 @@ function SectionModal({ initialData = null, onClose, onSubmit }) {
             Cancel
           </button>
           <button
-            className="px-4 py-2 bg-blue-600 text-white text-sm rounded"
+            className="px-4 py-2 bg-[#d72828] text-white text-sm rounded"
             onClick={handleSubmit}
           >
             {initialData ? "Update" : "Add"}
@@ -249,7 +249,7 @@ export default function HomeSectionOrder() {
                         </button>
 
                          <button
-                          className="text-blue-500 text-sm"
+                          className="text-[#d72828] text-sm"
                           onClick={() => {
                             setEditSection(section);
                             setShowModal(true);

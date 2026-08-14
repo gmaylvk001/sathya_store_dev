@@ -123,7 +123,7 @@ function ChevronDownIcon({ size = 16 }) {
     </svg>
   );
 }
-function CheckCircleIcon({ size = 16, color = "#2563eb" }) {
+function CheckCircleIcon({ size = 16, color = "#d72828" }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
@@ -161,7 +161,7 @@ function DirectionsIcon({ size = 14 }) {
 // ─── Section Title ────────────────────────────────────────────────────────────
 function SectionTitle({ children, center = true }) {
   return (
-    <h2 className={`text-[18px] text-blue-700 font-bold mb-5 ${center ? "text-center" : ""}`}>
+    <h2 className={`text-[18px] text-[#d72828] font-bold mb-5 ${center ? "text-center" : ""}`}>
       {children}
     </h2>
   );
@@ -306,7 +306,7 @@ export default function StoreDetail() {
     padding: 16px;
   }
   .bea-card h3 .colorblue{
-    color: #2563eb;
+    color: #d72828;
   }
 `}</style>
 
@@ -334,7 +334,7 @@ export default function StoreDetail() {
     />
   ) : (
     <div
-      className="w-full bg-gradient-to-br from-blue-900 to-blue-700"
+      className="w-full bg-gradient-to-br from-[#d72828] to-[#d72828]"
       style={{ minHeight: '340px', maxHeight: '420px' }}
     />
   )}
@@ -353,13 +353,13 @@ export default function StoreDetail() {
 
       {/* Breadcrumb */}
       <div className="text-[11px] text-gray-400 mt-4 mb-2 flex items-center gap-1 flex-nowrap whitespace-nowrap overflow-hidden">
-        <Link href="/" className="hover:text-blue-600 flex-shrink-0">Home</Link>
+        <Link href="/" className="hover:text-[#d72828] flex-shrink-0">Home</Link>
         <span className="flex-shrink-0">›</span>
-        <Link href="/our-branches" className="hover:text-blue-600 flex-shrink-0">Our Stores</Link>
+        <Link href="/our-branches" className="hover:text-[#d72828] flex-shrink-0">Our Stores</Link>
         <span className="flex-shrink-0">›</span>
         <span className="text-gray-600 flex-shrink-0">{store.city}</span>
         <span className="flex-shrink-0">›</span>
-        <span className="text-blue-600 font-medium truncate">{store.organisation_name}</span>
+        <span className="text-[#d72828] font-medium truncate">{store.organisation_name}</span>
       </div>
 
       {/* Name + Badge */}
@@ -368,7 +368,7 @@ export default function StoreDetail() {
           {store.organisation_name}
         </h1>
         {(store.category || store.service_area) && (
-          <span className="bg-blue-600 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full">
+          <span className="bg-[#d72828] text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full">
             {store.category || store.service_area}
           </span>
         )}
@@ -386,21 +386,21 @@ export default function StoreDetail() {
 
       {/* Address */}
       <div className="flex items-start gap-2 mb-2 text-[12.5px] text-gray-600">
-        <span className="mt-0.5 flex-shrink-0 text-blue-600"><MapPinIcon size={13}/></span>
+        <span className="mt-0.5 flex-shrink-0 text-[#d72828]"><MapPinIcon size={13}/></span>
         <span>{store.address}{store.zipcode ? `, ${store.zipcode}` : ""}</span>
       </div>
 
       {/* Phone */}
       {store.phone && (
         <div className="flex items-center gap-2 mb-2 text-[12.5px] text-gray-600">
-          <span className="text-blue-600"><PhoneIcon size={13}/></span>
-          <a href={callUrl} className="hover:text-blue-600">{store.phone}</a>
+          <span className="text-[#d72828]"><PhoneIcon size={13}/></span>
+          <a href={callUrl} className="hover:text-[#d72828]">{store.phone}</a>
         </div>
       )}
 
       {/* Hours */}
       <div className="flex items-center gap-2 mb-4 text-[12.5px] text-gray-600">
-        <span className="text-blue-600"><ClockIcon size={13}/></span>
+        <span className="text-[#d72828]"><ClockIcon size={13}/></span>
         {todayHours ? (
           <span>Open Today: <strong>{todayHours.timing}</strong></span>
         ) : store.businessHours?.length > 0 ? (
@@ -413,7 +413,7 @@ export default function StoreDetail() {
       {/* Action Buttons */}
       <div className="flex items-center gap-2.5 flex-wrap">
         <a href={mapsUrl} target="_blank" rel="noopener noreferrer">
-          <button className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-4 py-2.5 text-[12.5px] font-semibold transition-colors">
+          <button className="flex items-center gap-1.5 bg-[#d72828] hover:bg-[#d72828] text-white rounded-lg px-4 py-2.5 text-[12.5px] font-semibold transition-colors">
             <DirectionsIcon size={13}/> Get Directions
           </button>
         </a>
@@ -455,8 +455,8 @@ export default function StoreDetail() {
     onError={(e) => { e.target.style.display = "none"; }}
   />
   <div className="flex flex-col">
-    <span className="text-[13px] font-bold text-blue-900 leading-tight">{s.value}</span>
-    <span className="text-[9.5px] text-blue-900 leading-tight">{s.label}</span>
+    <span className="text-[13px] font-bold text-[#d72828] leading-tight">{s.value}</span>
+    <span className="text-[9.5px] text-[#d72828] leading-tight">{s.label}</span>
   </div>
 </div>
         ))}
@@ -473,11 +473,11 @@ export default function StoreDetail() {
 
   {/* Breadcrumb */}
   <div className="text-[10px] text-gray-400 mb-3 flex items-center gap-1 flex-wrap">
-    <Link href="/" className="hover:text-blue-600">Home</Link>
+    <Link href="/" className="hover:text-[#d72828]">Home</Link>
     <span>›</span>
-    <Link href="/our-branches" className="hover:text-blue-600">Our Stores</Link>
+    <Link href="/our-branches" className="hover:text-[#d72828]">Our Stores</Link>
     <span>›</span>
-    <span className="text-blue-600 font-medium">{store.organisation_name}</span>
+    <span className="text-[#d72828] font-medium">{store.organisation_name}</span>
   </div>
 
   {/* Name + Badge */}
@@ -486,7 +486,7 @@ export default function StoreDetail() {
       {store.organisation_name}
     </h1>
     {(store.category || store.service_area) && (
-      <span className="bg-blue-600 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full">
+      <span className="bg-[#d72828] text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full">
         {store.category || store.service_area}
       </span>
     )}
@@ -504,21 +504,21 @@ export default function StoreDetail() {
 
   {/* Address */}
   <div className="flex items-start gap-2 mb-1.5 text-[12px] text-gray-600">
-    <span className="mt-0.5 flex-shrink-0 text-blue-600"><MapPinIcon size={12}/></span>
+    <span className="mt-0.5 flex-shrink-0 text-[#d72828]"><MapPinIcon size={12}/></span>
     <span>{store.address}{store.zipcode ? `, ${store.zipcode}` : ""}</span>
   </div>
 
   {/* Phone */}
   {store.phone && (
     <div className="flex items-center gap-2 mb-1.5 text-[12px] text-gray-600">
-      <span className="text-blue-600"><PhoneIcon size={12}/></span>
-      <a href={callUrl} className="hover:text-blue-600">{store.phone}</a>
+      <span className="text-[#d72828]"><PhoneIcon size={12}/></span>
+      <a href={callUrl} className="hover:text-[#d72828]">{store.phone}</a>
     </div>
   )}
 
   {/* Hours */}
   <div className="flex items-center gap-2 mb-4 text-[12px] text-gray-600">
-    <span className="text-blue-600"><ClockIcon size={12}/></span>
+    <span className="text-[#d72828]"><ClockIcon size={12}/></span>
     <span>Open Today: <strong>
       {todayHours?.timing || store.businessHours?.[0]?.timing || "9:30 AM – 9:30 PM"}
     </strong></span>
@@ -527,7 +527,7 @@ export default function StoreDetail() {
   {/* Buttons */}
   <div className="flex items-center gap-2 flex-wrap mb-5">
     <a href={mapsUrl} target="_blank" rel="noopener noreferrer">
-      <button className="flex items-center gap-1.5 bg-blue-600 text-white rounded-lg px-3.5 py-2 text-[12px] font-semibold">
+      <button className="flex items-center gap-1.5 bg-[#d72828] text-white rounded-lg px-3.5 py-2 text-[12px] font-semibold">
         <DirectionsIcon size={12}/> Directions
       </button>
     </a>
@@ -561,7 +561,7 @@ export default function StoreDetail() {
           onError={(e) => { e.target.style.display = "none"; }}
         />
         <div>
-          <div className="text-[16px] font-bold text-blue-700 leading-none">{s.value}</div>
+          <div className="text-[16px] font-bold text-[#d72828] leading-none">{s.value}</div>
           <div className="text-[10.5px] text-gray-500 mt-0.5 leading-tight">{s.label}</div>
         </div>
       </div>
@@ -575,7 +575,7 @@ export default function StoreDetail() {
 ═══════════════════════════════════════════════════════ */}
 {store.store_images?.length > 0 && (
   <section className="bg-white px-4 sm:px-8 pt-8 pb-8 mt-3">
-    <h2 className="text-center text-[18px] font-bold text-blue-700 mb-5">
+    <h2 className="text-center text-[18px] font-bold text-[#d72828] mb-5">
       Experience {store.organisation_name}
     </h2>
 
@@ -623,24 +623,24 @@ export default function StoreDetail() {
 
     {/* About */}
     <div className="bea-card bg-white-900 bea-card">
-      <h3 className="text-[15px] font-bold text-blue-700 mb-3">
+      <h3 className="text-[15px] font-bold text-[#d72828] mb-3">
         About {store.organisation_name} Store
       </h3>
-      <p className="text-[12.5px] text-blue-600 leading-relaxed">
+      <p className="text-[12.5px] text-[#d72828] leading-relaxed">
         {store.description || `${store.organisation_name} is one of the most trusted electronics and home appliance stores in ${store.city}. We offer 5000+ products across televisions, air conditioners, refrigerators, washing machines, mobiles, laptops and kitchen appliances from leading brands.\n\nOur showroom is designed to help you experience the latest technology up close. Get expert advice, best prices, easy EMI options, quick delivery and professional installation support – all under one roof.`}
       </p>
     </div>
 
     {/* Store Highlights */}
     <div className="bea-card">
-      <h3 className="text-[15px] font-bold text-blue-700 mb-3">Store Highlights</h3>
+      <h3 className="text-[15px] font-bold text-[#d72828] mb-3">Store Highlights</h3>
       <ul className="space-y-2">
         {(store.highlights?.length > 0
           ? store.highlights.map(h => h.label)
           : STATIC_HIGHLIGHTS_TEXT
         ).map((text, i) => (
-          <li key={i} className="flex items-start gap-2 text-[12.5px] text-blue-600">
-            <span className="mt-0.5 flex-shrink-0"><CheckCircleIcon size={14} color="#2563eb" /></span>
+          <li key={i} className="flex items-start gap-2 text-[12.5px] text-[#d72828]">
+            <span className="mt-0.5 flex-shrink-0"><CheckCircleIcon size={14} color="#d72828" /></span>
             {text}
           </li>
         ))}
@@ -649,7 +649,7 @@ export default function StoreDetail() {
 
     {/* Popular Products */}
     <div className="bea-card">
-      <h3 className="text-[15px] font-bold text-blue-700 mb-3">Popular Products Available</h3>
+      <h3 className="text-[15px] font-bold text-[#d72828] mb-3">Popular Products Available</h3>
       <div className="grid grid-cols-2 gap-2">
         {[
           { img: '/store/tv.png', label: 'Smart TVs & OLED TVs' },
@@ -684,7 +684,7 @@ export default function StoreDetail() {
 
     {/* Shop by Category */}
     <div className="bea-card">
-      <h3 className="text-[15px] font-bold text-blue-700 mb-4 text-center">Shop by Category</h3>
+      <h3 className="text-[15px] font-bold text-[#d72828] mb-4 text-center">Shop by Category</h3>
       {dynamicCategories.length === 0 ? (
         <div className="flex justify-center items-center h-24 text-gray-400 text-[12px]">Loading...</div>
       ) : (
@@ -695,7 +695,7 @@ export default function StoreDetail() {
               href="/"
               className="flex flex-col items-center gap-1 cursor-pointer group"
             >
-              <div className="w-12 h-12 bg-gray-50 border border-gray-200 rounded-xl flex items-center justify-center overflow-hidden group-hover:bg-blue-50 group-hover:border-blue-200 transition-colors">
+              <div className="w-12 h-12 bg-gray-50 border border-gray-200 rounded-xl flex items-center justify-center overflow-hidden group-hover:bg-red-50 group-hover:border-red-200 transition-colors">
                 {cat.navImage ? (
                   <img
                     src={cat.navImage}
@@ -703,7 +703,7 @@ export default function StoreDetail() {
                     className="w-full h-full object-contain p-1.5"
                   />
                 ) : (
-                  <span className="text-[12px] font-bold text-blue-600">
+                  <span className="text-[12px] font-bold text-[#d72828]">
                     {(cat.category_name || "?").charAt(0)}
                   </span>
                 )}
@@ -718,7 +718,7 @@ export default function StoreDetail() {
       <div className="text-center mt-4">
         <Link
           href="/"
-          className="text-blue-600 text-[12px] font-semibold hover:underline inline-flex items-center gap-1"
+          className="text-[#d72828] text-[12px] font-semibold hover:underline inline-flex items-center gap-1"
         >
           View All Categories <ArrowRightIcon />
         </Link>
@@ -727,7 +727,7 @@ export default function StoreDetail() {
 
     {/* Authorized Brands */}
     <div className="bea-card">
-      <h3 className="text-[15px] font-bold text-blue-700 mb-4 text-center">Authorized Brands Available</h3>
+      <h3 className="text-[15px] font-bold text-[#d72828] mb-4 text-center">Authorized Brands Available</h3>
       {dynamicBrands.length === 0 ? (
         <div className="flex justify-center items-center h-24 text-gray-400 text-[12px]">Loading...</div>
       ) : (
@@ -764,7 +764,7 @@ export default function StoreDetail() {
       <div className="text-center mt-4">
         <Link
           href="/"
-          className="text-blue-600 text-[12px] font-semibold hover:underline inline-flex items-center gap-1"
+          className="text-[#d72828] text-[12px] font-semibold hover:underline inline-flex items-center gap-1"
         >
           View All Brands <ArrowRightIcon />
         </Link>
@@ -773,7 +773,7 @@ export default function StoreDetail() {
 
     {/* Latest Offers */}
     <div className="bea-card">
-      <h3 className="text-[15px] font-bold text-blue-700 mb-4 text-center">Latest Offers at This Store</h3>
+      <h3 className="text-[15px] font-bold text-[#d72828] mb-4 text-center">Latest Offers at This Store</h3>
       {store.offers?.length > 0 ? (
         <div className="space-y-2">
           {store.offers.slice(0, 4).map((offer, i) => (
@@ -819,7 +819,7 @@ export default function StoreDetail() {
         </div>
       )}
       <div className="text-center mt-4">
-        <button className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-lg py-2 text-[12px] font-semibold transition-colors">
+        <button className="w-full bg-[#d72828] hover:bg-[#d72828] text-white rounded-lg py-2 text-[12px] font-semibold transition-colors">
           View All Offers
         </button>
       </div>
@@ -834,7 +834,7 @@ export default function StoreDetail() {
   <section className="bg-white px-4 sm:px-8 py-8 mt-3">
     <div className="flex items-center justify-between mb-4">
       <SectionTitle center={false}>Featured Products at This Store</SectionTitle>
-      <button className="text-blue-600 text-[12px] font-semibold hover:underline inline-flex items-center gap-1">
+      <button className="text-[#d72828] text-[12px] font-semibold hover:underline inline-flex items-center gap-1">
         View All Products <ArrowRightIcon />
       </button>
     </div>
@@ -870,7 +870,7 @@ export default function StoreDetail() {
               </p>
               <div className="flex items-center gap-2 w-full justify-center">
                 {prod.special_price && (
-                  <span className="text-[13px] font-bold text-blue-700">
+                  <span className="text-[13px] font-bold text-[#d72828]">
                     ₹{prod.special_price.toLocaleString()}
                   </span>
                 )}
@@ -901,7 +901,7 @@ export default function StoreDetail() {
               {[1,2,3,4,5].map(i => <StarIcon key={i} filled={true} size={16}/>)}
             </div>
             <span className="text-[12px] text-gray-500 mb-3">Based on 300+ Reviews</span>
-            <button className="text-blue-600 text-[12px] font-semibold border border-blue-200 rounded-lg px-4 py-1.5 hover:bg-blue-50 transition-colors">
+            <button className="text-[#d72828] text-[12px] font-semibold border border-red-200 rounded-lg px-4 py-1.5 hover:bg-red-50 transition-colors">
               Read All Reviews
             </button>
           </div>
@@ -917,7 +917,7 @@ export default function StoreDetail() {
               <SwiperSlide key={i}>
                 <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 h-full">
                   <div className="flex items-center gap-2.5 mb-2">
-                    <div className="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center text-white text-[13px] font-bold flex-shrink-0">
+                    <div className="w-9 h-9 rounded-full bg-[#d72828] flex items-center justify-center text-white text-[13px] font-bold flex-shrink-0">
                       {review.name[0]}
                     </div>
                     <div>
@@ -941,7 +941,7 @@ export default function StoreDetail() {
 ═══════════════════════════════════════════════════════ */}
 {store.customer_images?.length > 0 && (
   <section className="bg-white px-4 sm:px-8 py-8 mt-3">
-    <h2 className="text-center text-[18px] font-bold text-blue-900 mb-5">
+    <h2 className="text-center text-[18px] font-bold text-[#d72828] mb-5">
       Happy Customers, Happy Moments
     </h2>
 
@@ -971,11 +971,11 @@ export default function StoreDetail() {
 
         {/* View More — last item */}
         <div
-          className="flex-shrink-0 rounded-xl overflow-hidden  border border-blue-100 flex flex-col items-center justify-center cursor-pointer hover:bg-blue-100 transition-colors"
+          className="flex-shrink-0 rounded-xl overflow-hidden  border border-red-100 flex flex-col items-center justify-center cursor-pointer hover:bg-red-100 transition-colors"
           style={{ width: '160px', height: '120px', scrollSnapAlign: 'start' }}
         >
           <ArrowRightIcon size={20} />
-          <span className="text-blue-900 text-[12px] font-semibold mt-1">View More</span>
+          <span className="text-[#d72828] text-[12px] font-semibold mt-1">View More</span>
         </div>
       </div>
     </div>
@@ -989,7 +989,7 @@ export default function StoreDetail() {
 
   {/* Find Us — dynamic address */}
 <div className="bea-card">
-  <h3  className="text-[14px] font-bold text-blue-700 mb-3">Find Us Here</h3>
+  <h3  className="text-[14px] font-bold text-[#d72828] mb-3">Find Us Here</h3>
   <div className="bg-gray-100 rounded-xl h-[160px] flex items-center justify-center mb-3 overflow-hidden">
     <iframe
       title="Store Location"
@@ -1005,7 +1005,7 @@ export default function StoreDetail() {
     />
   </div>
   <a href={mapsUrl} target="_blank" rel="noopener noreferrer">
-    <button className="w-full border border-blue-600 text-blue-600 hover:bg-blue-50 rounded-lg py-2 text-[12px] font-semibold transition-colors">
+    <button className="w-full border border-[#d72828] text-[#d72828] hover:bg-red-50 rounded-lg py-2 text-[12px] font-semibold transition-colors">
       Open in Google Maps
     </button>
   </a>
@@ -1013,11 +1013,11 @@ export default function StoreDetail() {
 
           {/* Areas We Serve — static */}
           <div className="bea-card">
-            <h3 className="text-[14px] font-bold text-blue-700 mb-3">Areas We Serve</h3>
+            <h3 className="text-[14px] font-bold text-[#d72828] mb-3">Areas We Serve</h3>
             <ul className="space-y-1.5">
               {STATIC_AREAS.map((area, i) => (
                 <li key={i} className="flex items-center gap-2 text-[12.5px] text-gray-700">
-                  <CheckCircleIcon size={13} color="#2563eb" />
+                  <CheckCircleIcon size={13} color="#d72828" />
                   {area}
                 </li>
               ))}
@@ -1026,7 +1026,7 @@ export default function StoreDetail() {
 
           {/* Nearby Stores — dynamic */}
           <div className="bea-card">
-            <h3 className="text-[14px] font-bold text-blue-700 mb-3">More Sathya Stores Near You</h3>
+            <h3 className="text-[14px] font-bold text-[#d72828] mb-3">More Sathya Stores Near You</h3>
             {store.nearbyStores?.length > 0 ? (
               <div className="space-y-2.5">
                 {store.nearbyStores.slice(0, 3).map((ns, i) => (
@@ -1034,20 +1034,20 @@ export default function StoreDetail() {
                     <div className="min-w-0">
                       <div className="text-[12px] font-semibold text-gray-800 truncate">{ns.name}</div>
                       <div className="text-[11px] text-gray-500">{ns.address}</div>
-                      {ns.distance && <div className="text-[11px] text-blue-600 font-medium">{ns.distance}</div>}
+                      {ns.distance && <div className="text-[11px] text-[#d72828] font-medium">{ns.distance}</div>}
                     </div>
-                    <button className="flex-shrink-0 bg-blue-600 text-white text-[10.5px] font-semibold px-2.5 py-1.5 rounded-lg hover:bg-blue-700 transition-colors">
+                    <button className="flex-shrink-0 bg-[#d72828] text-white text-[10.5px] font-semibold px-2.5 py-1.5 rounded-lg hover:bg-[#d72828] transition-colors">
                       View Store
                     </button>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-[12px] text-gray-500">Visit our <Link href="/location" className="text-blue-600 hover:underline">store locator</Link> to find nearby showrooms.</p>
+              <p className="text-[12px] text-gray-500">Visit our <Link href="/location" className="text-[#d72828] hover:underline">store locator</Link> to find nearby showrooms.</p>
             )}
             <div className="text-center mt-3">
               <Link href="/our-branches">
-                <button className="text-blue-600 text-[12px] font-semibold hover:underline inline-flex items-center gap-1">
+                <button className="text-[#d72828] text-[12px] font-semibold hover:underline inline-flex items-center gap-1">
                   View All Stores <ArrowRightIcon />
                 </button>
               </Link>
@@ -1056,7 +1056,7 @@ export default function StoreDetail() {
 
           {/* Store Team — static */}
           <div className="bea-card">
-            <h3 className="text-[14px] font-bold text-blue-700 mb-3">Meet Your Store Team</h3>
+            <h3 className="text-[14px] font-bold text-[#d72828] mb-3">Meet Your Store Team</h3>
             <div className="bg-gray-100 rounded-xl h-[130px] flex items-center justify-center mb-3 overflow-hidden">
                <img src="/store/storeTeam.png" className="w-full h-full object-cover rounded-xl" alt="Store team" />
             </div>
@@ -1126,7 +1126,7 @@ export default function StoreDetail() {
       alt="Download Sathya Store App"
       className="w-full rounded-lg object-cover cursor-pointer"
     />
-    <h2 className="cursor-pointer text-bold text-blue-800 text-center pt-3">Click here</h2>
+    <h2 className="cursor-pointer text-bold text-[#d72828] text-center pt-3">Click here</h2>
   </a>
 </div>
         </div>
@@ -1155,7 +1155,7 @@ export default function StoreDetail() {
           SECTION 11 — CTA BANNER (dynamic name/city)
       ═══════════════════════════════════════════════════════ */}
       <section className="mt-3 mb-0">
-        <div className="bg-gradient-to-r from-blue-900 to-blue-700 px-6 sm:px-10 py-8">
+        <div className="bg-gradient-to-r from-[#d72828] to-[#d72828] px-6 sm:px-10 py-8">
           <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-6 items-center">
             <div className="flex gap-5 items-center">
               {store.banners?.[0] && (
@@ -1167,7 +1167,7 @@ export default function StoreDetail() {
                 <h2 className="text-[18px] font-bold text-white mb-1">
                   Visit {store.organisation_name} Today!
                 </h2>
-                <p className="text-[13px] text-blue-200">
+                <p className="text-[13px] text-[#d72828]">
                   Your Trusted Electronics & Home Appliances Store in {store.city}.
                   Great Offers, Expert Guidance & Unbeatable Service.
                 </p>
@@ -1175,7 +1175,7 @@ export default function StoreDetail() {
             </div>
             <div className="flex items-center gap-3 flex-wrap">
               <a href={mapsUrl} target="_blank" rel="noopener noreferrer">
-                <button className="flex items-center gap-1.5 bg-white text-blue-700 font-bold rounded-lg px-5 py-2.5 text-[13px] hover:bg-blue-50 transition-colors">
+                <button className="flex items-center gap-1.5 bg-white text-[#d72828] font-bold rounded-lg px-5 py-2.5 text-[13px] hover:bg-red-50 transition-colors">
                   <DirectionsIcon size={13}/> Get Directions
                 </button>
               </a>

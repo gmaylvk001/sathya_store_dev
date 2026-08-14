@@ -249,7 +249,7 @@ export default function CategoryBannerPage() {
          <div className="flex items-center gap-3">
     <button
       onClick={handleSave}
-      className="bg-blue-600 text-white px-4 py-2 rounded"
+      className="bg-[#d72828] text-white px-4 py-2 rounded"
     >
       {categoryBanners ? "Update Banners" : "Save Banners"}
     </button>

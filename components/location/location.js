@@ -65,7 +65,7 @@ function SearchIcon() {
   );
 }
 
-function LocationPinIcon({ color = "#2563EB", size = 13 }) {
+function LocationPinIcon({ color = "#d72828", size = 13 }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
@@ -74,7 +74,7 @@ function LocationPinIcon({ color = "#2563EB", size = 13 }) {
   );
 }
 
-function StoreTypeIcon({ color = "#2563EB", size = 13 }) {
+function StoreTypeIcon({ color = "#d72828", size = 13 }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
@@ -109,7 +109,7 @@ function StoreCard({ store }) {
               onError={(e) => { e.target.style.display = "none"; }}
             />
           ) : (
-            <span className="text-blue-300 text-[11px] font-bold text-center px-1">Sathya Stores</span>
+            <span className="text-[#d72828] text-[11px] font-bold text-center px-1">Sathya Stores</span>
           )}
         </div>
 
@@ -119,7 +119,7 @@ function StoreCard({ store }) {
             {store.organisation_name}
           </div>
           {(store.multibrandstore === true || store.multibrandstore === false || store.category || store.service_area) && (
-            <span className="bg-blue-100 text-blue-700 text-[10px] font-semibold px-2 py-0.5 rounded-full inline-block mb-1.5">
+            <span className="bg-red-100 text-[#d72828] text-[10px] font-semibold px-2 py-0.5 rounded-full inline-block mb-1.5">
               {getStoreTypeLabel(store)}
             </span>
           )}
@@ -145,7 +145,7 @@ function StoreCard({ store }) {
       <div className="flex items-center   px-3.5 pt-2.5 pb-3.5 mt-auto gap-2">
         {/* View Details — takes remaining space */}
         <Link href={`/store/${store.location_id || store.slug}`} className="flex-1">
-          <button className="w-[100px] lg:ml-[10px] bg-blue-600 hover:bg-blue-700 text-white border-none rounded-md py-[7px] px-3 text-[12px] font-semibold cursor-pointer transition-colors whitespace-nowrap">
+          <button className="w-[100px] lg:ml-[10px] bg-[#d72828] hover:bg-[#d72828] text-white border-none rounded-md py-[7px] px-3 text-[12px] font-semibold cursor-pointer transition-colors whitespace-nowrap">
             View Details
           </button>
         </Link>
@@ -165,7 +165,7 @@ function StoreCard({ store }) {
           target="_blank"
           rel="noopener noreferrer"
         >
-          <button className="bg-transparent text-blue-600 border border-blue-600 hover:bg-blue-50 rounded-md py-[7px] px-2 sm:px-3 cursor-pointer flex items-center justify-center gap-1 transition-colors">
+          <button className="bg-transparent text-[#d72828] border border-[#d72828] hover:bg-red-50 rounded-md py-[7px] px-2 sm:px-3 cursor-pointer flex items-center justify-center gap-1 transition-colors">
             <DirectionsIcon />
             <span className="hidden sm:inline text-[12px] font-semibold whitespace-nowrap">Get Direction</span>
           </button>
@@ -246,23 +246,23 @@ export default function BEABranchesPage() {
         {/* Left overlay text */}
         <div className="absolute inset-0 z-[2] flex items-center px-[clamp(1rem,3vw,2.5rem)]">
           <div className="ml-0 md:ml-8 lg:ml-14 max-w-[min(400px,42vw)]">
-            <p className="text-[clamp(1.1rem,2vw+0.4rem,2.25rem)] font-bold text-blue-900 mb-1">
+            <p className="text-[clamp(1.1rem,2vw+0.4rem,2.25rem)] font-bold text-[#d72828] mb-1">
               Sathya Stores Store Network.
             </p>
             <div className="leading-tight mb-0.5">
-              <span className="text-[clamp(1.5rem,3vw+0.5rem,3rem)] font-black text-blue-700">
+              <span className="text-[clamp(1.5rem,3vw+0.5rem,3rem)] font-black text-[#d72828]">
                 {totalStores > 0 ? `${totalStores}+` : "47+"}
               </span>
-              <span className="text-[clamp(1.5rem,3vw+0.5rem,3rem)] font-bold text-blue-900 ml-2">Showrooms.</span>
+              <span className="text-[clamp(1.5rem,3vw+0.5rem,3rem)] font-bold text-[#d72828] ml-2">Showrooms.</span>
             </div>
             <div className="leading-tight mb-0.5">
-              <span className="text-[clamp(1.5rem,3vw+0.5rem,3rem)] font-black text-blue-700">
+              <span className="text-[clamp(1.5rem,3vw+0.5rem,3rem)] font-black text-[#d72828]">
                 {totalCities > 0 ? `${totalCities}+` : "17+"}
               </span>
-              <span className="text-[clamp(1.5rem,3vw+0.5rem,3rem)] font-bold text-blue-900 ml-2">Cities.</span>
+              <span className="text-[clamp(1.5rem,3vw+0.5rem,3rem)] font-bold text-[#d72828] ml-2">Cities.</span>
             </div>
-            <div className="text-[clamp(1.2rem,2.2vw+0.4rem,2.375rem)] font-black text-blue-900 mb-3">One Trusted Name.</div>
-            <p className="text-[clamp(0.75rem,0.6vw+0.5rem,0.9rem)] text-blue-900 leading-relaxed max-w-[300px]">
+            <div className="text-[clamp(1.2rem,2.2vw+0.4rem,2.375rem)] font-black text-[#d72828] mb-3">One Trusted Name.</div>
+            <p className="text-[clamp(0.75rem,0.6vw+0.5rem,0.9rem)] text-[#d72828] leading-relaxed max-w-[300px]">
               Find your nearest Sathya Stores showroom and experience Tamil Nadu&apos;s favourite
               destination for electronics &amp; home appliances.
             </p>
@@ -287,7 +287,7 @@ export default function BEABranchesPage() {
                     onError={(e) => { e.target.style.display = "none"; }}
                   />
                   <div>
-                    <div className="text-[20px] font-black text-blue-700 leading-none">{stat.value}</div>
+                    <div className="text-[20px] font-black text-[#d72828] leading-none">{stat.value}</div>
                     <div className="text-[15px] font-semibold text-gray-800">{stat.label}</div>
                     <div className="text-[10.5px] text-gray-500">{stat.sub}</div>
                   </div>
@@ -325,13 +325,13 @@ export default function BEABranchesPage() {
             Sathya Stores Store Network.
           </p>
           <div className="leading-tight mb-0.5">
-            <span className="text-[34px] font-black text-blue-700">
+            <span className="text-[34px] font-black text-[#d72828]">
               {totalStores > 0 ? `${totalStores}+` : "47+"}
             </span>
             <span className="text-[26px] font-black text-gray-900 ml-1.5">Showrooms.</span>
           </div>
           <div className="leading-tight mb-0.5">
-            <span className="text-[34px] font-black text-blue-700">
+            <span className="text-[34px] font-black text-[#d72828]">
               {totalCities > 0 ? `${totalCities}+` : "17+"}
             </span>
             <span className="text-[26px] font-black text-gray-900 ml-1.5">Cities.</span>
@@ -358,7 +358,7 @@ export default function BEABranchesPage() {
                   onError={(e) => { e.target.style.display = "none"; }}
                 />
                 <div>
-                  <div className="text-[16px] font-black text-blue-700 leading-none">{stat.value}</div>
+                  <div className="text-[16px] font-black text-[#d72828] leading-none">{stat.value}</div>
                   <div className="text-[11px] font-semibold text-gray-800">{stat.label}</div>
                   <div className="text-[10px] text-gray-500">{stat.sub}</div>
                 </div>
@@ -380,12 +380,12 @@ export default function BEABranchesPage() {
   {/* City Dropdown */}
   <div className="relative flex-1">
     <span className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none z-10">
-      <LocationPinIcon color="#2563EB" size={14} />
+      <LocationPinIcon color="#d72828" size={14} />
     </span>
     <select
       value={selectedCity}
       onChange={(e) => { setSelectedCity(e.target.value); setShowAll(false); }}
-      className="w-full h-[44px] pl-8 pr-9 border border-gray-300 rounded-lg text-[13.5px] appearance-none bg-white cursor-pointer focus:outline-none focus:border-blue-500"
+      className="w-full h-[44px] pl-8 pr-9 border border-gray-300 rounded-lg text-[13.5px] appearance-none bg-white cursor-pointer focus:outline-none focus:border-[#d72828]"
     >
       {cities.map((c) => <option key={c}>{c}</option>)}
     </select>
@@ -395,12 +395,12 @@ export default function BEABranchesPage() {
   {/* Store Type Dropdown */}
   <div className="relative flex-1">
     <span className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none z-10">
-      <StoreTypeIcon color="#2563EB" size={14} />
+      <StoreTypeIcon color="#d72828" size={14} />
     </span>
     <select
       value={selectedType}
       onChange={(e) => { setSelectedType(e.target.value); setShowAll(false); }}
-      className="w-full h-[44px] pl-8 pr-9 border border-gray-300 rounded-lg text-[13.5px] appearance-none bg-white cursor-pointer focus:outline-none focus:border-blue-500"
+      className="w-full h-[44px] pl-8 pr-9 border border-gray-300 rounded-lg text-[13.5px] appearance-none bg-white cursor-pointer focus:outline-none focus:border-[#d72828]"
     >
       {storeTypes.map((t) => <option key={t}>{t}</option>)}
     </select>
@@ -414,7 +414,7 @@ export default function BEABranchesPage() {
       setAppliedType(selectedType);
       setShowAll(false);
     }}
-className="h-[44px]  flex-1 bg-blue-600 hover:bg-blue-700 text-white border-none rounded-lg px-6 text-[13.5px] font-bold cursor-pointer flex items-center justify-center gap-2 transition-colors"  >
+className="h-[44px]  flex-1 bg-[#d72828] hover:bg-[#d72828] text-white border-none rounded-lg px-6 text-[13.5px] font-bold cursor-pointer flex items-center justify-center gap-2 transition-colors"  >
     Find Store <SearchIcon />
   </button>
 </div>
@@ -452,7 +452,7 @@ className="h-[44px]  flex-1 bg-blue-600 hover:bg-blue-700 text-white border-none
                   </div>
                   <button
                     onClick={() => setShowAll(true)}
-                    className="bg-transparent text-blue-600 border-none font-bold text-[13px] cursor-pointer underline"
+                    className="bg-transparent text-[#d72828] border-none font-bold text-[13px] cursor-pointer underline"
                   >
                     View All Stores
                   </button>
@@ -464,7 +464,7 @@ className="h-[44px]  flex-1 bg-blue-600 hover:bg-blue-700 text-white border-none
             <div className="text-center pt-5 pb-2">
               <button
                 onClick={() => setShowAll(!showAll)}
-                className="bg-transparent text-blue-600 border border-blue-600 hover:bg-blue-50 rounded-lg px-7 py-2.5 text-[13.5px] font-bold cursor-pointer inline-flex items-center gap-2 transition-colors"
+                className="bg-transparent text-[#d72828] border border-[#d72828] hover:bg-red-50 rounded-lg px-7 py-2.5 text-[13.5px] font-bold cursor-pointer inline-flex items-center gap-2 transition-colors"
               >
                 {showAll ? "Show Less ▲" : `View All Stores (${filtered.length}) ▾`}
               </button>
@@ -528,13 +528,13 @@ className="h-[44px]  flex-1 bg-blue-600 hover:bg-blue-700 text-white border-none
             <div className="absolute inset-0 z-[2] flex items-center justify-end pr-[clamp(1rem,4vw,2.5rem)]">
               <div className="flex items-center gap-3">
                 <a href="#find-store-section">
-                  <button className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg px-5 py-2.5 text-[clamp(0.75rem,0.8vw+0.5rem,0.85rem)] transition-colors whitespace-nowrap">
+                  <button className="flex items-center gap-2 bg-[#d72828] hover:bg-[#d72828] text-white font-bold rounded-lg px-5 py-2.5 text-[clamp(0.75rem,0.8vw+0.5rem,0.85rem)] transition-colors whitespace-nowrap">
                     Find Store
                     <LocationPinIcon color="white" size={15} />
                   </button>
                 </a>
                 <Link href="/">
-                  <button className="flex items-center gap-2 bg-white hover:bg-gray-50 text-blue-700 font-bold rounded-lg px-5 py-2.5 text-[clamp(0.75rem,0.8vw+0.5rem,0.85rem)] border border-white transition-colors whitespace-nowrap">
+                  <button className="flex items-center gap-2 bg-white hover:bg-gray-50 text-[#d72828] font-bold rounded-lg px-5 py-2.5 text-[clamp(0.75rem,0.8vw+0.5rem,0.85rem)] border border-white transition-colors whitespace-nowrap">
                     Shop Online
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
@@ -556,13 +556,13 @@ className="h-[44px]  flex-1 bg-blue-600 hover:bg-blue-700 text-white border-none
             />
             <div className="flex items-center gap-3 justify-center py-4">
               <a href="#find-store-section">
-                <button className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg px-5 py-2.5 text-[13px] transition-colors whitespace-nowrap">
+                <button className="flex items-center gap-2 bg-[#d72828] hover:bg-[#d72828] text-white font-bold rounded-lg px-5 py-2.5 text-[13px] transition-colors whitespace-nowrap">
                   Find Store
                   <LocationPinIcon color="white" size={14} />
                 </button>
               </a>
               <Link href="/">
-                <button className="flex items-center gap-2 bg-white hover:bg-gray-50 text-blue-700 font-bold rounded-lg px-5 py-2.5 text-[13px] border border-blue-200 transition-colors whitespace-nowrap">
+                <button className="flex items-center gap-2 bg-white hover:bg-gray-50 text-[#d72828] font-bold rounded-lg px-5 py-2.5 text-[13px] border border-red-200 transition-colors whitespace-nowrap">
                   Shop Online
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>

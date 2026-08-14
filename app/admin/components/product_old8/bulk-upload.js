@@ -78,10 +78,10 @@ export default function BulkUploadPage() {
 
       <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-lg overflow-hidden p-6 space-y-8">
         {/* Excel File Section */}
-        <div className="border border-gray-200 rounded-lg p-6 hover:border-blue-500 transition-colors">
+        <div className="border border-gray-200 rounded-lg p-6 hover:border-[#d72828] transition-colors">
           <div className="mb-4">
             <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-              <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 text-[#d72828]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
               Excel/CSV File
@@ -93,12 +93,12 @@ export default function BulkUploadPage() {
               type="file"
               accept=".xlsx,.csv"
               onChange={(e) => setExcelFile(e.target.files?.[0] || null)}
-              className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+              className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-[#d72828] hover:file:bg-red-100"
               
             />
             <Link
               href="/uploads/files/test_upload.xlsx"
-              className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 transition-colors"
+              className="inline-flex items-center text-sm text-[#d72828] hover:text-[#d72828] transition-colors"
             >
               <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -109,10 +109,10 @@ export default function BulkUploadPage() {
         </div>
 
         {/* Product Images Section */}
-        <div className="border border-gray-200 rounded-lg p-6 hover:border-blue-500 transition-colors">
+        <div className="border border-gray-200 rounded-lg p-6 hover:border-[#d72828] transition-colors">
           <div className="mb-4">
             <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-              <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 text-[#d72828]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
               Product Images (ZIP)
@@ -124,12 +124,12 @@ export default function BulkUploadPage() {
               type="file"
               accept=".zip"
               onChange={(e) => setImageZip(e.target.files?.[0] || null)}
-              className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+              className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-[#d72828] hover:file:bg-red-100"
               
             />
             <Link
               href="/uploads/files/Sample.zip"
-              className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 transition-colors"
+              className="inline-flex items-center text-sm text-[#d72828] hover:text-[#d72828] transition-colors"
             >
               <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -140,7 +140,7 @@ export default function BulkUploadPage() {
         </div>
 
         {/* Overview Images Section */}
-        <div className="border border-gray-200 rounded-lg p-6 hover:border-blue-500 transition-colors">
+        <div className="border border-gray-200 rounded-lg p-6 hover:border-[#d72828] transition-colors">
           <div className="mb-4">
             <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
               <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -155,7 +155,7 @@ export default function BulkUploadPage() {
             type="file"
             accept=".zip"
             onChange={(e) => setOverviewZip(e.target.files?.[0] || null)}
-            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-[#d72828] hover:file:bg-red-100"
           />
         </div>
 
@@ -163,14 +163,14 @@ export default function BulkUploadPage() {
         <div className="flex flex-col sm:flex-row justify-end gap-3 mt-8">
           <Link
             href="/admin/product"
-            className="px-6 py-2.5 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all"
+            className="px-6 py-2.5 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all"
           >
             Cancel
           </Link>
           <button
             type="submit"
             disabled={isLoading}
-            className="px-6 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            className="px-6 py-2.5 bg-[#d72828] text-white font-medium rounded-lg hover:bg-[#d72828] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
           >
             {isLoading ? (
               <span className="flex items-center">

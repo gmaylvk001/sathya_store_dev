@@ -368,7 +368,7 @@ export default function ComboOfferForm({ comboId = null }) {
         <div>
           <Link
             href="/admin/combo-offers"
-            className="text-sm text-blue-600 hover:underline inline-flex items-center gap-1"
+            className="text-sm text-[#d72828] hover:underline inline-flex items-center gap-1"
           >
             <Icon icon="mdi:arrow-left" width={16} />
             Back to Combo Offers
@@ -734,7 +734,7 @@ export default function ComboOfferForm({ comboId = null }) {
           type="button"
           disabled={saving || uploadingImage}
           onClick={() => save(false)}
-          className="px-5 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 disabled:opacity-60"
+          className="px-5 py-2.5 bg-[#d72828] text-white text-sm font-medium rounded-md hover:bg-[#d72828] disabled:opacity-60"
         >
           {saving ? "Saving…" : "Save Combo Offer"}
         </button>

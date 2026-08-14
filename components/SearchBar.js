@@ -90,7 +90,7 @@ export default function SearchBar() {
     return (
       <>
         {before}
-        <span className="text-blue-600 font-semibold">{match}</span>
+        <span className="text-[#d72828] font-semibold">{match}</span>
         {after}
       </>
     );

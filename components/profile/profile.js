@@ -32,7 +32,7 @@ export default function Profile() {
   return (
     <div className="bg-gray-50 min-h-screen">
       {/* Header with Breadcrumb */}
-      <div className="bg-blue-50 py-6 px-8 flex justify-between items-center border-b border-gray-200 shadow-sm">
+      <div className="bg-red-50 py-6 px-8 flex justify-between items-center border-b border-gray-200 shadow-sm">
         <h2 className="text-2xl font-bold text-gray-800">Profile</h2>
         <div className="flex items-center space-x-2">
           <span className="text-gray-600">🏠 Home</span>
@@ -50,19 +50,19 @@ export default function Profile() {
             <div className="bg-white p-6 rounded-xl border border-gray-200  hover:border-customBlue transition-all duration-300 shadow-sm">
               <h3 className="text-lg font-semibold text-customBlue mb-6 pb-2 border-b border-gray-100 hover:border-customBlue transition-all duration-300">My Account</h3>
               <nav className="space-y-2">
-              <Link href="/profile" className="w-full flex items-center gap-2 px-5 py-3 text-lg text-base font-medium text-gray-700 rounded-lg transition-all duration-200 hover:text-customBlue hover:bg-blue-100 hover:pl-6">
+              <Link href="/profile" className="w-full flex items-center gap-2 px-5 py-3 text-lg text-base font-medium text-gray-700 rounded-lg transition-all duration-200 hover:text-customBlue hover:bg-red-100 hover:pl-6">
                 <RiAccountCircleFill className="text-customBlue text-2xl" />
                   <span>Profile</span>
               </Link>
-              <Link href="/address" className="w-full flex items-center gap-2 px-5 py-3 text-lg text-base font-medium text-gray-600 rounded-lg transition-all duration-200 hover:text-customBlue hover:bg-blue-100 hover:pl-6">
+              <Link href="/address" className="w-full flex items-center gap-2 px-5 py-3 text-lg text-base font-medium text-gray-600 rounded-lg transition-all duration-200 hover:text-customBlue hover:bg-red-100 hover:pl-6">
                 <FaAddressBook className="text-customBlue text-2xl"/>
                   <span>Addresses</span>
               </Link>
-              <Link href="/orders" className="w-full flex items-center gap-2 px-5 py-3 text-lg text-base font-medium text-gray-600 rounded-lg transition-all duration-200 hover:text-customBlue hover:bg-blue-100 hover:pl-6">
+              <Link href="/orders" className="w-full flex items-center gap-2 px-5 py-3 text-lg text-base font-medium text-gray-600 rounded-lg transition-all duration-200 hover:text-customBlue hover:bg-red-100 hover:pl-6">
                 <HiShoppingBag className="text-customBlue text-2xl"/>
                   <span>Orders</span>
               </Link>
-              <Link href="/wishlist" className="w-full flex items-center gap-2 px-5 py-3 text-lg text-base font-medium text-gray-600 rounded-lg transition-all duration-200 hover:text-customBlue hover:bg-blue-100 hover:pl-6">
+              <Link href="/wishlist" className="w-full flex items-center gap-2 px-5 py-3 text-lg text-base font-medium text-gray-600 rounded-lg transition-all duration-200 hover:text-customBlue hover:bg-red-100 hover:pl-6">
                 <FaHeart className="text-customBlue text-2xl"/>
                   <span>Wishlist</span>
               </Link>
@@ -88,7 +88,7 @@ export default function Profile() {
                       type="text"
                       value={profileData.firstName}
                       onChange={handleProfileChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-[#d72828] transition-all duration-200"
                     />
                   </div>
 
@@ -102,7 +102,7 @@ export default function Profile() {
                       type="text"
                       value={profileData.lastName}
                       onChange={handleProfileChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-[#d72828] transition-all duration-200"
                     />
                   </div>
                 </div>
@@ -117,7 +117,7 @@ export default function Profile() {
                     type="email"
                     value={profileData.email}
                     onChange={handleProfileChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-[#d72828] transition-all duration-200"
                   />
                 </div>
 
@@ -131,7 +131,7 @@ export default function Profile() {
                     type="text"
                     value={profileData.mobile}
                     onChange={handleProfileChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-[#d72828] transition-all duration-200"
                   />
                 </div>
 
@@ -145,14 +145,14 @@ export default function Profile() {
                     type="text"
                     value={profileData.store}
                     onChange={handleProfileChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-[#d72828] transition-all duration-200"
                   />
                 </div>
 
                 <div className="pt-6 flex justify-end">
                   <button
                     type="submit"
-                    className="px-6 py-3 border border-transparent rounded-lg shadow-sm text-base font-medium text-white bg-customBlue hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 hover:scale-105"
+                    className="px-6 py-3 border border-transparent rounded-lg shadow-sm text-base font-medium text-white bg-customBlue hover:bg-[#d72828] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all duration-200 hover:scale-105"
                   >
                     Save Changes
                   </button>

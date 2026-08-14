@@ -260,7 +260,7 @@ export default function VideoCardPage() {
               <div className="flex gap-2">
                 <button
                   onClick={handleSave}
-                  className="bg-blue-600 text-white px-4 py-2 rounded"
+                  className="bg-[#d72828] text-white px-4 py-2 rounded"
                 >
                   Save
                 </button>
@@ -313,7 +313,7 @@ export default function VideoCardPage() {
                   disabled={!editingStates[videoCard._id]?.thumbnail_image}
                   className={`p-2 rounded flex items-center ${
                     editingStates[videoCard._id]?.thumbnail_image
-                      ? "bg-blue-500 text-white hover:bg-blue-600"
+                      ? "bg-[#d72828] text-white hover:bg-[#d72828]"
                       : "bg-gray-300 text-gray-500 cursor-not-allowed"
                   }`}
                 >
@@ -337,7 +337,7 @@ export default function VideoCardPage() {
                   disabled={!editingStates[videoCard._id]?.hasChanges}
                   className={`p-2 rounded flex items-center ${
                     editingStates[videoCard._id]?.hasChanges
-                      ? "bg-blue-500 text-white hover:bg-blue-600"
+                      ? "bg-[#d72828] text-white hover:bg-[#d72828]"
                       : "bg-gray-300 text-gray-500 cursor-not-allowed"
                   }`}
                 >
@@ -361,7 +361,7 @@ export default function VideoCardPage() {
                   disabled={!editingStates[videoCard._id]?.hasChanges}
                   className={`p-2 rounded flex items-center ${
                     editingStates[videoCard._id]?.hasChanges
-                      ? "bg-blue-500 text-white hover:bg-blue-600"
+                      ? "bg-[#d72828] text-white hover:bg-[#d72828]"
                       : "bg-gray-300 text-gray-500 cursor-not-allowed"
                   }`}
                 >
@@ -386,7 +386,7 @@ export default function VideoCardPage() {
                   disabled={!editingStates[videoCard._id]?.hasChanges}
                   className={`p-2 rounded flex items-center ${
                     editingStates[videoCard._id]?.hasChanges
-                      ? "bg-blue-500 text-white hover:bg-blue-600"
+                      ? "bg-[#d72828] text-white hover:bg-[#d72828]"
                       : "bg-gray-300 text-gray-500 cursor-not-allowed"
                   }`}
                 >

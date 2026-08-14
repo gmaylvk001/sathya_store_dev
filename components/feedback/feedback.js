@@ -291,7 +291,7 @@ export default function ContactForm() {
                 Feedback Centre
               </h1>
 
-              <p className="text-blue-100 text-lg max-w-xl leading-8 mb-3">
+              <p className="text-[#d72828] text-lg max-w-xl leading-8 mb-3">
                 We are here to help with your electronics & home appliance
                 purchase, delivery, installation and service support.
               </p>
@@ -303,7 +303,7 @@ export default function ContactForm() {
                   <div className="text-center py-6 border-r border-white/20">
                     <Users className="w-12 h-12 mx-auto mb-2 text-white" />
                     <h3 className="font-bold text-xl">50 Lakh+</h3>
-                    <p className="text-sm text-blue-100">
+                    <p className="text-sm text-[#d72828]">
                       Happy Customers
                     </p>
                   </div>
@@ -311,7 +311,7 @@ export default function ContactForm() {
                   <div className="text-center py-6 border-r border-white/20">
                     <Store className="w-12 h-12 mx-auto mb-2 text-white" />
                     <h3 className="font-bold text-xl">47+</h3>
-                    <p className="text-sm text-blue-100">
+                    <p className="text-sm text-[#d72828]">
                       Stores Across
                       <br />
                       Tamil Nadu
@@ -323,7 +323,7 @@ export default function ContactForm() {
                     <h3 className="font-bold text-xl">
                       Authorized
                     </h3>
-                    <p className="text-sm text-blue-100">
+                    <p className="text-sm text-[#d72828]">
                       Brand Support
                     </p>
                   </div>
@@ -333,7 +333,7 @@ export default function ContactForm() {
                     <h3 className="font-bold text-xl">
                       Quick Response
                     </h3>
-                    <p className="text-sm text-blue-100">
+                    <p className="text-sm text-[#d72828]">
                       Assistance
                     </p>
                   </div>
@@ -379,14 +379,14 @@ export default function ContactForm() {
               <div className="space-y-3 flex-1 flex flex-col justify-end">
 
                 {/* Call */}
-                <a href="tel:9842344323" className="block border border-blue-100 bg-blue-50 rounded-xl p-4 flex items-start gap-4 hover:border-blue-300 transition-colors">
-                  <div className="w-12 h-12 rounded-full bg-[#2453d3] flex items-center justify-center shrink-0">
+                <a href="tel:9842344323" className="block border border-red-100 bg-red-50 rounded-xl p-4 flex items-start gap-4 hover:border-[#d72828] transition-colors">
+                  <div className="w-12 h-12 rounded-full bg-[#d72828] flex items-center justify-center shrink-0">
                     <Phone className="w-5 h-5 text-white" />
                   </div>
 
                   <div>
                     <h4 className="font-semibold text-gray-900">Call Us</h4>
-                    <p className="font-bold text-[#2453d3]">
+                    <p className="font-bold text-[#d72828]">
                       +91 98423 44323
                     </p>
                     <p className="text-sm text-gray-500">
@@ -396,14 +396,14 @@ export default function ContactForm() {
                 </a>
 
                 {/* Email */}
-                <a href="mailto:customercare@sathya.store" className="block border border-blue-100 bg-blue-50 rounded-xl p-4 flex items-start gap-4 hover:border-blue-300 transition-colors">
-                  <div className="w-12 h-12 rounded-full bg-[#2453d3] flex items-center justify-center shrink-0">
+                <a href="mailto:customercare@sathya.store" className="block border border-red-100 bg-red-50 rounded-xl p-4 flex items-start gap-4 hover:border-[#d72828] transition-colors">
+                  <div className="w-12 h-12 rounded-full bg-[#d72828] flex items-center justify-center shrink-0">
                     <Mail className="w-5 h-5 text-white" />
                   </div>
 
                   <div>
                     <h4 className="font-semibold text-gray-900">Email Us</h4>
-                    <p className="text-[#2453d3] break-all">
+                    <p className="text-[#d72828] break-all">
                       customercare@sathya.store
                     </p>
                   </div>
@@ -417,7 +417,7 @@ export default function ContactForm() {
           <div className="lg:col-span-7">
             <div className="bg-white border rounded-xl shadow-sm p-6">
 
-              <h2 className="text-xl font-bold text-[#2453d3] mb-2">
+              <h2 className="text-xl font-bold text-[#d72828] mb-2">
                 How can we help you today?
               </h2>
 
@@ -553,7 +553,7 @@ export default function ContactForm() {
                 
               </form>
               <div className="flex items-center justify-center gap-2 text-sm text-gray-600 rounded-lg py-2 px-4">
-                <Lock className="w-4 h-4 text-[#2453d3] shrink-0" />
+                <Lock className="w-4 h-4 text-[#d72828] shrink-0" />
                 <p>Your information is secure and will only be used to assist you.</p>
               </div>
             </div>
@@ -567,7 +567,7 @@ export default function ContactForm() {
       <section className="w-full max-w-full sm:max-w-[720px] md:max-w-[960px] lg:max-w-[1320px] xl:max-w-[1520px] 2xl:max-w-[1680px] mx-auto px-0 sm:px-3 md:px-6 lg:px-8 mb-8 md:mb-12">
         <div className="bg-white border rounded-2xl p-8 md:p-10 shadow-sm">
 
-          <h2 className="text-xl font-bold text-center text-[#2453d3] mb-5">
+          <h2 className="text-xl font-bold text-center text-[#d72828] mb-5">
             How Sathya Stores Support Works
           </h2>
 
@@ -586,12 +586,12 @@ export default function ContactForm() {
                 >
                   {/* Icon */}
                   <div className="relative mx-auto w-fit">
-                    <div className="w-20 h-20 rounded-full bg-blue-50 flex items-center justify-center border border-blue-100">
-                      <Icon className="w-9 h-9 text-[#2453d3]" />
+                    <div className="w-20 h-20 rounded-full bg-red-50 flex items-center justify-center border border-red-100">
+                      <Icon className="w-9 h-9 text-[#d72828]" />
                     </div>
 
                     {/* Step Number */}
-                    <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-7 h-7 rounded-full bg-[#2453d3] text-white text-sm font-bold flex items-center justify-center">
+                    <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-7 h-7 rounded-full bg-[#d72828] text-white text-sm font-bold flex items-center justify-center">
                       {index + 1}
                     </div>
                   </div>
@@ -618,7 +618,7 @@ export default function ContactForm() {
           {/* FAQ SECTION */}
           <div className="lg:col-span-5 min-w-0">
             <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm h-full flex flex-col">
-              <h2 className="text-[20px] font-bold text-[#2453d3] mb-4">
+              <h2 className="text-[20px] font-bold text-[#d72828] mb-4">
                 Frequently Asked Questions
               </h2>
 
@@ -657,7 +657,7 @@ export default function ContactForm() {
               {faqData.length > 5 && (
                 <button 
                   onClick={() => setShowAllFaqs(!showAllFaqs)}
-                  className="mt-4 text-[#2453d3] font-bold text-[13px] flex items-center gap-1 hover:underline self-start"
+                  className="mt-4 text-[#d72828] font-bold text-[13px] flex items-center gap-1 hover:underline self-start"
                 >
                   {showAllFaqs ? (
                     <>Show less FAQs <ChevronUp className="w-3.5 h-3.5" /></>
@@ -672,7 +672,7 @@ export default function ContactForm() {
           {/* HAPPY CUSTOMERS SECTION */}
           <div className="lg:col-span-7 min-w-0 w-full">
             <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-5 shadow-sm overflow-hidden flex flex-col min-w-0 w-full">
-              <h2 className="text-[18px] sm:text-[20px] font-bold text-[#2453d3] text-center mb-4 sm:mb-6">
+              <h2 className="text-[18px] sm:text-[20px] font-bold text-[#d72828] text-center mb-4 sm:mb-6">
                 Happy Customers Across Tamil Nadu
               </h2>
 
@@ -709,7 +709,7 @@ export default function ContactForm() {
                     key={index}
                     onClick={() => scrollToSlide(index)}
                     className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
-                      activeSlide === index ? "bg-[#2453d3] scale-110" : "bg-blue-100 hover:bg-blue-300"
+                      activeSlide === index ? "bg-[#d72828] scale-110" : "bg-red-100 hover:bg-[#d72828]"
                     }`}
                     aria-label={`Go to slide ${index + 1}`}
                   />
@@ -722,10 +722,10 @@ export default function ContactForm() {
       </section>
 
       <section className="w-full max-w-full sm:max-w-[720px] md:max-w-[960px] lg:max-w-[1320px] xl:max-w-[1520px] 2xl:max-w-[1680px] mx-auto px-0 sm:px-3 md:px-6 lg:px-8 mb-8 md:mb-12">
-        <div className="bg-[#eef4ff] border border-blue-100 rounded-2xl p-6 flex flex-col lg:flex-row items-center gap-6 shadow-sm">
+        <div className="bg-[#eef4ff] border border-red-100 rounded-2xl p-6 flex flex-col lg:flex-row items-center gap-6 shadow-sm">
           {/* Left Side - 50% */}
           <div className="w-full lg:w-1/2">
-            <h3 className="text-2xl font-bold text-[#2453d3] mb-2">
+            <h3 className="text-2xl font-bold text-[#d72828] mb-2">
               Need Assistance? We're One Step Ahead.
             </h3>
 
@@ -744,16 +744,16 @@ export default function ContactForm() {
               href="tel:9842344323"
               className="bg-white rounded-xl px-4 py-4 flex items-center gap-3 shadow-sm hover:shadow-md transition-all duration-300"
             >
-              <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
-                <Phone className="w-5 h-5 text-[#2453d3]" />
+              <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center shrink-0">
+                <Phone className="w-5 h-5 text-[#d72828]" />
               </div>
 
               <div>
-                <p className="text-xs text-[#2453d3] font-medium">
+                <p className="text-xs text-[#d72828] font-medium">
                   Call Support
                 </p>
 
-                <p className="font-bold text-[#2453d3] text-sm">
+                <p className="font-bold text-[#d72828] text-sm">
                   98423 44323
                 </p>
               </div>
@@ -771,11 +771,11 @@ export default function ContactForm() {
               </div>
 
               <div>
-                <p className="text-xs text-[#2453d3] font-medium">
+                <p className="text-xs text-[#d72828] font-medium">
                   WhatsApp Support
                 </p>
 
-                <p className="font-semibold text-[#2453d3] text-sm">
+                <p className="font-semibold text-[#d72828] text-sm">
                   Chat with us
                 </p>
               </div>

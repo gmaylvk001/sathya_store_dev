@@ -137,7 +137,7 @@ export async function POST(request) {
       // Fetch category details from your categories collection
       // IMPORTANT: Update 'Category' with your actual category model name
       try {
-        const Category = require('@/models/ecom_catgory_info'); // Adjust path as needed
+        const Category = require('@/models/ecom_category_info'); // Adjust path as needed
         
         const category = await Category.findById(categoryId);
         if (category) {

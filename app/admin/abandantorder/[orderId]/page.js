@@ -266,7 +266,7 @@ const addHistory = async () => {
         {item.slug ? (
           <a 
             href={`/product/${item.slug}`} 
-            className="text-[#0069c6] hover:text-[#00badb] hover:underline"
+            className="text-[#d72828] hover:text-[#c02020] hover:underline"
           >
             {item.name} - ({item.item_code.replace(/^ITEM/, "")})
           </a>
@@ -286,7 +286,7 @@ const addHistory = async () => {
   {order.order_item.map((item, index) =>
   item.extendedWarranty > 0 && (
     <tr key={index} className="font-semibold">
-      <td colSpan="4" className="p-2 text-right text-[#0069c6]">
+      <td colSpan="4" className="p-2 text-right text-[#d72828]">
         Extended Warranty:
       </td>
       <td className="p-2 text-right text-red-600">

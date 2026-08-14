@@ -221,12 +221,12 @@ const CategoryTreeFilter = ({
                 name="category"
                 checked={selectedCategory === category.category_name}
                 onChange={() => onCategorySelect(category.category_name)}
-                className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                className="h-4 w-4 text-[#d72828] border-gray-300 rounded focus:ring-red-500"
               />
               <span
                 className={`text-sm ${
                   selectedCategory === category.category_name
-                    ? "text-blue-600 font-medium"
+                    ? "text-[#d72828] font-medium"
                     : "text-gray-700"
                 }`}
               >
@@ -599,7 +599,7 @@ const handleShare = async (product) => {
           onClick={() => handlePageChange(i)}
           className={`px-3 py-1 rounded-md ${
             pagination.currentPage === i
-              ? "bg-blue-600 text-white"
+              ? "bg-[#d72828] text-white"
               : "bg-white text-gray-700 hover:bg-gray-100"
           }`}
         >
@@ -690,7 +690,7 @@ const handleShare = async (product) => {
           {products.map((product) => (
             <div
               key={product._id}
-              className="group relative bg-white rounded-lg border hover:border-blue-200 transition-all shadow-sm hover:shadow-md flex flex-col h-full"
+              className="group relative bg-white rounded-lg border hover:border-red-200 transition-all shadow-sm hover:shadow-md flex flex-col h-full"
             >
               {/* Image */}
               <div className="relative aspect-square bg-white">
@@ -734,7 +734,7 @@ const handleShare = async (product) => {
                   className="block mb-2"
                   onClick={() => handleProductClick(product)}
                 >
-                  <h3 className="text-xs sm:text-sm font-medium text-gray-800 hover:text-blue-600 line-clamp-2 min-h-[40px]">
+                  <h3 className="text-xs sm:text-sm font-medium text-gray-800 hover:text-[#d72828] line-clamp-2 min-h-[40px]">
                     {product.name}
                   </h3>
                 </Link>
@@ -800,7 +800,7 @@ const handleShare = async (product) => {
                   {/* <button
                     type="button"
                     onClick={() => handleShare(product)}
-                    className="bg-blue-600 hover:bg-blue-700 text-white p-1.5 rounded-full transition-colors duration-300 flex items-center justify-center flex-shrink-0"
+                    className="bg-[#d72828] hover:bg-[#d72828] text-white p-1.5 rounded-full transition-colors duration-300 flex items-center justify-center flex-shrink-0"
                     title="Share this product"
                   >
                     <FaShareAlt className="w-5 h-5" />
@@ -1036,7 +1036,7 @@ const handleShare = async (product) => {
             type="button"
             aria-label={`Scroll ${title} left`}
             onClick={() => scrollStrip(scrollRef, "left")}
-            className="absolute -left-1 sm:-left-3 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-white border border-blue-100 shadow text-[#1E5FA8] flex items-center justify-center hover:bg-blue-50"
+            className="absolute -left-1 sm:-left-3 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-white border border-red-100 shadow text-[#1E5FA8] flex items-center justify-center hover:bg-red-50"
           >
             <ChevronLeft size={18} />
           </button>
@@ -1050,7 +1050,7 @@ const handleShare = async (product) => {
             type="button"
             aria-label={`Scroll ${title} right`}
             onClick={() => scrollStrip(scrollRef, "right")}
-            className="absolute -right-1 sm:-right-3 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-white border border-blue-100 shadow text-[#1E5FA8] flex items-center justify-center hover:bg-blue-50"
+            className="absolute -right-1 sm:-right-3 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-white border border-red-100 shadow text-[#1E5FA8] flex items-center justify-center hover:bg-red-50"
           >
             <ChevronRight size={18} />
           </button>
@@ -1128,7 +1128,7 @@ const handleShare = async (product) => {
                       }`}
                     >
                       {index === currentBannerIndex && (
-                        <span className="w-1.5 h-1.5 rounded-full bg-blue-600"></span>
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#d72828]"></span>
                       )}
                     </span>
                   </label>
@@ -1181,12 +1181,12 @@ const handleShare = async (product) => {
       <button
         type="button"
         onClick={() => setIsFilterPanelOpen(true)}
-        className="md:hidden w-full mb-3 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border border-blue-200 bg-white text-blue-700 font-semibold text-sm shadow-sm"
+        className="md:hidden w-full mb-3 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border border-red-200 bg-white text-[#d72828] font-semibold text-sm shadow-sm"
       >
-        <FaSlidersH className="text-blue-600 text-sm" />
+        <FaSlidersH className="text-[#d72828] text-sm" />
         Filters
         {activeFilterCount > 0 && (
-          <span className="ml-1 inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-blue-600 text-white text-xs">
+          <span className="ml-1 inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-[#d72828] text-white text-xs">
             {activeFilterCount}
           </span>
         )}
@@ -1233,7 +1233,7 @@ const handleShare = async (product) => {
                 <h3 className="font-semibold">Active Filters</h3>
                 <button
                   onClick={clearAllFilters}
-                  className="text-blue-600 text-sm hover:underline"
+                  className="text-[#d72828] text-sm hover:underline"
                 >
                   Clear all
                 </button>
@@ -1276,7 +1276,7 @@ const handleShare = async (product) => {
 
                 {/* Category tag */}
                 {selectedFilters.category && (
-                  <span className="bg-blue-50 border border-blue-200 px-2 py-1 rounded text-sm flex items-center text-blue-700">
+                  <span className="bg-red-50 border border-red-200 px-2 py-1 rounded text-sm flex items-center text-[#d72828]">
                     {selectedFilters.category}
                     <button
                       onClick={() =>
@@ -1286,7 +1286,7 @@ const handleShare = async (product) => {
                           subCategory: "",
                         }))
                       }
-                      className="ml-1 text-blue-400 hover:text-blue-600"
+                      className="ml-1 text-[#d72828] hover:text-[#d72828]"
                     >
                       ×
                     </button>
@@ -1350,7 +1350,7 @@ const handleShare = async (product) => {
                     key={key}
                     {...rest}
                     className={`w-4 h-4 rounded-full border-2 border-black shadow cursor-pointer relative ${
-                      index === 0 ? "bg-blue-500 z-10" : "bg-green-500 z-20"
+                      index === 0 ? "bg-[#d72828] z-10" : "bg-green-500 z-20"
                     }`}
                   />
                 );
@@ -1398,7 +1398,7 @@ const handleShare = async (product) => {
                         }));
                       setSelectedProductFilters([]);
                          }}
-                      className="h-4 w-4 text-blue-600"
+                      className="h-4 w-4 text-[#d72828]"
                     />
                     <span className="text-sm font-medium text-gray-700">
                       All Categories
@@ -1424,12 +1424,12 @@ const handleShare = async (product) => {
                                   subCategory: "",
                                 }))
                               }
-                              className="h-4 w-4 text-blue-600"
+                              className="h-4 w-4 text-[#d72828]"
                             />
                             <span
                               className={`text-sm ${
                                 selectedFilters.category === sub.category_name
-                                  ? "text-blue-600 font-medium"
+                                  ? "text-[#d72828] font-medium"
                                   : "text-gray-600"
                               }`}
                             >
@@ -1480,7 +1480,7 @@ const handleShare = async (product) => {
                               subCategory: "",
                             }))
                           }
-                          className="h-4 w-4 text-blue-600"
+                          className="h-4 w-4 text-[#d72828]"
                         />
                         <span className="text-sm font-medium text-gray-700">
                           All {selectedFilters.category}
@@ -1503,13 +1503,13 @@ const handleShare = async (product) => {
                                 subCategory: child.category_name,
                               }))
                             }
-                            className="h-4 w-4 text-blue-600"
+                            className="h-4 w-4 text-[#d72828]"
                           />
                           <span
                             className={`text-sm ${
                               selectedFilters.subCategory ===
                               child.category_name
-                                ? "text-blue-600 font-medium"
+                                ? "text-[#d72828] font-medium"
                                 : "text-gray-600"
                             }`}
                           >
@@ -1547,7 +1547,7 @@ const handleShare = async (product) => {
                         type="checkbox"
                         checked={selectedFilters.brands.includes(brand._id)}
                         onChange={() => handleFilterChange("brands", brand._id)}
-                        className="mr-2 h-4 w-4 text-blue-600 border-gray-300 rounded"
+                        className="mr-2 h-4 w-4 text-[#d72828] border-gray-300 rounded"
                       />
                       <span className="text-sm text-gray-600">
                         {brand.brand_name} ({brand.count})
@@ -1601,7 +1601,7 @@ const handleShare = async (product) => {
       {shouldShowMoreFilters && (
         <button
           type="button"
-          className="mt-2 text-blue-600 text-sm hover:underline"
+          className="mt-2 text-[#d72828] text-sm hover:underline"
           onClick={() => setShowAllFilterGroups((v) => !v)}
         >
           {showAllFilterGroups ? "Show less" : "More filters"}
@@ -1617,7 +1617,7 @@ const handleShare = async (product) => {
             <button
               type="button"
               onClick={() => setIsFilterPanelOpen(false)}
-              className="w-full bg-blue-600 text-white py-2 rounded-md"
+              className="w-full bg-[#d72828] text-white py-2 rounded-md"
             >
               Apply Filters
             </button>
@@ -1635,7 +1635,7 @@ const handleShare = async (product) => {
               <select
                 value={sortOption}
                 onChange={(e) => setSortOption(e.target.value)}
-                className="px-4 py-2 border rounded-md text-sm bg-white shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="px-4 py-2 border rounded-md text-sm bg-white shadow-sm focus:ring-2 focus:ring-red-500 focus:border-[#d72828]"
               >
                 <option value="">Featured</option>
                 <option value="price-low-high">Price: Low to High</option>
@@ -1659,7 +1659,7 @@ const handleShare = async (product) => {
                 {getSortedProducts().map((product) => (
                   <div
                     key={product._id}
-                    className="group relative bg-white rounded-lg border hover:border-blue-200 transition-all shadow-sm hover:shadow-md flex flex-col h-full"
+                    className="group relative bg-white rounded-lg border hover:border-red-200 transition-all shadow-sm hover:shadow-md flex flex-col h-full"
                   >
                     {/* Image */}
                     <div className="relative aspect-square bg-white">
@@ -1712,7 +1712,7 @@ const handleShare = async (product) => {
                         className="block mb-2"
                         onClick={() => handleProductClick(product)}
                       >
-                        <h3 className="text-xs sm:text-sm font-medium text-gray-800 hover:text-blue-600 line-clamp-2 min-h-[40px]">
+                        <h3 className="text-xs sm:text-sm font-medium text-gray-800 hover:text-[#d72828] line-clamp-2 min-h-[40px]">
                           {product.name}
                         </h3>
                       </Link>
@@ -1775,7 +1775,7 @@ const handleShare = async (product) => {
                         {/* <button
                           type="button"
                           onClick={() => handleShare(product)}
-                          className="bg-blue-600 hover:bg-blue-700 text-white p-1.5 rounded-full transition-colors duration-300 flex items-center justify-center flex-shrink-0"
+                          className="bg-[#d72828] hover:bg-[#d72828] text-white p-1.5 rounded-full transition-colors duration-300 flex items-center justify-center flex-shrink-0"
                           title="Share this product"
                         >
                           <FaShareAlt className="w-5 h-5" />

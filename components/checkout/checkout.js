@@ -41,7 +41,7 @@ const FloatInput = ({ label, name, type = 'text', required, readOnly, value, onC
           ${showLock ? 'pr-10' : ''}
           ${readOnly ? 'bg-gray-50 text-gray-500 cursor-not-allowed' : 'bg-white'}
           ${error ? 'border-red-400 focus:border-red-500 focus:ring-1 focus:ring-red-300'
-            : 'border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-200'}`}
+            : 'border-gray-300 focus:border-red-500 focus:ring-1 focus:ring-red-200'}`}
       />
       <label className={`absolute left-3 transition-all duration-150 pointer-events-none
         ${value ? 'top-1 text-[10px] text-gray-500' : 'top-3.5 text-sm text-gray-400'}`}>
@@ -143,7 +143,7 @@ const findNearestStores = async (pincode) => {
         <label
           className={`flex items-start gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all
             ${formData.deliveryType === 'home'
-              ? 'border-blue-600 bg-blue-50'
+              ? 'border-red-600 bg-red-50'
               : 'border-gray-200 bg-white hover:border-gray-300'}`}
         >
           <input
@@ -155,15 +155,15 @@ const findNearestStores = async (pincode) => {
             className="sr-only"
           />
           <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5
-            ${formData.deliveryType === 'home' ? 'bg-blue-100' : 'bg-gray-100'}`}>
-            <svg className={`w-5 h-5 ${formData.deliveryType === 'home' ? 'text-blue-600' : 'text-gray-500'}`}
+            ${formData.deliveryType === 'home' ? 'bg-red-100' : 'bg-gray-100'}`}>
+            <svg className={`w-5 h-5 ${formData.deliveryType === 'home' ? 'text-red-600' : 'text-gray-500'}`}
               fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
               <path strokeLinecap="round" strokeLinejoin="round"
                 d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
             </svg>
           </div>
           <div>
-            <p className={`text-sm font-medium ${formData.deliveryType === 'home' ? 'text-blue-700' : 'text-gray-800'}`}>
+            <p className={`text-sm font-medium ${formData.deliveryType === 'home' ? 'text-red-700' : 'text-gray-800'}`}>
               Home delivery
             </p>
             <p className="text-xs text-gray-500 mt-0.5">Free delivery to your address</p>
@@ -174,7 +174,7 @@ const findNearestStores = async (pincode) => {
         <label
           className={`flex items-start gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all
             ${formData.deliveryType === 'store'
-              ? 'border-blue-600 bg-blue-50'
+              ? 'border-red-600 bg-red-50'
               : 'border-gray-200 bg-white hover:border-gray-300'}`}
         >
           <input
@@ -186,15 +186,15 @@ const findNearestStores = async (pincode) => {
             className="sr-only"
           />
           <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5
-            ${formData.deliveryType === 'store' ? 'bg-blue-100' : 'bg-gray-100'}`}>
-            <svg className={`w-5 h-5 ${formData.deliveryType === 'store' ? 'text-blue-600' : 'text-gray-500'}`}
+            ${formData.deliveryType === 'store' ? 'bg-red-100' : 'bg-gray-100'}`}>
+            <svg className={`w-5 h-5 ${formData.deliveryType === 'store' ? 'text-red-600' : 'text-gray-500'}`}
               fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
               <path strokeLinecap="round" strokeLinejoin="round"
                 d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
             </svg>
           </div>
           <div>
-            <p className={`text-sm font-medium ${formData.deliveryType === 'store' ? 'text-blue-700' : 'text-gray-800'}`}>
+            <p className={`text-sm font-medium ${formData.deliveryType === 'store' ? 'text-red-700' : 'text-gray-800'}`}>
               Store pickup
             </p>
             <p className="text-xs text-gray-500 mt-0.5">Pick up from your nearest Sathya Stores showroom</p>
@@ -204,8 +204,8 @@ const findNearestStores = async (pincode) => {
 
       {/* Store Pickup → nearest stores */}
       {formData.deliveryType === 'store' && (
-        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mt-2">
-          <p className="text-xs font-semibold text-blue-700 uppercase tracking-wide mb-3 flex items-center gap-1.5">
+        <div className="bg-red-50 border border-red-200 rounded-xl p-4 mt-2">
+          <p className="text-xs font-semibold text-red-700 uppercase tracking-wide mb-3 flex items-center gap-1.5">
             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round"
                 d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
@@ -216,7 +216,7 @@ const findNearestStores = async (pincode) => {
 
           {loadingStores ? (
             <div className="flex items-center gap-2 py-3">
-              <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+              <div className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
               <span className="text-sm text-gray-500">Finding nearest stores…</span>
             </div>
           ) : nearestStores.length === 0 ? (
@@ -233,7 +233,7 @@ const findNearestStores = async (pincode) => {
                   return (
                     <div
                       key={store._id}
-                      className="rounded-lg p-3 border border-blue-200 bg-white flex flex-col h-full min-h-[150px]"
+                      className="rounded-lg p-3 border border-red-200 bg-white flex flex-col h-full min-h-[150px]"
                     >
                       <div className="flex-1 min-h-0">
                         <p className="text-xs font-semibold text-gray-800 leading-snug line-clamp-2">
@@ -242,8 +242,8 @@ const findNearestStores = async (pincode) => {
                         <p className="text-xs text-gray-500 mt-1 leading-snug line-clamp-2">
                           {store.address || store.city}
                         </p>
-                        <span className="inline-flex items-center gap-1 mt-2 text-xs text-blue-600
-                          bg-blue-100 px-2 py-0.5 rounded-full font-medium">
+                        <span className="inline-flex items-center gap-1 mt-2 text-xs text-red-600
+                          bg-red-100 px-2 py-0.5 rounded-full font-medium">
                           <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                             <path strokeLinecap="round" strokeLinejoin="round"
                               d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
@@ -264,7 +264,7 @@ const findNearestStores = async (pincode) => {
                           </svg>
                         </a>
                         <a href={mailLink} title="Email store"
-                          className="w-7 h-7 flex items-center justify-center rounded-full bg-blue-50 border border-blue-200 text-blue-700 hover:bg-blue-100 transition">
+                          className="w-7 h-7 flex items-center justify-center rounded-full bg-red-50 border border-red-200 text-red-700 hover:bg-red-100 transition">
                           <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                           </svg>
@@ -286,7 +286,7 @@ const findNearestStores = async (pincode) => {
                 <button
                   type="button"
                   onClick={() => setShowAllStores(v => !v)}
-                  className="text-xs text-blue-600 underline"
+                  className="text-xs text-red-600 underline"
                 >
                   {showAllStores
                     ? 'Show less'
@@ -306,7 +306,7 @@ const findNearestStores = async (pincode) => {
             toast.success('Delivery method saved');
             setIsDeliverySaved(true);
           }}
-          className="mt-4 bg-blue-600 text-white px-6 py-2.5 rounded-lg text-sm font-medium hover:bg-blue-700 transition"
+          className="mt-4 bg-red-600 text-white px-6 py-2.5 rounded-lg text-sm font-medium hover:bg-red-700 transition"
         >
           Save and continue
         </button>
@@ -316,7 +316,7 @@ const findNearestStores = async (pincode) => {
         <button
           type="button"
           onClick={() => setIsDeliverySaved(false)}
-          className="mt-3 text-sm text-blue-600 underline"
+          className="mt-3 text-sm text-red-600 underline hover:text-red-700"
         >
           Change delivery method
         </button>
@@ -429,21 +429,27 @@ export default function CheckoutPage() {
         setCartItems(cartData.cart.items);
       }
       const addrRes = await fetch(`/api/useraddress?user_id=${userId}`);
-      if (!addrRes.ok) throw new Error('Failed to fetch address');
-      const addrData = await addrRes.json();
-      setUseraddress(addrData.userAddress);
-      if (addrData.userAddress.length > 0) {
-        const addr = addrData.userAddress[0];
-        setFormData(prev => ({
-          ...prev,
-          firstName: addr.firstName || '', lastName: addr.lastName || '',
-          country: 'India', address: addr.address || '',
-          city: addr.city || '', state: addr.state || 'Tamilnadu',
-          postCode: addr.postCode || '', phonenumber: addr.phonenumber || '',
-          landmark: addr.landmark || '', email: addr.email || '',
-          businessName: addr.businessName || '', additionalInfo: addr.additionalInfo || '',
-        }));
-        setSelectedAddress(0);
+      if (addrRes.ok) {
+        try {
+          const addrData = await addrRes.json();
+          const addresses = addrData?.userAddress || [];
+          setUseraddress(addresses);
+          if (addresses.length > 0) {
+            const addr = addresses[0];
+            setFormData(prev => ({
+              ...prev,
+              firstName: addr.firstName || '', lastName: addr.lastName || '',
+              country: 'India', address: addr.address || '',
+              city: addr.city || '', state: addr.state || 'Tamilnadu',
+              postCode: addr.postCode || '', phonenumber: addr.phonenumber || '',
+              landmark: addr.landmark || '', email: addr.email || '',
+              businessName: addr.businessName || '', additionalInfo: addr.additionalInfo || '',
+            }));
+            setSelectedAddress(0);
+          }
+        } catch (parseErr) {
+          setUseraddress([]);
+        }
       }
     } catch (err) {
       console.error('fetchData error:', err);
@@ -616,7 +622,7 @@ export default function CheckoutPage() {
           } catch (err) { reject(err); }
         },
         prefill: { name: `${formData.firstName} ${formData.lastName}`, email: formData.email, contact: formData.phonenumber },
-        theme: { color: '#1a56db' },
+        theme: { color: '#dc2626' },
         modal: { ondismiss: () => { setIsSubmitting(false); reject(new Error('Payment window closed')); } },
       };
 
@@ -936,7 +942,7 @@ const sellingPrice = mrpTotal - itemDiscountTotal;
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600 mx-auto" />
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-red-600 mx-auto" />
           <p className="mt-4 text-gray-500 text-sm">Loading checkout…</p>
         </div>
       </div>
@@ -949,14 +955,40 @@ const sellingPrice = mrpTotal - itemDiscountTotal;
   const finalTotal = orderSummary.total + shippingCost;
 
   return (
-    <div className="min-h-screen bg-white">
-      <ToastContainer position="top-right" autoClose={5000} />
-
-      
+    <div className="min-h-screen bg-gray-50/40 text-gray-900 font-sans pb-16">
+      {/* ── Top Step Progress Header ────────────────────────────────────────── */}
+      <div className="bg-white border-b border-gray-200/80 mb-6 py-4 px-4 sm:px-6 shadow-2xs">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-2 text-xs sm:text-sm font-semibold">
+            <a href="/cart" className="text-gray-500 hover:text-[#d72828] transition-colors flex items-center gap-1">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="15 18 9 12 15 6"/></svg>
+              <span>Back to Cart</span>
+            </a>
+            <span className="text-gray-300">/</span>
+            <span className="text-[#d72828] font-extrabold">Secure Checkout</span>
+          </div>
+          <div className="hidden md:flex items-center gap-6 text-xs font-bold text-gray-400">
+            <span className="text-[#d72828] flex items-center gap-1.5">
+              <span className="w-5 h-5 rounded-full bg-[#d72828] text-white flex items-center justify-center text-[10px]">1</span>
+              Contact & Delivery
+            </span>
+            <span className="text-gray-300">→</span>
+            <span className={isDeliverySaved ? "text-[#d72828] flex items-center gap-1.5" : "flex items-center gap-1.5"}>
+              <span className={`w-5 h-5 rounded-full ${isDeliverySaved ? 'bg-[#d72828] text-white' : 'bg-gray-200 text-gray-600'} flex items-center justify-center text-[10px]`}>2</span>
+              Method
+            </span>
+            <span className="text-gray-300">→</span>
+            <span className="flex items-center gap-1.5">
+              <span className="w-5 h-5 rounded-full bg-gray-200 text-gray-600 flex items-center justify-center text-[10px]">3</span>
+              Payment & Order
+            </span>
+          </div>
+        </div>
+      </div>
 
       {/* ── Main layout ────────────────────────────────────────────────────── */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col lg:flex-row gap-0 lg:gap-8 py-6">
+        <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
 
           {/* ══ LEFT — Form ═══════════════════════════════════════════════════ */}
           <div className="w-full lg:w-[58%] lg:pr-4">
@@ -964,7 +996,7 @@ const sellingPrice = mrpTotal - itemDiscountTotal;
             {/* 1. Contact Details */}
             <section className="mb-8">
               <h2 className="text-base font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                <span className="w-6 h-6 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center font-bold">1</span>
+                <span className="w-6 h-6 rounded-full bg-red-600 text-white text-xs flex items-center justify-center font-bold">1</span>
                 Contact details
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -988,7 +1020,7 @@ const sellingPrice = mrpTotal - itemDiscountTotal;
             {/* 2. Delivery Options */}
             <section className="mb-8">
               <h2 className="text-base font-semibold text-gray-800 mb-1 flex items-center gap-2">
-                <span className="w-6 h-6 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center font-bold">2</span>
+                <span className="w-6 h-6 rounded-full bg-red-600 text-white text-xs flex items-center justify-center font-bold">2</span>
                 Delivery options
               </h2>
 
@@ -1034,7 +1066,7 @@ const sellingPrice = mrpTotal - itemDiscountTotal;
                         name="city" value={formData.city}
                         onChange={handleChange} onBlur={handleBlur}
                         className={`peer w-full border rounded-lg pt-5 pb-1.5 px-3 text-sm outline-none transition appearance-none bg-white
-                          ${getFieldError('city') ? 'border-red-400 focus:border-red-500' : 'border-gray-300 focus:border-blue-500'}`}
+                          ${getFieldError('city') ? 'border-red-400 focus:border-red-500' : 'border-gray-300 focus:border-[#d72828]'}`}
                       >
                         <option value="" disabled hidden />
                         {finalCities.map((city, i) => <option key={i} value={city}>{city}</option>)}
@@ -1081,7 +1113,7 @@ const sellingPrice = mrpTotal - itemDiscountTotal;
                         name="city" value={formData.city}
                         onChange={handleChange} onBlur={handleBlur}
                         className={`peer w-full border rounded-lg pt-5 pb-1.5 px-3 text-sm outline-none transition appearance-none bg-white
-                          ${getFieldError('city') ? 'border-red-400 focus:border-red-500' : 'border-gray-300 focus:border-blue-500'}`}
+                          ${getFieldError('city') ? 'border-red-400 focus:border-red-500' : 'border-gray-300 focus:border-[#d72828]'}`}
                       >
                         <option value="" disabled hidden />
                         {finalCities.map((city, i) => <option key={i} value={city}>{city}</option>)}
@@ -1120,7 +1152,7 @@ const sellingPrice = mrpTotal - itemDiscountTotal;
                         gst_number: e.target.checked ? prev.gst_number : '',
                       }))
                     }
-                    className="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    className="mt-1 h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-500"
                   />
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-semibold text-gray-800">
@@ -1156,7 +1188,7 @@ const sellingPrice = mrpTotal - itemDiscountTotal;
             {/* 3. Shipping Method */}
             <section className="mb-8">
               <h2 className="text-base font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                <span className="w-6 h-6 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center font-bold">3</span>
+                <span className="w-6 h-6 rounded-full bg-red-600 text-white text-xs flex items-center justify-center font-bold">3</span>
                 Shipping method
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -1166,7 +1198,7 @@ const sellingPrice = mrpTotal - itemDiscountTotal;
                 ].map(opt => (
                 <label key={opt.value}
   className={`flex items-center gap-3 p-3.5 rounded-xl border-2 transition-all
-    ${opt.disabled ? 'cursor-not-allowed opacity-50 border-gray-200 bg-gray-50' : shippingMethod === opt.value ? 'cursor-pointer border-blue-600 bg-blue-50' : 'cursor-pointer border-gray-200 bg-white hover:border-gray-300'}`}
+    ${opt.disabled ? 'cursor-not-allowed opacity-50 border-gray-200 bg-gray-50' : shippingMethod === opt.value ? 'cursor-pointer border-red-600 bg-red-50' : 'cursor-pointer border-gray-200 bg-white hover:border-gray-300'}`}
 >
   <input type="radio" name="shippingMethod" value={opt.value}
     checked={shippingMethod === opt.value}
@@ -1174,8 +1206,8 @@ const sellingPrice = mrpTotal - itemDiscountTotal;
     disabled={opt.disabled}
     className="sr-only" />
                     <div className={`w-4 h-4 rounded-full border-2 flex-shrink-0 flex items-center justify-center
-                      ${shippingMethod === opt.value ? 'border-blue-600' : 'border-gray-300'}`}>
-                      {shippingMethod === opt.value && <div className="w-2 h-2 rounded-full bg-blue-600" />}
+                      ${shippingMethod === opt.value ? 'border-red-600' : 'border-gray-300'}`}>
+                      {shippingMethod === opt.value && <div className="w-2 h-2 rounded-full bg-red-600" />}
                     </div>
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
@@ -1195,7 +1227,7 @@ const sellingPrice = mrpTotal - itemDiscountTotal;
             {/* 4. Payment Method */}
             <section className="mb-8">
               <h2 className="text-base font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                <span className="w-6 h-6 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center font-bold">4</span>
+                <span className="w-6 h-6 rounded-full bg-red-600 text-white text-xs flex items-center justify-center font-bold">4</span>
                 Payment method
               </h2>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -1227,13 +1259,13 @@ const sellingPrice = mrpTotal - itemDiscountTotal;
                     onClick={() => handlePaymentChange(opt.value)}
                     className={`flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all text-center
                       ${paymentMethod === opt.value
-                        ? 'border-blue-600 bg-blue-50'
+                        ? 'border-red-600 bg-red-50'
                         : 'border-gray-200 bg-white hover:border-gray-300'}`}
                   >
-                    <span className={paymentMethod === opt.value ? 'text-blue-600' : 'text-gray-500'}>
+                    <span className={paymentMethod === opt.value ? 'text-red-600' : 'text-gray-500'}>
                       {opt.icon}
                     </span>
-                    <span className={`text-xs font-semibold ${paymentMethod === opt.value ? 'text-blue-700' : 'text-gray-700'}`}>
+                    <span className={`text-xs font-semibold ${paymentMethod === opt.value ? 'text-red-700' : 'text-gray-700'}`}>
                       {opt.label}
                     </span>
                     <span className="text-[10px] text-gray-400 leading-tight">{opt.sub}</span>
@@ -1305,14 +1337,14 @@ const sellingPrice = mrpTotal - itemDiscountTotal;
                 onChange={handleChange}
                 placeholder="Notes about your order"
                 rows={3}
-                className="w-full border border-gray-300 rounded-lg p-3 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-200 resize-none"
+                className="w-full border border-gray-300 rounded-lg p-3 text-sm outline-none focus:border-red-500 focus:ring-1 focus:ring-red-200 resize-none"
               />
             </section>
 
             {/* Policy links */}
-            <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-blue-600 mb-6">
+            <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-red-600 mb-6">
               {[['Privacy Policy', '/privacypolicy'], ['Terms & Conditions', '/terms-and-condition'], ['Shipping Policy', '/shipping'], ['Cancellation & Refund Policy', '/cancellation-refund-policy']].map(([label, href]) => (
-                <a key={href} href={href} target="_blank" rel="noopener noreferrer" className="underline hover:text-blue-800">{label}</a>
+                <a key={href} href={href} target="_blank" rel="noopener noreferrer" className="underline hover:text-red-800">{label}</a>
               ))}
             </div>
 
@@ -1326,58 +1358,85 @@ const sellingPrice = mrpTotal - itemDiscountTotal;
           </div>
 
           {/* ══ RIGHT — Order Summary ═════════════════════════════════════════ */}
-          <div className="w-full lg:w-[38%] lg:sticky lg:top-20 self-start">
-            <div className="bg-gray-50 rounded-2xl border border-gray-200 overflow-hidden">
+          <div className="w-full lg:w-[40%] xl:w-[38%] lg:sticky lg:top-24 self-start">
+            <div className="bg-white rounded-2xl border border-gray-200/90 shadow-xs overflow-hidden">
 
-              {/* Your order header */}
-              <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200">
-                <span className="text-sm font-semibold text-gray-800">Your order</span>
-                <a href="/cart" className="text-xs text-blue-600 hover:underline">Edit cart</a>
+              {/* Order Summary Header */}
+              <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-gray-50/60">
+                <div className="flex items-center gap-2">
+                  <h2 className="text-sm font-extrabold text-gray-900 uppercase tracking-wider">Order Summary</h2>
+                  <span className="text-[11px] font-bold text-[#d72828] bg-red-50 px-2 py-0.5 rounded-full border border-red-100">
+                    {cartItems.reduce((sum, item) => sum + (item.quantity || 1), 0)} items
+                  </span>
+                </div>
+                <a href="/cart" className="text-xs font-bold text-[#d72828] hover:text-[#b91c1c] transition-colors flex items-center gap-1">
+                  <span>Edit cart</span>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                </a>
               </div>
+              {/* Cart items list (Luxury Card System) */}
+              <div className="max-h-72 overflow-y-auto p-4 space-y-2.5 border-b border-gray-100 scrollbar-hide bg-gray-50/30">
+                {cartItems.map((item) => {
+                  const imgSrc = item.image
+                    ? (item.image.startsWith("http") ? item.image : item.image.startsWith("/") ? item.image : `/uploads/products/${item.image}`)
+                    : (item.images?.[0] ? (item.images[0].startsWith("http") ? item.images[0] : `/uploads/products/${item.images[0]}`) : "/uploads/sathyalogo.webp");
 
-              {/* Cart items */}
-              <div className="max-h-64 overflow-y-auto px-5 py-3 space-y-3 border-b border-gray-200">
-                {cartItems.map((item) => (
-                  <div key={`oi-${item.productId}`} className="flex items-start gap-3">
-                    <div className="relative w-14 h-14 flex-shrink-0 border border-gray-200 rounded-lg overflow-hidden bg-white p-1.5">
-                      <img
-                        src={`/uploads/products/${item.image || item.images?.[0]}`}
-                        alt={item.name}
-                        className="w-full h-full object-contain"
-                      />
-                      <div className="absolute -top-1 -right-1 bg-gray-700 text-white text-[9px] w-4 h-4 rounded-full flex items-center justify-center font-medium">
-                        {item.quantity}
+                  const itemPrice = (item.price > 0 ? item.price : item.actual_price) * item.quantity;
+
+                  return (
+                    <div
+                      key={`oi-${item.productId}`}
+                      className="flex items-center gap-3.5 p-3 rounded-xl bg-white border border-gray-200/80 shadow-2xs hover:border-red-200/80 hover:shadow-xs transition-all duration-200 group"
+                    >
+                      {/* Image Frame */}
+                      <div className="relative w-16 h-16 flex-shrink-0 border border-gray-200/80 rounded-lg overflow-hidden bg-white p-1.5 flex items-center justify-center">
+                        <img
+                          src={imgSrc}
+                          alt={item.name}
+                          className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105"
+                          onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = "/uploads/sathyalogo.webp"; }}
+                        />
+                        <span className="absolute -top-1 -right-1 bg-[#d72828] text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center shadow-2xs border border-white">
+                          {item.quantity}
+                        </span>
+                      </div>
+
+                      {/* Content */}
+                      <div className="flex-1 min-w-0">
+                        <h4 className="text-xs font-bold text-gray-900 line-clamp-2 leading-snug group-hover:text-[#d72828] transition-colors">
+                          {item.name}
+                        </h4>
+                        
+                        {item.warrantyData && (
+                          <span className="mt-1 inline-flex items-center gap-1 text-[10px] font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded-full border border-purple-100">
+                            <svg className="w-3 h-3 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                            </svg>
+                            {item.warrantyData.year}yr Warranty
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Price */}
+                      <div className="text-sm font-black text-gray-900 whitespace-nowrap text-right">
+                        ₹{itemPrice.toLocaleString('en-IN')}
                       </div>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs text-blue-600 hover:text-blue-800 line-clamp-2 leading-snug font-medium">
-                        {item.name}
-                      </p>
-                      {item.warrantyData && (
-                        <p className="text-[10px] text-purple-600 mt-1 flex items-center gap-1">
-                          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                          </svg>
-                          {item.warrantyData.year}yr Warranty
-                        </p>
-                      )}
-                    </div>
-                    <div className="text-sm font-semibold text-red-600 whitespace-nowrap">
-                      ₹{((item.price > 0 ? item.price : item.actual_price) * item.quantity).toLocaleString('en-IN')}
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
-              {/* Sold by */}
-              <div className="px-5 py-3 border-b border-gray-200 flex items-center gap-2">
-                <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                </svg>
-                <span className="text-xs font-medium text-gray-700">Sathya Stores</span>
-                <span className="text-[10px] text-green-700 bg-green-100 px-2 py-0.5 rounded-full flex items-center gap-1">
-                  <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
-                  Authorized brand partner
+              {/* Sold by Sathya Stores */}
+              <div className="px-5 py-3 border-b border-gray-100 bg-emerald-50/50 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <svg className="w-4 h-4 text-emerald-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                  </svg>
+                  <span className="text-xs font-bold text-gray-800">Sathya Stores</span>
+                </div>
+                <span className="text-[10px] text-emerald-800 bg-emerald-100/80 border border-emerald-200/80 px-2.5 py-0.5 rounded-full font-extrabold flex items-center gap-1">
+                  <svg className="w-3 h-3 text-emerald-600" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
+                  Authorized Partner
                 </span>
               </div>
 
@@ -1534,7 +1593,7 @@ const sellingPrice = mrpTotal - itemDiscountTotal;
                   ), label: '10 days replacement' },
                 ].map(b => (
                   <div key={b.label} className="flex flex-col items-center gap-1 text-center">
-                    <span className="text-blue-600">{b.icon}</span>
+                    <span className="text-red-600">{b.icon}</span>
                     <span className="text-[10px] text-gray-500">{b.label}</span>
                   </div>
                 ))}
@@ -1569,7 +1628,7 @@ const sellingPrice = mrpTotal - itemDiscountTotal;
                     href="https://truco.avaniko.com/api/api/download.html?tid=019acf86-5371-447f-a6f7-eeca624972ad&source=web&medium=web&campaign=truco"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-white bg-[#0047CC] hover:bg-[#003db3] px-4 py-2.5 rounded-xl transition w-fit"
+                    className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-white bg-red-600 hover:bg-red-700 px-4 py-2.5 rounded-xl transition w-fit"
                   >
                     Download TRUCO App
                     <span aria-hidden="true">→</span>
@@ -1636,7 +1695,7 @@ const sellingPrice = mrpTotal - itemDiscountTotal;
                   className={`w-full h-12 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all
                     ${isSubmitting || loading || cartItems.length === 0 || !isDeliverySaved
                       ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                      : 'bg-blue-600 text-white hover:bg-blue-700 active:scale-[0.98]'}`}
+                      : 'bg-red-600 text-white hover:bg-red-700 active:scale-[0.98]'}`}
                 >
                   {isSubmitting ? (
                     <>
@@ -1687,7 +1746,7 @@ const sellingPrice = mrpTotal - itemDiscountTotal;
                     ), label: '47+ showrooms support network' },
                   ].map(b => (
                     <div key={b.label} className="flex flex-col items-center gap-1 text-center">
-                      <span className="text-blue-600">{b.icon}</span>
+                      <span className="text-red-600">{b.icon}</span>
                       <span className="text-[9px] text-gray-500 leading-tight">{b.label}</span>
                     </div>
                   ))}
@@ -1710,7 +1769,7 @@ const sellingPrice = mrpTotal - itemDiscountTotal;
           className={`px-6 h-11 rounded-xl text-sm font-semibold flex items-center gap-2 transition-all
             ${isSubmitting || loading || cartItems.length === 0 || !isDeliverySaved
               ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-              : 'bg-blue-600 text-white hover:bg-blue-700'}`}
+              : 'bg-red-600 text-white hover:bg-red-700'}`}
         >
           {isSubmitting ? 'Processing…' : 'Place order →'}
         </button>
@@ -1728,7 +1787,7 @@ const sellingPrice = mrpTotal - itemDiscountTotal;
       {isSubmitting && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-2xl shadow-xl max-w-sm w-full mx-4 text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600 mx-auto mb-4" />
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-red-600 mx-auto mb-4" />
             <h3 className="text-base font-semibold text-gray-900">Processing your order</h3>
             <p className="mt-2 text-sm text-gray-500">Please wait while we process your payment and order details.</p>
           </div>

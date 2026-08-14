@@ -46,8 +46,9 @@ export async function GET() {
   try {
     await dbConnect();
     const banners = await TopBanner.find({}).sort({ order: 1 }); // 👈 sort by order
-    return NextResponse.json({ success: true, banners });
+    return NextResponse.json({ success: true, banners: banners || [] });
   } catch (err) {
+    console.error("Error in GET /api/topbanner:", err);
     return NextResponse.json(
       { success: false, message: err.message },
       { status: 500 }

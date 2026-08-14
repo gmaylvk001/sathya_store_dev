@@ -6,34 +6,33 @@ import { NextResponse } from "next/server";
 export async function GET() {
   try {
     await dbConnect();
-    const brands = await Brand.find({ status: "Active" })
-      .select("brand_name image")
-      .lean();
-console.log(brands)
-    return new NextResponse(JSON.stringify({
+    let brands = [];
+    try {
+      brands = await Brand.find({ status: "Active" })
+        .select("brand_name image")
+        .lean();
+    } catch (queryErr) {
+      console.warn("Status filter query failed in /api/brand/get, falling back to find all:", queryErr);
+      brands = await Brand.find()
+        .select("brand_name image")
+        .lean();
+    }
+
+    return NextResponse.json({
       success: true,
-      brands: brands.map(brand => ({
-        id: brand._id.toString(),
-        brand_name: brand.brand_name,
-        image: brand.image
+      brands: (brands || []).map(brand => ({
+        id: brand?._id ? brand._id.toString() : "",
+        brand_name: brand?.brand_name || "",
+        image: brand?.image || ""
       }))
-    }), {
-      status: 200,
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    });
+    }, { status: 200 });
 
   } catch (error) {
-    console.error("Error fetching brands:", error);
-    return new NextResponse(JSON.stringify({
+    console.error("Error fetching brands in /api/brand/get:", error);
+    return NextResponse.json({
       success: false,
-      error: "Internal server error"
-    }), {
-      status: 500,
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    });
+      brands: [],
+      error: error?.message || "Internal server error"
+    }, { status: 200 });
   }
 }

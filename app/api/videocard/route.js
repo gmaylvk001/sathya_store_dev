@@ -36,8 +36,9 @@ export async function GET() {
   try {
     await dbConnect();
     const videoCards = await VideoCard.find({});
-    return NextResponse.json({ success: true, videoCards });
+    return NextResponse.json({ success: true, videoCards: videoCards || [] });
   } catch (err) {
+    console.error("Error in GET /api/videocard:", err);
     return NextResponse.json(
       { success: false, message: err.message },
       { status: 500 }

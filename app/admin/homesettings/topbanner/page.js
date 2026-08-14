@@ -288,7 +288,7 @@ export default function TopBannerPage() {
               <div className="flex gap-2">
                 <button
                   onClick={handleSave}
-                  className="bg-blue-600 text-white px-4 py-2 rounded"
+                  className="bg-[#d72828] text-white px-4 py-2 rounded"
                 >
                   Save
                 </button>
@@ -351,7 +351,7 @@ export default function TopBannerPage() {
                             disabled={!editingStates[banner._id]?.hasChanges}
                             className={`p-2 rounded ${
                               editingStates[banner._id]?.hasChanges
-                                ? "bg-blue-500 text-white"
+                                ? "bg-[#d72828] text-white"
                                 : "bg-gray-300 text-gray-500"
                             }`}
                           >
@@ -382,7 +382,7 @@ export default function TopBannerPage() {
                             disabled={!editingStates[banner._id]?.hasChanges}
                             className={`p-2 rounded ${
                               editingStates[banner._id]?.hasChanges
-                                ? "bg-blue-500 text-white"
+                                ? "bg-[#d72828] text-white"
                                 : "bg-gray-300 text-gray-500"
                             }`}
                           >
@@ -424,7 +424,7 @@ export default function TopBannerPage() {
                             disabled={!editingStates[banner._id]?.banner_image}
                             className={`p-2 rounded ${
                               editingStates[banner._id]?.banner_image
-                                ? "bg-blue-500 text-white"
+                                ? "bg-[#d72828] text-white"
                                 : "bg-gray-300 text-gray-500"
                             }`}
                           >

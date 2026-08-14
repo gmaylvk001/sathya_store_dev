@@ -209,7 +209,7 @@ export default function CategoryImageSectionAdmin() {
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-semibold">Category Image Section</h2>
         <button
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+          className="bg-[#d72828] text-white px-4 py-2 rounded hover:bg-[#d72828]"
           onClick={() => {
             setForm(emptyForm);
             setEditId(null);
@@ -252,7 +252,7 @@ export default function CategoryImageSectionAdmin() {
                 <div className="flex gap-2">
                   <button
                     onClick={() => handleEdit(s)}
-                    className="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center hover:bg-blue-200"
+                    className="w-8 h-8 bg-red-100 text-[#d72828] rounded-full flex items-center justify-center hover:bg-red-200"
                     title="Edit"
                   >
                     <FaEdit className="w-4 h-4" />
@@ -309,7 +309,7 @@ export default function CategoryImageSectionAdmin() {
                   Select Category
                 </label>
                 <select
-                  className="border border-gray-300 rounded p-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="border border-gray-300 rounded p-2 w-full focus:outline-none focus:ring-2 focus:ring-red-500"
                   value={form.category_id}
                   onChange={(e) =>
                     setForm({ ...form, category_id: e.target.value })
@@ -330,7 +330,7 @@ export default function CategoryImageSectionAdmin() {
                   Section Title
                 </label>
                 <input
-                  className="border border-gray-300 rounded p-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="border border-gray-300 rounded p-2 w-full focus:outline-none focus:ring-2 focus:ring-red-500"
                   placeholder="e.g. New Launches"
                   value={form.section_title}
                   onChange={(e) =>
@@ -343,7 +343,7 @@ export default function CategoryImageSectionAdmin() {
               <div>
                 <label className="block text-sm font-medium mb-1">Status</label>
                 <select
-                  className="border border-gray-300 rounded p-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="border border-gray-300 rounded p-2 w-full focus:outline-none focus:ring-2 focus:ring-red-500"
                   value={form.status}
                   onChange={(e) => setForm({ ...form, status: e.target.value })}
                 >
@@ -392,7 +392,7 @@ export default function CategoryImageSectionAdmin() {
                           Name (optional)
                         </label>
                         <input
-                          className="border border-gray-300 rounded p-2 w-full text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="border border-gray-300 rounded p-2 w-full text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
                           placeholder="e.g. iPhone 16"
                           value={img.name}
                           onChange={(e) =>
@@ -430,7 +430,7 @@ export default function CategoryImageSectionAdmin() {
                           Redirect URL
                         </label>
                         <input
-                          className="border border-gray-300 rounded p-2 w-full text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="border border-gray-300 rounded p-2 w-full text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
                           placeholder="https://example.com/product"
                           value={img.url}
                           onChange={(e) =>
@@ -445,7 +445,7 @@ export default function CategoryImageSectionAdmin() {
                           Status
                         </label>
                         <select
-                          className="border border-gray-300 rounded p-2 w-full text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="border border-gray-300 rounded p-2 w-full text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
                           value={img.status}
                           onChange={(e) =>
                             updateImageItem(i, "status", e.target.value)
@@ -474,7 +474,7 @@ export default function CategoryImageSectionAdmin() {
                 Cancel
               </button>
               <button
-                className="px-5 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                className="px-5 py-2 bg-[#d72828] text-white rounded hover:bg-[#d72828]"
                 onClick={handleSubmit}
               >
                 {editId ? "Update" : "Save"}

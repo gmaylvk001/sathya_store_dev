@@ -18,12 +18,12 @@ const TermsAndConditions = () => {
   return (
     <div>
       {/* Header Bar */}
-      <div className="bg-blue-50 py-6 px-8 flex justify-between items-center">
+      <div className="bg-red-50 py-6 px-8 flex justify-between items-center">
         <h2 className="text-xl font-bold text-gray-800">Terms & Conditions</h2>
         <div className="flex items-center space-x-2">
-          <Link href="/" className="text-gray-600 hover:text-blue-600">🏠 Home</Link>
+          <Link href="/" className="text-gray-600 hover:text-[#d72828]">🏠 Home</Link>
           <span className="text-gray-500">›</span>
-          <span className="text-blue-600 font-semibold">Terms & Conditions</span>
+          <span className="text-[#d72828] font-semibold">Terms & Conditions</span>
         </div>
       </div>
 
@@ -31,8 +31,8 @@ const TermsAndConditions = () => {
         <div className="max-w-9xl mx-auto">
           {/* Header Section */}
           <div className="text-center mb-16">
-            <div className="bg-blue-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
-              <FiFileText className="text-blue-600 text-3xl" />
+            <div className="bg-red-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
+              <FiFileText className="text-[#d72828] text-3xl" />
             </div>
             <h1 className="text-3xl md:text-4xl font-bold text-customBlue mb-4">TERMS & CONDITIONS</h1>
             {currentDate && (
@@ -43,7 +43,7 @@ const TermsAndConditions = () => {
           </div>
 
           {/* Terms Content */}
-          <div className="rounded-xl shadow-md overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-50">
+          <div className="rounded-xl shadow-md overflow-hidden bg-gradient-to-br from-red-50 to-indigo-50">
             {/* Introduction */}
             <div className="p-8 border-b border-gray-100">
               <h2 className="text-2xl font-bold text-customBlue mb-4 flex items-center gap-2">
@@ -61,7 +61,7 @@ const TermsAndConditions = () => {
             </div>
 
             {/* Terms of Use */}
-            <div className="p-8 border-b border-gray-100 bg-blue-50/30">
+            <div className="p-8 border-b border-gray-100 bg-red-50/30">
               <h3 className="text-xl font-semibold text-gray-800 mb-3 flex items-center gap-2">
                 <MdOutlinePolicy className="text-2xl" />
                 Terms of Use
@@ -94,7 +94,7 @@ const TermsAndConditions = () => {
               </p>
               <a 
                 href="mailto:customercare@sathya.store" 
-                className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-lg transition-colors duration-300"
+                className="inline-block bg-[#d72828] hover:bg-[#d72828] text-white font-medium py-3 px-6 rounded-lg transition-colors duration-300"
               >
                 customercare@sathya.store
               </a>

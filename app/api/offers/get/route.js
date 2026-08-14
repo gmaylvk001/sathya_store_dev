@@ -18,10 +18,13 @@ export async function GET() {
         const toDate = new Date(offer.to_date);
 
         // Check if to_date has passed
-        if (toDate < currentDate && offer.fest_offer_status !== "inactive") {
-          // Update the status to inactive
-          //offer.fest_offer_status = "inactive";
-          await offer.save(); // Save the updated offer to the database
+        if (toDate instanceof Date && !isNaN(toDate) && toDate < currentDate && offer.fest_offer_status !== "inactive") {
+          try {
+            offer.fest_offer_status = "inactive";
+            await offer.save();
+          } catch (saveErr) {
+            console.error(`Error saving offer ${offer._id}:`, saveErr.message);
+          }
         }
 
         return offer;

@@ -249,59 +249,52 @@ export async function PUT(req) {
     const token = extractToken(req);
     if(token)
     {
-    const decoded = verifyToken(token);
-    const userId = decoded.userId;
-    cart = await Cart.findOne({ userId });
+      const decoded = verifyToken(token);
+      const userId = decoded.userId;
+      cart = await Cart.findOne({ userId });
     }
     else
     {
-      guestId = req.headers.get("GuestCartId");
+      guestId = req.headers.get("guestcartid") || req.headers.get("guestCartId") || req.headers.get("GuestCartId");
       cart = await Cart.findOne({ guestId });
     }
 
-    
-
-    //const cart = await Cart.findOne({ userId });
     if (!cart) {
       return NextResponse.json({ error: "Cart not found" }, { status: 404 });
     }
 
-    console.log(cart.items);
-
     const itemIndex = cart.items.findIndex(
-      (item) => item.productId.toString() === productId
+      (item) => (item.productId?._id ? item.productId._id.toString() : item.productId?.toString()) === productId
     );
 
-    console.log(itemIndex);
     if (itemIndex === -1) {
       return NextResponse.json({ error: "Product not in cart" }, { status: 404 });
     }
 
     cart.items[itemIndex].quantity = quantity;
     const item_code = cart.items[itemIndex].item_code;
-    console.log(item_code);
-     const original_quantity = await getQuantity(item_code);
+    const original_quantity = await getQuantity(item_code);
     const totals = calculateCartTotals(cart.items);
     cart.totalItems = totals.totalItems;
     cart.totalPrice = totals.totalPrice;
     cart.items[itemIndex].original_quantity = original_quantity;
-console.log(cart.items);
-    
     
     await cart.save();
 
-cart.items.forEach((item) => {
-  console.log(item);
-});
-    const items = cart.items.map((item) => ({
-      productId: item.productId._id,
-      name: item.name,
-      price: item.price,
-      image: item.productId.images,
-      quantity: item.quantity,
-      item_code: item.productId.item_code,
-      original_quantity: item.original_quantity ?? null, // dynamically attach
-    }));
+    const items = cart.items.map((item) => {
+      const prodIdStr = item.productId?._id ? item.productId._id.toString() : item.productId?.toString();
+      const img = Array.isArray(item.productId?.images) ? item.productId.images[0] : (item.image || "");
+      const code = item.productId?.item_code || item.item_code;
+      return {
+        productId: prodIdStr,
+        name: item.name,
+        price: item.price,
+        image: img,
+        quantity: item.quantity,
+        item_code: code,
+        original_quantity: item.original_quantity ?? null,
+      };
+    });
 
 
     return NextResponse.json(

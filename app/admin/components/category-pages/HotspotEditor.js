@@ -215,7 +215,7 @@ export default function HotspotEditor({
                   ? "border-2 border-[#ED1C24] bg-[#ED1C24]/25 z-20"
                   : hs.isActive === false
                     ? "border border-dashed border-gray-400 bg-gray-400/20 z-10"
-                    : "border border-[#2563eb] bg-[#2563eb]/20 z-10"
+                    : "border border-[#d72828] bg-[#d72828]/20 z-10"
               } ${drawingEnabled ? "pointer-events-none" : "cursor-move"}`}
               style={{
                 left: `${hs.x}%`,

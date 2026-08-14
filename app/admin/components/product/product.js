@@ -1643,11 +1643,11 @@ if (categoryFilter) {
         <h2 className="text-2xl font-bold">Product List</h2>
         
         <div className="flex items-center gap-4">
-          {/* <button onClick={() => OpenModelBulk("movement")} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center gap-2" >
+          {/* <button onClick={() => OpenModelBulk("movement")} className="bg-[#d72828] hover:bg-[#d72828] text-white px-4 py-2 rounded-md flex items-center gap-2" >
             <Icon icon="mdi:upload" className="text-lg" /> Bulk uploads one
           </button>
 
-          <button onClick={() => OpenModelBulk("size")} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center gap-2" >
+          <button onClick={() => OpenModelBulk("size")} className="bg-[#d72828] hover:bg-[#d72828] text-white px-4 py-2 rounded-md flex items-center gap-2" >
             <Icon icon="mdi:upload" className="text-lg" /> Bulk uploads two
           </button> */}
 <button
@@ -1818,7 +1818,7 @@ if (categoryFilter) {
       <td colSpan="8" className="text-center p-6">
         <div className="flex justify-center items-center gap-2">
           <svg
-            className="animate-spin h-5 w-5 text-blue-500"
+            className="animate-spin h-5 w-5 text-[#d72828]"
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"
@@ -2072,10 +2072,10 @@ if (categoryFilter) {
               <h2 className="text-xl font-semibold mb-4">Bulk Upload (item_code and movement)</h2>
               <button onClick={() => CloseModal("movement")} className="text-gray-500 hover:text-gray-800 text-xl">✕</button>  
             </div>
-            <div className="border border-gray-200 rounded-lg p-6 hover:border-blue-500 transition-colors">
+            <div className="border border-gray-200 rounded-lg p-6 hover:border-[#d72828] transition-colors">
               <div className="mb-4">
                 <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                  <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5 text-[#d72828]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
                   Excel/CSV File
@@ -2083,10 +2083,10 @@ if (categoryFilter) {
                 <p className="text-sm text-gray-500 mt-1">Upload your product data file</p>
               </div>
               <div className="space-y-4">
-                <input type="file" accept=".xlsx,.csv" onChange={(e) => setExcelFile(e.target.files?.[0] || null)} className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-red-100" required />
+                <input type="file" accept=".xlsx,.csv" onChange={(e) => setExcelFile(e.target.files?.[0] || null)} className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-[#d72828] hover:file:bg-red-100" required />
               </div>
 
-              <button type="button" onClick={handleDownload} className="inline-flex items-center pt-5 text-sm text-blue-600 hover:text-blue-800 transition-colors" >
+              <button type="button" onClick={handleDownload} className="inline-flex items-center pt-5 text-sm text-[#d72828] hover:text-[#d72828] transition-colors" >
                 <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                 </svg>
@@ -2098,7 +2098,7 @@ if (categoryFilter) {
                <button
               type="submit"
               disabled={isLoading}
-              onClick={handleSubmit} className="bg-[#3B82F6] hover:bg-[#3B82F6] text-white px-3 py-2 rounded-md flex items-center gap-2"
+              onClick={handleSubmit} className="bg-[#d72828] hover:bg-[#d72828] text-white px-3 py-2 rounded-md flex items-center gap-2"
             >
               {isLoading ? (
                 <span className="flex items-center">
@@ -2126,10 +2126,10 @@ if (categoryFilter) {
           <h2 className="text-xl font-semibold mb-4">Bulk Upload (item_code and movement)</h2>
           <button onClick={() => CloseModal("size")} className="text-gray-500 hover:text-gray-800 text-xl">✕</button>  
             </div>
-            <div className="border border-gray-200 rounded-lg p-6 hover:border-blue-500 transition-colors">
+            <div className="border border-gray-200 rounded-lg p-6 hover:border-[#d72828] transition-colors">
               <div className="mb-4">
                 <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                  <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5 text-[#d72828]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
                   Excel/CSV File
@@ -2137,10 +2137,10 @@ if (categoryFilter) {
                 <p className="text-sm text-gray-500 mt-1">Upload your product data file</p>
               </div>
               <div className="space-y-4">
-                <input type="file" accept=".xlsx,.csv" onChange={(e) => setExcelFile(e.target.files?.[0] || null)} className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-red-100" required />
+                <input type="file" accept=".xlsx,.csv" onChange={(e) => setExcelFile(e.target.files?.[0] || null)} className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-[#d72828] hover:file:bg-red-100" required />
               </div>
 
-              <button type="button" onClick={handleDownload} className="inline-flex items-center pt-5 text-sm text-blue-600 hover:text-blue-800 transition-colors" >
+              <button type="button" onClick={handleDownload} className="inline-flex items-center pt-5 text-sm text-[#d72828] hover:text-[#d72828] transition-colors" >
                 <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                 </svg>
@@ -2152,7 +2152,7 @@ if (categoryFilter) {
                <button
               type="submit"
               disabled={isLoading}
-              onClick={handleSubmit} className="bg-[#3B82F6] hover:bg-[#3B82F6] text-white px-3 py-2 rounded-md flex items-center gap-2"
+              onClick={handleSubmit} className="bg-[#d72828] hover:bg-[#d72828] text-white px-3 py-2 rounded-md flex items-center gap-2"
             >
               {isLoading ? (
                 <span className="flex items-center">
@@ -2186,10 +2186,10 @@ if (categoryFilter) {
             </div>
 
             {/* Shared modal content */}
-            <div className="border border-gray-200 rounded-lg p-6 hover:border-blue-500 transition-colors">
+            <div className="border border-gray-200 rounded-lg p-6 hover:border-[#d72828] transition-colors">
               <div className="mb-4">
                 <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                  <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5 text-[#d72828]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
                   Excel/CSV File
@@ -2198,10 +2198,10 @@ if (categoryFilter) {
               </div>
               <div className="space-y-4">
                 <input type="hidden" name="uploadType" value={isBulkUploadModel.type}></input>
-                <input type="file" accept=".xlsx,.csv" onChange={(e) => setExcelFile(e.target.files?.[0] || null)} className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-red-100" required />
+                <input type="file" accept=".xlsx,.csv" onChange={(e) => setExcelFile(e.target.files?.[0] || null)} className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-[#d72828] hover:file:bg-red-100" required />
               </div>
 
-              <button type="button" onClick={handleDownload} className="inline-flex items-center pt-5 text-sm text-blue-600 hover:text-blue-800 transition-colors" >
+              <button type="button" onClick={handleDownload} className="inline-flex items-center pt-5 text-sm text-[#d72828] hover:text-[#d72828] transition-colors" >
                 <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                 </svg>
@@ -2214,7 +2214,7 @@ if (categoryFilter) {
                 type="submit"
                 disabled={isLoading}
                 onClick={handleSubmit}
-                className="bg-[#3B82F6] hover:bg-[#3B82F6] text-white px-3 py-2 rounded-md flex items-center gap-2"
+                className="bg-[#d72828] hover:bg-[#d72828] text-white px-3 py-2 rounded-md flex items-center gap-2"
               >
                 {isLoading ? (
                   <span className="flex items-center">

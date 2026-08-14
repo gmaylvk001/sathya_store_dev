@@ -235,7 +235,7 @@ const CancellationrefundComponent = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
           {/* Left content */}
           <div>
-            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full border-2 border-blue-100 text-customBlue mb-6">
+            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full border-2 border-red-100 text-customBlue mb-6">
               <FiRotateCcw className="text-xl" />
             </div>
             <h1 className="text-3xl md:text-4xl font-bold text-customBlue mb-4">
@@ -278,7 +278,7 @@ const CancellationrefundComponent = () => {
               
               {/* Feature 1 */}
               <div className="flex items-center gap-2 sm:gap-4">
-                <span className="flex items-center justify-center w-8 h-8 sm:w-12 sm:h-12 rounded-full bg-blue-50 border border-blue-100 text-blue-600 shadow-sm flex-shrink-0">
+                <span className="flex items-center justify-center w-8 h-8 sm:w-12 sm:h-12 rounded-full bg-red-50 border border-red-100 text-[#d72828] shadow-sm flex-shrink-0">
                   <MdVerifiedUser className="text-base sm:text-xl" />
                 </span>
                 <span className="text-[11px] sm:text-sm font-semibold text-gray-800 leading-tight">
@@ -288,7 +288,7 @@ const CancellationrefundComponent = () => {
 
               {/* Feature 2 */}
               <div className="flex items-center gap-2 sm:gap-4">
-                <span className="flex items-center justify-center w-8 h-8 sm:w-12 sm:h-12 rounded-full bg-blue-50 border border-blue-100 text-blue-600 shadow-sm flex-shrink-0">
+                <span className="flex items-center justify-center w-8 h-8 sm:w-12 sm:h-12 rounded-full bg-red-50 border border-red-100 text-[#d72828] shadow-sm flex-shrink-0">
                   <MdOutlinePublishedWithChanges className="text-base sm:text-xl" />
                 </span>
                 <span className="text-[11px] sm:text-sm font-semibold text-gray-800 leading-tight">
@@ -298,7 +298,7 @@ const CancellationrefundComponent = () => {
 
               {/* Feature 3 */}
               <div className="flex items-center gap-2 sm:gap-4">
-                <span className="flex items-center justify-center w-8 h-8 sm:w-12 sm:h-12 rounded-full bg-blue-50 border border-blue-100 text-blue-600 shadow-sm flex-shrink-0">
+                <span className="flex items-center justify-center w-8 h-8 sm:w-12 sm:h-12 rounded-full bg-red-50 border border-red-100 text-[#d72828] shadow-sm flex-shrink-0">
                   <MdOutlineShield className="text-base sm:text-xl" />
                 </span>
                 <span className="text-[11px] sm:text-sm font-semibold text-gray-800 leading-tight">
@@ -341,7 +341,7 @@ const CancellationrefundComponent = () => {
             className="flex flex-col sm:flex-row gap-4 sm:gap-6 bg-white border border-gray-100 rounded-xl shadow-sm p-6"
           >
             <div className="flex-shrink-0">
-              <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center">
+              <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center">
                 {section.icon}
               </div>
             </div>
@@ -385,7 +385,7 @@ const CancellationrefundComponent = () => {
         <div className="flex flex-col xl:flex-row gap-6">
           
           {/* Card 1: Contact Info (Left Side) */}
-          <div className="flex-1 bg-[#f8faff] rounded-2xl p-6 lg:p-8 flex flex-col justify-between border border-blue-50 shadow-sm">
+          <div className="flex-1 bg-[#f8faff] rounded-2xl p-6 lg:p-8 flex flex-col justify-between border border-red-50 shadow-sm">
             <div className="mb-6 lg:mb-8">
               <h3 className="text-xl font-bold text-customBlue mb-2">
                 Need Help?

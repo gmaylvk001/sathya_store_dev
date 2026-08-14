@@ -1675,7 +1675,7 @@ const handleBrandManufacturerUpload = async (e) => {
           <select
             value={selectedSection}
             onChange={(e) => setSelectedSection(e.target.value)}
-            className="block w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-700 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="block w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-700 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-[#d72828]"
           >
             {sections.map((s) => (
               <option key={s.id} value={s.id}>{s.label}</option>
@@ -1694,10 +1694,10 @@ const handleBrandManufacturerUpload = async (e) => {
               <form id="section-product-overview" ref={overviewFormRef} onSubmit={(e) => handleSubmit(e, "overview")} className="bg-white rounded-xl shadow-lg overflow-hidden p-6 space-y-8">
 
                 {/* Excel File Section */}
-                <div className="border border-gray-200 rounded-lg p-6 hover:border-blue-500 transition-colors">
+                <div className="border border-gray-200 rounded-lg p-6 hover:border-[#d72828] transition-colors">
                   <div className="mb-4">
                     <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                      <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-5 h-5 text-[#d72828]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                       </svg>
                       Excel/CSV File
@@ -1709,13 +1709,13 @@ const handleBrandManufacturerUpload = async (e) => {
                       type="file"
                       accept=".xlsx,.csv"
                       onChange={(e) => setExcelFile(e.target.files?.[0] || null)}
-                      className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-red-100"
+                      className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-[#d72828] hover:file:bg-red-100"
                       required
                     />
                     <button
                       type="button"
                       onClick={handleDownload}
-                      className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 transition-colors"
+                      className="inline-flex items-center text-sm text-[#d72828] hover:text-[#d72828] transition-colors"
                     >
                       <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -1725,10 +1725,10 @@ const handleBrandManufacturerUpload = async (e) => {
                   </div>
                 </div>
                 {/* Product Images Section - Now Optional */}
-                <div className="border border-gray-200 rounded-lg p-6 hover:border-blue-500 transition-colors">
+                <div className="border border-gray-200 rounded-lg p-6 hover:border-[#d72828] transition-colors">
                   <div className="mb-4">
                     <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                      <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-5 h-5 text-[#d72828]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                       </svg>
                       Product Images (ZIP)
@@ -1741,12 +1741,12 @@ const handleBrandManufacturerUpload = async (e) => {
                       type="file"
                       accept=".zip"
                       onChange={(e) => setImageZip(e.target.files?.[0] || null)}
-                      className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-blue-700 hover:file:bg-red-100"
+                      className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-[#d72828] hover:file:bg-red-100"
                     />
                     <button
                       type="button"
                       onClick={handleZipDownload}
-                      className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 transition-colors"
+                      className="inline-flex items-center text-sm text-[#d72828] hover:text-[#d72828] transition-colors"
                     >
                       <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -1756,7 +1756,7 @@ const handleBrandManufacturerUpload = async (e) => {
                   </div>
                 </div>
                 {/* Overview Images Section */}
-                <div className="border border-gray-200 rounded-lg p-6 hover:border-blue-500 transition-colors">
+                <div className="border border-gray-200 rounded-lg p-6 hover:border-[#d72828] transition-colors">
                   <div className="mb-4">
                     <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
                       <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1771,7 +1771,7 @@ const handleBrandManufacturerUpload = async (e) => {
                     type="file"
                     accept=".zip"
                     onChange={(e) => setOverviewZip(e.target.files?.[0] || null)}
-                    className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-blue-700 hover:file:bg-red-100"
+                    className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-[#d72828] hover:file:bg-red-100"
                   />
                 </div>
                 {/* Action Buttons */}
@@ -1779,7 +1779,7 @@ const handleBrandManufacturerUpload = async (e) => {
                   <button
                     type="submit"
                     disabled={isLoading}
-                    className="px-6 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                    className="px-6 py-2.5 bg-[#d72828] text-white font-medium rounded-lg hover:bg-[#d72828] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                   >
                     {isLoading && activeUploadType == "overview" ? (
                       <span className="flex items-center">
@@ -1800,13 +1800,13 @@ const handleBrandManufacturerUpload = async (e) => {
             {/* Section 2: Filter Upload */}
             {selectedSection === "section-filter-upload" && (
               <form id="section-filter-upload" onSubmit={handleSubmit} className="bg-white rounded-xl shadow-lg overflow-hidden p-6 space-y-8">
-                <div className="border border-gray-200 rounded-lg p-6 hover:border-blue-500 transition-colors">
+                <div className="border border-gray-200 rounded-lg p-6 hover:border-[#d72828] transition-colors">
                   <div className="mb-4">
-                    <h2 className="text-md font-semibold text-blue-600 mb-6 border-b pb-2">
+                    <h2 className="text-md font-semibold text-[#d72828] mb-6 border-b pb-2">
                       Filter Bulk Upload
                     </h2>
                     <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                      <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-5 h-5 text-[#d72828]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                       </svg>
                       Excel/CSV File
@@ -1818,13 +1818,13 @@ const handleBrandManufacturerUpload = async (e) => {
                       type="file"
                       accept=".xlsx,.csv"
                       onChange={(e) => setExcelFile(e.target.files?.[0] || null)}
-                      className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-red-100"
+                      className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-[#d72828] hover:file:bg-red-100"
                       required
                     />
                     <button
                       type="button"
                       onClick={handleSampleDownload}
-                      className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 transition-colors"
+                      className="inline-flex items-center text-sm text-[#d72828] hover:text-[#d72828] transition-colors"
                     >
                       <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -1835,7 +1835,7 @@ const handleBrandManufacturerUpload = async (e) => {
                       <button
                         onClick={handleFilterSubmit}
                         disabled={isFilterUploadLoading}
-                        className="px-6 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:outline-none disabled:opacity-50 transition-colors flex items-center"
+                        className="px-6 py-2.5 bg-[#d72828] text-white font-medium rounded-lg hover:bg-[#d72828] focus:outline-none disabled:opacity-50 transition-colors flex items-center"
                       >
                         {isFilterUploadLoading ? (
                           <>
@@ -1858,13 +1858,13 @@ const handleBrandManufacturerUpload = async (e) => {
             {/* Section 3: Filter Group Upload */}
             {selectedSection === "section-filter-group-upload" && (
               <form id="section-filter-group-upload" onSubmit={handleSubmit} className="bg-white rounded-xl shadow-lg overflow-hidden p-6 space-y-8">
-                <div className="border border-gray-200 rounded-lg p-6 hover:border-blue-500 transition-colors">
+                <div className="border border-gray-200 rounded-lg p-6 hover:border-[#d72828] transition-colors">
                   <div className="mb-4">
-                    <h2 className="text-md font-semibold text-blue-600 mb-6 border-b pb-2">
+                    <h2 className="text-md font-semibold text-[#d72828] mb-6 border-b pb-2">
                       Filter Group Bulk Upload
                     </h2>
                     <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                      <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-5 h-5 text-[#d72828]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                       </svg>
                       Excel/CSV File
@@ -1876,12 +1876,12 @@ const handleBrandManufacturerUpload = async (e) => {
                       type="file"
                       accept=".xlsx,.csv"
                       onChange={(e) => setExcelFile(e.target.files?.[0] || null)}
-                      className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                      className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-[#d72828] hover:file:bg-red-100"
                       required
                     />
                     <button
                       onClick={handleFilterGroupSampleDownload}
-                      className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 transition-colors"
+                      className="inline-flex items-center text-sm text-[#d72828] hover:text-[#d72828] transition-colors"
                     >
                       <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -1892,7 +1892,7 @@ const handleBrandManufacturerUpload = async (e) => {
                       <button
                         onClick={handleFilterGroupSubmit}
                         disabled={isFilterGroupUploadLoading}
-                        className="px-6 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:outline-none disabled:opacity-50 transition-colors flex items-center"
+                        className="px-6 py-2.5 bg-[#d72828] text-white font-medium rounded-lg hover:bg-[#d72828] focus:outline-none disabled:opacity-50 transition-colors flex items-center"
                       >
                         {isFilterGroupUploadLoading ? (
                           <>
@@ -1915,11 +1915,11 @@ const handleBrandManufacturerUpload = async (e) => {
             {/* Section 4: Movement Type Upload */}
             {selectedSection === "section-movement-upload" && (
               <form id="section-movement-upload" ref={movementFormRef} onSubmit={(e) => handleSubmit(e, "movement")} className="bg-white rounded-xl shadow-lg overflow-hidden p-6 space-y-8">
-                <div className="border border-gray-200 rounded-lg p-6 hover:border-blue-500 transition-colors">
+                <div className="border border-gray-200 rounded-lg p-6 hover:border-[#d72828] transition-colors">
                   <div className="mb-4">
-                    <h2 className="text-md font-semibold text-blue-600 mb-6 border-b pb-2">Movement Type Bulk Upload</h2>
+                    <h2 className="text-md font-semibold text-[#d72828] mb-6 border-b pb-2">Movement Type Bulk Upload</h2>
                     <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                      <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-5 h-5 text-[#d72828]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                       </svg>
                       Excel/CSV File
@@ -1927,9 +1927,9 @@ const handleBrandManufacturerUpload = async (e) => {
                     <p className="text-sm text-gray-500 mt-1">Upload your product movement file</p>
                   </div>
                   <div className="space-y-4">
-                    <input type="file" accept=".xlsx,.csv" onChange={(e) => setExcelFileMovement(e.target.files?.[0] || null)} className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-red-100" required />
+                    <input type="file" accept=".xlsx,.csv" onChange={(e) => setExcelFileMovement(e.target.files?.[0] || null)} className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-[#d72828] hover:file:bg-red-100" required />
                   </div>
-                  <button type="button" onClick={handleDownloadSampleMovement} className="inline-flex items-center pt-5 text-sm text-blue-600 hover:text-blue-800 transition-colors">
+                  <button type="button" onClick={handleDownloadSampleMovement} className="inline-flex items-center pt-5 text-sm text-[#d72828] hover:text-[#d72828] transition-colors">
                     <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                     </svg>
@@ -1940,7 +1940,7 @@ const handleBrandManufacturerUpload = async (e) => {
                   <button
                     type="submit"
                     disabled={isLoading}
-                    className="bg-[#3B82F6] hover:bg-[#3B82F6] text-white px-3 py-2 rounded-md flex items-center gap-2"
+                    className="bg-[#d72828] hover:bg-[#d72828] text-white px-3 py-2 rounded-md flex items-center gap-2"
                   >
                     {isLoading && activeUploadType == "movement" ? (
                       <span className="flex items-center">
@@ -1961,11 +1961,11 @@ const handleBrandManufacturerUpload = async (e) => {
             {/* Section 5: Product Filter Values Upload */}
             {selectedSection === "section-filter-values-upload" && (
               <form id="section-filter-values-upload" ref={filterValueFormRef} onSubmit={(e) => handleSubmit(e, "filter_values")} className="bg-white rounded-xl shadow-lg overflow-hidden p-6 space-y-8">
-                <div className="border border-gray-200 rounded-lg p-6 hover:border-blue-500 transition-colors">
+                <div className="border border-gray-200 rounded-lg p-6 hover:border-[#d72828] transition-colors">
                   <div className="mb-4">
-                    <h2 className="text-md font-semibold text-blue-600 mb-6 border-b pb-2">Product's Filter Values Bulk Upload <small className="items-start"> (size,capacity,type,etc,..)</small> </h2>
+                    <h2 className="text-md font-semibold text-[#d72828] mb-6 border-b pb-2">Product's Filter Values Bulk Upload <small className="items-start"> (size,capacity,type,etc,..)</small> </h2>
                     <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                      <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-5 h-5 text-[#d72828]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                       </svg>
                       Excel/CSV File
@@ -1973,9 +1973,9 @@ const handleBrandManufacturerUpload = async (e) => {
                     <p className="text-sm text-gray-500 mt-1">Upload your product filter values file</p>
                   </div>
                   <div className="space-y-4">
-                    <input id="filter-values-file-input" type="file" accept=".xlsx,.csv" onChange={(e) => setProductFilterValue(e.target.files?.[0] || null)} className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-red-100" required />
+                    <input id="filter-values-file-input" type="file" accept=".xlsx,.csv" onChange={(e) => setProductFilterValue(e.target.files?.[0] || null)} className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-[#d72828] hover:file:bg-red-100" required />
                   </div>
-                  <button type="button" onClick={handleDownloadFilterValues} className="inline-flex items-center pt-5 text-sm text-blue-600 hover:text-blue-800 transition-colors">
+                  <button type="button" onClick={handleDownloadFilterValues} className="inline-flex items-center pt-5 text-sm text-[#d72828] hover:text-[#d72828] transition-colors">
                     <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                     </svg>
@@ -1986,7 +1986,7 @@ const handleBrandManufacturerUpload = async (e) => {
                   <button
                     type="submit"
                     disabled={isLoading}
-                    className="bg-[#3B82F6] hover:bg-[#3B82F6] text-white px-3 py-2 rounded-md flex items-center gap-2"
+                    className="bg-[#d72828] hover:bg-[#d72828] text-white px-3 py-2 rounded-md flex items-center gap-2"
                   >
                     {isLoading && activeUploadType == "filter_values" ? (
                       <span className="flex items-center">
@@ -2007,13 +2007,13 @@ const handleBrandManufacturerUpload = async (e) => {
             {/* Section 6: Category Filter Upload */}
             {selectedSection === "section-category-filter-upload" && (
               <form id="section-category-filter-upload" onSubmit={handleUpload} className="bg-white rounded-xl shadow-lg overflow-hidden p-6 space-y-8">
-                <div className="border border-gray-200 rounded-lg p-6 hover:border-blue-500 transition-colors">
+                <div className="border border-gray-200 rounded-lg p-6 hover:border-[#d72828] transition-colors">
                   <div className="mb-4">
-                    <h2 className="text-md font-semibold text-blue-600 mb-6 border-b pb-2">
+                    <h2 className="text-md font-semibold text-[#d72828] mb-6 border-b pb-2">
                       Category Filter Bulk Upload
                     </h2>
                     <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                      <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-5 h-5 text-[#d72828]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                       </svg>
                       Excel/CSV File
@@ -2026,12 +2026,12 @@ const handleBrandManufacturerUpload = async (e) => {
                       type="file"
                       accept=".xlsx,.csv"
                       onChange={(e) => setFile(e.target.files?.[0] || null)}
-                      className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                      className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-[#d72828] hover:file:bg-red-100"
                     />
                     <button
                       type="button"
                       onClick={handleCategoryFilterDownload}
-                      className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 transition-colors"
+                      className="inline-flex items-center text-sm text-[#d72828] hover:text-[#d72828] transition-colors"
                     >
                       <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -2043,7 +2043,7 @@ const handleBrandManufacturerUpload = async (e) => {
                     <button
                       onClick={handleUpload}
                       disabled={loading}
-                      className="px-6 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:outline-none disabled:opacity-50 transition-colors flex items-center"
+                      className="px-6 py-2.5 bg-[#d72828] text-white font-medium rounded-lg hover:bg-[#d72828] focus:outline-none disabled:opacity-50 transition-colors flex items-center"
                     >
                       {loading ? (
                         <>
@@ -2066,13 +2066,13 @@ const handleBrandManufacturerUpload = async (e) => {
             {/* Section 12: Category Filter Upload Item code,category and subcategory */}
             {selectedSection === "section-category-filter-upload-item-category-subcategory" && (
               <form id="section-category-filter-upload-item-category-subcategory" onSubmit={handleUpload} className="bg-white rounded-xl shadow-lg overflow-hidden p-6 space-y-8">
-                <div className="border border-gray-200 rounded-lg p-6 hover:border-blue-500 transition-colors">
+                <div className="border border-gray-200 rounded-lg p-6 hover:border-[#d72828] transition-colors">
                   <div className="mb-4">
-                    <h2 className="text-md font-semibold text-blue-600 mb-6 border-b pb-2">
+                    <h2 className="text-md font-semibold text-[#d72828] mb-6 border-b pb-2">
                       Item Code category Bulk Upload
                     </h2>
                     <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                      <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-5 h-5 text-[#d72828]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                       </svg>
                       Excel/CSV File
@@ -2085,13 +2085,13 @@ const handleBrandManufacturerUpload = async (e) => {
                       accept=".xlsx,.csv"
                       ref={fileInputRef}
                       onChange={(e) => setExcelFile(e.target.files?.[0] || null)}
-                      className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-red-100"
+                      className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-[#d72828] hover:file:bg-red-100"
                       required
                     />
                     <button
                       type="button"
                       onClick={handleCategoryBulkItemCodeCatSubcatDownload}
-                      className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 transition-colors"
+                      className="inline-flex items-center text-sm text-[#d72828] hover:text-[#d72828] transition-colors"
                     >
                       <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -2103,7 +2103,7 @@ const handleBrandManufacturerUpload = async (e) => {
                     <button
                       onClick={handleBulkCategorySubcatSubmit}
                         disabled={isBulkUploadLoading}
-                      className="px-6 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:outline-none disabled:opacity-50 transition-colors flex items-center"
+                      className="px-6 py-2.5 bg-[#d72828] text-white font-medium rounded-lg hover:bg-[#d72828] focus:outline-none disabled:opacity-50 transition-colors flex items-center"
                     >
                       {isBulkUploadLoading ? (
                         <>
@@ -2125,13 +2125,13 @@ const handleBrandManufacturerUpload = async (e) => {
             {/* Section 13: Category Filter Upload Item code With Particular Details */}
             {selectedSection === "item-category-particular-product-bulk-upload" && (
               <form id="item-category-particular-product-bulk-upload" onSubmit={handleUpload} className="bg-white rounded-xl shadow-lg overflow-hidden p-6 space-y-8">
-                <div className="border border-gray-200 rounded-lg p-6 hover:border-blue-500 transition-colors">
+                <div className="border border-gray-200 rounded-lg p-6 hover:border-[#d72828] transition-colors">
                   <div className="mb-4">
-                    <h2 className="text-md font-semibold text-blue-600 mb-6 border-b pb-2">
+                    <h2 className="text-md font-semibold text-[#d72828] mb-6 border-b pb-2">
                       Item Particular Bulk Upload part one (without image)
                     </h2>
                     <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                      <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-5 h-5 text-[#d72828]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                       </svg>
                       Excel/CSV File
@@ -2144,13 +2144,13 @@ const handleBrandManufacturerUpload = async (e) => {
                       accept=".xlsx,.csv"
                       ref={fileBulkParticularInputRef}
                       onChange={(e) => setExcelFile(e.target.files?.[0] || null)}
-                      className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-red-100"
+                      className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-[#d72828] hover:file:bg-red-100"
                       required
                     />
                     <button
                       type="button"
                       onClick={handleParticularDataBulkUploadDownload}
-                      className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 transition-colors"
+                      className="inline-flex items-center text-sm text-[#d72828] hover:text-[#d72828] transition-colors"
                     >
                       <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -2162,7 +2162,7 @@ const handleBrandManufacturerUpload = async (e) => {
                     <button
                       onClick={handleBulkParticularDetailsSubcatSubmit}
                         disabled={isParticularDataBulkUploadLoading}
-                      className="px-6 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:outline-none disabled:opacity-50 transition-colors flex items-center"
+                      className="px-6 py-2.5 bg-[#d72828] text-white font-medium rounded-lg hover:bg-[#d72828] focus:outline-none disabled:opacity-50 transition-colors flex items-center"
                     >
                       {isParticularDataBulkUploadLoading ? (
                         <>
@@ -2184,13 +2184,13 @@ const handleBrandManufacturerUpload = async (e) => {
             {/* Section 14: Bulk Upload for Product Featured , Add ons and Related Products */}
             {selectedSection === "product-added-bulk-addons-frequentlybought-relatedproducts" && (
               <form id="product-added-bulk-addons-frequentlybought-relatedproducts" onSubmit={handleUpload} className="bg-white rounded-xl shadow-lg overflow-hidden p-6 space-y-8">
-                <div className="border border-gray-200 rounded-lg p-6 hover:border-blue-500 transition-colors">
+                <div className="border border-gray-200 rounded-lg p-6 hover:border-[#d72828] transition-colors">
                   <div className="mb-4">
-                    <h2 className="text-md font-semibold text-blue-600 mb-6 border-b pb-2">
+                    <h2 className="text-md font-semibold text-[#d72828] mb-6 border-b pb-2">
                       Product Details Bulk Upload (Add Ons, Featured Product and Related Products)
                     </h2>
                     <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                      <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-5 h-5 text-[#d72828]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                       </svg>
                       Excel/CSV File
@@ -2203,13 +2203,13 @@ const handleBrandManufacturerUpload = async (e) => {
                       accept=".xlsx,.csv"
                       ref={fileBulkUploadAddonsInputRef}
                       onChange={(e) => setExcelFile(e.target.files?.[0] || null)}
-                      className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-red-100"
+                      className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-[#d72828] hover:file:bg-red-100"
                       required
                     />
                     <button
                       type="button"
                       onClick={handleProductAddOnsForDataBulkUploadDownload}
-                      className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 transition-colors"
+                      className="inline-flex items-center text-sm text-[#d72828] hover:text-[#d72828] transition-colors"
                     >
                       <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -2221,7 +2221,7 @@ const handleBrandManufacturerUpload = async (e) => {
                     <button
                       onClick={handleBulkUploadForAddOnsFrequentRelatedSubmit}
                         disabled={isProductDetailsDataBulkUploadLoading}
-                      className="px-6 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:outline-none disabled:opacity-50 transition-colors flex items-center"
+                      className="px-6 py-2.5 bg-[#d72828] text-white font-medium rounded-lg hover:bg-[#d72828] focus:outline-none disabled:opacity-50 transition-colors flex items-center"
                     >
                       {isProductDetailsDataBulkUploadLoading ? (
                         <>
@@ -2243,11 +2243,11 @@ const handleBrandManufacturerUpload = async (e) => {
             {/* Section 20: Bulk Upload for Product Filters Delete Filters */}
             {selectedSection === "itemcode-product-bulk-upload-delete-filters" && (
                 <form id="itemcode-product-bulk-upload-delete-filters" ref={filterValueFormRef} onSubmit={(e) => handleSubmit(e, "filter_values_delete")} className="bg-white rounded-xl shadow-lg overflow-hidden p-6 space-y-8">
-                  <div className="border border-gray-200 rounded-lg p-6 hover:border-blue-500 transition-colors">
+                  <div className="border border-gray-200 rounded-lg p-6 hover:border-[#d72828] transition-colors">
                     <div className="mb-4">
-                      <h2 className="text-md font-semibold text-blue-600 mb-6 border-b pb-2">Delete Product's Filter Values Bulk Upload</h2>
+                      <h2 className="text-md font-semibold text-[#d72828] mb-6 border-b pb-2">Delete Product's Filter Values Bulk Upload</h2>
                       <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                        <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-5 h-5 text-[#d72828]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
                         Excel/CSV File
@@ -2255,9 +2255,9 @@ const handleBrandManufacturerUpload = async (e) => {
                       <p className="text-sm text-gray-500 mt-1">Upload your product filter values file to delete</p>
                     </div>
                     <div className="space-y-4">
-                      <input id="filter-values-delete-file-input" type="file" accept=".xlsx,.csv" onChange={(e) => setProductFilterValue(e.target.files?.[0] || null)} className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-red-100" required />
+                      <input id="filter-values-delete-file-input" type="file" accept=".xlsx,.csv" onChange={(e) => setProductFilterValue(e.target.files?.[0] || null)} className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-[#d72828] hover:file:bg-red-100" required />
                     </div>
-                    <button type="button" onClick={handleDownloadFilterValuesDelete} className="inline-flex items-center pt-5 text-sm text-blue-600 hover:text-blue-800 transition-colors">
+                    <button type="button" onClick={handleDownloadFilterValuesDelete} className="inline-flex items-center pt-5 text-sm text-[#d72828] hover:text-[#d72828] transition-colors">
                       <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                       </svg>
@@ -2268,7 +2268,7 @@ const handleBrandManufacturerUpload = async (e) => {
                     <button
                       type="submit"
                       disabled={isLoading}
-                      className="bg-[#3B82F6] hover:bg-[#3B82F6] text-white px-3 py-2 rounded-md flex items-center gap-2"
+                      className="bg-[#d72828] hover:bg-[#d72828] text-white px-3 py-2 rounded-md flex items-center gap-2"
                     >
                       {isLoading && activeUploadType == "filter_values_delete" ? (
                         <span className="flex items-center">
@@ -2294,9 +2294,9 @@ const handleBrandManufacturerUpload = async (e) => {
   className="bg-white rounded-xl shadow-lg overflow-hidden p-6 space-y-8"
 >
   {/* ---------- EXCEL SECTION ---------- */}
-  <div className="border border-gray-200 rounded-lg p-6 hover:border-blue-500 transition-colors">
+  <div className="border border-gray-200 rounded-lg p-6 hover:border-[#d72828] transition-colors">
     
-    <h2 className="text-md font-semibold text-blue-600 mb-6 border-b pb-2">
+    <h2 className="text-md font-semibold text-[#d72828] mb-6 border-b pb-2">
       Item Particular Bulk Upload part two (with image)
     </h2>
 
@@ -2314,14 +2314,14 @@ const handleBrandManufacturerUpload = async (e) => {
         accept=".xlsx,.csv"
         ref={fileImageBulkParticularInputRef}
         onChange={(e) => setExcelFiles(e.target.files?.[0] || null)}
-        className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:font-semibold file:bg-blue-50 file:text-blue-700"
+        className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:font-semibold file:bg-red-50 file:text-[#d72828]"
         required
       />
 
       <button
         type="button"
         onClick={handleImageDataBulkUploadDownload}
-        className="text-sm text-blue-600 hover:text-blue-800"
+        className="text-sm text-[#d72828] hover:text-[#d72828]"
       >
         Download Sample Format
       </button>
@@ -2329,7 +2329,7 @@ const handleBrandManufacturerUpload = async (e) => {
   </div>
 
   {/* ---------- ZIP SECTION (REQUIRED) ---------- */}
-  <div className="border border-gray-200 rounded-lg p-6 hover:border-blue-500 transition-colors">
+  <div className="border border-gray-200 rounded-lg p-6 hover:border-[#d72828] transition-colors">
     
     <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
       Product Images (ZIP) <span className="text-red-500">*</span>
@@ -2344,14 +2344,14 @@ const handleBrandManufacturerUpload = async (e) => {
         type="file"
         accept=".zip"
         onChange={(e) => setImageZips(e.target.files?.[0] || null)}
-        className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:font-semibold file:bg-red-50 file:text-blue-700"
+        className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:font-semibold file:bg-red-50 file:text-[#d72828]"
         required   // ✅ IMPORTANT (NOW REQUIRED)
       />
 
       <button
         type="button"
         onClick={handleZipDownload}
-        className="text-sm text-blue-600 hover:text-blue-800"
+        className="text-sm text-[#d72828] hover:text-[#d72828]"
       >
         Download Sample ZIP
       </button>
@@ -2363,7 +2363,7 @@ const handleBrandManufacturerUpload = async (e) => {
     <button
       type="submit"
       disabled={isParticularImageWithDataBulkUploadLoading}
-      className="px-6 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center"
+      className="px-6 py-2.5 bg-[#d72828] text-white font-medium rounded-lg hover:bg-[#d72828] disabled:opacity-50 flex items-center"
     >
       {isParticularImageWithDataBulkUploadLoading ? (
         <>
@@ -2396,11 +2396,11 @@ const handleBrandManufacturerUpload = async (e) => {
             {/* Section 7: New Category Upload */}
             {selectedSection === "section-new-category-upload" && (
               <form id="section-new-category-upload" ref={filterValueFormRef} onSubmit={(e) => handleSubmit(e, "category")} className="bg-white rounded-xl shadow-lg overflow-hidden p-6 space-y-8">
-                <div className="border border-gray-200 rounded-lg p-6 hover:border-blue-500 transition-colors">
+                <div className="border border-gray-200 rounded-lg p-6 hover:border-[#d72828] transition-colors">
                   <div className="mb-4">
-                    <h2 className="text-md font-semibold text-blue-600 mb-6 border-b pb-2">New Category Bulk Upload  </h2>
+                    <h2 className="text-md font-semibold text-[#d72828] mb-6 border-b pb-2">New Category Bulk Upload  </h2>
                     <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                      <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-5 h-5 text-[#d72828]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                       </svg>
                       Excel/CSV File
@@ -2408,9 +2408,9 @@ const handleBrandManufacturerUpload = async (e) => {
                     <p className="text-sm text-gray-500 mt-1">Please upload your category fields along with their corresponding values.</p>
                   </div>
                   <div className="space-y-4">
-                    <input type="file" accept=".xlsx,.csv" onChange={(e) => setProductFilterValue(e.target.files?.[0] || null)} className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-red-100" required />
+                    <input type="file" accept=".xlsx,.csv" onChange={(e) => setProductFilterValue(e.target.files?.[0] || null)} className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-[#d72828] hover:file:bg-red-100" required />
                   </div>
-                  <button type="button" onClick={handleDownloadCategoryValues} className="inline-flex items-center pt-5 text-sm text-blue-600 hover:text-blue-800 transition-colors">
+                  <button type="button" onClick={handleDownloadCategoryValues} className="inline-flex items-center pt-5 text-sm text-[#d72828] hover:text-[#d72828] transition-colors">
                     <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                     </svg>
@@ -2421,7 +2421,7 @@ const handleBrandManufacturerUpload = async (e) => {
                   <button
                     type="submit"
                     disabled={isLoading}
-                    className="bg-[#3B82F6] hover:bg-[#3B82F6] text-white px-3 py-2 rounded-md flex items-center gap-2"
+                    className="bg-[#d72828] hover:bg-[#d72828] text-white px-3 py-2 rounded-md flex items-center gap-2"
                   >
                     {isLoading && activeUploadType == "filter_values" ? (
                       <span className="flex items-center">
@@ -2442,11 +2442,11 @@ const handleBrandManufacturerUpload = async (e) => {
             {/* Section 8: Update Product Categories */}
             {/* {selectedSection === "section-product-categories-upload" && (
               <form id="section-product-categories-upload" ref={filterValueFormRef} onSubmit={(e) => handleSubmit(e, "map_product_categories")} className="bg-white rounded-xl shadow-lg overflow-hidden p-6 space-y-8">
-                <div className="border border-gray-200 rounded-lg p-6 hover:border-blue-500 transition-colors">
+                <div className="border border-gray-200 rounded-lg p-6 hover:border-[#d72828] transition-colors">
                   <div className="mb-4">
-                    <h2 className="text-md font-semibold text-blue-600 mb-6 border-b pb-2">Upload For Updating Product Categories </h2>
+                    <h2 className="text-md font-semibold text-[#d72828] mb-6 border-b pb-2">Upload For Updating Product Categories </h2>
                     <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                      <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-5 h-5 text-[#d72828]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                       </svg>
                       Excel/CSV File
@@ -2454,9 +2454,9 @@ const handleBrandManufacturerUpload = async (e) => {
                     <p className="text-sm text-gray-500 mt-1">Please upload the product category fields along with their corresponding values for updating.</p>
                   </div>
                   <div className="space-y-4">
-                    <input type="file" accept=".xlsx,.csv" onChange={(e) => setProductFilterValue(e.target.files?.[0] || null)} className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-red-100" required />
+                    <input type="file" accept=".xlsx,.csv" onChange={(e) => setProductFilterValue(e.target.files?.[0] || null)} className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-[#d72828] hover:file:bg-red-100" required />
                   </div>
-                  <button type="button" onClick={handleDownloadProductCategoryValues} className="inline-flex items-center pt-5 text-sm text-blue-600 hover:text-blue-800 transition-colors">
+                  <button type="button" onClick={handleDownloadProductCategoryValues} className="inline-flex items-center pt-5 text-sm text-[#d72828] hover:text-[#d72828] transition-colors">
                     <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                     </svg>
@@ -2467,7 +2467,7 @@ const handleBrandManufacturerUpload = async (e) => {
                   <button
                     type="submit"
                     disabled={isLoading}
-                    className="bg-[#3B82F6] hover:bg-[#3B82F6] text-white px-3 py-2 rounded-md flex items-center gap-2"
+                    className="bg-[#d72828] hover:bg-[#d72828] text-white px-3 py-2 rounded-md flex items-center gap-2"
                   >
                     {isLoading && activeUploadType == "filter_values" ? (
                       <span className="flex items-center">
@@ -2488,11 +2488,11 @@ const handleBrandManufacturerUpload = async (e) => {
             {/* Section 9: Update Product Brands */}
             {selectedSection === "section-product-brands-upload" && (
               <form id="section-product-brands-upload" ref={filterValueFormRef} onSubmit={(e) => handleSubmit(e, "map_product_brands")} className="bg-white rounded-xl shadow-lg overflow-hidden p-6 space-y-8">
-                <div className="border border-gray-200 rounded-lg p-6 hover:border-blue-500 transition-colors">
+                <div className="border border-gray-200 rounded-lg p-6 hover:border-[#d72828] transition-colors">
                   <div className="mb-4">
-                    <h2 className="text-md font-semibold text-blue-600 mb-6 border-b pb-2">Upload For Updating Product Brands </h2>
+                    <h2 className="text-md font-semibold text-[#d72828] mb-6 border-b pb-2">Upload For Updating Product Brands </h2>
                     <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                      <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-5 h-5 text-[#d72828]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                       </svg>
                       Excel/CSV File
@@ -2500,9 +2500,9 @@ const handleBrandManufacturerUpload = async (e) => {
                     <p className="text-sm text-gray-500 mt-1">Please upload the product brand fields along with their corresponding values for updating.</p>
                   </div>
                   <div className="space-y-4">
-                    <input type="file" accept=".xlsx,.csv" onChange={(e) => setProductFilterValue(e.target.files?.[0] || null)} className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-red-100" required />
+                    <input type="file" accept=".xlsx,.csv" onChange={(e) => setProductFilterValue(e.target.files?.[0] || null)} className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-[#d72828] hover:file:bg-red-100" required />
                   </div>
-                  <button type="button" onClick={handleDownloadProductBrandsValues} className="inline-flex items-center pt-5 text-sm text-blue-600 hover:text-blue-800 transition-colors">
+                  <button type="button" onClick={handleDownloadProductBrandsValues} className="inline-flex items-center pt-5 text-sm text-[#d72828] hover:text-[#d72828] transition-colors">
                     <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                     </svg>
@@ -2513,7 +2513,7 @@ const handleBrandManufacturerUpload = async (e) => {
                   <button
                     type="submit"
                     disabled={isLoading}
-                    className="bg-[#3B82F6] hover:bg-[#3B82F6] text-white px-3 py-2 rounded-md flex items-center gap-2"
+                    className="bg-[#d72828] hover:bg-[#d72828] text-white px-3 py-2 rounded-md flex items-center gap-2"
                   >
                     {isLoading && activeUploadType == "map_product_brands" ? (
                       <span className="flex items-center">
@@ -2535,11 +2535,11 @@ const handleBrandManufacturerUpload = async (e) => {
             {selectedSection === "section-status-bulk" && (
               <form id="section-status-bulk" ref={filterValueFormRef} onSubmit={(e) => handleSubmit(e, "map_product_brands")} className="bg-white rounded-xl shadow-lg overflow-hidden p-6 space-y-8">
                 <div className="bg-white rounded-xl shadow-lg overflow-hidden p-6 space-y-6">
-                  <div className="border border-gray-200 rounded-lg p-6 hover:border-blue-500 transition-colors">
+                  <div className="border border-gray-200 rounded-lg p-6 hover:border-[#d72828] transition-colors">
                     <div className="mb-4">
-                      <h2 className="text-md font-semibold text-blue-600 mb-6 border-b pb-2">Status Bulk Upload</h2>
+                      <h2 className="text-md font-semibold text-[#d72828] mb-6 border-b pb-2">Status Bulk Upload</h2>
                       <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                        <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-5 h-5 text-[#d72828]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
                         Update Product Status in Bulk
@@ -2549,7 +2549,7 @@ const handleBrandManufacturerUpload = async (e) => {
                     <div className="mt-6">
                       <Link
                         href="/admin/product/status_bulk"
-                        className="inline-flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-6 py-2.5 rounded-lg text-sm font-medium shadow-sm transition duration-150"
+                        className="inline-flex items-center gap-2 bg-[#d72828] hover:bg-[#d72828] text-white px-6 py-2.5 rounded-lg text-sm font-medium shadow-sm transition duration-150"
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
@@ -2567,11 +2567,11 @@ const handleBrandManufacturerUpload = async (e) => {
             {selectedSection === "section-stock-status-bulk-upload" && (
               <form id="section-stock-status-bulk-upload" ref={filterValueFormRef} onSubmit={(e) => handleSubmit(e, "map_product_brands")} className="bg-white rounded-xl shadow-lg overflow-hidden p-6 space-y-8">
                 <div className="bg-white rounded-xl shadow-lg overflow-hidden p-6 space-y-6">
-                  <div className="border border-gray-200 rounded-lg p-6 hover:border-blue-500 transition-colors">
+                  <div className="border border-gray-200 rounded-lg p-6 hover:border-[#d72828] transition-colors">
                     <div className="mb-4">
-                      <h2 className="text-md font-semibold text-blue-600 mb-6 border-b pb-2">Stock Status Bulk Upload</h2>
+                      <h2 className="text-md font-semibold text-[#d72828] mb-6 border-b pb-2">Stock Status Bulk Upload</h2>
                       <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                        <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-5 h-5 text-[#d72828]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
                         Update Product Stock Status in Bulk
@@ -2581,7 +2581,7 @@ const handleBrandManufacturerUpload = async (e) => {
                     <div className="mt-6">
                       <Link
                         href="/admin/product/stock_status_bulk_upload"
-                        className="inline-flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-6 py-2.5 rounded-lg text-sm font-medium shadow-sm transition duration-150"
+                        className="inline-flex items-center gap-2 bg-[#d72828] hover:bg-[#d72828] text-white px-6 py-2.5 rounded-lg text-sm font-medium shadow-sm transition duration-150"
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
@@ -2602,14 +2602,14 @@ const handleBrandManufacturerUpload = async (e) => {
     onSubmit={handleWarrantyBulkUpload}
     className="bg-white rounded-xl shadow-lg overflow-hidden p-6 space-y-8"
   >
-    <div className="border border-gray-200 rounded-lg p-6 hover:border-blue-500 transition-colors">
+    <div className="border border-gray-200 rounded-lg p-6 hover:border-[#d72828] transition-colors">
       
       <div className="mb-4">
-        <h2 className="text-md font-semibold text-blue-600 mb-6 border-b pb-2">
+        <h2 className="text-md font-semibold text-[#d72828] mb-6 border-b pb-2">
           Warranty Bulk Upload
         </h2>
         <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-          <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-5 h-5 text-[#d72828]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
           </svg>
           Excel / CSV File
@@ -2630,7 +2630,7 @@ const handleBrandManufacturerUpload = async (e) => {
 
   }}
   onChange={(e) => setWarrantyFile(e.target.files?.[0] || null)}
-  className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+  className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-[#d72828] hover:file:bg-red-100"
   required
 />
 
@@ -2646,7 +2646,7 @@ const handleBrandManufacturerUpload = async (e) => {
             link.click();
             document.body.removeChild(link);
           }}
-          className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 transition-colors"
+          className="inline-flex items-center text-sm text-[#d72828] hover:text-[#d72828] transition-colors"
         >
           <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -2660,7 +2660,7 @@ const handleBrandManufacturerUpload = async (e) => {
       <button
         type="submit"
         disabled={isWarrantyUploadLoading}
-        className="px-6 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center"
+        className="px-6 py-2.5 bg-[#d72828] text-white font-medium rounded-lg hover:bg-[#d72828] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center"
       >
         {isWarrantyUploadLoading ? (
           <>
@@ -2685,13 +2685,13 @@ const handleBrandManufacturerUpload = async (e) => {
     onSubmit={handleWarrantyMapUpload}
     className="bg-white rounded-xl shadow-lg overflow-hidden p-6 space-y-8"
   >
-    <div className="border border-gray-200 rounded-lg p-6 hover:border-blue-500 transition-colors">
+    <div className="border border-gray-200 rounded-lg p-6 hover:border-[#d72828] transition-colors">
       <div className="mb-4">
-        <h2 className="text-md font-semibold text-blue-600 mb-6 border-b pb-2">
+        <h2 className="text-md font-semibold text-[#d72828] mb-6 border-b pb-2">
           Product Warranty Mapping Upload
         </h2>
         <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-          <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-5 h-5 text-[#d72828]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
           </svg>
           Excel / CSV File
@@ -2712,7 +2712,7 @@ const handleBrandManufacturerUpload = async (e) => {
             setWarrantyMapFile(null);
           }}
           onChange={(e) => setWarrantyMapFile(e.target.files?.[0] || null)}
-          className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+          className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-[#d72828] hover:file:bg-red-100"
           required
         />
 
@@ -2730,7 +2730,7 @@ const handleBrandManufacturerUpload = async (e) => {
             XLSX.utils.book_append_sheet(wb, ws, "Warranty Mapping");
             XLSX.writeFile(wb, "warranty_mapping_template.xlsx");
           }}
-          className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 transition-colors"
+          className="inline-flex items-center text-sm text-[#d72828] hover:text-[#d72828] transition-colors"
         >
           <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -2744,7 +2744,7 @@ const handleBrandManufacturerUpload = async (e) => {
       <button
         type="submit"
         disabled={isWarrantyMapLoading}
-        className="px-6 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center"
+        className="px-6 py-2.5 bg-[#d72828] text-white font-medium rounded-lg hover:bg-[#d72828] focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center"
       >
         {isWarrantyMapLoading ? (
           <>
@@ -2768,13 +2768,13 @@ const handleBrandManufacturerUpload = async (e) => {
     onSubmit={handlePincodeUpload}
     className="bg-white rounded-xl shadow-lg overflow-hidden p-6 space-y-8"
   >
-    <div className="border border-gray-200 rounded-lg p-6 hover:border-blue-500 transition-colors">
+    <div className="border border-gray-200 rounded-lg p-6 hover:border-[#d72828] transition-colors">
       <div className="mb-4">
-        <h2 className="text-md font-semibold text-blue-600 mb-6 border-b pb-2">
+        <h2 className="text-md font-semibold text-[#d72828] mb-6 border-b pb-2">
           Pincode Serviceability Bulk Upload
         </h2>
         <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-          <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-5 h-5 text-[#d72828]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
           </svg>
           Excel / CSV File
@@ -2791,14 +2791,14 @@ const handleBrandManufacturerUpload = async (e) => {
           ref={pincodeFileRef}
           onClick={(e) => { e.target.value = ""; setPincodeFile(null); }}
           onChange={(e) => setPincodeFile(e.target.files?.[0] || null)}
-          className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+          className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-[#d72828] hover:file:bg-red-100"
           required
         />
       </div>
       <button
   type="button"
   onClick={handlePincodeSampleDownload}
-  className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 transition-colors"
+  className="inline-flex items-center text-sm text-[#d72828] hover:text-[#d72828] transition-colors"
 >
   <svg className="w-4 h-4 mt-3 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -2811,7 +2811,7 @@ const handleBrandManufacturerUpload = async (e) => {
       <button
         type="submit"
         disabled={isPincodeUploadLoading}
-        className="px-6 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center"
+        className="px-6 py-2.5 bg-[#d72828] text-white font-medium rounded-lg hover:bg-[#d72828] focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center"
       >
         {isPincodeUploadLoading ? (
           <>
@@ -2835,13 +2835,13 @@ const handleBrandManufacturerUpload = async (e) => {
     onSubmit={handleBrandManufacturerUpload}
     className="bg-white rounded-xl shadow-lg overflow-hidden p-6 space-y-8"
   >
-    <div className="border border-gray-200 rounded-lg p-6 hover:border-blue-500 transition-colors">
+    <div className="border border-gray-200 rounded-lg p-6 hover:border-[#d72828] transition-colors">
       <div className="mb-4">
-        <h2 className="text-md font-semibold text-blue-600 mb-6 border-b pb-2">
+        <h2 className="text-md font-semibold text-[#d72828] mb-6 border-b pb-2">
           Brand Manufacturer Details Bulk Upload
         </h2>
         <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-          <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-5 h-5 text-[#d72828]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
           </svg>
           Excel / CSV File
@@ -2860,13 +2860,13 @@ const handleBrandManufacturerUpload = async (e) => {
           ref={brandManufacturerFileRef}
           onClick={(e) => { e.target.value = ""; setBrandManufacturerFile(null); }}
           onChange={(e) => setBrandManufacturerFile(e.target.files?.[0] || null)}
-          className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+          className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-[#d72828] hover:file:bg-red-100"
           required
         />
         <button
           type="button"
           onClick={handleBrandManufacturerSampleDownload}
-          className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 transition-colors"
+          className="inline-flex items-center text-sm text-[#d72828] hover:text-[#d72828] transition-colors"
         >
           <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -2880,7 +2880,7 @@ const handleBrandManufacturerUpload = async (e) => {
       <button
         type="submit"
         disabled={isBrandManufacturerUploadLoading}
-        className="px-6 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center"
+        className="px-6 py-2.5 bg-[#d72828] text-white font-medium rounded-lg hover:bg-[#d72828] focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center"
       >
         {isBrandManufacturerUploadLoading ? (
           <>
@@ -2901,11 +2901,11 @@ const handleBrandManufacturerUpload = async (e) => {
             {/* {selectedSection === "section-delete-product-itemcode-upload" && (
               <form id="section-delete-product-itemcode-upload" ref={filterValueFormRef} onSubmit={(e) => handleSubmit(e, "map_product_brands")} className="bg-white rounded-xl shadow-lg overflow-hidden p-6 space-y-8">
                 <div className="bg-white rounded-xl shadow-lg overflow-hidden p-6 space-y-6">
-                  <div className="border border-gray-200 rounded-lg p-6 hover:border-blue-500 transition-colors">
+                  <div className="border border-gray-200 rounded-lg p-6 hover:border-[#d72828] transition-colors">
                     <div className="mb-4">
-                      <h2 className="text-md font-semibold text-blue-600 mb-6 border-b pb-2">Stock Status Bulk Upload</h2>
+                      <h2 className="text-md font-semibold text-[#d72828] mb-6 border-b pb-2">Stock Status Bulk Upload</h2>
                       <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                        <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-5 h-5 text-[#d72828]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
                         Update Item Code Delete in Bulk
@@ -2915,7 +2915,7 @@ const handleBrandManufacturerUpload = async (e) => {
                     <div className="mt-6">
                       <Link
                         href="/admin/product/item_code_delete_bulk_upload"
-                        className="inline-flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-6 py-2.5 rounded-lg text-sm font-medium shadow-sm transition duration-150"
+                        className="inline-flex items-center gap-2 bg-[#d72828] hover:bg-[#d72828] text-white px-6 py-2.5 rounded-lg text-sm font-medium shadow-sm transition duration-150"
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
@@ -2931,13 +2931,13 @@ const handleBrandManufacturerUpload = async (e) => {
             {/* Section 11: Extended warrenty Upload */}
             {/* {selectedSection === "extended-warrenty-upload" && (
               <form id="extended-warrenty-upload" ref={filterValueFormRef} onSubmit={(e) => handleSubmit(e, "map_product_brands")} className="bg-white rounded-xl shadow-lg overflow-hidden p-6 space-y-8">
-                <div className="border border-gray-200 rounded-lg p-6 hover:border-blue-500 transition-colors">
+                <div className="border border-gray-200 rounded-lg p-6 hover:border-[#d72828] transition-colors">
                   <div className="mb-4">
-                    <h2 className="text-md font-semibold text-blue-600 mb-6 border-b pb-2">
+                    <h2 className="text-md font-semibold text-[#d72828] mb-6 border-b pb-2">
                       Update Extended Warrenty for Product in Bulk
                     </h2>
                     <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                      <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-5 h-5 text-[#d72828]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                       </svg>
                       Excel/CSV File
@@ -2949,13 +2949,13 @@ const handleBrandManufacturerUpload = async (e) => {
                       type="file"
                       accept=".xlsx,.csv"
                       onChange={(e) => setExcelFile(e.target.files?.[0] || null)}
-                      className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-red-100"
+                      className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-[#d72828] hover:file:bg-red-100"
                       required
                     />
                     <button
                       type="button"
                       onClick={handleSampleDownloadExtendedWarrenty}
-                      className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 transition-colors"
+                      className="inline-flex items-center text-sm text-[#d72828] hover:text-[#d72828] transition-colors"
                     >
                       <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -2966,7 +2966,7 @@ const handleBrandManufacturerUpload = async (e) => {
                       <button
                         onClick={handleExtendedWarrentySubmit}
                         disabled={isFilterUploadLoading}
-                        className="px-6 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:outline-none disabled:opacity-50 transition-colors flex items-center"
+                        className="px-6 py-2.5 bg-[#d72828] text-white font-medium rounded-lg hover:bg-[#d72828] focus:outline-none disabled:opacity-50 transition-colors flex items-center"
                       >
                         {isFilterUploadLoading ? (
                           <>
@@ -2989,11 +2989,11 @@ const handleBrandManufacturerUpload = async (e) => {
 
             {selectedSection === "Key-Features" && (
               <form id="Key-Features" ref={sap_featuresFormRef} onSubmit={(e) => handleSubmit(e, "Key-Features")} className="bg-white rounded-xl shadow-lg overflow-hidden p-6 space-y-8">
-                <div className="border border-gray-200 rounded-lg p-6 hover:border-blue-500 transition-colors">
+                <div className="border border-gray-200 rounded-lg p-6 hover:border-[#d72828] transition-colors">
                   <div className="mb-4">
-                    <h2 className="text-md font-semibold text-blue-600 mb-6 border-b pb-2">Product's Key Features Bulk Upload  </h2>
+                    <h2 className="text-md font-semibold text-[#d72828] mb-6 border-b pb-2">Product's Key Features Bulk Upload  </h2>
                     <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                      <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-5 h-5 text-[#d72828]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                       </svg>
                       Excel/CSV File
@@ -3001,9 +3001,9 @@ const handleBrandManufacturerUpload = async (e) => {
                     <p className="text-sm text-gray-500 mt-1">Upload your Product Key Features values file</p>
                   </div>
                   <div className="space-y-4">
-                    <input id="Key-Features" type="file" accept=".xlsx,.csv" onChange={(e) => setSap_features(e.target.files?.[0] || null)} className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-red-100" required />
+                    <input id="Key-Features" type="file" accept=".xlsx,.csv" onChange={(e) => setSap_features(e.target.files?.[0] || null)} className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-[#d72828] hover:file:bg-red-100" required />
                   </div>
-                  <button type="button" onClick={handleDownloadSap_featuresFile} className="inline-flex items-center pt-5 text-sm text-blue-600 hover:text-blue-800 transition-colors">
+                  <button type="button" onClick={handleDownloadSap_featuresFile} className="inline-flex items-center pt-5 text-sm text-[#d72828] hover:text-[#d72828] transition-colors">
                     <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                     </svg>
@@ -3014,7 +3014,7 @@ const handleBrandManufacturerUpload = async (e) => {
                   <button
                     type="submit"
                     disabled={isLoading}
-                    className="bg-[#3B82F6] hover:bg-[#3B82F6] text-white px-3 py-2 rounded-md flex items-center gap-2"
+                    className="bg-[#d72828] hover:bg-[#d72828] text-white px-3 py-2 rounded-md flex items-center gap-2"
                   >
                     {isLoading && activeUploadType == "Key-Features" ? (
                       <span className="flex items-center">
@@ -3034,11 +3034,11 @@ const handleBrandManufacturerUpload = async (e) => {
 
             {selectedSection === "product_name" && (
               <form id="product_name" ref={product_nameRef} onSubmit={(e) => { console.log('teston'), handleSubmit(e, "product_name") }} className="bg-white rounded-xl shadow-lg overflow-hidden p-6 space-y-8">
-                <div className="border border-gray-200 rounded-lg p-6 hover:border-blue-500 transition-colors">
+                <div className="border border-gray-200 rounded-lg p-6 hover:border-[#d72828] transition-colors">
                   <div className="mb-4">
-                    <h2 className="text-md font-semibold text-blue-600 mb-6 border-b pb-2">Product's Name Bulk Upload  </h2>
+                    <h2 className="text-md font-semibold text-[#d72828] mb-6 border-b pb-2">Product's Name Bulk Upload  </h2>
                     <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                      <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-5 h-5 text-[#d72828]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                       </svg>
                       Excel/CSV File
@@ -3046,9 +3046,9 @@ const handleBrandManufacturerUpload = async (e) => {
                     <p className="text-sm text-gray-500 mt-1">Upload your Product Name values file</p>
                   </div>
                   <div className="space-y-4">
-                    <input id="product_name" type="file" accept=".xlsx,.csv" onChange={(e) => setProduct_name(e.target.files?.[0] || null)} className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-red-100" required />
+                    <input id="product_name" type="file" accept=".xlsx,.csv" onChange={(e) => setProduct_name(e.target.files?.[0] || null)} className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-[#d72828] hover:file:bg-red-100" required />
                   </div>
-                  <button type="button" onClick={handleDownloadProduct_name_File} className="inline-flex items-center pt-5 text-sm text-blue-600 hover:text-blue-800 transition-colors">
+                  <button type="button" onClick={handleDownloadProduct_name_File} className="inline-flex items-center pt-5 text-sm text-[#d72828] hover:text-[#d72828] transition-colors">
                     <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                     </svg>
@@ -3059,7 +3059,7 @@ const handleBrandManufacturerUpload = async (e) => {
                   <button
                     type="submit"
                     disabled={isLoading}
-                    className="bg-[#3B82F6] hover:bg-[#3B82F6] text-white px-3 py-2 rounded-md flex items-center gap-2"
+                    className="bg-[#d72828] hover:bg-[#d72828] text-white px-3 py-2 rounded-md flex items-center gap-2"
                   >
                     {isLoading && activeUploadType == "product_name" ? (
                       <span className="flex items-center">
@@ -3079,11 +3079,11 @@ const handleBrandManufacturerUpload = async (e) => {
 
             {selectedSection === "product_description" && (
               <form id="product_description" ref={product_descriptionRef} onSubmit={(e) => handleSubmit(e, "product_description")} className="bg-white rounded-xl shadow-lg overflow-hidden p-6 space-y-8">
-                <div className="border border-gray-200 rounded-lg p-6 hover:border-blue-500 transition-colors">
+                <div className="border border-gray-200 rounded-lg p-6 hover:border-[#d72828] transition-colors">
                   <div className="mb-4">
-                    <h2 className="text-md font-semibold text-blue-600 mb-6 border-b pb-2">Product Description Bulk Upload</h2>
+                    <h2 className="text-md font-semibold text-[#d72828] mb-6 border-b pb-2">Product Description Bulk Upload</h2>
                     <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                      <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-5 h-5 text-[#d72828]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                       </svg>
                       Excel/CSV File
@@ -3091,9 +3091,9 @@ const handleBrandManufacturerUpload = async (e) => {
                     <p className="text-sm text-gray-500 mt-1">Upload your Product Description values file (columns: item_code, description)</p>
                   </div>
                   <div className="space-y-4">
-                    <input id="product_description" type="file" accept=".xlsx,.csv" onChange={(e) => setProduct_description(e.target.files?.[0] || null)} className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-red-100" required />
+                    <input id="product_description" type="file" accept=".xlsx,.csv" onChange={(e) => setProduct_description(e.target.files?.[0] || null)} className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-[#d72828] hover:file:bg-red-100" required />
                   </div>
-                  <button type="button" onClick={handleDownloadProduct_description_File} className="inline-flex items-center pt-5 text-sm text-blue-600 hover:text-blue-800 transition-colors">
+                  <button type="button" onClick={handleDownloadProduct_description_File} className="inline-flex items-center pt-5 text-sm text-[#d72828] hover:text-[#d72828] transition-colors">
                     <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                     </svg>
@@ -3104,7 +3104,7 @@ const handleBrandManufacturerUpload = async (e) => {
                   <button
                     type="submit"
                     disabled={isLoading}
-                    className="bg-[#3B82F6] hover:bg-[#3B82F6] text-white px-3 py-2 rounded-md flex items-center gap-2"
+                    className="bg-[#d72828] hover:bg-[#d72828] text-white px-3 py-2 rounded-md flex items-center gap-2"
                   >
                     {isLoading && activeUploadType == "product_description" ? (
                       <span className="flex items-center">
@@ -3124,11 +3124,11 @@ const handleBrandManufacturerUpload = async (e) => {
 
             {selectedSection === "dynamic_filter_upload" && (
               <form id="dynamic_filter_upload" ref={dynamic_filter_uploadRef} onSubmit={(e) => handleSubmit(e, "dynamic_filter_upload")} className="bg-white rounded-xl shadow-lg overflow-hidden p-6 space-y-8">
-                <div className="border border-gray-200 rounded-lg p-6 hover:border-blue-500 transition-colors">
+                <div className="border border-gray-200 rounded-lg p-6 hover:border-[#d72828] transition-colors">
                   <div className="mb-4">
-                    <h2 className="text-md font-semibold text-blue-600 mb-6 border-b pb-2">Dynamic Filter Bulk Upload</h2>
+                    <h2 className="text-md font-semibold text-[#d72828] mb-6 border-b pb-2">Dynamic Filter Bulk Upload</h2>
                     <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                      <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-5 h-5 text-[#d72828]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                       </svg>
                       Excel/CSV File
@@ -3136,9 +3136,9 @@ const handleBrandManufacturerUpload = async (e) => {
                     <p className="text-sm text-gray-500 mt-1">Upload your Dynamic Filter values file</p>
                   </div>
                   <div className="space-y-4">
-                    <input id="dynamic_filter_upload" type="file" accept=".xlsx,.csv" onChange={(e) => setDynamic_filter_upload(e.target.files?.[0] || null)} className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-red-100" required />
+                    <input id="dynamic_filter_upload" type="file" accept=".xlsx,.csv" onChange={(e) => setDynamic_filter_upload(e.target.files?.[0] || null)} className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-[#d72828] hover:file:bg-red-100" required />
                   </div>
-                  <button type="button" onClick={handleDownloadDynamicFilterFile} className="inline-flex items-center pt-5 text-sm text-blue-600 hover:text-blue-800 transition-colors">
+                  <button type="button" onClick={handleDownloadDynamicFilterFile} className="inline-flex items-center pt-5 text-sm text-[#d72828] hover:text-[#d72828] transition-colors">
                     <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                     </svg>
@@ -3149,7 +3149,7 @@ const handleBrandManufacturerUpload = async (e) => {
                   <button
                     type="submit"
                     disabled={isLoading}
-                    className="bg-[#3B82F6] hover:bg-[#3B82F6] text-white px-3 py-2 rounded-md flex items-center gap-2"
+                    className="bg-[#d72828] hover:bg-[#d72828] text-white px-3 py-2 rounded-md flex items-center gap-2"
                   >
                     {isLoading && activeUploadType == "dynamic_filter_upload" ? (
                       <span className="flex items-center">

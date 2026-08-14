@@ -27,7 +27,7 @@ const STEPS = [
     title: "Schedule a Call",
     desc: "Choose a convenient date & time.",
     icon: FaCalendarAlt,
-    color: "bg-blue-100 text-blue-700",
+    color: "bg-red-100 text-[#d72828]",
   },
   {
     n: 2,
@@ -66,7 +66,7 @@ export default function LiveVideoDemoPage() {
       {/* Hero */}
       <section className="w-full max-w-[1520px] mx-auto px-4 sm:px-6 lg:px-10  sm:pt-8 pb-20 sm:pb-14">
         <nav className="text-[12px] sm:text-[13px] text-gray-500 mb-5 sm:mb-8 flex flex-wrap items-center gap-1">
-          <Link href="/" className="hover:text-blue-700">
+          <Link href="/" className="hover:text-[#d72828]">
             Home
           </Link>
           <span className="text-gray-400">›</span>

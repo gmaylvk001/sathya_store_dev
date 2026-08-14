@@ -36,7 +36,7 @@ export default function BrandList() {
     return (
       <div className="container mx-auto mt-8 px-4">
         <div className="flex flex-col items-center justify-center py-20">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#d72828] mb-4"></div>
           <p className="text-gray-600 text-lg">Loading brands...</p>
         </div>
       </div>
@@ -64,7 +64,7 @@ export default function BrandList() {
     <div className="container mx-auto mt-8 px-4">
       <div className="flex items-center justify-between mb-8">
         <h2 className="text-3xl font-bold text-gray-900">All Brands</h2>
-        <span className="bg-blue-100 text-blue-800 text-sm font-medium px-3 py-1 rounded-full">
+        <span className="bg-red-100 text-[#d72828] text-sm font-medium px-3 py-1 rounded-full">
           {brands.length} {brands.length === 1 ? 'Brand' : 'Brands'}
         </span>
       </div>

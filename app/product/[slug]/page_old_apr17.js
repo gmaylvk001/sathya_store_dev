@@ -86,7 +86,7 @@ export default function ProductPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#d72828]"></div>
       </div>
     );
   }
@@ -96,7 +96,7 @@ export default function ProductPage() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-2xl font-bold text-red-500">{error}</h2>
-          <Link href="/" className="mt-4 inline-flex items-center text-blue-600">
+          <Link href="/" className="mt-4 inline-flex items-center text-[#d72828]">
             ← Back to Home
           </Link>
         </div>
@@ -109,7 +109,7 @@ export default function ProductPage() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-2xl font-bold">Product not found</h2>
-          <Link href="/" className="mt-4 inline-flex items-center text-blue-600">
+          <Link href="/" className="mt-4 inline-flex items-center text-[#d72828]">
             ← Back to Home
           </Link>
         </div>
@@ -120,12 +120,12 @@ export default function ProductPage() {
   return (
     <div className="bg-white min-h-screen overflow-x-hidden">
       {/* 🟠 Wishlist Header Bar */}
-      <div className="bg-blue-50 py-6 px-8 flex justify-between items-center">
+      <div className="bg-red-50 py-6 px-8 flex justify-between items-center">
         <h2 className="text-xl font-bold text-gray-800">Shop Details</h2>
         <div className="flex items-center space-x-2">
-          <Link href="/" className="text-gray-600 hover:text-blue-600">🏠 Home</Link>
+          <Link href="/" className="text-gray-600 hover:text-[#d72828]">🏠 Home</Link>
           <span className="text-gray-500">›</span>
-          <span className="text-blue-600 font-semibold">Shop Details</span>
+          <span className="text-[#d72828] font-semibold">Shop Details</span>
         </div>
       </div>
 
@@ -214,12 +214,12 @@ export default function ProductPage() {
                   <span className="text-gray-500 line-through text-xl">Rs.{product.price}</span>
                 )}
               </div>
-              {/* <button className="ml-6 bg-customBlue text-white px-5 py-2 rounded-lg shadow-md hover:bg-blue-700 transition duration-300 text-lg">
+              {/* <button className="ml-6 bg-customBlue text-white px-5 py-2 rounded-lg shadow-md hover:bg-[#d72828] transition duration-300 text-lg">
                 Order on WhatsApp
               </button> */}
             <button 
               onClick={() => window.open(`https://wa.me/?text=${encodeURIComponent(`Check this out: ${product.slug}`)}`, '_blank')} 
-              className="ml-6 bg-customBlue text-white px-5 py-2 rounded-lg shadow-md hover:bg-blue-700 transition duration-300 text-sm flex items-center space-x-2">
+              className="ml-6 bg-customBlue text-white px-5 py-2 rounded-lg shadow-md hover:bg-[#d72828] transition duration-300 text-sm flex items-center space-x-2">
                 <svg className="w-5 h-5" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" fill="currentColor">
                 <path d="M16.003 2.667C8.64 2.667 2.667 8.64 2.667 16c0 2.773.736 5.368 2.009 7.629L2 30l6.565-2.643A13.254 13.254 0 0016.003 29.333C23.36 29.333 29.333 23.36 29.333 16c0-7.36-5.973-13.333-13.33-13.333zm7.608 18.565c-.32.894-1.87 1.749-2.574 1.865-.657.104-1.479.148-2.385-.148-.55-.175-1.256-.412-2.162-.812-3.8-1.648-6.294-5.77-6.49-6.04-.192-.269-1.55-2.066-1.55-3.943 0-1.878.982-2.801 1.33-3.168.346-.364.75-.456 1.001-.456.25 0 .5.002.719.013.231.01.539-.088.845.643.32.768 1.085 2.669 1.18 2.863.096.192.16.423.03.683-.134.26-.2.423-.39.65-.192.231-.413.512-.589.689-.192.192-.391.401-.173.788.222.392.986 1.625 2.116 2.636 1.454 1.298 2.682 1.7 3.075 1.894.393.192.618.173.845-.096.23-.27.975-1.136 1.237-1.527.262-.392.524-.32.894-.192.375.13 2.35 1.107 2.75 1.308.393.205.656.308.75.48.096.173.096 1.003-.224 1.897z" />
               </svg><span>Order on WhatsApp</span>
@@ -311,18 +311,18 @@ export default function ProductPage() {
                   </button>
                 </div>
               </div>
-              <button className="ml-4 bg-blue-600 text-white px-9 h-10 rounded-md shadow-md hover:bg-blue-700 transition duration-300 text-md flex items-center justify-center gap-x-3">
+              <button className="ml-4 bg-[#d72828] text-white px-9 h-10 rounded-md shadow-md hover:bg-[#d72828] transition duration-300 text-md flex items-center justify-center gap-x-3">
                 <FaShoppingCart /> Add To Cart
               </button>
               <div className="flex-grow"></div>
               <div className="flex items-center space-x-3">
-                <button className="w-10 h-10 flex items-center justify-center rounded-full transition duration-300 ease-in-out bg-gray-200 hover:bg-blue-600 text-blue-600 hover:text-white">
+                <button className="w-10 h-10 flex items-center justify-center rounded-full transition duration-300 ease-in-out bg-gray-200 hover:bg-[#d72828] text-[#d72828] hover:text-white">
                   <FaHeart />
                 </button>
-                <button className="w-10 h-10 flex items-center justify-center rounded-full transition duration-300 ease-in-out bg-gray-200 hover:bg-blue-600 text-blue-600 hover:text-white">
+                <button className="w-10 h-10 flex items-center justify-center rounded-full transition duration-300 ease-in-out bg-gray-200 hover:bg-[#d72828] text-[#d72828] hover:text-white">
                   <FaShareAlt />
                 </button>
-                <button className="w-10 h-10 flex items-center justify-center rounded-full transition duration-300 ease-in-out bg-gray-200 hover:bg-blue-600 text-blue-600 hover:text-white">
+                <button className="w-10 h-10 flex items-center justify-center rounded-full transition duration-300 ease-in-out bg-gray-200 hover:bg-[#d72828] text-[#d72828] hover:text-white">
                   <FaBell />
                 </button>
               </div>
@@ -332,14 +332,14 @@ export default function ProductPage() {
 
             {/* Coupons */}
             <div className="mt-4">
-              <div className="flex items-center justify-between border border-blue-400 rounded-md p-2 mb-3">
+              <div className="flex items-center justify-between border border-[#d72828] rounded-md p-2 mb-3">
                 <div className="flex items-center gap-1">
                   {/* <span className="text-gray-600 text-sm">➕</span> */}
                   <span className="inline-flex items-center justify-center w-4 h-4 text-white bg-gray-600 rounded-full text-lg">+</span>
 
                   <span className="text-gray-700 text-xs">Mfr. coupon. $3.00 off 5</span>
                 </div>
-                <button className="text-blue-500 text-xs font-semibold hover:underline">
+                <button className="text-[#d72828] text-xs font-semibold hover:underline">
                   View Details
                 </button>
               </div>
@@ -356,12 +356,12 @@ export default function ProductPage() {
               <div className="flex items-center justify-between bg-customBlue text-white px-3 py-2 rounded-full">
                 <div className="flex items-center gap-2">
                   <div className="bg-white p-1.5 rounded-full flex items-center justify-center w-8 h-8">
-                    <IoStorefront className="text-blue-600 text-lg" />
+                    <IoStorefront className="text-[#d72828] text-lg" />
                   </div>
                   <span className="text-sm font-medium whitespace-nowrap">By {product.brand || "Marketpro"}</span>
                 </div>
                 <div className="flex-shrink-0">
-                  <button className="bg-white text-blue-600 text-xs font-medium px-3 py-1 rounded-full border border-white whitespace-nowrap">
+                  <button className="bg-white text-[#d72828] text-xs font-medium px-3 py-1 rounded-full border border-white whitespace-nowrap">
                     View Store
                   </button>
                 </div>
@@ -374,7 +374,7 @@ export default function ProductPage() {
                 {/* Left - Icon + Text */}
                 <div className="flex items-center gap-2">
                   <div className="bg-white p-1.5 rounded-full flex items-center justify-center w-8 h-8">
-                    <IoStorefront className="text-blue-600 text-lg" />
+                    <IoStorefront className="text-[#d72828] text-lg" />
                   </div>
                   <div className="text-sm font-medium leading-tight">
                     <div>By</div>
@@ -385,7 +385,7 @@ export default function ProductPage() {
                 </div>
 
                 {/* Right - Button */}
-                <button className="bg-white text-blue-600 text-xs font-medium px-3 py-1 rounded-full whitespace-nowrap">
+                <button className="bg-white text-[#d72828] text-xs font-medium px-3 py-1 rounded-full whitespace-nowrap">
                   View Store
                 </button>
 
@@ -406,7 +406,7 @@ export default function ProductPage() {
                   {index !== 0 && <div className="border-b border-gray-400 w-full mt-1"></div>}
                   <div className="flex items-center gap-4 px-6 py-4 w-full">
                     <div className="bg-white p-3 rounded-full border border-gray-300 shadow-sm flex items-center justify-center">
-                      <Icon className="text-lg text-blue-600" />
+                      <Icon className="text-lg text-[#d72828]" />
                     </div>
                     <div className="flex-1 w-full min-w-0">
                       <h4 className="text-sm font-bold text-gray-900 break-words">{title}</h4>  

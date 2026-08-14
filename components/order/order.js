@@ -151,7 +151,7 @@ export default function Order() {
 
   return (
     <div className="bg-gray-50 min-h-screen">
-      <ToastContainer position="top-right" autoClose={5000} />
+      
       
       {/* Mobile Header */}
       <div className="lg:hidden bg-white py-4 px-4 shadow-sm">
@@ -159,14 +159,14 @@ export default function Order() {
       </div>
       
       {/* Desktop Header */}
-      <div className="hidden lg:block bg-blue-50 py-6 px-8 flex justify-between items-center border-b border-gray-200 shadow-sm">
+      <div className="hidden lg:block bg-red-50 py-6 px-8 flex justify-between items-center border-b border-gray-200 shadow-sm">
         <h2 className="text-2xl font-bold text-gray-800">My Orders</h2>
         <div className="flex items-center space-x-2 text-sm mt-1">
           <span className="text-gray-600">🏠 Home</span>
           <FiChevronRight className="text-gray-400" />
           <span className="text-gray-500">Shop</span>
           <FiChevronRight className="text-gray-400" />
-          <span className="text-customBlue font-medium">Orders</span>
+          <span className="text-red-600 font-medium">Orders</span>
         </div>
       </div>
 
@@ -174,15 +174,15 @@ export default function Order() {
         <div className="flex flex-col lg:flex-row gap-4 lg:gap-8">
           {/* Sidebar Navigation - Desktop */}
           <div className="hidden lg:block w-full lg:w-72 flex-shrink-0">
-            <div className="bg-white p-6 rounded-xl border border-gray-200 hover:border-customBlue transition-all duration-300 shadow-sm">
-              <h3 className="text-lg font-semibold text-customBlue mb-6 pb-2 border-b border-gray-100">My Account</h3>
+            <div className="bg-white p-6 rounded-xl border border-gray-200 hover:border-red-600 transition-all duration-300 shadow-sm">
+              <h3 className="text-lg font-semibold text-red-600 mb-6 pb-2 border-b border-gray-100">My Account</h3>
               <nav className="space-y-2">
-                <Link href="/orders" className="w-full flex items-center gap-2 px-5 py-3 text-base font-medium text-gray-600 rounded-lg hover:text-customBlue hover:bg-blue-100 hover:pl-6 transition-all">
-                  <HiShoppingBag className="text-customBlue text-xl" />
+                <Link href="/orders" className="w-full flex items-center gap-2 px-5 py-3 text-base font-medium text-gray-600 rounded-lg hover:text-red-600 hover:bg-red-50 hover:pl-6 transition-all">
+                  <HiShoppingBag className="text-red-600 text-xl" />
                   <span>Orders</span>
                 </Link>
-                <Link href="/wishlist" className="w-full flex items-center gap-2 px-5 py-3 text-base font-medium text-gray-600 rounded-lg hover:text-customBlue hover:bg-blue-100 hover:pl-6 transition-all">
-                  <FaHeart className="text-customBlue text-xl" />
+                <Link href="/wishlist" className="w-full flex items-center gap-2 px-5 py-3 text-base font-medium text-gray-600 rounded-lg hover:text-red-600 hover:bg-red-50 hover:pl-6 transition-all">
+                  <FaHeart className="text-red-600 text-xl" />
                   <span>Wishlist</span>
                 </Link>
               </nav>
@@ -191,7 +191,7 @@ export default function Order() {
 
           {/* Main Content */}
           <div className="flex-1">
-            <div className="bg-white p-4 sm:p-6 rounded-xl border border-gray-200 hover:border-customBlue transition-all duration-300 shadow-sm">
+            <div className="bg-white p-4 sm:p-6 rounded-xl border border-gray-200 hover:border-red-600 transition-all duration-300 shadow-sm">
               {/* Order Filters */}
               <div className="flex flex-wrap gap-2 sm:gap-3 mb-4 sm:mb-6 pb-2 sm:pb-4 border-b border-gray-100 overflow-x-auto pb-2">
                 {['all', 'pending', 'shipped', 'delivered', 'cancelled'].map((filter) => (
@@ -205,7 +205,7 @@ export default function Order() {
                           : filter === 'pending'
                           ? 'bg-amber-100 text-amber-800'
                           : filter === 'shipped'
-                          ? 'bg-blue-100 text-blue-800'
+                          ? 'bg-red-100 text-[#d72828]'
                           : filter === 'delivered'
                           ? 'bg-green-100 text-green-800'
                           : 'bg-red-100 text-red-800'
@@ -236,7 +236,7 @@ export default function Order() {
                       ? "You haven't placed any orders yet" 
                       : `No ${activeFilter} orders found`}
                   </p>
-                  <Link href="/products" className="mt-4 sm:mt-6 inline-block px-4 sm:px-6 py-2 bg-customBlue text-white rounded-lg hover:bg-blue-700 transition-colors text-sm sm:text-base">
+                  <Link href="/products" className="mt-4 sm:mt-6 inline-block px-4 sm:px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm sm:text-base">
                     Start Shopping
                   </Link>
                 </div>
@@ -273,7 +273,7 @@ export default function Order() {
 {order.order_item?.some(item => item.warrantyData?.name) && (
   <div className="mb-2">
     {order.order_item.filter(item => item.warrantyData?.name).map((item, idx) => (
-      <div key={idx} className="flex items-center gap-1 text-sm text-blue-700 bg-blue-50 px-2 py-1 rounded-md w-fit mb-1">
+      <div key={idx} className="flex items-center gap-1 text-sm text-[#d72828] bg-red-50 px-2 py-1 rounded-md w-fit mb-1">
         🛡️ <span>{item.warrantyData.year} Yr Warranty</span>
         <span className="text-gray-500">— {item.warrantyData.name}</span>
         <span className="font-bold text-red-500 ml-1">₹{item.warrantyData.price}</span>
@@ -290,7 +290,7 @@ export default function Order() {
                               order.order_status === 'delivered'
                                 ? 'bg-green-100 text-green-800'
                                 : order.order_status === 'shipped'
-                                ? 'bg-blue-100 text-blue-800'
+                                ? 'bg-red-100 text-[#d72828]'
                                 : order.order_status === 'cancelled'
                                 ? 'bg-red-100 text-red-800'
                                 : 'bg-amber-100 text-amber-800'
@@ -345,7 +345,7 @@ export default function Order() {
                           <div className="mt-4 sm:mt-6 flex flex-wrap gap-2 sm:gap-3">
                             <button 
                               onClick={handleBuyAgain}
-                              className="px-3 sm:px-4 py-1 sm:py-2 bg-blue-50 text-customBlue rounded-md hover:bg-blue-100 transition-colors flex items-center text-xs sm:text-sm"
+                              className="px-3 sm:px-4 py-1 sm:py-2 bg-red-50 text-red-600 rounded-md hover:bg-red-100 transition-colors flex items-center text-xs sm:text-sm"
                             >
                               <FiShoppingBag className="mr-1 sm:mr-2 text-xs sm:text-sm" />
                               Buy Again

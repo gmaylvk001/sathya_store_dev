@@ -910,7 +910,7 @@ const filteredOffers = offers.filter((offer) => {
     </button>
     <button
       onClick={() => handleMailClick(offer)}
-      className="w-7 h-7 bg-blue-100 text-blue-600 rounded-full inline-flex items-center justify-center"
+      className="w-7 h-7 bg-red-100 text-[#d72828] rounded-full inline-flex items-center justify-center"
       title="Send Mail"
     >
       <Icon icon="ic:outline-email" />
@@ -1775,7 +1775,7 @@ const filteredOffers = offers.filter((offer) => {
             name="subject"
             value={mailContent.subject}
             onChange={handleMailContentChange}
-            className="w-full rounded-md border border-gray-300 p-2 focus:ring-2 focus:ring-blue-400"
+            className="w-full rounded-md border border-gray-300 p-2 focus:ring-2 focus:ring-red-500"
             required
           />
         </div>
@@ -1789,7 +1789,7 @@ const filteredOffers = offers.filter((offer) => {
             value={mailContent.message}
             onChange={handleMailContentChange}
             rows="5"
-            className="w-full rounded-md border border-gray-300 p-2 focus:ring-2 focus:ring-blue-400"
+            className="w-full rounded-md border border-gray-300 p-2 focus:ring-2 focus:ring-red-500"
             required
           ></textarea>
         </div>
@@ -1808,7 +1808,7 @@ const filteredOffers = offers.filter((offer) => {
           <button
             type="button"
             onClick={handleSendMail}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700"
+            className="px-4 py-2 bg-[#d72828] text-white rounded-md text-sm font-medium hover:bg-[#d72828]"
           >
             Send Mail
           </button>

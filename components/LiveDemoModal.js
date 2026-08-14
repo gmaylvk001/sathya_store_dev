@@ -179,7 +179,7 @@ export default function LiveDemoModal({ onClose }) {
 
   const inputClass = (hasErr) =>
     `w-full border rounded-xl pl-10 pr-3 py-2.5 text-sm outline-none transition ${
-      hasErr ? "border-red-400 bg-red-50" : "border-gray-300 bg-white focus:border-blue-500"
+      hasErr ? "border-red-400 bg-red-50" : "border-gray-300 bg-white focus:border-[#d72828]"
     }`;
 
   return (
@@ -203,7 +203,7 @@ export default function LiveDemoModal({ onClose }) {
           <div className="grid grid-cols-1 lg:grid-cols-[0.9fr_1.1fr]">
             {/* Left promo */}
             <div className="bg-[#eef4ff] p-5 sm:p-7 rounded-t-2xl lg:rounded-tr-none lg:rounded-l-2xl">
-              <div className="inline-flex items-center gap-2 bg-white text-[#2453d3] text-xs font-bold px-3 py-1.5 rounded-full mb-4">
+              <div className="inline-flex items-center gap-2 bg-white text-[#d72828] text-xs font-bold px-3 py-1.5 rounded-full mb-4">
                 <FaVideo /> Sathya Stores LIVE EXPERT
               </div>
               <h2 className="text-2xl sm:text-3xl font-extrabold text-[#0a1d56] mb-2">
@@ -220,7 +220,7 @@ export default function LiveDemoModal({ onClose }) {
                   { Icon: FaShieldAlt, text: "No obligation to buy" },
                 ].map(({ Icon, text }) => (
                   <li key={text} className="flex items-center gap-3 text-sm text-[#0a1d56] font-medium">
-                    <span className="w-8 h-8 rounded-full bg-white text-[#2453d3] flex items-center justify-center shrink-0">
+                    <span className="w-8 h-8 rounded-full bg-white text-[#d72828] flex items-center justify-center shrink-0">
                       <Icon size={14} />
                     </span>
                     {text}
@@ -315,8 +315,8 @@ export default function LiveDemoModal({ onClose }) {
                         onClick={() => setField("category", cat)}
                         className={`text-left text-xs font-semibold rounded-xl border px-3 py-2.5 transition ${
                           form.category === cat
-                            ? "border-blue-500 bg-blue-50 text-blue-700 border-dashed"
-                            : "border-gray-200 bg-white text-gray-700 hover:border-blue-300"
+                            ? "border-[#d72828] bg-red-50 text-[#d72828] border-dashed"
+                            : "border-gray-200 bg-white text-gray-700 hover:border-[#d72828]"
                         }`}
                       >
                         {cat}
@@ -334,7 +334,7 @@ export default function LiveDemoModal({ onClose }) {
                     value={form.requirement}
                     onChange={(e) => setField("requirement", e.target.value)}
                     placeholder='Tell us what you are looking for. Example: Looking for a 65" Sony TV'
-                    className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-blue-500 resize-none"
+                    className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-[#d72828] resize-none"
                   />
                 </div>
 
@@ -385,7 +385,7 @@ export default function LiveDemoModal({ onClose }) {
                 <button
                   type="button"
                   onClick={handleContinue}
-                  className="w-full h-12 rounded-xl bg-[#2453d3] hover:bg-[#1a3fa8] text-white font-bold text-sm flex items-center justify-center gap-2 transition"
+                  className="w-full h-12 rounded-xl bg-[#d72828] hover:bg-[#1a3fa8] text-white font-bold text-sm flex items-center justify-center gap-2 transition"
                 >
                   <FaVideo />
                   Continue
@@ -423,16 +423,16 @@ export default function LiveDemoModal({ onClose }) {
                   onClick={() => setField("connectMethod", id)}
                   className={`rounded-xl border px-3 py-3 text-left transition ${
                     form.connectMethod === id
-                      ? "border-blue-600 bg-blue-50"
-                      : "border-gray-200 bg-white hover:border-blue-300"
+                      ? "border-[#d72828] bg-red-50"
+                      : "border-gray-200 bg-white hover:border-[#d72828]"
                   }`}
                 >
                   <Icon
-                    className={`mb-1 ${id === "whatsapp" ? "text-green-500" : "text-blue-600"}`}
+                    className={`mb-1 ${id === "whatsapp" ? "text-green-500" : "text-[#d72828]"}`}
                     size={20}
                   />
                   <div className="text-sm font-bold text-gray-800">{label}</div>
-                  {sub ? <div className="text-[11px] text-blue-600 font-medium">{sub}</div> : null}
+                  {sub ? <div className="text-[11px] text-[#d72828] font-medium">{sub}</div> : null}
                 </button>
               ))}
             </div>
@@ -462,7 +462,7 @@ export default function LiveDemoModal({ onClose }) {
                 value={form.additionalInfo}
                 onChange={(e) => setField("additionalInfo", e.target.value)}
                 placeholder="e.g. Show inside view, compare with other models, explain features, etc."
-                className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-blue-500 resize-none"
+                className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-[#d72828] resize-none"
               />
             </div>
 
@@ -499,7 +499,7 @@ export default function LiveDemoModal({ onClose }) {
               </div>
             </div>
 
-            <div className="rounded-xl bg-blue-50 border border-blue-100 px-3 py-2.5 text-sm text-blue-800 mb-4 flex items-start gap-2">
+            <div className="rounded-xl bg-red-50 border border-red-100 px-3 py-2.5 text-sm text-[#d72828] mb-4 flex items-start gap-2">
               <span className="font-bold mt-0.5">i</span>
               You will receive a confirmation on WhatsApp shortly.
             </div>
@@ -516,7 +516,7 @@ export default function LiveDemoModal({ onClose }) {
                 type="button"
                 disabled={submitting}
                 onClick={handleSchedule}
-                className="flex-1 h-12 rounded-xl bg-[#2453d3] hover:bg-[#1a3fa8] disabled:bg-gray-400 text-white font-bold text-sm flex items-center justify-center gap-2 transition"
+                className="flex-1 h-12 rounded-xl bg-[#d72828] hover:bg-[#1a3fa8] disabled:bg-gray-400 text-white font-bold text-sm flex items-center justify-center gap-2 transition"
               >
                 {submitting ? "Sending..." : "Schedule My Demo →"}
               </button>
@@ -552,7 +552,7 @@ export default function LiveDemoModal({ onClose }) {
               <button
                 type="button"
                 onClick={onClose}
-                className="inline-flex items-center justify-center h-11 px-8 rounded-xl bg-[#2453d3] hover:bg-[#1a3fa8] text-white font-bold text-sm transition"
+                className="inline-flex items-center justify-center h-11 px-8 rounded-xl bg-[#d72828] hover:bg-[#1a3fa8] text-white font-bold text-sm transition"
               >
                 Close
               </button>

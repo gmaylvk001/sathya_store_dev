@@ -1,6 +1,7 @@
-
+import { NextResponse } from "next/server";
 import HomeSection from "@/models/homeSection";
 import dbConnect from "@/lib/db";
+
 // ✅ GET all ACTIVE home sections (ordered by position ASC)
 export async function GET() {
   try {
@@ -9,9 +10,10 @@ export async function GET() {
     const sections = await HomeSection.find({ status: "active" }) // only active
       .sort({ position: 1 }); // order by position ascending
 
-    return Response.json({ success: true, data: sections });
+    return NextResponse.json({ success: true, data: sections || [] });
   } catch (error) {
-    return Response.json({ success: false, message: error.message }, { status: 500 });
+    console.error("Error in GET /api/home-sections:", error);
+    return NextResponse.json({ success: false, message: error.message }, { status: 500 });
   }
 }
 

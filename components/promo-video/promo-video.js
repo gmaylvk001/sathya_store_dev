@@ -218,7 +218,7 @@ const [openSuccess, setOpenSuccess] = useState(false);
                         <button
                         type="submit"
                         disabled={loading}
-                        className="bg-blue-600 text-white px-6 py-2 rounded-md"
+                        className="bg-[#d72828] text-white px-6 py-2 rounded-md"
                         >
                         {loading ? "Submitting..." : "Submit"}
                         </button>
@@ -242,8 +242,8 @@ const [openSuccess, setOpenSuccess] = useState(false);
                     {/* OUR KEY TO SUCCESS */}
                     <div className={`border border-gray-300 ${openMission ? "bg-customBlue" : "bg-gray-100"}`}>
                         <div className="flex justify-between items-center px-6 py-4 cursor-pointer" onClick={() => setOpenMission(!openMission)}>
-                            <h2 className={`font-bold text-lg ${openMission ? "text-[#f58b31]" : "text-blue-700"}`}>OUR KEY TO SUCCESS</h2>
-                            <div className={`w-7 h-7 flex items-center justify-center text-white rounded-full text-lg font-bold ${openMission ? "bg-[#f58b31]" : "bg-blue-700"}`}>
+                            <h2 className={`font-bold text-lg ${openMission ? "text-[#f58b31]" : "text-[#d72828]"}`}>OUR KEY TO SUCCESS</h2>
+                            <div className={`w-7 h-7 flex items-center justify-center text-white rounded-full text-lg font-bold ${openMission ? "bg-[#f58b31]" : "bg-[#d72828]"}`}>
                                 {openMission ? "−" : "+"}
                             </div>
                         </div>
@@ -256,8 +256,8 @@ const [openSuccess, setOpenSuccess] = useState(false);
                     {/* OUR MISSION */}
                     <div className={`border border-gray-300 ${openSuccess ? "bg-customBlue" : "bg-gray-100"}`}>
                         <div className="flex justify-between items-center px-6 py-4 cursor-pointer" onClick={() => setOpenSuccess(!openSuccess)}>
-                            <h2 className={`font-bold text-lg ${openSuccess ? "text-[#f58b31]" : "text-blue-700"}`}>OUR MISSION</h2>
-                            <div className={`w-7 h-7 flex items-center justify-center text-white rounded-full text-lg font-bold ${openSuccess ? "bg-orange-600" : "bg-blue-700"}`}>
+                            <h2 className={`font-bold text-lg ${openSuccess ? "text-[#f58b31]" : "text-[#d72828]"}`}>OUR MISSION</h2>
+                            <div className={`w-7 h-7 flex items-center justify-center text-white rounded-full text-lg font-bold ${openSuccess ? "bg-orange-600" : "bg-[#d72828]"}`}>
                                 {openSuccess ? "−" : "+"}
                             </div>
                         </div>
@@ -281,7 +281,7 @@ const [openSuccess, setOpenSuccess] = useState(false);
         {/* CLICK TO CALL */}
         <a
           href="tel:9842344323"
-          className="font-bold text-blue-700 hover:underline"
+          className="font-bold text-[#d72828] hover:underline"
         >
           9842344323
         </a>

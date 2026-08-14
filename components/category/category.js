@@ -157,7 +157,7 @@ export default function CategoryPage() {
                       onClick={() => handleFilterChange('category', category._id)}
                       className={`flex-1 text-left p-2 rounded ${
                         selectedFilters.category.includes(category._id) 
-                          ? 'bg-blue-100' : 'hover:bg-gray-100'
+                          ? 'bg-red-100' : 'hover:bg-gray-100'
                       }`}
                     >
                       {category.category_name}
@@ -183,7 +183,7 @@ export default function CategoryPage() {
                             onClick={() => handleFilterChange('category', subCat._id)}
                             className={`block w-full text-left p-2 rounded ${
                               selectedFilters.category.includes(subCat._id) 
-                                ? 'bg-blue-100' : 'hover:bg-gray-100'
+                                ? 'bg-red-100' : 'hover:bg-gray-100'
                             }`}
                           >
                             {subCat.category_name}
@@ -231,7 +231,7 @@ export default function CategoryPage() {
                         onClick={() => handleFilterChange(group.filtergroup_slug, filter._id)}
                         className={`block w-full text-left p-2 rounded ${
                           selectedFilters.filters?.[group.filtergroup_slug]?.includes(filter._id)
-                            ? 'bg-blue-100'
+                            ? 'bg-red-100'
                             : 'hover:bg-gray-100'
                         }`}
                       >
@@ -255,7 +255,7 @@ export default function CategoryPage() {
                     onClick={() => handleFilterChange('brand', brand._id)}
                     className={`block w-full text-left p-2 rounded ${
                       selectedFilters.brand.includes(brand._id) 
-                        ? 'bg-blue-100' : 'hover:bg-gray-100'
+                        ? 'bg-red-100' : 'hover:bg-gray-100'
                     }`}
                   >
                     {brand.brand_name}
@@ -289,11 +289,11 @@ export default function CategoryPage() {
                   <span className="text-gray-500 line-through">
                     ₹{product.price}
                   </span>
-                  <span className="text-xl font-bold text-blue-600">
+                  <span className="text-xl font-bold text-[#d72828]">
                     ₹{product.special_price}
                   </span>
                 </div>
-                <button className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">
+                <button className="w-full bg-[#d72828] text-white py-2 rounded hover:bg-[#d72828]">
                   Add to Cart
                 </button>
               </div>

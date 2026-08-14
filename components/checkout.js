@@ -1288,7 +1288,7 @@ const grandTotal = subtotal - totalDiscount;
 
                       {/* Product Details */}
                       <div className="flex-1">
-                        <div title={item.name} className="leading-snug text-xs sm:text-sm font-medium text-[#0069c6] hover:text-[#00badb] line-clamp-3 min-h-[40px]">
+                        <div title={item.name} className="leading-snug text-xs sm:text-sm font-medium text-[#d72828] hover:text-[#c02020] line-clamp-3 min-h-[40px]">
                           {item.name}
                         </div>
 
@@ -1330,7 +1330,7 @@ const grandTotal = subtotal - totalDiscount;
               )}
               {cartItems.some(item => item.warranty > 0) && (
                 <div className="flex justify-between text-gray-800 font-semibold">
-                  <span className="text-[#0069c6] hover:text-[#00badb] text-xs sm:text-sm font-medium">Warranty:</span>
+                  <span className="text-[#d72828] hover:text-[#c02020] text-xs sm:text-sm font-medium">Warranty:</span>
                   <span className="text-sm whitespace-nowrap text-base font-semibold text-red-600">
                     ₹{cartItems.reduce((sum, item) => sum + (item.warranty || 0), 0).toFixed(2)}
                   </span>
@@ -1338,7 +1338,7 @@ const grandTotal = subtotal - totalDiscount;
               )}
               {cartItems.some(item => item.extendedWarranty > 0) && (
                 <div className="flex justify-between text-gray-800 font-semibold border-t pt-2 mt-2">
-                  <span className="text-[#0069c6] hover:text-[#00badb] text-xs sm:text-sm font-medium">Extended Warranty:</span>
+                  <span className="text-[#d72828] hover:text-[#c02020] text-xs sm:text-sm font-medium">Extended Warranty:</span>
                   <span className="text-sm whitespace-nowrap text-base font-semibold text-red-600">
                     ₹{cartItems.reduce((sum, item) => sum + (item.extendedWarranty || 0), 0).toFixed(2)}
                   </span>

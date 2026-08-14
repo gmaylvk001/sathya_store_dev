@@ -85,7 +85,7 @@ console.log(data)
   return (
     <div className="bg-white min-h-screen">
       {/* Product Header */}
-      <div className="bg-blue-50 py-6 px-8 flex justify-between items-center">
+      <div className="bg-red-50 py-6 px-8 flex justify-between items-center">
         <h2 className="text-xl font-bold text-gray-800">{product.name}</h2>
         <div className="flex items-center space-x-2">
           <span className="text-gray-600">🏠 Home</span>
@@ -176,7 +176,7 @@ console.log(data)
                   <span className="text-gray-500 line-through text-xl">${product.price}</span>
                 )}
               </div>
-              <button className="ml-6 bg-customBlue text-white px-5 py-2 rounded-lg shadow-md hover:bg-blue-700 transition duration-300 text-lg">
+              <button className="ml-6 bg-customBlue text-white px-5 py-2 rounded-lg shadow-md hover:bg-[#d72828] transition duration-300 text-lg">
                 Order on WhatsApp
               </button>
             </div>
@@ -221,7 +221,7 @@ console.log(data)
                   </button>
                 </div>
               </div>
-              <button className="ml-4 bg-customBlue text-white px-9 h-10 rounded-md shadow-md hover:bg-blue-700 transition duration-300 text-md flex items-center justify-center gap-x-3">
+              <button className="ml-4 bg-customBlue text-white px-9 h-10 rounded-md shadow-md hover:bg-[#d72828] transition duration-300 text-md flex items-center justify-center gap-x-3">
                 <FaShoppingCart /> Add To Cart
               </button>
               <div className="flex-grow"></div>
@@ -229,7 +229,7 @@ console.log(data)
                 {[FaHeart, FaShareAlt, FaBell].map((Icon, index) => (
                   <button 
                     key={index} 
-                    className="w-10 h-10 flex items-center justify-center rounded-full transition duration-300 ease-in-out bg-[#cfd4e1] hover:bg-blue-700 text-white"
+                    className="w-10 h-10 flex items-center justify-center rounded-full transition duration-300 ease-in-out bg-[#cfd4e1] hover:bg-[#d72828] text-white"
                   >
                     <Icon className="text-customBlue hover:text-white" />
                   </button>

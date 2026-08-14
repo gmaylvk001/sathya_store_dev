@@ -89,7 +89,7 @@ export default function BulkFilterUploadPage() {
           onSubmit={handleSubmit}
           className="bg-white rounded-xl shadow-lg overflow-hidden p-6 space-y-8"
         >
-          <div className="border border-gray-200 rounded-lg p-6 hover:border-blue-500 transition-colors">
+          <div className="border border-gray-200 rounded-lg p-6 hover:border-[#d72828] transition-colors">
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
               Upload Excel/CSV File
             </h3>
@@ -113,14 +113,14 @@ export default function BulkFilterUploadPage() {
               onChange={(e) => setExcelFile(e.target.files?.[0] || null)}
               className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 
                          file:rounded-lg file:border-0 file:text-sm file:font-semibold 
-                         file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                         file:bg-red-50 file:text-[#d72828] hover:file:bg-red-100"
               required
             />
 
             <button
               type="button"
               onClick={handleSampleDownload}
-              className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 mt-3"
+              className="inline-flex items-center text-sm text-[#d72828] hover:text-[#d72828] mt-3"
             >
               <svg
                 className="w-4 h-4 mr-2"
@@ -143,8 +143,8 @@ export default function BulkFilterUploadPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="px-6 py-2.5 bg-blue-600 text-white font-medium rounded-lg 
-                         hover:bg-blue-700 focus:outline-none disabled:opacity-50 
+              className="px-6 py-2.5 bg-[#d72828] text-white font-medium rounded-lg 
+                         hover:bg-[#d72828] focus:outline-none disabled:opacity-50 
                          transition-colors flex items-center"
             >
               {isLoading ? (

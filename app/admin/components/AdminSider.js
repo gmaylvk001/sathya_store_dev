@@ -39,7 +39,7 @@ export default function AdminSider({ collapsed }) {
       { icon: 'mdi:cart-off', label: 'Abandoned Order', link: 'abandonedorder', dotColor: 'bg-yellow-500' },
       // { icon: 'mdi:clock-outline', label: 'Home Delivery', link: 'order/home-delivery', dotColor: 'bg-yellow-500' },
       // { icon: 'mdi:clock-outline', label: 'Pending Order', link: 'order/pending-order', dotColor: 'bg-yellow-500' },
-      { icon: 'mdi:cancel', label: 'Cancel Order', link: 'order/cancel-order', dotColor: 'bg-blue-500' },
+      { icon: 'mdi:cancel', label: 'Cancel Order', link: 'order/cancel-order', dotColor: 'bg-[#d72828]' },
       { icon: 'mdi:truck-delivery-outline', label: 'Shipped Order', link: 'shippedorder', dotColor: 'bg-green-500' }
     ]
   },
@@ -102,7 +102,7 @@ export default function AdminSider({ collapsed }) {
     //   label: 'Store Location',
     //   submenu: [
        
-    //     { icon: 'mdi:map-marker-radius-outline', label: 'Zone', link: 'zone', dotColor: 'bg-blue-500' },
+    //     { icon: 'mdi:map-marker-radius-outline', label: 'Zone', link: 'zone', dotColor: 'bg-[#d72828]' },
     //   ]
     // }
 

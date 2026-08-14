@@ -139,7 +139,7 @@ export default function CategoryComponent() {
 
 {/* <div className="flex justify-between items-center mb-5">
   <h2 className="text-2xl font-bold">Products List</h2>
-  <Link href="/admin/product/create" className="bg-blue-500 text-white px-4 py-2 rounded-md">
+  <Link href="/admin/product/create" className="bg-[#d72828] text-white px-4 py-2 rounded-md">
     + Add Product
   </Link>
 </div> */}
@@ -154,8 +154,8 @@ export default function CategoryComponent() {
           className="border px-3 py-2 rounded-md w-64"
         />
         <div className="flex gap-4">
-         <Link href="/admin/product/create" className="bg-blue-500 text-white px-4 py-2 rounded-md">+ Add Product</Link>
-          <Link href="/admin/product/bulk_upload" className="bg-blue-500 text-white px-4 py-2 rounded-md">Bulk upload</Link>
+         <Link href="/admin/product/create" className="bg-[#d72828] text-white px-4 py-2 rounded-md">+ Add Product</Link>
+          <Link href="/admin/product/bulk_upload" className="bg-[#d72828] text-white px-4 py-2 rounded-md">Bulk upload</Link>
         </div>
         
       </div>
@@ -248,7 +248,7 @@ export default function CategoryComponent() {
             <div className="flex justify-end">
               <button
                 onClick={() => setShowSuccessModal(false)}
-                className="bg-blue-500 px-4 py-2 rounded-md text-white"
+                className="bg-[#d72828] px-4 py-2 rounded-md text-white"
               >
                 Close
               </button>

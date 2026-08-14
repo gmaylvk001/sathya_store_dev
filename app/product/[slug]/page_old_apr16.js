@@ -86,7 +86,7 @@ export default function ProductPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#d72828]"></div>
       </div>
     );
   }
@@ -96,7 +96,7 @@ export default function ProductPage() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-2xl font-bold text-red-500">{error}</h2>
-          <Link href="/" className="mt-4 inline-flex items-center text-blue-600">
+          <Link href="/" className="mt-4 inline-flex items-center text-[#d72828]">
             ← Back to Home
           </Link>
         </div>
@@ -109,7 +109,7 @@ export default function ProductPage() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-2xl font-bold">Product not found</h2>
-          <Link href="/" className="mt-4 inline-flex items-center text-blue-600">
+          <Link href="/" className="mt-4 inline-flex items-center text-[#d72828]">
             ← Back to Home
           </Link>
         </div>
@@ -120,12 +120,12 @@ export default function ProductPage() {
   return (
     <div className="bg-white min-h-screen">
       {/* 🟠 Wishlist Header Bar */}
-      <div className="bg-blue-50 py-6 px-8 flex justify-between items-center">
+      <div className="bg-red-50 py-6 px-8 flex justify-between items-center">
         <h2 className="text-xl font-bold text-gray-800">Shop Details</h2>
         <div className="flex items-center space-x-2">
-          <Link href="/" className="text-gray-600 hover:text-blue-600">🏠 Home</Link>
+          <Link href="/" className="text-gray-600 hover:text-[#d72828]">🏠 Home</Link>
           <span className="text-gray-500">›</span>
-          <span className="text-blue-600 font-semibold">Shop Details</span>
+          <span className="text-[#d72828] font-semibold">Shop Details</span>
         </div>
       </div>
 
@@ -207,7 +207,7 @@ export default function ProductPage() {
                   <span className="text-gray-500 line-through text-xl">RS.{product.price}</span>
                 )}
               </div>
-              <button className="ml-6 bg-customBlue text-white px-5 py-2 rounded-lg shadow-md hover:bg-blue-700 transition duration-300 text-lg">
+              <button className="ml-6 bg-customBlue text-white px-5 py-2 rounded-lg shadow-md hover:bg-[#d72828] transition duration-300 text-lg">
                 Order on WhatsApp
               </button>
             </div>
@@ -268,18 +268,18 @@ export default function ProductPage() {
                   </button>
                 </div>
               </div>
-              <button className="ml-4 bg-blue-600 text-white px-9 h-10 rounded-md shadow-md hover:bg-blue-700 transition duration-300 text-md flex items-center justify-center gap-x-3">
+              <button className="ml-4 bg-[#d72828] text-white px-9 h-10 rounded-md shadow-md hover:bg-[#d72828] transition duration-300 text-md flex items-center justify-center gap-x-3">
                 <FaShoppingCart /> Add To Cart
               </button>
               <div className="flex-grow"></div>
               <div className="flex items-center space-x-3">
-                <button className="w-10 h-10 flex items-center justify-center rounded-full transition duration-300 ease-in-out bg-gray-200 hover:bg-blue-600 text-blue-600 hover:text-white">
+                <button className="w-10 h-10 flex items-center justify-center rounded-full transition duration-300 ease-in-out bg-gray-200 hover:bg-[#d72828] text-[#d72828] hover:text-white">
                   <FaHeart />
                 </button>
-                <button className="w-10 h-10 flex items-center justify-center rounded-full transition duration-300 ease-in-out bg-gray-200 hover:bg-blue-600 text-blue-600 hover:text-white">
+                <button className="w-10 h-10 flex items-center justify-center rounded-full transition duration-300 ease-in-out bg-gray-200 hover:bg-[#d72828] text-[#d72828] hover:text-white">
                   <FaShareAlt />
                 </button>
-                <button className="w-10 h-10 flex items-center justify-center rounded-full transition duration-300 ease-in-out bg-gray-200 hover:bg-blue-600 text-blue-600 hover:text-white">
+                <button className="w-10 h-10 flex items-center justify-center rounded-full transition duration-300 ease-in-out bg-gray-200 hover:bg-[#d72828] text-[#d72828] hover:text-white">
                   <FaBell />
                 </button>
               </div>
@@ -311,12 +311,12 @@ export default function ProductPage() {
               <div className="flex items-center justify-between bg-customBlue text-white px-3 py-2 rounded-full">
                 <div className="flex items-center gap-2">
                   <div className="bg-white p-1.5 rounded-full flex items-center justify-center w-8 h-8">
-                    <IoStorefront className="text-blue-600 text-lg" />
+                    <IoStorefront className="text-[#d72828] text-lg" />
                   </div>
                   <span className="text-sm font-medium whitespace-nowrap">By {product.brand || "Marketpro"}</span>
                 </div>
                 <div className="flex-shrink-0">
-                  <button className="bg-white text-blue-600 text-xs font-medium px-3 py-1 rounded-full border border-white whitespace-nowrap">
+                  <button className="bg-white text-[#d72828] text-xs font-medium px-3 py-1 rounded-full border border-white whitespace-nowrap">
                     View Store
                   </button>
                 </div>
@@ -337,7 +337,7 @@ export default function ProductPage() {
                   {index !== 0 && <div className="border-b border-gray-400 w-full mt-4"></div>}
                   <div className="flex items-center gap-4 px-6 py-4 w-full">
                     <div className="bg-white p-3 rounded-full border border-gray-300 shadow-sm flex items-center justify-center">
-                      <Icon className="text-lg text-blue-600" />
+                      <Icon className="text-lg text-[#d72828]" />
                     </div>
                     <div className="flex-1 w-full min-w-0">
                       <h4 className="text-sm font-bold text-gray-900 break-words">{title}</h4>  

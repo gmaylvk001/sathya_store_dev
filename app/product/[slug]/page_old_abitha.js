@@ -268,7 +268,7 @@ const fetchBrand = async () => {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#d72828]"></div>
       </div>
     );
   }
@@ -277,8 +277,8 @@ const fetchBrand = async () => {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-blue-500">{error}</h2>
-          <Link href="/" className="mt-4 inline-flex items-center text-blue-600">
+          <h2 className="text-2xl font-bold text-[#d72828]">{error}</h2>
+          <Link href="/" className="mt-4 inline-flex items-center text-[#d72828]">
             ← Back to Home
           </Link>
         </div>
@@ -291,7 +291,7 @@ const fetchBrand = async () => {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-2xl font-bold">Product not found</h2>
-          <Link href="/" className="mt-4 inline-flex items-center text-blue-600">
+          <Link href="/" className="mt-4 inline-flex items-center text-[#d72828]">
             ← Back to Homee
           </Link>
         </div>
@@ -307,12 +307,12 @@ const fetchBrand = async () => {
   return (
     <div className="bg-white min-h-screen overflow-x-hidden">
       {/* 🟠 Wishlist Header Bar */}
-      {/* <div className="bg-blue-50 py-6 px-8 flex justify-between items-center">
+      {/* <div className="bg-red-50 py-6 px-8 flex justify-between items-center">
         <h2 className="text-xl font-bold text-gray-800">Shop Details</h2>
         <div className="flex items-center space-x-2">
-          <Link href="/" className="text-gray-600 hover:text-blue-600">🏠 Home</Link>
+          <Link href="/" className="text-gray-600 hover:text-[#d72828]">🏠 Home</Link>
           <span className="text-gray-500">›</span>
-          <span className="text-blue-600 font-semibold">Shop Details</span>
+          <span className="text-[#d72828] font-semibold">Shop Details</span>
         </div>
       </div> */}
 
@@ -343,7 +343,7 @@ const fetchBrand = async () => {
                 {/* 🔹 Lens Overlay */}
             {zoomPosition.visible && (
               <div
-                className="absolute border border-blue-400 bg-blue-200 bg-opacity-30 rounded-md pointer-events-none"
+                className="absolute border border-[#d72828] bg-red-200 bg-opacity-30 rounded-md pointer-events-none"
                 style={{
                   width: "120px",
                   height: "120px",
@@ -428,7 +428,7 @@ const fetchBrand = async () => {
                 <div className="flex items-center gap-2">
                   {/* Price Section */}
                   <div className="flex items-baseline gap-2">
-                    <span className="text-2xl font-bold text-blue-800">
+                    <span className="text-2xl font-bold text-[#d72828]">
                       Rs.{product.special_price || product.price}
                     </span>
                     {product.special_price && (
@@ -492,7 +492,7 @@ const fetchBrand = async () => {
                   {/* Action Buttons */}
                   <div className="flex items-center gap-1" onClick={() => window.open(`https://wa.me/?text=${encodeURIComponent(`Check this out: https://bea.divinfosys.com/product/${product.slug}`)}`, '_blank')}>
                     <button
-                      className="w-6 h-6 flex items-center justify-center rounded-full transition duration-300 ease-in-out bg-blue-200 hover:bg-blue-600 text-blue-500 hover:text-white"
+                      className="w-6 h-6 flex items-center justify-center rounded-full transition duration-300 ease-in-out bg-red-200 hover:bg-[#d72828] text-[#d72828] hover:text-white"
                       onClick={() => window.open(
                         `https://wa.me/?text=${encodeURIComponent(
                           `Check this out: ${product.name}\n${selectedImage || "https://bea.divinfosys.com/no-image.jpg"}\nhttps://bea.divinfosys.com/product/${product.slug}`
@@ -516,7 +516,7 @@ const fetchBrand = async () => {
                       <span className="text-xs font-bold">↓</span>
                     </button>
 
-                    {/* <button className="w-6 h-6 flex items-center justify-center rounded-full transition duration-300 ease-in-out bg-gray-200 hover:bg-blue-600 text-blue-600 hover:text-white">
+                    {/* <button className="w-6 h-6 flex items-center justify-center rounded-full transition duration-300 ease-in-out bg-gray-200 hover:bg-[#d72828] text-[#d72828] hover:text-white">
                       <FaBell size={10} />
                     </button> */}
                   </div>
@@ -585,7 +585,7 @@ const fetchBrand = async () => {
             </div>
 
             {/* Add this code right after the Stock Alert section */}
-              {/* <div className="border-2 border-customBlue rounded-lg overflow-hidden bg-blue-50 shadow-md mt-4">
+              {/* <div className="border-2 border-customBlue rounded-lg overflow-hidden bg-red-50 shadow-md mt-4">
               
                 <div className="bg-customBlue px-4 py-3 rounded-t-lg">
                   <h3 className="text-base font-semibold text-white">
@@ -602,15 +602,15 @@ const fetchBrand = async () => {
                         alt="Bank Logos" 
                         className="h-6 w-auto"
                       />
-                      <span className="text-sm text-blue-700">
+                      <span className="text-sm text-[#d72828]">
                         From <span className="font-bold">₹{Math.floor((product.special_price || product.price) / 6)}</span>/month
                       </span>
                     </div>
-                    <button className="text-sm font-semibold text-blue-700 hover:underline">
+                    <button className="text-sm font-semibold text-[#d72828] hover:underline">
                       View Plans
                     </button>
                   </div>
-                  <p className="text-xs text-blue-600">
+                  <p className="text-xs text-[#d72828]">
                     Credit Card EMI available on orders above ₹5,000
                   </p>
                 </div>
@@ -681,7 +681,7 @@ const fetchBrand = async () => {
       <div className="p-4 border-t text-sm">
         <p className="text-gray-600 mb-2">* Interest rates may vary based on your bank's policies</p>
         <button 
-          className="w-full bg-blue-600 text-white py-2 rounded-lg font-medium"
+          className="w-full bg-[#d72828] text-white py-2 rounded-lg font-medium"
           onClick={() => setShowEMIModal(false)}
         >
           Close
@@ -890,14 +890,14 @@ const fetchBrand = async () => {
 
             {/* Coupons */}
             {/* <div className="mt-4">
-              <div className="flex items-center justify-between border border-blue-400 rounded-md p-2 mb-3">
+              <div className="flex items-center justify-between border border-[#d72828] rounded-md p-2 mb-3">
                 <div className="flex items-center gap-1">
                   //  <span className="text-gray-600 text-sm">➕</span> 
                   <span className="inline-flex items-center justify-center w-4 h-4 text-white bg-gray-600 rounded-full text-lg">+</span>
 
                   <span className="text-gray-700 text-xs">Mfr. coupon. $3.00 off 5</span>
                 </div>
-                <button className="text-blue-500 text-xs font-semibold hover:underline">
+                <button className="text-[#d72828] text-xs font-semibold hover:underline">
                   View Details
                 </button>
               </div>
@@ -912,37 +912,37 @@ const fetchBrand = async () => {
   <div className="mt-3 flex flex-col md:flex-row md:justify-between gap-2 space-y-2 md:space-y-0">
     {/* Replacement Box */}
     <div
-      className="flex items-start bg-blue-50 border border-blue-200 rounded-md p-4 w-full md:w-1/3 shadow-sm cursor-pointer"
+      className="flex items-start bg-red-50 border border-red-200 rounded-md p-4 w-full md:w-1/3 shadow-sm cursor-pointer"
       onClick={() => setShowReplacementModal(true)}
     >
-      <span className="text-blue-500 text-xl mr-3 mt-1">🔁</span>
+      <span className="text-[#d72828] text-xl mr-3 mt-1">🔁</span>
       <div>
-        <div className="text-sm font-semibold text-blue-800">Replacement</div>
-        <div className="text-xs text-blue-600">in 7 days</div>
+        <div className="text-sm font-semibold text-[#d72828]">Replacement</div>
+        <div className="text-xs text-[#d72828]">in 7 days</div>
       </div>
     </div>
 
     {/* Warranty Box */}
     <div
-      className="flex items-start bg-blue-50 border border-blue-200 rounded-md p-4 w-full md:w-1/3 shadow-sm cursor-pointer"
+      className="flex items-start bg-red-50 border border-red-200 rounded-md p-4 w-full md:w-1/3 shadow-sm cursor-pointer"
       onClick={() => setshowWarrantyModal(true)}
     >
       <span className="text-green-500 text-xl mr-3 mt-1">🛡️</span>
       <div>
-        <div className="text-sm font-semibold text-blue-800">Warranty</div>
-        <div className="text-xs text-blue-600">in 1 Year</div>
+        <div className="text-sm font-semibold text-[#d72828]">Warranty</div>
+        <div className="text-xs text-[#d72828]">in 1 Year</div>
       </div>
     </div>
 
     {/* GST Invoice Box */}
     <div
-      className="flex items-start bg-blue-50 border border-blue-200 rounded-md p-4 w-full md:w-1/3 shadow-sm cursor-pointer"
+      className="flex items-start bg-red-50 border border-red-200 rounded-md p-4 w-full md:w-1/3 shadow-sm cursor-pointer"
       onClick={() => setshowGstInvoiceModal(true)}
     >
       <span className="text-yellow-500 text-xl mr-3 mt-1">📄</span>
       <div>
-        <div className="text-sm font-semibold text-blue-800">GST Invoice</div>
-        <div className="text-xs text-blue-600">Available</div>
+        <div className="text-sm font-semibold text-[#d72828]">GST Invoice</div>
+        <div className="text-xs text-[#d72828]">Available</div>
       </div>
     </div>
   </div>
@@ -953,7 +953,7 @@ const fetchBrand = async () => {
                 <div className="bg-white rounded-lg shadow-lg w-full max-w-2xl relative p-6">
                   {/* Modal Header */}
                   <div className="flex justify-between items-center border-b pb-2">
-                    <h2 className="text-lg font-semibold text-blue-800">Replacement</h2>
+                    <h2 className="text-lg font-semibold text-[#d72828]">Replacement</h2>
                     <button
                       className="text-gray-500 hover:text-gray-700 text-xl"
                       onClick={() => setShowReplacementModal(false)}
@@ -999,7 +999,7 @@ const fetchBrand = async () => {
                   <div className="mt-6 flex justify-end border-t pt-3">
                     <a
                       href="/cancellation-refund-policy"
-                      className="text-sm text-blue-600 font-medium hover:underline"
+                      className="text-sm text-[#d72828] font-medium hover:underline"
                     >
                       Know More
                     </a>
@@ -1014,7 +1014,7 @@ const fetchBrand = async () => {
                 <div className="bg-white rounded-lg shadow-lg w-full max-w-2xl relative p-6">
                   {/* Modal Header */}
                   <div className="flex justify-between items-center border-b pb-2">
-                    <h2 className="text-lg font-semibold text-blue-800">Warranty</h2>
+                    <h2 className="text-lg font-semibold text-[#d72828]">Warranty</h2>
                     <button
                       className="text-gray-500 hover:text-gray-700 text-xl"
                       onClick={() => setshowWarrantyModal(false)}
@@ -1032,7 +1032,7 @@ const fetchBrand = async () => {
                   <div className="mt-6 flex justify-end border-t pt-3">
                     <a
                       href="/privacypolicy"
-                      className="text-sm text-blue-600 font-medium hover:underline"
+                      className="text-sm text-[#d72828] font-medium hover:underline"
                     >
                       Know More
                     </a>
@@ -1047,7 +1047,7 @@ const fetchBrand = async () => {
                 <div className="bg-white rounded-lg shadow-lg w-full max-w-2xl relative p-6">
                   {/* Modal Header */}
                   <div className="flex justify-between items-center border-b pb-2">
-                    <h2 className="text-lg font-semibold text-blue-800">GST Invoice</h2>
+                    <h2 className="text-lg font-semibold text-[#d72828]">GST Invoice</h2>
                     <button
                       className="text-gray-500 hover:text-gray-700 text-xl"
                       onClick={() => setshowGstInvoiceModal(false)}
@@ -1065,7 +1065,7 @@ const fetchBrand = async () => {
                   <div className="mt-6 flex justify-end border-t pt-3">
                     <a
                       href="/shipping"
-                      className="text-sm text-blue-600 font-medium hover:underline"
+                      className="text-sm text-[#d72828] font-medium hover:underline"
                     >
                       Know More
                     </a>
@@ -1199,12 +1199,12 @@ const fetchBrand = async () => {
               <div className="flex items-center justify-between bg-customBlue text-white px-3 py-2 rounded-full">
                 <div className="flex items-center gap-2">
                   <div className="bg-white p-1.5 rounded-full flex items-center justify-center w-8 h-8">
-                    <IoStorefront className="text-blue-600 text-lg" />
+                    <IoStorefront className="text-[#d72828] text-lg" />
                   </div>
                   <span className="text-sm font-medium whitespace-nowrap">By {product.brand || "Marketpro"}</span>
                 </div>
                 <div className="flex-shrink-0">
-                  <button className="bg-white text-blue-600 text-xs font-medium px-3 py-1 rounded-full border border-white whitespace-nowrap">
+                  <button className="bg-white text-[#d72828] text-xs font-medium px-3 py-1 rounded-full border border-white whitespace-nowrap">
                     View Store
                   </button>
                 </div>
@@ -1223,7 +1223,7 @@ const fetchBrand = async () => {
     {/* Right - Price + View Cart link below */}
     <div className="flex flex-col items-end leading-tight">
       <span className="text-md font-semibold">₹{cartTotal.toLocaleString()}</span>
-      <Link href="/cart" className="text-[12px] text-blue-100 hover:underline mt-0.5">
+      <Link href="/cart" className="text-[12px] text-[#d72828] hover:underline mt-0.5">
         View Cart
       </Link>
     </div>
@@ -1246,7 +1246,7 @@ const fetchBrand = async () => {
                   {index !== 0 && <div className="border-b border-gray-400 w-full mt-1"></div>}
                   <div className="flex items-center gap-4 px-6 py-4 w-full">
                     <div className="bg-white p-3 rounded-full border border-gray-300 shadow-sm flex items-center justify-center">
-                      <Icon className="text-lg text-blue-600" />
+                      <Icon className="text-lg text-[#d72828]" />
                     </div>
                     <div className="flex-1 w-full min-w-0">
                       <h4 className="text-sm font-bold text-gray-900 break-words">{title}</h4>  

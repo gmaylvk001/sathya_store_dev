@@ -122,15 +122,15 @@ const ShippingPolicy = () => {
       {/* Breadcrumb */}
       <div className="max-w-12xl mx-auto px-4 md:px-6 pt-6">
         <div className="flex items-center gap-2 text-sm text-gray-500">
-          <Link href="/" className="hover:text-blue-600 flex items-center gap-1">
+          <Link href="/" className="hover:text-[#d72828] flex items-center gap-1">
             <span>🏠</span> Home
           </Link>
           <span>›</span>
-          <Link href="/privacypolicy" className="hover:text-blue-600">
+          <Link href="/privacypolicy" className="hover:text-[#d72828]">
             Policies
           </Link>
           <span>›</span>
-          <span className="text-blue-700 font-medium">Shipping &amp; Delivery Policy</span>
+          <span className="text-[#d72828] font-medium">Shipping &amp; Delivery Policy</span>
         </div>
       </div>
 
@@ -138,13 +138,13 @@ const ShippingPolicy = () => {
       <div className="max-w-12xl mx-auto px-4 md:px-6 pt-8 pb-12">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
           <div>
-            <div className="w-14 h-14 rounded-full bg-blue-100 flex items-center justify-center mb-4">
-              <FiTruck className="text-blue-600 text-2xl" />
+            <div className="w-14 h-14 rounded-full bg-red-100 flex items-center justify-center mb-4">
+              <FiTruck className="text-[#d72828] text-2xl" />
             </div>
-            <h1 className="text-3xl md:text-4xl font-bold text-blue-900 mb-2">
+            <h1 className="text-3xl md:text-4xl font-bold text-[#d72828] mb-2">
               Shipping &amp; Delivery Policy
             </h1>
-            <h2 className="text-lg md:text-xl font-semibold text-blue-600 mb-4">
+            <h2 className="text-lg md:text-xl font-semibold text-[#d72828] mb-4">
               Fast &amp; reliable electronics delivery across Tamil Nadu
             </h2>
             <p className="text-gray-600 mb-6 leading-relaxed">
@@ -173,8 +173,8 @@ const ShippingPolicy = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* 1. Delivery Coverage */}
           <div className="bg-white rounded-xl shadow-sm p-6 md:p-8">
-            <h3 className="text-xl font-bold text-blue-900 flex items-center gap-2 mb-2">
-              <FiMapPin className="text-blue-600" />
+            <h3 className="text-xl font-bold text-[#d72828] flex items-center gap-2 mb-2">
+              <FiMapPin className="text-[#d72828]" />
               1. Delivery Coverage
             </h3>
             <p className="text-gray-600 mb-4">
@@ -191,7 +191,7 @@ const ShippingPolicy = () => {
                       key={idx}
                       className="inline-flex items-center gap-2 border border-gray-200 rounded-full px-3 py-1.5 text-sm text-gray-700 bg-gray-50"
                     >
-                      <FiMapPin className="text-blue-500 text-xs flex-shrink-0" />
+                      <FiMapPin className="text-[#d72828] text-xs flex-shrink-0" />
                       {city}
                     </span>
                   ))}
@@ -203,7 +203,7 @@ const ShippingPolicy = () => {
                       onClick={() => setShowAllCities(true)}
                       className="inline-flex items-center gap-2 border border-gray-200 rounded-full px-3 py-1.5 text-sm text-gray-700 bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors focus:outline-none"
                     >
-                      <FiMapPin className="text-blue-500 text-xs flex-shrink-0" />
+                      <FiMapPin className="text-[#d72828] text-xs flex-shrink-0" />
                       more...
                     </button>
                   )}
@@ -213,7 +213,7 @@ const ShippingPolicy = () => {
                       onClick={() => setShowAllCities(false)}
                       className="inline-flex items-center gap-2 border border-gray-200 rounded-full px-3 py-1.5 text-sm text-gray-700 bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors focus:outline-none"
                     >
-                      <FiMapPin className="text-blue-500 text-xs flex-shrink-0" />
+                      <FiMapPin className="text-[#d72828] text-xs flex-shrink-0" />
                       show less...
                     </button>
                   )}
@@ -224,8 +224,8 @@ const ShippingPolicy = () => {
 
           {/* 2. Delivery Timeline */}
           <div className="bg-white rounded-xl shadow-sm p-6 md:p-8">
-            <h3 className="text-xl font-bold text-blue-900 flex items-center gap-2 mb-4">
-              <FiCalendar className="text-blue-600" />
+            <h3 className="text-xl font-bold text-[#d72828] flex items-center gap-2 mb-4">
+              <FiCalendar className="text-[#d72828]" />
               2. Delivery Timeline
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -271,8 +271,8 @@ const ShippingPolicy = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* 3. Store Pickup Option */}
           <div className="bg-white rounded-xl shadow-sm p-6 md:p-8">
-            <h3 className="text-xl font-bold text-blue-900 flex items-center gap-2 mb-4">
-              <FaStore className="text-blue-600" />
+            <h3 className="text-xl font-bold text-[#d72828] flex items-center gap-2 mb-4">
+              <FaStore className="text-[#d72828]" />
               3. Store Pickup Option
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
@@ -303,8 +303,8 @@ const ShippingPolicy = () => {
 
           {/* 4. Delivery Process */}
           <div className="bg-white rounded-xl shadow-sm p-6 md:p-8">
-            <h3 className="text-xl font-bold text-blue-900 flex items-center gap-2 mb-4">
-              <MdLocalShipping className="text-blue-600" />
+            <h3 className="text-xl font-bold text-[#d72828] flex items-center gap-2 mb-4">
+              <MdLocalShipping className="text-[#d72828]" />
               4. Delivery Process
             </h3>
             <p className="text-gray-600 mb-6">
@@ -321,7 +321,7 @@ const ShippingPolicy = () => {
               ].map((step, idx, arr) => (
                 <React.Fragment key={step.label}>
                   <div className="flex flex-col items-center text-center w-20">
-                    <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 mb-2">
+                    <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center text-[#d72828] mb-2">
                       <step.icon />
                     </div>
                     <span className="text-xs text-gray-600">{step.label}</span>
@@ -337,8 +337,8 @@ const ShippingPolicy = () => {
 
         {/* Row 3: Installation Support */}
         <div className="bg-white rounded-xl shadow-sm p-6 md:p-8">
-          <h3 className="text-xl font-bold text-blue-900 flex items-center gap-2 mb-4">
-            <FaTools className="text-blue-600" />
+          <h3 className="text-xl font-bold text-[#d72828] flex items-center gap-2 mb-4">
+            <FaTools className="text-[#d72828]" />
             5. Installation Support
           </h3>
 
@@ -405,28 +405,28 @@ const ShippingPolicy = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* 6. Why Trust Sathya Stores Delivery */}
           <div className="bg-white rounded-xl shadow-sm p-6 md:p-8">
-            <h3 className="text-xl font-bold text-blue-900 flex items-center gap-2 mb-4">
-              <FiShield className="text-blue-600" />
+            <h3 className="text-xl font-bold text-[#d72828] flex items-center gap-2 mb-4">
+              <FiShield className="text-[#d72828]" />
               6. Why Trust Sathya Stores Delivery?
             </h3>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               <div className="border border-gray-100 rounded-lg p-4 text-center">
-                <FaStore className="text-blue-600 text-xl mx-auto mb-2" />
+                <FaStore className="text-[#d72828] text-xl mx-auto mb-2" />
                 <p className="font-bold text-gray-800">{storeCount}+</p>
                 <p className="text-xs text-gray-500">Stores Across Tamil Nadu</p>
               </div>
               <div className="border border-gray-100 rounded-lg p-4 text-center">
-                <FaUsers className="text-blue-600 text-xl mx-auto mb-2" />
+                <FaUsers className="text-[#d72828] text-xl mx-auto mb-2" />
                 <p className="font-bold text-gray-800">50 Lakh+</p>
                 <p className="text-xs text-gray-500">Happy Customers</p>
               </div>
               <div className="border border-gray-100 rounded-lg p-4 text-center">
-                <FiShield className="text-blue-600 text-xl mx-auto mb-2" />
+                <FiShield className="text-[#d72828] text-xl mx-auto mb-2" />
                 <p className="font-bold text-gray-800">Authorized</p>
                 <p className="text-xs text-gray-500">Brand Partner</p>
               </div>
               <div className="border border-gray-100 rounded-lg p-4 text-center">
-                <MdSettings className="text-blue-600 text-xl mx-auto mb-2" />
+                <MdSettings className="text-[#d72828] text-xl mx-auto mb-2" />
                 <p className="font-bold text-gray-800">Expert</p>
                 <p className="text-xs text-gray-500">Installation Support</p>
               </div>
@@ -435,8 +435,8 @@ const ShippingPolicy = () => {
 
           {/* 7. Need Help With Your Delivery */}
           <div className="bg-white rounded-xl shadow-sm p-6 md:p-8">
-            <h3 className="text-xl font-bold text-blue-900 flex items-center gap-2 mb-2">
-              <FiHelpCircle className="text-blue-600" />
+            <h3 className="text-xl font-bold text-[#d72828] flex items-center gap-2 mb-2">
+              <FiHelpCircle className="text-[#d72828]" />
               7. Need Help With Your Delivery?
             </h3>
             <p className="text-gray-600 mb-4">
@@ -445,9 +445,9 @@ const ShippingPolicy = () => {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <a
                 href="tel:9842344323"
-                className="border border-gray-100 rounded-lg p-4 text-center hover:bg-blue-50 transition-colors"
+                className="border border-gray-100 rounded-lg p-4 text-center hover:bg-red-50 transition-colors"
               >
-                <FiPhone className="text-blue-600 text-xl mx-auto mb-2" />
+                <FiPhone className="text-[#d72828] text-xl mx-auto mb-2" />
                 <p className="font-semibold text-gray-800 text-sm">Call Support</p>
                 <p className="text-sm text-gray-600">9842344323</p>
                 <p className="text-xs text-gray-400">(9 AM - 9 PM)</p>
@@ -465,9 +465,9 @@ const ShippingPolicy = () => {
               </a>
               <a
                 href="mailto:customercare@sathya.store"
-                className="border border-gray-100 rounded-lg p-4 text-center hover:bg-blue-50 transition-colors"
+                className="border border-gray-100 rounded-lg p-4 text-center hover:bg-red-50 transition-colors"
               >
-                <FiMail className="text-blue-600 text-xl mx-auto mb-2" />
+                <FiMail className="text-[#d72828] text-xl mx-auto mb-2" />
                 <p className="font-semibold text-gray-800 text-sm">Email Support</p>
                 <p className="text-sm text-gray-600 break-all">
                   customercare@sathya.store
@@ -479,8 +479,8 @@ const ShippingPolicy = () => {
 
         {/* Row 5: FAQs */}
         <div className="bg-white rounded-xl shadow-sm p-6 md:p-8">
-          <h3 className="text-xl font-bold text-blue-900 flex items-center gap-2 mb-4">
-            <FiHelpCircle className="text-blue-600" />
+          <h3 className="text-xl font-bold text-[#d72828] flex items-center gap-2 mb-4">
+            <FiHelpCircle className="text-[#d72828]" />
             8. Frequently Asked Questions
           </h3>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
@@ -495,9 +495,9 @@ const ShippingPolicy = () => {
                     {idx + 1}. {faq.question}
                   </p>
                   {openFaq === idx ? (
-                    <FiMinus className="text-blue-600 flex-shrink-0" />
+                    <FiMinus className="text-[#d72828] flex-shrink-0" />
                   ) : (
-                    <FiPlus className="text-blue-600 flex-shrink-0" />
+                    <FiPlus className="text-[#d72828] flex-shrink-0" />
                   )}
                 </div>
                 {openFaq === idx && (

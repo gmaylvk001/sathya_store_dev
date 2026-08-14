@@ -757,7 +757,7 @@ images.forEach((img, index) => {
               <button
                 type="button"
                 onClick={() => handleAddImage(subcat._id, "bannerImage")}
-                className="text-sm bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"
+                className="text-sm bg-[#d72828] text-white px-3 py-1 rounded hover:bg-[#d72828]"
               >
                 + Add Image
               </button>
@@ -1109,7 +1109,7 @@ images.forEach((img, index) => {
       />
       <div className="bg-white shadow-md rounded-lg p-5 mb-5 overflow-x-auto">
         <a
-          className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2  mb-4 rounded-md text-sm font-medium shadow-sm transition duration-150 inline-block"
+          className="bg-[#d72828] hover:bg-[#d72828] text-white px-4 py-2  mb-4 rounded-md text-sm font-medium shadow-sm transition duration-150 inline-block"
           href="/admin/homesettings/product/navmenu"
         >
           Category Drag
@@ -1263,7 +1263,7 @@ images.forEach((img, index) => {
                                 onClick={() =>
                                   handleAddImage(subcat._id, "bannerImage")
                                 }
-                                className="text-sm bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"
+                                className="text-sm bg-[#d72828] text-white px-3 py-1 rounded hover:bg-[#d72828]"
                               >
                                 + Add Image
                               </button>

@@ -33,7 +33,7 @@ export default function SearchBox({ initialValue = '', onChange, fakeText = 'iPh
           type="text"
           value={value}
           onChange={handleChange}
-          className="w-full h-10 px-4 text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full h-10 px-4 text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
           aria-label={`Search box, suggested: ${fakeText}`}
         />
         

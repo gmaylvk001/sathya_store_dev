@@ -494,7 +494,7 @@ export default function AddProductPage() {
                 e.stopPropagation();
                 toggleCategory(category._id);
               }}
-              className="mr-2 text-blue-500"
+              className="mr-2 text-[#d72828]"
             >
               {expandedCategories[category._id] ? <FaMinus /> : <FaPlus />}
             </button>
@@ -510,7 +510,7 @@ export default function AddProductPage() {
           )}
           <span
             className={`font-medium ${
-              selectedCategories.has(category._id) ? "text-blue-500" : "text-gray-700"
+              selectedCategories.has(category._id) ? "text-[#d72828]" : "text-gray-700"
             }`}
           >
             {category.category_name}
@@ -879,7 +879,7 @@ export default function AddProductPage() {
         <button
           type="button"
           onClick={nextStep}
-          className="bg-blue-500 text-white px-4 py-2 rounded flex items-center gap-2"
+          className="bg-[#d72828] text-white px-4 py-2 rounded flex items-center gap-2"
         >
           Next <FaArrowRight />
         </button>
@@ -905,8 +905,8 @@ export default function AddProductPage() {
                 // onClick={() => setCurrentStep(index- 1)}
                 className={`py-2 px-4 text-sm font-medium focus:outline-none ${
                   currentStep-1 === index
-                    ? "border-b-2 border-blue-500 text-blue-600"
-                    : "text-gray-600 hover:text-blue-500"
+                    ? "border-b-2 border-[#d72828] text-[#d72828]"
+                    : "text-gray-600 hover:text-[#d72828]"
                 }`}
               >
                 {tab.title}
@@ -918,7 +918,7 @@ export default function AddProductPage() {
      
         <div className="absolute  left-0 right-0 h-1 bg-gray-200 transform -translate-y-1/2">
           <div
-            className="bg-blue-500 h-full transition-all duration-300"
+            className="bg-[#d72828] h-full transition-all duration-300"
             style={{ 
               width: `${((currentStep - 1) / (steps.length - 1)) * 100}%`
             }}
@@ -936,7 +936,7 @@ export default function AddProductPage() {
             >
            
               <div className={`w-8 h-8 rounded-full flex items-center justify-center 
-                ${isCompleted ? 'bg-blue-500' : isActive ? 'bg-blue-500' : 'bg-gray-200'}
+                ${isCompleted ? 'bg-[#d72828]' : isActive ? 'bg-[#d72828]' : 'bg-gray-200'}
                 transition-colors duration-300`}>
                 
                 {isCompleted ? (
@@ -952,7 +952,7 @@ export default function AddProductPage() {
   
            
               <span className={`text-xs mt-2 text-center ${
-                isActive ? 'text-blue-600 font-medium' : 'text-gray-600'
+                isActive ? 'text-[#d72828] font-medium' : 'text-gray-600'
               }`}>
               </span>
             </div>
@@ -996,7 +996,7 @@ export default function AddProductPage() {
         <p className="text-red-500">{message}</p>
         <button
           onClick={onClose}
-          className="mt-4 bg-blue-500 text-white px-4 py-2 rounded"
+          className="mt-4 bg-[#d72828] text-white px-4 py-2 rounded"
         >
           Close
         </button>
@@ -1114,8 +1114,8 @@ export default function AddProductPage() {
                                     file:mr-4 file:py-2 file:px-4
                                     file:rounded-full file:border-0
                                     file:text-sm file:font-semibold
-                                    file:bg-blue-50 file:text-blue-700
-                                    hover:file:bg-blue-100"
+                                    file:bg-red-50 file:text-[#d72828]
+                                    hover:file:bg-red-100"
                                   accept="image/*"
                                   onChange={(e) => handleImageChange(index, e)}
                                   required={index === 0}
@@ -1162,8 +1162,8 @@ export default function AddProductPage() {
                                     file:mr-4 file:py-2 file:px-4
                                     file:rounded-full file:border-0
                                     file:text-sm file:font-semibold
-                                    file:bg-blue-50 file:text-blue-700
-                                    hover:file:bg-blue-100"
+                                    file:bg-red-50 file:text-[#d72828]
+                                    hover:file:bg-red-100"
                                   accept="image/*"
                                   onChange={(e) => handleImageChange(index, e)}
                                   required={index === 0}
@@ -1213,7 +1213,7 @@ export default function AddProductPage() {
                             </div>
                           ))}
                         </div>
-                        {/* <button type="button" onClick={AddproductImage} className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors">Add Image</button> */}
+                        {/* <button type="button" onClick={AddproductImage} className="px-3 py-1.5 bg-[#d72828] text-white text-sm rounded hover:bg-[#d72828] transition-colors">Add Image</button> */}
                       </div>
                     </div>
                   </div>
@@ -1254,8 +1254,8 @@ export default function AddProductPage() {
                                     file:mr-4 file:py-2 file:px-4
                                     file:rounded file:border-0
                                     file:text-sm file:font-medium
-                                    file:bg-blue-50 file:text-blue-700
-                                    hover:file:bg-blue-100"
+                                    file:bg-red-50 file:text-[#d72828]
+                                    hover:file:bg-red-100"
                                   accept="image/*"
                                   onChange={(e) => handleOverviewImageChange(index, e.target.files)}
                                   required={index === 0}
@@ -1382,7 +1382,7 @@ export default function AddProductPage() {
                     <button
                       type="button"
                       onClick={handleAddVariantAttribute}
-                      className="bg-blue-200 px-4 py-2 rounded"
+                      className="bg-red-200 px-4 py-2 rounded"
                     >
                       Add Variant Attribute
                     </button>
@@ -1576,8 +1576,8 @@ export default function AddProductPage() {
                                             file:mr-4 file:py-2 file:px-4
                                             file:rounded-full file:border-0
                                             file:text-sm file:font-semibold
-                                            file:bg-blue-50 file:text-blue-700
-                                            hover:file:bg-blue-100"
+                                            file:bg-red-50 file:text-[#d72828]
+                                            hover:file:bg-red-100"
                                           accept="image/*"
                                           onChange={(e) => handleVariantImageChange(index, imgIndex, e.target.files)}
                                           required={imgIndex === 0}
@@ -1624,7 +1624,7 @@ export default function AddProductPage() {
                   <button
                     type="button"
                     onClick={handleAddVariant1}
-                    className="bg-blue-200 px-4 py-2 rounded"
+                    className="bg-red-200 px-4 py-2 rounded"
                   >
                     Add Variant
                   </button>

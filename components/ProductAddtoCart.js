@@ -16,8 +16,7 @@ const AddToCartButton = ({ productId, quantity = 1, warranty, additionalProducts
   const { updateHeaderdetails, setIsLoggedIn, setUserData, setIsAdmin } = useHeaderdetails();
   const [isLoading, setIsLoading] = useState(false);
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-  // const [showAuthModal, setShowAuthModal] = useState(false);
-  // const [authError, setAuthError] = useState('');
+  const [authError, setAuthError] = useState('');
   const [cartSuccess, setCartSuccess] = useState(false);
   const [showOpenBoxPopup, setShowOpenBoxPopup] = useState(false);
   const isOutOfStock = stockQuantity <= 0;
@@ -50,103 +49,28 @@ const AddToCartButton = ({ productId, quantity = 1, warranty, additionalProducts
       
       try {
         const token = localStorage.getItem('token');
-
-        let isLoggedIn = false;
-        let userData = null;
-
-
-        // Check authentication
-        /*
-        const response = await fetch('/api/auth/check', {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': token ? `Bearer ${token}` : '',
-          }
-        });
-        
-        const data = await response.json();
-        
-         if (!data.loggedIn) {
-          openAuthModal({
-            error: 'Please log in to continue.',
-            onSuccess: () => handleAddToCart(), // retry on success
-          });
-          return;
-        }
-
-      
-        if (data.loggedIn) {
-          updateHeaderdetails({ user: data.user });
-            setIsLoggedIn(true);
-            const role = data.role;
-          if(role == 'admin'){
-            setIsAdmin(true);
-          }
-        }
-          */
-
-        if (token) {
-          const response = await fetch("/api/auth/check", {
-            method: "GET",
-            headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-          });
-          const data = await response.json();
-          isLoggedIn = data.loggedIn;
-          userData = data.user;
-          updateHeaderdetails({ user: data.user });
-          setIsLoggedIn(true);
-          const role = data.role;
-          if(role == 'admin'){
-            setIsAdmin(true);
-          }
-        }
-
-        // ✅ If not logged in → use guestCartId
+        const isLoggedIn = Boolean(token);
         let guestCartId = null;
-
-        if (!isLoggedIn) {
+        if (!token) {
           guestCartId = localStorage.getItem("guestCartId") || uuidv4();
           localStorage.setItem("guestCartId", guestCartId);
         }
 
-        const proresponse = await fetch(`/api/product/get/${productId}`);
-       
-        if (!proresponse.ok) {
-          throw new Error(`HTTP error! status: ${proresponse.status}`);
-        }
-        
-        const productData = await proresponse.json();
-        const original_prod_quantity = productData.data.quantity;
-  
-        // Add main product to cart
-        /*
-        const cartResponse = await fetch('/api/cart', {
-          method: 'POST',
-          headers: { 
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          body: JSON.stringify({ productId, quantity, 
-          selectedWarranty: warranty,
-          selectedExtendedWarranty: extendedWarranty,}),
-        }); */
-
-        // ✅ Add main product to cart
+        // ✅ Add main product to cart in a single direct API call
         const cartResponse = await fetch("/api/cart", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            ...(isLoggedIn && { Authorization: `Bearer ${token}` }),
+            ...(token && { Authorization: `Bearer ${token}` }),
           },
           body: JSON.stringify({
             productId,
-            original_prod_quantity,
+            original_prod_quantity: stockQuantity,
             quantity,
             selectedWarranty: warranty,
             selectedExtendedWarranty: extendedWarranty,
             warrantyData: warrantyData || null,
-            ...(guestCartId && { guestCartId }), 
+            ...(!token && guestCartId && { guestCartId }),
           }),
         });
 
@@ -265,10 +189,10 @@ const AddToCartButton = ({ productId, quantity = 1, warranty, additionalProducts
     ${isOutOfStock
       ? 'bg-gray-400 cursor-not-allowed text-white'
       : isLoading
-        ? 'bg-blue-700 cursor-not-allowed opacity-75 text-white'
+        ? 'bg-[#d72828] cursor-not-allowed opacity-75 text-white'
         : cartSuccess
           ? 'bg-green-500 text-white hover:bg-green-600'
-: buttonClassName || 'bg-white hover:bg-customBlue hover:text-white text-customBlue border border-blue-200'    }
+: buttonClassName || 'bg-white hover:bg-[#d72828] hover:text-white text-[#d72828] border border-red-200'    }
     active:scale-95 disabled:active:scale-100`}
 >
   {isOutOfStock ? (
@@ -429,11 +353,11 @@ function OpenBoxPopup({ onClose, productName, productSlug, stockQuantity }) {
 </div>
 
         {/* Info Note */}
-        <div className="flex items-center gap-2 bg-blue-50 border border-blue-100 rounded-lg px-3 py-1 md:py-1.5 mb-2 md:mb-3">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0">
+        <div className="flex items-center gap-2 bg-red-50 border border-red-100 rounded-lg px-3 py-1 md:py-1.5 mb-2 md:mb-3">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#d72828" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0">
             <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
           </svg>
-          <span className="text-[11px] text-blue-700 font-medium">Final price & availability will be confirmed by Sathya Stores team.</span>
+          <span className="text-[11px] text-[#d72828] font-medium">Final price & availability will be confirmed by Sathya Stores team.</span>
         </div>
 
         {/* 3 Contact Buttons */}
@@ -449,7 +373,7 @@ function OpenBoxPopup({ onClose, productName, productSlug, stockQuantity }) {
           {/* <button
             type="button"
             onClick={handleShare}
-            className="flex items-center gap-3 bg-blue-600 hover:bg-blue-700 text-white rounded-full px-4 py-2 md:py-2.5 transition-colors w-full"
+            className="flex items-center gap-3 bg-[#d72828] hover:bg-[#c02020] text-white rounded-full px-4 py-2 md:py-2.5 transition-colors w-full"
           >
             <FaShareAlt size={18} />
             <div className="text-left">
@@ -458,7 +382,7 @@ function OpenBoxPopup({ onClose, productName, productSlug, stockQuantity }) {
             </div>
           </button> */}
           <a href={`tel:${phone}`}
-            className="flex items-center gap-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl px-4 py-2.5 transition-colors">
+            className="flex items-center gap-3 bg-[#d72828] hover:bg-[#c02020] text-white rounded-xl px-4 py-2.5 transition-colors">
             <FaPhoneAlt size={16} />
             <div>
               <div className="text-[12px] font-semibold leading-tight">Call Us</div>

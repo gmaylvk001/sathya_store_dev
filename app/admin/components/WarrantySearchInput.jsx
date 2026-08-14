@@ -71,7 +71,7 @@ const res = await fetch(`/api/warranties/get?q=${encodeURIComponent(q)}`);
           value={query}
           onChange={(e) => handleSearch(e.target.value)}
           placeholder="Search warranty by description... (e.g. AIR CONDITIONER)"
-          className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
         />
 
         {/* Dropdown */}
@@ -81,11 +81,11 @@ const res = await fetch(`/api/warranties/get?q=${encodeURIComponent(q)}`);
               <li
                 key={w.item_no}
                 onClick={() => addWarranty(w)}
-                className="px-3 py-2 hover:bg-blue-50 cursor-pointer text-sm border-b last:border-0"
+                className="px-3 py-2 hover:bg-red-50 cursor-pointer text-sm border-b last:border-0"
               >
                
                 <span className="font-medium text-gray-800">{w.name}</span>
-                <span className="ml-2 text-blue-600 font-semibold">
+                <span className="ml-2 text-[#d72828] font-semibold">
                   {w.year} Year
                 </span>
                 <span className="ml-2 text-gray-500 text-xs">
@@ -103,7 +103,7 @@ const res = await fetch(`/api/warranties/get?q=${encodeURIComponent(q)}`);
           {selected.map((w) => (
             <div
               key={w.item_no}
-              className="flex items-center gap-1 bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full"
+              className="flex items-center gap-1 bg-red-100 text-[#d72828] text-xs px-2 py-1 rounded-full"
             >
               <span>
                 {w.name} — {w.year}yr — ₹{w.price?.toLocaleString("en-IN")}
@@ -111,7 +111,7 @@ const res = await fetch(`/api/warranties/get?q=${encodeURIComponent(q)}`);
               <button
                 type="button"
                 onClick={() => removeWarranty(w.item_no)}
-                className="text-blue-500 hover:text-red-500 font-bold ml-1"
+                className="text-[#d72828] hover:text-red-500 font-bold ml-1"
               >
                 ×
               </button>

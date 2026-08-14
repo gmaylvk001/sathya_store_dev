@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { HiHome } from 'react-icons/hi';
 import { FaGreaterThan } from "react-icons/fa";
 
-export default function ProductBreadcrumb({ product }) {
+export default function ProductBreadcrumb({ product, className = "mb-4" }) {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -100,7 +100,7 @@ export default function ProductBreadcrumb({ product }) {
 
   if (loading) {
     return (
-      <div className="flex items-center text-sm mb-6">
+      <div className={`flex items-center text-xs ${className}`}>
         <div className="h-4 w-4 bg-gray-200 rounded mr-2"></div>
         <div className="h-4 w-20 bg-gray-200 rounded"></div>
         <span className="mx-2 text-gray-300">/</span>
@@ -110,69 +110,41 @@ export default function ProductBreadcrumb({ product }) {
   }
 
   return (
-    <div className="flex items-center text-sm mb-6 overflow-hidden">
+    <div className={`flex items-center text-xs flex-nowrap whitespace-nowrap overflow-hidden max-w-full ${className}`}>
       {/* Home Link */}
       <Link 
         href="/" 
-        className="text-gray-500 hover:text-blue-500 transition-colors flex items-center whitespace-nowrap"
+        className="text-gray-500 hover:text-[#d72828] transition-colors flex items-center whitespace-nowrap flex-shrink-0"
       >
-        <HiHome className="h-4 w-4 mr-2" />
+        <HiHome className="h-3.5 w-3.5 mr-1 flex-shrink-0" />
         Home 
       </Link>
       
-      {/* Category Hierarchy
-      {categories.map((category, index) => (
-        <div key={category._id} className="flex items-center">
-          <span className="mx-2 text-gray-300"><FaGreaterThan /></span>
-          {index < categories.length - 1 ? (
-            <Link
-              href={`/category/${category.category_slug || category._id}`}
-              className="text-gray-500 hover:text-blue-500 whitespace-nowrap"
-            >
-              {category.category_name}
-            </Link>
-          ) : (
-            <Link 
-              href={`/category/${category.category_slug || category._id}`}
-              className="text-gray-500 whitespace-nowrap hover:text-blue-500"
-            >
-              {category.category_name}
-            </Link>
-          )}
-        </div>
-      ))} */}
-
       {categories.map((category, index) => {
-  // Build the path up to this breadcrumb level
-  const path = `/category/${categories
-    .slice(0, index + 1)
-    .map(cat => cat.category_slug || cat._id)
-    .join("/")}`;
+        // Build the path up to this breadcrumb level
+        const path = `/category/${categories
+          .slice(0, index + 1)
+          .map(cat => cat.category_slug || cat._id)
+          .join("/")}`;
 
-  return (
-    <div key={category._id} className="flex items-center">
-      <span className="mx-2 text-gray-300"><FaGreaterThan /></span>
-      {/* {index > 0 && (
-        <span className="mx-2 text-gray-300">
-          <FaGreaterThan />
-        </span>
-      )} */}
-      <Link
-        href={path}
-        className={`text-gray-500 hover:text-blue-500 whitespace-nowrap ${
-          index === categories.length - 1 ? "font-medium" : ""
-        }`}
-      >
-        {category.category_name}
-      </Link>
-    </div>
-  );
-})}
-
+        return (
+          <div key={category._id} className="flex items-center flex-shrink-0">
+            <span className="mx-1.5 text-gray-300 flex-shrink-0 text-[9px]"><FaGreaterThan /></span>
+            <Link
+              href={path}
+              className={`text-gray-500 hover:text-[#d72828] whitespace-nowrap flex-shrink-0 ${
+                index === categories.length - 1 ? "font-medium" : ""
+              }`}
+            >
+              {category.category_name}
+            </Link>
+          </div>
+        );
+      })}
 
       {/* Product Name */}
-      <span className="mx-2 text-gray-300"><FaGreaterThan /></span>
-      <span className="text-gray-700 font-medium truncate max-w-[200px]">
+      <span className="mx-1.5 text-gray-300 flex-shrink-0 text-[9px]"><FaGreaterThan /></span>
+      <span className="text-gray-700 font-medium truncate min-w-0 flex-1">
         {product.name}
       </span>
     </div>

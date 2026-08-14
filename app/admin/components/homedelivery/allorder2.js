@@ -101,7 +101,7 @@ const OrdersTable = () => {
               filtered.map((o, i) => (
                 <tr key={i} className="border-t">
                   <td className="p-2 border">
-                    <button className="text-blue-600">View</button>
+                    <button className="text-[#d72828]">View</button>
                   </td>
                   <td className="p-2 border">{o.order_number}</td>
                   <td className="p-2 border capitalize">{o.order_status}</td>

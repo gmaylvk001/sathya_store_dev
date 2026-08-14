@@ -79,13 +79,13 @@ export default function Login() {
             {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password.message}</p>}
           </div>
 
-          <button type="submit" disabled={loading} className="w-full px-4 py-2 text-white bg-blue-500 rounded-lg">
+          <button type="submit" disabled={loading} className="w-full px-4 py-2 text-white bg-[#d72828] rounded-lg">
             {loading ? "Logging in..." : "Login"}
           </button>
         </form>
 
         <p className="mt-4 text-sm text-center text-gray-600">
-          Don't have an account? <a href="/admin" className="text-blue-500 hover:underline">Register</a>
+          Don't have an account? <a href="/admin" className="text-[#d72828] hover:underline">Register</a>
         </p>
       </div>
     </div>

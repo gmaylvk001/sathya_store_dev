@@ -28,8 +28,8 @@ export default function ContactBEA() {
     icon: FaChartLine,
     title: "Growth Opportunities",
     desc: "Learn, grow and build your career with a fast-growing retail brand.",
-    color: "text-blue-500",
-    bg: "bg-blue-50",
+    color: "text-[#d72828]",
+    bg: "bg-red-50",
   },
   {
     icon: FaStore,
@@ -59,7 +59,7 @@ const opportunities = [
     icon: FaUserTie,
     title: "Sales Executive",
     dept: "Retail Sales",
-    color: "text-blue-600",
+    color: "text-[#d72828]",
   },
   {
     icon: FaUsersGear,
@@ -320,7 +320,7 @@ const opportunities = [
       <div className="relative flex justify-center lg:justify-end">
 
         {/* Curve Background */}
-        <div className="absolute border border-blue-400/40"></div>
+        <div className="absolute border border-[#d72828]/40"></div>
 
         <div className="relative flex justify-end">
   <img
@@ -350,7 +350,7 @@ const opportunities = [
       Why Work With Sathya Stores?
     </h2>
 
-    <div className="w-20 h-1 bg-blue-600 mx-auto mt-3 mb-5 rounded-full"></div>
+    <div className="w-20 h-1 bg-[#d72828] mx-auto mt-3 mb-5 rounded-full"></div>
 
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
 
@@ -389,7 +389,7 @@ const opportunities = [
       Explore Opportunities
     </h2>
 
-    <div className="w-20 h-1 bg-blue-600 mx-auto mt-3 mb-5 rounded-full"></div>
+    <div className="w-20 h-1 bg-[#d72828] mx-auto mt-3 mb-5 rounded-full"></div>
 
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
 
@@ -414,7 +414,7 @@ const opportunities = [
             </p>
 
             <div className="flex justify-center gap-2 mb-3 flex-wrap">
-              <span className="bg-blue-50 text-blue-600 px-3 py-1 rounded-full text-xs font-medium">
+              <span className="bg-red-50 text-[#d72828] px-3 py-1 rounded-full text-xs font-medium">
                 Full Time
               </span>
 
@@ -423,7 +423,7 @@ const opportunities = [
               </span>
             </div>
 
-            <button className="font-semibold text-blue-600 hover:text-blue-800">
+            <button className="font-semibold text-[#d72828] hover:text-[#d72828]">
               Apply Now →
             </button>
           </div>
@@ -446,7 +446,7 @@ const opportunities = [
           Life at Sathya Stores
         </h2>
 
-        <div className="w-16 h-1 bg-blue-600 rounded-full mb-4"></div>
+        <div className="w-16 h-1 bg-[#d72828] rounded-full mb-4"></div>
 
         <p className="text-gray-600 mb-6">
           More than a workplace — <br/>a team growing together.
@@ -486,7 +486,7 @@ const opportunities = [
           Start Your Sathya Stores Journey
         </h2>
 
-        <div className="w-16 h-1 bg-blue-600 rounded-full mx-auto mb-8"></div>
+        <div className="w-16 h-1 bg-[#d72828] rounded-full mx-auto mb-8"></div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
 
