@@ -5,6 +5,8 @@ import {
   syncComboCategoryVisibility,
   isComboStorefrontVisible,
   syncComboLifecycleStatus,
+  normalizeComboImageFilename,
+  upsertComboProduct,
 } from "@/lib/comboOffers";
 
 export async function GET(req) {
@@ -95,7 +97,7 @@ export async function POST(req) {
       offerTitle: body.offerTitle || "",
       ctaContent: body.ctaContent || "",
       socialCaption: body.socialCaption || "",
-      marketingImage: body.marketingImage || "",
+      marketingImage: normalizeComboImageFilename(body.marketingImage || ""),
       originalPrice: Number(body.originalPrice) || 0,
       discountPercent: Number(body.discountPercent) || 0,
       offerPrice: Number(body.offerPrice) || 0,
@@ -106,10 +108,9 @@ export async function POST(req) {
       status: body.publish === false ? "draft" : "active",
     });
 
-    const { upsertComboProduct } = await import(
-      "@/lib/comboOffers/comboOfferService"
-    );
-    const product = await upsertComboProduct(combo);
+    const product = await upsertComboProduct(combo, {
+      images: combo.marketingImage ? [combo.marketingImage] : [],
+    });
 
     return NextResponse.json(
       { success: true, data: combo, product },

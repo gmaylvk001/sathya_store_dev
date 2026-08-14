@@ -38,10 +38,25 @@ export async function GET(request, { params }) {
       return Response.json({ error: "Brand not found" }, { status: 404 });
     }
 
-    // Get products for this brand
+    const brandName = String(brand.brand_name || "").trim();
+    const brandId = String(brand._id);
+    const brandMatch = {
+      $or: [
+        { brand: brandId },
+        { brand: brand._id },
+        ...(brandName
+          ? [
+              { brand: brandName },
+              { brand: new RegExp(`^${brandName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i") },
+            ]
+          : []),
+      ],
+    };
+
+    // Get products for this brand (stored as ObjectId string or brand name)
     const products = await Product.find({
-      brand: brand._id,
-      status: "Active"
+      status: "Active",
+      ...brandMatch,
     });
     
     if (!products || products.length === 0) {

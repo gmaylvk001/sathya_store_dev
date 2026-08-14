@@ -90,6 +90,7 @@ export function useCategoryFilterUrl({
   enabled = true,
   ready = false,
   omitUrlKeys = [],
+  keepParams = [],
 }) {
   const pathname = usePathname();
   const skipWriteRef = useRef(false);
@@ -110,6 +111,7 @@ export function useCategoryFilterUrl({
   }, []);
 
   const omitSet = useMemo(() => new Set(omitUrlKeys), [omitUrlKeys]);
+  const keepSet = useMemo(() => new Set(keepParams), [keepParams]);
 
   const catalogBrands = filterCatalog?.brands ?? brands;
   const catalogGroups = filterCatalog?.filterGroups ?? filterGroups;
@@ -229,7 +231,16 @@ export function useCategoryFilterUrl({
       priceMin,
       priceMax,
     ]);
-    const nextUrl = qs ? `${pathname}?${qs}` : pathname;
+    const nextParams = new URLSearchParams(qs);
+    const currentParams = new URLSearchParams(searchKey);
+    for (const keepKey of keepSet) {
+      const v = currentParams.get(keepKey);
+      if (v != null && v !== "" && !nextParams.has(keepKey)) {
+        nextParams.set(keepKey, v);
+      }
+    }
+    const nextQs = nextParams.toString();
+    const nextUrl = nextQs ? `${pathname}?${nextQs}` : pathname;
     const currentUrl = searchKey ? `${pathname}?${searchKey}` : pathname;
 
     // URL already matches desired state
@@ -249,7 +260,7 @@ export function useCategoryFilterUrl({
     lastSelectionKeyRef.current = key;
     lastWrittenRef.current = nextUrl;
     writingRef.current = true;
-    setSearchKey(qs);
+    setSearchKey(nextQs);
     replaceUrlQuietly(nextUrl);
   }, [
     enabled,
@@ -261,6 +272,7 @@ export function useCategoryFilterUrl({
     pathname,
     searchKey,
     omitSet,
+    keepSet,
   ]);
 
   const parseCurrentUrl = useCallback(

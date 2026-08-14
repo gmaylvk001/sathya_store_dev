@@ -17,6 +17,7 @@ import {
   hasActiveFilterParams,
   normalizeFilterOption,
   slugifyFilter,
+  buildFilterGroupsFromList,
 } from "@/lib/filterUrl";
 import { useCategoryFilterUrl } from "@/hooks/useCategoryFilterUrl";
 import ProductFilters from "@/components/filters/ProductFilters";
@@ -273,11 +274,16 @@ if (activeFilters.filters.length > 0) {
 
       //const res = await fetch(`/api/product/filter/main?${query}`);
       const res = await fetch(`/api/product/filter?${query}`);
-      const { products, pagination: paginationData } = await res.json();
-
-      //console.log('Raw filter Response:', products);
+      const { products, pagination: paginationData, filters } = await res.json();
 
       setProducts(products);
+      const groups = buildFilterGroupsFromList(filters || []);
+      setFilterGroups(groups);
+      setFilterCatalog((prev) =>
+        prev
+          ? { ...prev, filterGroups: { ...prev.filterGroups, ...groups } }
+          : prev
+      );
       
       // Update pagination state
       setPagination({

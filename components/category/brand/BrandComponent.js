@@ -14,6 +14,7 @@ import {
   hasActiveFilterParams,
   normalizeFilterOption,
   slugifyFilter,
+  buildFilterGroupsFromList,
 } from "@/lib/filterUrl";
 import { useCategoryFilterUrl } from "@/hooks/useCategoryFilterUrl";
 import ProductFilters from "@/components/filters/ProductFilters";
@@ -48,6 +49,8 @@ export default function CategoryBrandComponent({ categorySlug, brandSlug }) {
   const [wishlist, setWishlist] = useState([]); 
   const [nofound, setNofound] = useState(false);
   const [brandMap, setBrandMap] = useState({});
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [selectedSubCategory, setSelectedSubCategory] = useState("");
 
   useCategoryFilterUrl({
     selectedFilters,
@@ -87,6 +90,7 @@ export default function CategoryBrandComponent({ categorySlug, brandSlug }) {
  
     try {
       setLoading(true);
+      setFilterUrlReady(false);
       const res = await fetch(`/api/brand/categories/${categorySlug}/brand/${brandSlug}`);
       const data = await res.json();
       //console.log("Initial data fetched:", data);
@@ -172,34 +176,17 @@ export default function CategoryBrandComponent({ categorySlug, brandSlug }) {
     if (categoryData.brand?._id) {
       query.set('brands', categoryData.brand._id);
     }
-  
 
-   // ✅ CATEGORY FILTER (user selected)
-if (selectedFilters.categories.length > 0) {
- 
-  query.set('categoryIds', selectedFilters.categories.join(','));
-} 
+    if (selectedFilters.categories.length > 0) {
+      query.set('categoryIds', selectedFilters.categories.join(','));
+    }
 
-// ✅ SUBCATEGORY FILTER
-if (selectedFilters.subcategories.length > 0) {
-  query.set('subcategoryIds', selectedFilters.subcategories.join(','));
-}
-  
-    // Get current URL path
-    const url = window.location.pathname; 
+    if (selectedFilters.subcategories.length > 0) {
+      query.set('subcategoryIds', selectedFilters.subcategories.join(','));
+    }
 
-    // Split and extract
-    const parts = url.split("/").filter(Boolean); 
-  
-
-    const categorySlugName = parts[2]; // "televisions"
-    const brandSlugName = parts[3];    // "samsung"
-
-    console.log(categorySlugName, brandSlugName);
-
-    // Assign to query or use anywhere
-    query.set('categorySlug', categorySlugName);
-    query.set('brandSlug', brandSlugName);
+    query.set('categorySlug', categorySlug);
+    query.set('brandSlug', brandSlug);
 
     query.set('page', pageNum);
     query.set('limit', itemsPerPage);
@@ -209,12 +196,16 @@ if (selectedFilters.subcategories.length > 0) {
     if (selectedFilters.filters.length > 0) {
       query.set('filters', selectedFilters.filters.join(','));
     }
-    console.log("FINAL QUERY:", query.toString());
     const res = await fetch(`/api/product/filter/category-brand/main?${query}`);
-   
-    const { products, pagination: paginationData } = await res.json();
-console.log("Fetched products:", products);
+    const { products, pagination: paginationData, filters } = await res.json();
     setProducts(products || []);
+    const groups = buildFilterGroupsFromList(filters || []);
+    setFilterGroups(groups);
+    setFilterCatalog((prev) =>
+      prev
+        ? { ...prev, filterGroups: { ...prev.filterGroups, ...groups } }
+        : prev
+    );
 
     if ((!products || products.length === 0) && pageNum === 1) {
       setNofound(true);
@@ -236,7 +227,7 @@ console.log("Fetched products:", products);
   } finally {
     setIsFiltering(false);
   }
-}, [selectedFilters, categoryData.brand]);
+}, [selectedFilters, categoryData.brand, categorySlug, brandSlug]);
 
   // const fetchFilteredProducts = useCallback(async (pageNum = 1) => {
   //   try {
@@ -432,14 +423,12 @@ console.log("Fetched products:", products);
     });
   };
 
-  const handlePriceChange = (values) => {
-    let min = Math.max(1, values[0]);
-    let max = Math.max(1, values[1]);
-
-    // Ensure min never exceeds max
-    if (min > max) {
-      min = max;
-    }
+  const handlePriceChange = (nextValues) => {
+    const lo = priceRange[0] ?? 0;
+    const hi = priceRange[1] ?? 100000;
+    let min = Math.min(hi, Math.max(lo, nextValues[0]));
+    let max = Math.min(hi, Math.max(lo, nextValues[1]));
+    if (min > max) min = max;
 
     // ###### B2125 ###### //
     // if (min >= max) {
@@ -486,12 +475,69 @@ console.log("Fetched products:", products);
     setValues([selectedFilters.price.min, selectedFilters.price.max]);
   }, [selectedFilters.price.min, selectedFilters.price.max]);
 
+  const categoryTreeForFilters = categoryData.categories || [];
+
+  const findCategoryNode = (nodes, predicate) => {
+    for (const node of nodes || []) {
+      if (predicate(node)) return node;
+      const nested = findCategoryNode(node.subCategories || node.subcategories, predicate);
+      if (nested) return nested;
+    }
+    return null;
+  };
+
+  useEffect(() => {
+    const catId = selectedFilters.categories?.[0];
+    const subId = selectedFilters.subcategories?.[0];
+    const catNode = catId
+      ? findCategoryNode(categoryTreeForFilters, (n) => String(n._id) === String(catId))
+      : null;
+    const subNode = subId
+      ? findCategoryNode(categoryTreeForFilters, (n) => String(n._id) === String(subId))
+      : null;
+    setSelectedCategory(catNode?.category_name || "");
+    setSelectedSubCategory(subNode?.category_name || "");
+  }, [selectedFilters.categories, selectedFilters.subcategories, categoryData.categories]);
+
+  const handleSelectCategory = (name) => {
+    setSelectedCategory(name || "");
+    setSelectedSubCategory("");
+    if (!name) {
+      setSelectedFilters((prev) => ({ ...prev, categories: [], subcategories: [] }));
+      return;
+    }
+    const node = findCategoryNode(
+      categoryTreeForFilters,
+      (n) => n.category_name === name
+    );
+    setSelectedFilters((prev) => ({
+      ...prev,
+      categories: node?._id ? [String(node._id)] : [],
+      subcategories: [],
+    }));
+  };
+
+  const handleSelectSubCategory = (name) => {
+    setSelectedSubCategory(name || "");
+    if (!name) {
+      setSelectedFilters((prev) => ({ ...prev, subcategories: [] }));
+      return;
+    }
+    const node = findCategoryNode(
+      categoryTreeForFilters,
+      (n) => n.category_name === name
+    );
+    setSelectedFilters((prev) => ({
+      ...prev,
+      subcategories: node?._id ? [String(node._id)] : [],
+    }));
+  };
+
 
   useEffect(() => {
     if (categoryData.brand && filterUrlReady) {
       if (skipNextFilterFetch.current) {
         skipNextFilterFetch.current = false;
-        return;
       }
       fetchFilteredProducts(1);
     }
@@ -505,6 +551,8 @@ console.log("Fetched products:", products);
       price: { min: priceRange[0], max: priceRange[1] },
       filters: []
     });
+    setSelectedCategory("");
+    setSelectedSubCategory("");
   };
 
   const handlePageChange = (page) => {
@@ -606,7 +654,7 @@ console.log("Fetched products:", products);
       {/* Breadcrumb */}
     
 
-      {!nofound && products.length > 0 ? (
+      {categoryData.brand ? (
         <>
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
             <div className="lg:col-span-1 space-y-6">
@@ -746,9 +794,13 @@ console.log("Fetched products:", products);
               priceRange={priceRange}
               values={values}
               setValues={setValues}
-              categoryTree={categoryData.categories || []}
-              showCategories={false}
+              categoryTree={categoryTreeForFilters}
+              showCategories={categoryTreeForFilters.length > 0}
               showBrands={false}
+              selectedCategory={selectedCategory}
+              setSelectedCategory={handleSelectCategory}
+              selectedSubCategory={selectedSubCategory}
+              setSelectedSubCategory={handleSelectSubCategory}
               isFilterPanelOpen={isFilterPanelOpen}
               setIsFilterPanelOpen={setIsFilterPanelOpen}
             />

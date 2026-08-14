@@ -136,6 +136,7 @@ export default function ImageColumnsConfigForm({
   onDeleteSet,
   onBackToList,
   onSaved,
+  apiBase = "/api/category-image-columns",
 }) {
   const isListMode = !instanceId;
   const [name, setName] = useState("");
@@ -165,7 +166,7 @@ export default function ImageColumnsConfigForm({
     setError("");
     try {
       const res = await fetch(
-        `/api/category-image-columns?instanceId=${encodeURIComponent(setInstanceId)}`,
+        `${apiBase}?instanceId=${encodeURIComponent(setInstanceId)}`,
         { method: "DELETE" }
       );
       const data = await res.json();
@@ -188,7 +189,7 @@ export default function ImageColumnsConfigForm({
       setError("");
       try {
         const res = await fetch(
-          `/api/category-image-columns?instanceId=${instanceId}`
+          `${apiBase}?instanceId=${instanceId}`
         );
         const data = await res.json();
         if (data.success && data.data) {
@@ -288,7 +289,7 @@ export default function ImageColumnsConfigForm({
         if (s.imageFile) fd.append(`image_${s.slot}`, s.imageFile);
       });
 
-      const res = await fetch("/api/category-image-columns", {
+      const res = await fetch(apiBase, {
         method: "POST",
         body: fd,
       });
@@ -333,7 +334,7 @@ export default function ImageColumnsConfigForm({
           <button
             type="button"
             onClick={onAddNew}
-            className="shrink-0 inline-flex items-center gap-1.5 rounded-lg bg-[#d72828] px-3 py-2 text-sm font-medium text-white hover:bg-[#b82222]"
+            className="shrink-0 inline-flex items-center gap-1.5 rounded-lg bg-[#ED1C24] px-3 py-2 text-sm font-medium text-white hover:bg-[#C4161D]"
           >
             <Icon icon="mdi:plus" className="text-base" />
             ADD NEW
@@ -370,7 +371,7 @@ export default function ImageColumnsConfigForm({
                   <button
                     type="button"
                     onClick={() => onEditSet?.(s.instanceId)}
-                    className="text-sm font-medium text-[#d72828] hover:underline"
+                    className="text-sm font-medium text-[#ED1C24] hover:underline"
                   >
                     Edit
                   </button>
@@ -394,7 +395,7 @@ export default function ImageColumnsConfigForm({
   if (loading) {
     return (
       <div className="flex justify-center py-10">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#d72828]" />
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#ED1C24]" />
       </div>
     );
   }
@@ -421,7 +422,7 @@ export default function ImageColumnsConfigForm({
         <button
           type="button"
           onClick={onAddNew}
-          className="shrink-0 inline-flex items-center gap-1.5 rounded-lg bg-[#d72828] px-3 py-2 text-sm font-medium text-white hover:bg-[#b82222]"
+          className="shrink-0 inline-flex items-center gap-1.5 rounded-lg bg-[#ED1C24] px-3 py-2 text-sm font-medium text-white hover:bg-[#C4161D]"
         >
           <Icon icon="mdi:plus" className="text-base" />
           ADD NEW
@@ -461,7 +462,7 @@ export default function ImageColumnsConfigForm({
                 onClick={() => changeLayout(opt.id)}
                 className={`rounded-xl border-2 p-3 text-left transition-colors ${
                   selected
-                    ? "border-[#d72828] bg-red-50/40"
+                    ? "border-[#ED1C24] bg-red-50/40"
                     : "border-gray-200 hover:border-gray-300 bg-white"
                 }`}
               >
@@ -566,7 +567,7 @@ export default function ImageColumnsConfigForm({
         <button
           type="submit"
           disabled={saving}
-          className="rounded-lg bg-[#d72828] px-4 py-2 text-sm font-medium text-white hover:bg-[#b82222] disabled:opacity-60"
+          className="rounded-lg bg-[#ED1C24] px-4 py-2 text-sm font-medium text-white hover:bg-[#C4161D] disabled:opacity-60"
         >
           {saving ? "Saving…" : "Save"}
         </button>

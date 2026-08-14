@@ -12,6 +12,7 @@ import CategorySingleBannerProducts from "@/models/categorySingleBannerProducts"
 import CategoryBrandCarousel from "@/models/categoryBrandCarousel";
 import CategoryImageHotspotBanner from "@/models/categoryImageHotspotBanner";
 import CategoryContent from "@/models/categoryContent";
+import CategorySplitBanner from "@/models/categorySplitBanner";
 import CategoryTopBanner from "@/models/categoryTopbanner";
 import {
   allowsMultipleInstances,
@@ -171,6 +172,16 @@ export async function POST(req, { params }) {
         status: "active",
       });
       configId = config._id;
+    } else if (type === COMPONENT_TYPES.SPLIT_BANNER) {
+      const config = await CategorySplitBanner.create({
+        instanceId,
+        pageId: page._id,
+        categoryId: page.categoryId,
+        bannerCount: 1,
+        banners: [],
+        status: "active",
+      });
+      configId = config._id;
     }
 
     const instance = {
@@ -265,6 +276,7 @@ export async function DELETE(req, { params }) {
       [COMPONENT_TYPES.BRAND_CAROUSEL]: CategoryBrandCarousel,
       [COMPONENT_TYPES.IMAGE_HOTSPOT_BANNER]: CategoryImageHotspotBanner,
       [COMPONENT_TYPES.CATEGORY_CONTENT]: CategoryContent,
+      [COMPONENT_TYPES.SPLIT_BANNER]: CategorySplitBanner,
     };
 
     if (instance.type === COMPONENT_TYPES.TOP_BANNER) {

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Icon } from "@iconify/react";
+import { comboImagePublicUrl } from "@/lib/comboOffers/imagePaths";
 
 export default function ComboOffersList() {
   const [combos, setCombos] = useState([]);
@@ -63,6 +64,9 @@ export default function ComboOffersList() {
     };
     return map[status] || "bg-gray-100 text-gray-600";
   };
+
+  const thumbFor = (c) =>
+    comboImagePublicUrl(c.marketingImage || c.productId?.images?.[0] || "");
 
   return (
     <div className="py-6">
@@ -133,55 +137,83 @@ export default function ComboOffersList() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {combos.map((c) => (
-                  <tr key={c._id} className="hover:bg-gray-50/80">
-                    <td className="px-4 py-3">
-                      <div className="font-medium text-gray-900">{c.name || c.offerTitle}</div>
-                      <div className="text-xs text-gray-500 mt-0.5">{c.purpose}</div>
-                    </td>
-                    <td className="px-4 py-3 text-gray-700">
-                      {(c.productIds || []).length} items
-                    </td>
-                    <td className="px-4 py-3">
-                      <div>₹{c.offerPrice}</div>
-                      <div className="text-xs text-gray-500 line-through">
-                        ₹{c.originalPrice}
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 text-xs text-gray-600 whitespace-nowrap">
-                      {c.startDate ? new Date(c.startDate).toLocaleDateString() : "—"}
-                      {" → "}
-                      {c.endDate ? new Date(c.endDate).toLocaleDateString() : "—"}
-                    </td>
-                    <td className="px-4 py-3">{c.comboStock}</td>
-                    <td className="px-4 py-3">
-                      <span
-                        className={`inline-block px-2 py-0.5 rounded text-xs font-medium capitalize ${statusBadge(
-                          c.lifecycleStatus || c.status
-                        )}`}
-                      >
-                        {(c.lifecycleStatus || c.status || "").replace(/_/g, " ")}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        <Link
-                          href={`/admin/combo-offers/${c._id}`}
-                          className="text-blue-600 hover:underline"
+                {combos.map((c) => {
+                  const thumb = thumbFor(c);
+                  return (
+                    <tr key={c._id} className="hover:bg-gray-50/80">
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-3">
+                          {thumb ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={thumb}
+                              alt=""
+                              className="w-12 h-12 object-contain rounded border bg-white"
+                            />
+                          ) : (
+                            <div className="w-12 h-12 rounded border bg-gray-100" />
+                          )}
+                          <div>
+                            <div className="font-medium text-gray-900">
+                              {c.name || c.offerTitle}
+                            </div>
+                            <div className="text-xs text-gray-500 mt-0.5">
+                              {c.purpose}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-gray-700">
+                        {(c.productIds || []).length} items
+                      </td>
+                      <td className="px-4 py-3">
+                        <div>₹{c.offerPrice}</div>
+                        <div className="text-xs text-gray-500 line-through">
+                          ₹{c.originalPrice}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-xs text-gray-600 whitespace-nowrap">
+                        {c.startDate
+                          ? new Date(c.startDate).toLocaleDateString()
+                          : "—"}
+                        {" → "}
+                        {c.endDate
+                          ? new Date(c.endDate).toLocaleDateString()
+                          : "—"}
+                      </td>
+                      <td className="px-4 py-3">{c.comboStock}</td>
+                      <td className="px-4 py-3">
+                        <span
+                          className={`inline-block px-2 py-0.5 rounded text-xs font-medium capitalize ${statusBadge(
+                            c.lifecycleStatus || c.status
+                          )}`}
                         >
-                          Edit
-                        </Link>
-                        <button
-                          type="button"
-                          onClick={() => handleDelete(c._id)}
-                          className="text-red-600 hover:underline"
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                          {(c.lifecycleStatus || c.status || "").replace(
+                            /_/g,
+                            " "
+                          )}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2">
+                          <Link
+                            href={`/admin/combo-offers/${c._id}`}
+                            className="text-blue-600 hover:underline"
+                          >
+                            Edit
+                          </Link>
+                          <button
+                            type="button"
+                            onClick={() => handleDelete(c._id)}
+                            className="text-red-600 hover:underline"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

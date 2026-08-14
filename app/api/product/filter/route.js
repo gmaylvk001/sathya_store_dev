@@ -1,8 +1,7 @@
 import dbConnect from "@/lib/db";
 import Product from "@/models/product";
 import ProductFilter from "@/models/ecom_productfilter_info";
-import Filter from "@/models/ecom_filter_infos";
-import FilterGroup from "@/models/ecom_filter_group_infos";
+import { getFiltersForProductIds } from "@/lib/availableProductFilters";
 
 export async function GET(req) {
   try {
@@ -155,42 +154,7 @@ query.$or = [
     }
     
     const allProductIds = await Product.distinct('_id', query);
-
-    const allProductFilters = await ProductFilter.find({
-      product_id: { $in: allProductIds }
-    }).lean();
-
-    const uniqueFilterIds = [
-      ...new Set(allProductFilters.map(pf => pf.filter_id.toString()))
-    ];
-
-    const filtersWithGroup = await Filter.find({
-      _id: { $in: uniqueFilterIds }
-    })
-      .populate({
-        path: 'filter_group',
-        select: 'filtergroup_name',
-        model: FilterGroup
-      })
-      .lean();
-
-
-    const filterGroups = {};
-    filtersWithGroup.forEach(filter => {
-      const groupName = filter.filter_group?.filtergroup_name || 'Other';
-      if (!filterGroups[groupName]) {
-        filterGroups[groupName] = {
-          _id: groupName,
-          name: groupName,
-          filters: []
-        };
-      }
-      filterGroups[groupName].filters.push({
-        _id: filter._id,
-        filter_name: filter.filter_name,
-        filter_group_name: groupName
-      });
-    });
+    const filters = await getFiltersForProductIds(allProductIds);
 
     return Response.json({
       products,
@@ -201,7 +165,7 @@ query.$or = [
         hasNext: page < totalPages,
         hasPrev: page > 1,
       },
-      filterGroups  
+      filters,
     });
 
       

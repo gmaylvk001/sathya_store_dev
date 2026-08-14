@@ -317,7 +317,15 @@ const fetchFilteredProducts = useCallback(async (categoryData, pageNum = 1, init
       const query = new URLSearchParams();
 
       // Category IDs correctly based on selected category/subcategory
-      let categoryIds = categoryData.allCategoryIds;
+      let categoryIds = categoryData.allCategoryIds || [];
+
+      // Root categories with no children (e.g. Combo Offers) must include themselves
+      if (
+        (!categoryIds || categoryIds.length === 0) &&
+        categoryData.main_category?._id
+      ) {
+        categoryIds = [categoryData.main_category._id];
+      }
 
       if (selectedSubCategory || selectedCategory) {
         const activeName = selectedSubCategory || selectedCategory;

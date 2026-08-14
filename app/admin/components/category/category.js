@@ -965,11 +965,11 @@ export default function CategoryComponent() {
   };
 
   const fieldClass =
-    "w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm bg-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#d72828]/20 focus:border-[#d72828] transition";
+    "w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm bg-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#ED1C24]/20 focus:border-[#ED1C24] transition";
   const labelClass = "block text-sm font-medium text-gray-700 mb-1.5";
   const sectionClass = "rounded-xl border border-gray-200 bg-gray-50/60 p-4 space-y-4";
   const fileInputClass =
-    "block w-full text-sm text-gray-600 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-[#d72828] hover:file:bg-red-100 cursor-pointer";
+    "block w-full text-sm text-gray-600 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-[#ED1C24] hover:file:bg-red-100 cursor-pointer";
 
   const resetNewCategory = () => {
     setNewCategory({
@@ -1027,7 +1027,7 @@ export default function CategoryComponent() {
             <div className="flex flex-wrap items-center gap-2">
               <button
                 onClick={() => setIsModalOpen(true)}
-                className="inline-flex items-center gap-1.5 bg-[#d72828] hover:bg-[#b82222] text-white px-4 py-2.5 rounded-lg text-sm font-medium shadow-sm transition"
+                className="inline-flex items-center gap-1.5 bg-[#ED1C24] hover:bg-[#C4161D] text-white px-4 py-2.5 rounded-lg text-sm font-medium shadow-sm transition"
               >
                 <Icon icon="mdi:plus" className="text-lg" />
                 Add Category
@@ -1175,7 +1175,7 @@ export default function CategoryComponent() {
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[92vh] flex flex-col overflow-hidden border border-gray-100">
             <div className="flex items-start justify-between gap-4 px-6 py-5 border-b border-gray-100 bg-gradient-to-r from-red-50/80 to-white">
               <div className="flex items-start gap-3">
-                <div className="mt-0.5 h-10 w-10 rounded-xl bg-[#d72828] text-white flex items-center justify-center shadow-sm">
+                <div className="mt-0.5 h-10 w-10 rounded-xl bg-[#ED1C24] text-white flex items-center justify-center shadow-sm">
                   <Icon icon="mdi:folder-plus-outline" className="text-xl" />
                 </div>
                 <div>
@@ -1202,12 +1202,12 @@ export default function CategoryComponent() {
               <div className="px-6 py-5 overflow-y-auto flex-1 space-y-5">
                 <section className={sectionClass}>
                   <div className="flex items-center gap-2 mb-1">
-                    <Icon icon="mdi:tag-outline" className="text-[#d72828]" />
+                    <Icon icon="mdi:tag-outline" className="text-[#ED1C24]" />
                     <h3 className="text-sm font-semibold text-gray-900">Basic details</h3>
                   </div>
                   <div>
                     <label htmlFor="category_name" className={labelClass}>
-                      Category Name <span className="text-[#d72828]">*</span>
+                      Category Name <span className="text-[#ED1C24]">*</span>
                     </label>
                     <input
                       name="category_name"
@@ -1234,7 +1234,7 @@ export default function CategoryComponent() {
                           }
                           className={`rounded-lg border px-3 py-2.5 text-sm font-medium transition ${
                             newCategory.status === s
-                              ? "border-[#d72828] bg-red-50 text-[#d72828]"
+                              ? "border-[#ED1C24] bg-red-50 text-[#ED1C24]"
                               : "border-gray-200 bg-white text-gray-600 hover:border-gray-300"
                           }`}
                         >
@@ -1247,12 +1247,12 @@ export default function CategoryComponent() {
 
                 <section className={sectionClass}>
                   <div className="flex items-center gap-2 mb-1">
-                    <Icon icon="mdi:search-web" className="text-[#d72828]" />
+                    <Icon icon="mdi:search-web" className="text-[#ED1C24]" />
                     <h3 className="text-sm font-semibold text-gray-900">SEO</h3>
                   </div>
                   <div>
                     <label htmlFor="meta_title" className={labelClass}>
-                      Meta Title <span className="text-[#d72828]">*</span>
+                      Meta Title <span className="text-[#ED1C24]">*</span>
                     </label>
                     <input
                       name="meta_title"
@@ -1294,7 +1294,7 @@ export default function CategoryComponent() {
 
                 <section className={sectionClass}>
                   <div className="flex items-center gap-2 mb-1">
-                    <Icon icon="mdi:file-tree-outline" className="text-[#d72828]" />
+                    <Icon icon="mdi:file-tree-outline" className="text-[#ED1C24]" />
                     <h3 className="text-sm font-semibold text-gray-900">
                       Hierarchy & media
                     </h3>
@@ -1308,7 +1308,7 @@ export default function CategoryComponent() {
                       <div
                         className={`p-2.5 cursor-pointer rounded-lg text-sm font-medium transition ${
                           newCategory.parentid === "none"
-                            ? "bg-red-50 text-[#d72828] border border-red-100"
+                            ? "bg-red-50 text-[#ED1C24] border border-red-100"
                             : "text-gray-800 hover:bg-gray-50"
                         }`}
                         onClick={() =>
@@ -1394,7 +1394,7 @@ export default function CategoryComponent() {
 
                 <section className={sectionClass}>
                   <div className="flex items-center gap-2 mb-1">
-                    <Icon icon="mdi:filter-variant" className="text-[#d72828]" />
+                    <Icon icon="mdi:filter-variant" className="text-[#ED1C24]" />
                     <h3 className="text-sm font-semibold text-gray-900">
                       Filters & content
                     </h3>
@@ -1423,11 +1423,11 @@ export default function CategoryComponent() {
                           ...base,
                           borderRadius: "0.5rem",
                           minHeight: "42px",
-                          borderColor: state.isFocused ? "#d72828" : "#d1d5db",
+                          borderColor: state.isFocused ? "#ED1C24" : "#d1d5db",
                           boxShadow: state.isFocused
                             ? "0 0 0 2px rgba(215,40,40,0.15)"
                             : "none",
-                          "&:hover": { borderColor: "#d72828" },
+                          "&:hover": { borderColor: "#ED1C24" },
                         }),
                         groupHeading: (base) => ({
                           ...base,
@@ -1488,7 +1488,7 @@ export default function CategoryComponent() {
                 </button>
                 <button
                   type="submit"
-                  className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-[#d72828] hover:bg-[#b82222] text-white px-5 py-2.5 text-sm font-semibold shadow-sm transition"
+                  className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-[#ED1C24] hover:bg-[#C4161D] text-white px-5 py-2.5 text-sm font-semibold shadow-sm transition"
                 >
                   <Icon icon="mdi:plus" className="text-lg" />
                   Add Category
@@ -1546,12 +1546,12 @@ export default function CategoryComponent() {
 
                 <section className={sectionClass}>
                   <div className="flex items-center gap-2 mb-1">
-                    <Icon icon="mdi:tag-outline" className="text-[#d72828]" />
+                    <Icon icon="mdi:tag-outline" className="text-[#ED1C24]" />
                     <h3 className="text-sm font-semibold text-gray-900">Basic details</h3>
                   </div>
                   <div>
                     <label htmlFor="update_category_name" className={labelClass}>
-                      Category Name <span className="text-[#d72828]">*</span>
+                      Category Name <span className="text-[#ED1C24]">*</span>
                     </label>
                     <input
                       name="category_name"
@@ -1586,7 +1586,7 @@ export default function CategoryComponent() {
                           }
                           className={`rounded-lg border px-3 py-2.5 text-sm font-medium transition ${
                             categoryToUpdate.status === s
-                              ? "border-[#d72828] bg-red-50 text-[#d72828]"
+                              ? "border-[#ED1C24] bg-red-50 text-[#ED1C24]"
                               : "border-gray-200 bg-white text-gray-600 hover:border-gray-300"
                           }`}
                         >
@@ -1599,7 +1599,7 @@ export default function CategoryComponent() {
 
                 <section className={sectionClass}>
                   <div className="flex items-center gap-2 mb-1">
-                    <Icon icon="mdi:search-web" className="text-[#d72828]" />
+                    <Icon icon="mdi:search-web" className="text-[#ED1C24]" />
                     <h3 className="text-sm font-semibold text-gray-900">SEO</h3>
                   </div>
                   <div>
@@ -1662,7 +1662,7 @@ export default function CategoryComponent() {
 
                 <section className={sectionClass}>
                   <div className="flex items-center gap-2 mb-1">
-                    <Icon icon="mdi:file-tree-outline" className="text-[#d72828]" />
+                    <Icon icon="mdi:file-tree-outline" className="text-[#ED1C24]" />
                     <h3 className="text-sm font-semibold text-gray-900">
                       Hierarchy & media
                     </h3>
@@ -1673,7 +1673,7 @@ export default function CategoryComponent() {
                       <div
                         className={`p-2.5 cursor-pointer rounded-lg text-sm font-medium transition ${
                           categoryToUpdate.parentid === "none"
-                            ? "bg-red-50 text-[#d72828] border border-red-100"
+                            ? "bg-red-50 text-[#ED1C24] border border-red-100"
                             : "text-gray-800 hover:bg-gray-50"
                         }`}
                         onClick={() =>
@@ -1804,7 +1804,7 @@ export default function CategoryComponent() {
 
                 <section className={sectionClass}>
                   <div className="flex items-center gap-2 mb-1">
-                    <Icon icon="mdi:filter-variant" className="text-[#d72828]" />
+                    <Icon icon="mdi:filter-variant" className="text-[#ED1C24]" />
                     <h3 className="text-sm font-semibold text-gray-900">
                       Filters & content
                     </h3>
@@ -1833,11 +1833,11 @@ export default function CategoryComponent() {
                           ...base,
                           borderRadius: "0.5rem",
                           minHeight: "42px",
-                          borderColor: state.isFocused ? "#d72828" : "#d1d5db",
+                          borderColor: state.isFocused ? "#ED1C24" : "#d1d5db",
                           boxShadow: state.isFocused
                             ? "0 0 0 2px rgba(215,40,40,0.15)"
                             : "none",
-                          "&:hover": { borderColor: "#d72828" },
+                          "&:hover": { borderColor: "#ED1C24" },
                         }),
                         groupHeading: (base) => ({
                           ...base,
@@ -1900,7 +1900,7 @@ export default function CategoryComponent() {
                 </button>
                 <button
                   type="submit"
-                  className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-[#d72828] hover:bg-[#b82222] text-white px-5 py-2.5 text-sm font-semibold shadow-sm transition"
+                  className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-[#ED1C24] hover:bg-[#C4161D] text-white px-5 py-2.5 text-sm font-semibold shadow-sm transition"
                 >
                   <Icon icon="mdi:content-save-outline" className="text-lg" />
                   Update Category
@@ -1916,7 +1916,7 @@ export default function CategoryComponent() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-[2px]">
           <div className="bg-white p-6 rounded-2xl shadow-2xl w-full max-w-md border border-gray-100">
             <div className="flex items-start gap-3 mb-4">
-              <div className="h-10 w-10 rounded-xl bg-red-50 text-[#d72828] flex items-center justify-center">
+              <div className="h-10 w-10 rounded-xl bg-red-50 text-[#ED1C24] flex items-center justify-center">
                 <Icon icon="mdi:alert-outline" className="text-xl" />
               </div>
               <div>
@@ -1939,7 +1939,7 @@ export default function CategoryComponent() {
               </button>
               <button
                 onClick={() => handleDeleteCategory(categoryToDelete)}
-                className="rounded-lg bg-[#d72828] hover:bg-[#b82222] px-4 py-2.5 text-sm font-semibold text-white transition"
+                className="rounded-lg bg-[#ED1C24] hover:bg-[#C4161D] px-4 py-2.5 text-sm font-semibold text-white transition"
               >
                 Yes, Delete
               </button>

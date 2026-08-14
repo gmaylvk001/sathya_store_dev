@@ -10,8 +10,11 @@ import {
 import Product from "@/models/product";
 
 /**
- * POST multipart: company logo upload
- * Fields: logo (file)
+ * POST multipart:
+ * - action=logo → company logo
+ * - action=regenerate-image → AI/SVG marketing banner
+ * - action=marketing-image → manual admin image upload
+ * - action=pricing → recalculate prices
  */
 export async function POST(req) {
   try {
@@ -45,6 +48,48 @@ export async function POST(req) {
       return NextResponse.json({ success: true, data: { marketingImage } });
     }
 
+    if (action === "marketing-image") {
+      const file = formData.get("image");
+      if (!file || typeof file === "string") {
+        return NextResponse.json(
+          { success: false, error: "No image file" },
+          { status: 400 }
+        );
+      }
+
+      const uploadDir = path.join(process.cwd(), "public", "uploads", "products");
+      if (!fs.existsSync(uploadDir)) {
+        await fs.promises.mkdir(uploadDir, { recursive: true });
+      }
+
+      const originalName = typeof file.name === "string" ? file.name : "image.png";
+      const extMatch = originalName.match(/\.[a-zA-Z0-9]+$/);
+      const ext = extMatch ? extMatch[0].toLowerCase() : ".png";
+      const safeBase = String(originalName)
+        .replace(/\.[^.]+$/, "")
+        .replace(/\s+/g, "-")
+        .replace(/[^a-zA-Z0-9._-]/g, "")
+        .slice(0, 80) || "image";
+      const filename = `combo-${Date.now()}-${safeBase}${ext}`;
+      const buffer = Buffer.from(await file.arrayBuffer());
+      if (!buffer.length) {
+        return NextResponse.json(
+          { success: false, error: "Empty image file" },
+          { status: 400 }
+        );
+      }
+      await writeFile(path.join(uploadDir, filename), buffer);
+
+      return NextResponse.json({
+        success: true,
+        data: {
+          // Product.images / ComboOffer.marketingImage store filename only
+          marketingImage: filename,
+          url: `/uploads/products/${filename}`,
+        },
+      });
+    }
+
     const file = formData.get("logo");
     if (!file || typeof file.name !== "string") {
       return NextResponse.json(
@@ -53,7 +98,12 @@ export async function POST(req) {
       );
     }
 
-    const uploadDir = path.join(process.cwd(), "public", "uploads", "combo-branding");
+    const uploadDir = path.join(
+      process.cwd(),
+      "public",
+      "uploads",
+      "combo-branding"
+    );
     if (!fs.existsSync(uploadDir)) {
       await fs.promises.mkdir(uploadDir, { recursive: true });
     }

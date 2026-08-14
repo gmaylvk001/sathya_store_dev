@@ -16,6 +16,7 @@ export default function AdminSider({ collapsed }) {
     { icon: 'material-symbols:dashboard', label: 'Dashboard', link: 'dashboard' },
     { icon: 'material-symbols:category', label: 'Category', link: 'category' },
     { icon: 'mdi:view-dashboard-edit-outline', label: 'Category Pages', link: 'category-pages' },
+    { icon: 'mdi:tag-multiple-outline', label: 'Brand Pages', link: 'brand-pages' },
     {
       icon: 'mdi:package-variant-closed',
       label: 'Product',

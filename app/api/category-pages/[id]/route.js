@@ -12,6 +12,7 @@ import CategorySingleBannerProducts from "@/models/categorySingleBannerProducts"
 import CategoryBrandCarousel from "@/models/categoryBrandCarousel";
 import CategoryImageHotspotBanner from "@/models/categoryImageHotspotBanner";
 import CategoryContent from "@/models/categoryContent";
+import CategorySplitBanner from "@/models/categorySplitBanner";
 import { PAGE_TYPE_LABELS } from "@/lib/categoryPageComponents/registry";
 
 export async function GET(_req, { params }) {
@@ -80,7 +81,14 @@ export async function DELETE(_req, { params }) {
         { status: 404 }
       );
     }
-    await CategoryTopBanner.deleteOne({ categoryId: page.categoryId });
+    if (page.pageType === "category_brand") {
+      await CategoryTopBanner.deleteMany({ pageId: page._id });
+    } else {
+      await CategoryTopBanner.deleteOne({
+        categoryId: page.categoryId,
+        pageId: { $exists: false },
+      });
+    }
     await CategoryImageCarousel.deleteMany({ pageId: page._id });
     await CategoryProductCarousel.deleteMany({ pageId: page._id });
     await CategoryBannerSideProducts.deleteMany({ pageId: page._id });
@@ -91,6 +99,7 @@ export async function DELETE(_req, { params }) {
     await CategoryBrandCarousel.deleteMany({ pageId: page._id });
     await CategoryImageHotspotBanner.deleteMany({ pageId: page._id });
     await CategoryContent.deleteMany({ pageId: page._id });
+    await CategorySplitBanner.deleteMany({ pageId: page._id });
     await CategoryPage.findByIdAndDelete(id);
     return NextResponse.json({ success: true });
   } catch (err) {

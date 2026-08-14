@@ -5,6 +5,7 @@ import ProductFilter from "@/models/ecom_productfilter_info";
 import Filter from "@/models/ecom_filter_infos";
 import FilterGroup from "@/models/ecom_filter_group_infos";
 import ecom_category_info from "@/models/ecom_category_info";
+import { brandMatchQuery } from "@/lib/brandMatchQuery";
  
 async function getCategoryTree(parentId, productCategoryIds = null) {
   const categories = await ecom_category_info.find({ parentid: parentId }).lean();
@@ -69,13 +70,17 @@ export async function GET(request, { params }) {
  
     // Get products ONLY from the current category tree
     const products = await Product.find({
-      brand: brand._id.toString(),
-      $or: [
-        { category: { $in: allCategoryIdsInTree } },
-        { sub_category: { $in: allCategoryIdsInTree } }
+      status: "Active",
+      $and: [
+        brandMatchQuery(brand),
+        {
+          $or: [
+            { category: { $in: allCategoryIdsInTree } },
+            { sub_category: { $in: allCategoryIdsInTree } }
+          ],
+        },
       ],
-      status: "Active"
-    }).populate('brand', 'brand_name brand_slug');
+    });
    
     if (!products || products.length === 0) {
       return Response.json({

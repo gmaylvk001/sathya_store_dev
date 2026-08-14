@@ -12,9 +12,9 @@ import {
 
 /** Sathya Stores brand */
 const BRAND = {
-  red: "#d72828",
-  redDark: "#b82222",
-  yellow: "#fbe002",
+  red: "#ED1C24",
+  redDark: "#C4161D",
+  yellow: "#FFF200",
   yellowSoft: "#fff8c4",
   cream: "#fffdf5",
   ink: "#1a1a1a",
@@ -56,6 +56,20 @@ function findFilterMeta(filterGroups, filterId) {
 
 function findBrand(brands, brandId) {
   return (brands || []).find((b) => String(b._id) === String(brandId));
+}
+
+function clampRangeValues(values, min, max) {
+  const lo = Number.isFinite(Number(min)) ? Number(min) : 0;
+  const hi =
+    Number.isFinite(Number(max)) && Number(max) > lo ? Number(max) : lo + 1;
+  let a = Number(values?.[0]);
+  let b = Number(values?.[1]);
+  if (!Number.isFinite(a)) a = lo;
+  if (!Number.isFinite(b)) b = hi;
+  a = Math.min(hi, Math.max(lo, a));
+  b = Math.min(hi, Math.max(lo, b));
+  if (a > b) a = b;
+  return [a, b];
 }
 
 function findCategoryName(categories, categoryId) {
@@ -144,7 +158,7 @@ function FilterChip({ label, onRemove }) {
   );
 }
 
-function CheckRow({ checked, onChange, label, count }) {
+function CheckRow({ checked, onChange, label }) {
   return (
     <label
       className={`flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-2 py-1.5 transition-colors ${
@@ -187,9 +201,6 @@ function CheckRow({ checked, onChange, label, count }) {
         }`}
       >
         {label}
-        {count != null ? (
-          <span className="ml-1 text-xs text-gray-400">({count})</span>
-        ) : null}
       </span>
     </label>
   );
@@ -230,7 +241,7 @@ function RadioRow({ checked, onChange, name, label }) {
       </span>
       <span
         className={`text-sm ${
-          checked ? "font-semibold text-[#d72828]" : "text-gray-600"
+          checked ? "font-semibold text-[#ED1C24]" : "text-gray-600"
         }`}
       >
         {label}
@@ -270,9 +281,13 @@ export default function ProductFilters({
   const [expandedFilters, setExpandedFilters] = useState({});
   const [showAllFilterGroups, setShowAllFilterGroups] = useState(false);
 
-  const MIN = priceRange[0];
-  const MAX = Math.max(priceRange[1], priceRange[0] + 1);
+  const MIN = Number.isFinite(Number(priceRange[0])) ? Number(priceRange[0]) : 0;
+  const MAX = Math.max(
+    Number.isFinite(Number(priceRange[1])) ? Number(priceRange[1]) : MIN + 1,
+    MIN + 1
+  );
   const STEP = 100;
+  const sliderValues = clampRangeValues(values, MIN, MAX);
 
   const sortedFilterGroups = getSortedFilterGroups(filterGroups);
   const visibleFilterGroups = getVisibleFilterGroups(
@@ -427,12 +442,14 @@ export default function ProductFilters({
       <SectionHeader title="Price Range" />
       <div className="px-3.5 pb-4 pt-1">
         <ReactRange
-          values={values}
+          values={sliderValues}
           step={STEP}
           min={MIN}
           max={MAX}
-          onChange={(newValues) => setValues?.(newValues)}
-          onFinalChange={(newValues) => onPriceChange?.(newValues)}
+          onChange={(newValues) => setValues?.(clampRangeValues(newValues, MIN, MAX))}
+          onFinalChange={(newValues) =>
+            onPriceChange?.(clampRangeValues(newValues, MIN, MAX))
+          }
           renderTrack={({ props, children }) => (
             <div
               {...props}
@@ -442,8 +459,8 @@ export default function ProductFilters({
               <div
                 className="absolute h-2 rounded-full"
                 style={{
-                  left: `${((values[0] - MIN) / (MAX - MIN)) * 100}%`,
-                  width: `${((values[1] - values[0]) / (MAX - MIN)) * 100}%`,
+                  left: `${((sliderValues[0] - MIN) / (MAX - MIN)) * 100}%`,
+                  width: `${((sliderValues[1] - sliderValues[0]) / (MAX - MIN)) * 100}%`,
                   background: `linear-gradient(90deg, ${BRAND.red}, ${BRAND.yellow})`,
                 }}
               />
@@ -471,14 +488,14 @@ export default function ProductFilters({
             className="flex-1 rounded-lg border border-red-100 px-2.5 py-1.5 text-center text-sm font-semibold"
             style={{ backgroundColor: BRAND.cream }}
           >
-            ₹{Number(values[0]).toLocaleString()}
+            ₹{Number(sliderValues[0]).toLocaleString()}
           </div>
           <span className="text-xs font-bold text-gray-400">to</span>
           <div
             className="flex-1 rounded-lg border border-red-100 px-2.5 py-1.5 text-center text-sm font-semibold"
             style={{ backgroundColor: BRAND.cream }}
           >
-            ₹{Number(values[1]).toLocaleString()}
+            ₹{Number(sliderValues[1]).toLocaleString()}
           </div>
         </div>
       </div>
@@ -597,7 +614,6 @@ export default function ProductFilters({
                     checked={idInList(selectedFilters.brands, brand._id)}
                     onChange={() => onFilterChange("brands", brand._id)}
                     label={brand.brand_name}
-                    count={brand.count}
                   />
                 </li>
               ))}
@@ -664,7 +680,6 @@ export default function ProductFilters({
                             )
                           }
                           label={filter.filter_name}
-                          count={filter.count}
                         />
                       </li>
                     ))}

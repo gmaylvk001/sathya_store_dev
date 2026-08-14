@@ -11,10 +11,12 @@ export async function GET(req) {
     await dbConnect();
     
     const { searchParams } = new URL(req.url);
-    const categoryIds = searchParams.get('categoryIds')?.split(',') || [];
+    const categoryIds = (searchParams.get('categoryIds')?.split(',') || []).filter(
+      (id) => id && id.trim()
+    );
     const objectIdCategoryIds = categoryIds
-  .filter(id => mongoose.Types.ObjectId.isValid(id))
-  .map(id => new mongoose.Types.ObjectId(id));    
+      .filter((id) => mongoose.Types.ObjectId.isValid(id))
+      .map((id) => new mongoose.Types.ObjectId(id));
 
     const brandIds = searchParams.get('brands')?.split(',') || [];
     const minPrice = parseFloat(searchParams.get('minPrice')) || 0;
@@ -23,16 +25,28 @@ export async function GET(req) {
     const page = parseInt(searchParams.get('page')) || 1;
     const limit = parseInt(searchParams.get('limit')) || 5;
 
-    // Base query - always filter by category
-let query = { 
-  sub_category: { $in: objectIdCategoryIds },
-  status: "Active",
-  $and: [
-    { quantity: { $exists: true } },
-    { quantity: { $ne: null } },
-    { quantity: { $gt: 0 } }
-  ]
-};
+    // Match both string and ObjectId forms — combo products store sub_category as string
+    const categoryClauses = [];
+    if (categoryIds.length > 0) {
+      categoryClauses.push({ sub_category: { $in: categoryIds } });
+      categoryClauses.push({ category: { $in: categoryIds } });
+    }
+    if (objectIdCategoryIds.length > 0) {
+      categoryClauses.push({ sub_category: { $in: objectIdCategoryIds } });
+      categoryClauses.push({ category: { $in: objectIdCategoryIds } });
+    }
+
+    let query = {
+      status: "Active",
+      $and: [
+        { quantity: { $exists: true } },
+        { quantity: { $ne: null } },
+        { quantity: { $gt: 0 } },
+        ...(categoryClauses.length
+          ? [{ $or: categoryClauses }]
+          : [{ _id: null }]), // no category ids → match nothing
+      ],
+    };
     // Add brand filters if any
     if (brandIds.length > 0) {
       query.brand = { $in: brandIds };

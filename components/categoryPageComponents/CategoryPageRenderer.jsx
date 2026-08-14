@@ -13,6 +13,7 @@ import CategorySingleBannerProducts from "./categorySingleBannerProducts";
 import CategoryBrandCarousel from "./categoryBrandCarousel";
 import CategoryImageHotspotBanner from "./categoryImageHotspotBanner";
 import CategoryContentBlock from "./categoryContent";
+import CategorySplitBanner from "./categorySplitBanner";
 
 /**
  * Renders category page builder components in saved admin order.
@@ -23,6 +24,7 @@ export default function CategoryPageRenderer({
   pageType,
   categoryId,
   slug,
+  brandSlug,
   onHasDesign,
 }) {
   const [components, setComponents] = useState([]);
@@ -45,6 +47,7 @@ export default function CategoryPageRenderer({
       try {
         const params = new URLSearchParams({ pageType });
         if (slug) params.set("slug", String(slug));
+        if (brandSlug) params.set("brandSlug", String(brandSlug));
         if (categoryId) params.set("categoryId", String(categoryId));
 
         const res = await fetch(`/api/category-pages/render?${params}`);
@@ -69,7 +72,7 @@ export default function CategoryPageRenderer({
     return () => {
       cancelled = true;
     };
-  }, [pageType, categoryId, slug]);
+  }, [pageType, categoryId, slug, brandSlug]);
 
   if (!loaded || !components.length) return null;
 
@@ -162,6 +165,14 @@ export default function CategoryPageRenderer({
         if (item.type === COMPONENT_TYPES.CATEGORY_CONTENT) {
           return (
             <CategoryContentBlock
+              key={item.instanceId || idx}
+              config={item.config}
+            />
+          );
+        }
+        if (item.type === COMPONENT_TYPES.SPLIT_BANNER) {
+          return (
+            <CategorySplitBanner
               key={item.instanceId || idx}
               config={item.config}
             />

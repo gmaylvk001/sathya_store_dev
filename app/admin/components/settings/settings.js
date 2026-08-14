@@ -91,6 +91,7 @@ export default function HomeSectionOrder() {
   const [isLoading, setIsLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editSection, setEditSection] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);
 
   // ✅ Fetch sections on load
   useEffect(() => {
@@ -141,6 +142,26 @@ export default function HomeSectionOrder() {
     const refreshed = await fetch("/api/sections");
     const json = await refreshed.json();
     setSections(json.sections);
+  };
+
+  // ✅ Delete section
+  const deleteSection = async (section) => {
+    if (!window.confirm(`Delete "${section.name}"? This cannot be undone.`)) return;
+    setDeletingId(section._id);
+    try {
+      await fetch("/api/sections/add-edit", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ _id: section._id }),
+      });
+      const refreshed = await fetch("/api/sections");
+      const json = await refreshed.json();
+      setSections(json.sections);
+    } catch (err) {
+      alert("Failed to delete section");
+    } finally {
+      setDeletingId(null);
+    }
   };
 
   // ✅ Toggle Status (Active/Inactive)
@@ -235,7 +256,14 @@ export default function HomeSectionOrder() {
                           }}
                         >
                           Edit
-                        </button> 
+                        </button>
+                        <button
+                          className="text-red-500 text-sm disabled:opacity-50"
+                          disabled={deletingId === section._id}
+                          onClick={() => deleteSection(section)}
+                        >
+                          {deletingId === section._id ? "Deleting…" : "Delete"}
+                        </button>
                       </div>
                     </div>
                   )}

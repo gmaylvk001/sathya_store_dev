@@ -11,11 +11,15 @@ export async function GET(req) {
     const { searchParams } = new URL(req.url);
     const categoryId = searchParams.get("categoryId");
     const slug = searchParams.get("slug");
+    const brandSlug = searchParams.get("brandSlug");
+    const brandId = searchParams.get("brandId");
     const pageType = searchParams.get("pageType");
 
     const result = await resolveCategoryPageComponents({
       categoryId,
       slug,
+      brandSlug,
+      brandId,
       pageType,
     });
 

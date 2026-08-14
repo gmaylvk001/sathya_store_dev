@@ -5,6 +5,7 @@ import Product from "@/models/product";
 import {
   syncComboCategoryVisibility,
   upsertComboProduct,
+  normalizeComboImageFilename,
 } from "@/lib/comboOffers";
 
 export async function GET(_req, { params }) {
@@ -64,7 +65,6 @@ export async function PUT(req, { params }) {
       "offerTitle",
       "ctaContent",
       "socialCaption",
-      "marketingImage",
       "originalPrice",
       "discountPercent",
       "offerPrice",
@@ -76,11 +76,16 @@ export async function PUT(req, { params }) {
     for (const key of fields) {
       if (body[key] !== undefined) combo[key] = body[key];
     }
+    if (body.marketingImage !== undefined) {
+      combo.marketingImage = normalizeComboImageFilename(body.marketingImage);
+    }
     if (body.startDate) combo.startDate = new Date(body.startDate);
     if (body.endDate) combo.endDate = new Date(body.endDate);
 
     await combo.save();
-    const product = await upsertComboProduct(combo);
+    const product = await upsertComboProduct(combo, {
+      images: combo.marketingImage ? [combo.marketingImage] : [],
+    });
 
     return NextResponse.json({ success: true, data: combo, product });
   } catch (error) {

@@ -27,6 +27,8 @@ export default function TopBannerConfigForm({
   categoryName,
   onSaved,
   onCancel,
+  apiBase = "/api/category-topbanner",
+  ownerIdKey = "categoryId",
 }) {
   const [banners, setBanners] = useState([emptyBanner()]);
   const [status, setStatus] = useState("active");
@@ -40,7 +42,7 @@ export default function TopBannerConfigForm({
       setLoading(true);
       try {
         const res = await fetch(
-          `/api/category-topbanner?categoryId=${categoryId}`
+          `${apiBase}?${ownerIdKey}=${categoryId}`
         );
         const data = await res.json();
         if (data.success && data.data) {
@@ -71,7 +73,7 @@ export default function TopBannerConfigForm({
       }
     };
     load();
-  }, [categoryId]);
+  }, [categoryId, apiBase, ownerIdKey]);
 
   const updateBanner = (index, patch) => {
     setBanners((prev) =>
@@ -91,7 +93,7 @@ export default function TopBannerConfigForm({
     setSaving(true);
     try {
       const fd = new FormData();
-      fd.append("categoryId", categoryId);
+      fd.append(ownerIdKey, categoryId);
       fd.append("pageType", pageType);
       fd.append("status", status);
       fd.append(
@@ -111,7 +113,7 @@ export default function TopBannerConfigForm({
         if (b.mobileFile) fd.append(`mobileImage_${i}`, b.mobileFile);
       });
 
-      const res = await fetch("/api/category-topbanner", {
+      const res = await fetch(apiBase, {
         method: "POST",
         body: fd,
       });
@@ -128,7 +130,7 @@ export default function TopBannerConfigForm({
   if (loading) {
     return (
       <div className="flex justify-center py-10">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#d72828]" />
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#ED1C24]" />
       </div>
     );
   }
@@ -158,7 +160,7 @@ export default function TopBannerConfigForm({
             }
             className="sr-only peer"
           />
-          <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-[#d72828] after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full" />
+          <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-[#ED1C24] after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full" />
         </label>
         <span className="text-sm font-medium">Set Active</span>
       </div>
@@ -168,7 +170,7 @@ export default function TopBannerConfigForm({
         <button
           type="button"
           onClick={() => setBanners((p) => [...p, emptyBanner()])}
-          className="text-sm text-[#d72828] font-medium hover:underline inline-flex items-center gap-1"
+          className="text-sm text-[#ED1C24] font-medium hover:underline inline-flex items-center gap-1"
         >
           <Icon icon="mdi:plus" /> Add another banner
         </button>
@@ -272,7 +274,7 @@ export default function TopBannerConfigForm({
                 }
                 className="sr-only peer"
               />
-              <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-[#d72828] after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full" />
+              <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-[#ED1C24] after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full" />
             </label>
             <span className="text-sm">
               {banner.isActive ? "Active" : "Inactive"}
@@ -294,7 +296,7 @@ export default function TopBannerConfigForm({
         <button
           type="submit"
           disabled={saving}
-          className="rounded-lg bg-[#d72828] px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+          className="rounded-lg bg-[#ED1C24] px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
         >
           {saving ? "Saving…" : "Save Top Banner"}
         </button>

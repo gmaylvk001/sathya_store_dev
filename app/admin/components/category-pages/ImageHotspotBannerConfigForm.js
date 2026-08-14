@@ -41,6 +41,7 @@ export default function ImageHotspotBannerConfigForm({
   onDeleteSet,
   onBackToList,
   onSaved,
+  apiBase = "/api/category-image-hotspot-banner",
 }) {
   const isListMode = !instanceId;
   const [name, setName] = useState("");
@@ -66,7 +67,7 @@ export default function ImageHotspotBannerConfigForm({
       setError("");
       try {
         const res = await fetch(
-          `/api/category-image-hotspot-banner?instanceId=${instanceId}`
+          `${apiBase}?instanceId=${instanceId}`
         );
         const data = await res.json();
         if (data.success && data.data) {
@@ -144,7 +145,7 @@ export default function ImageHotspotBannerConfigForm({
     setError("");
     try {
       const res = await fetch(
-        `/api/category-image-hotspot-banner?instanceId=${encodeURIComponent(setInstanceId)}`,
+        `${apiBase}?instanceId=${encodeURIComponent(setInstanceId)}`,
         { method: "DELETE" }
       );
       const data = await res.json();
@@ -183,7 +184,7 @@ export default function ImageHotspotBannerConfigForm({
       );
       if (bannerFile) fd.append("bannerImage", bannerFile);
 
-      const res = await fetch("/api/category-image-hotspot-banner", {
+      const res = await fetch(apiBase, {
         method: "POST",
         body: fd,
       });
@@ -216,7 +217,7 @@ export default function ImageHotspotBannerConfigForm({
           <button
             type="button"
             onClick={onAddNew}
-            className="shrink-0 inline-flex items-center gap-1.5 rounded-lg bg-[#d72828] px-3 py-2 text-sm font-medium text-white hover:bg-[#b82222]"
+            className="shrink-0 inline-flex items-center gap-1.5 rounded-lg bg-[#ED1C24] px-3 py-2 text-sm font-medium text-white hover:bg-[#C4161D]"
           >
             <Icon icon="mdi:plus" className="text-base" />
             ADD NEW
@@ -252,7 +253,7 @@ export default function ImageHotspotBannerConfigForm({
                   <button
                     type="button"
                     onClick={() => onEditSet?.(s.instanceId)}
-                    className="text-sm font-medium text-[#d72828] hover:underline"
+                    className="text-sm font-medium text-[#ED1C24] hover:underline"
                   >
                     Edit
                   </button>
@@ -276,7 +277,7 @@ export default function ImageHotspotBannerConfigForm({
   if (loading) {
     return (
       <div className="flex justify-center py-10">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#d72828]" />
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#ED1C24]" />
       </div>
     );
   }
@@ -303,7 +304,7 @@ export default function ImageHotspotBannerConfigForm({
         <button
           type="button"
           onClick={onAddNew}
-          className="shrink-0 inline-flex items-center gap-1.5 rounded-lg bg-[#d72828] px-3 py-2 text-sm font-medium text-white hover:bg-[#b82222]"
+          className="shrink-0 inline-flex items-center gap-1.5 rounded-lg bg-[#ED1C24] px-3 py-2 text-sm font-medium text-white hover:bg-[#C4161D]"
         >
           <Icon icon="mdi:plus" className="text-base" />
           ADD NEW
@@ -359,7 +360,7 @@ export default function ImageHotspotBannerConfigForm({
           className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-white disabled:opacity-50 ${
             drawingEnabled
               ? "bg-green-600 hover:bg-green-700"
-              : "bg-[#d72828] hover:bg-[#b82222]"
+              : "bg-[#ED1C24] hover:bg-[#C4161D]"
           }`}
         >
           <Icon icon="mdi:vector-rectangle" className="text-base" />
@@ -478,7 +479,7 @@ export default function ImageHotspotBannerConfigForm({
                   }}
                   className={`w-full flex items-center justify-between rounded-lg border px-3 py-2 text-left text-sm ${
                     h.id === selectedId
-                      ? "border-[#d72828] bg-red-50"
+                      ? "border-[#ED1C24] bg-red-50"
                       : "border-gray-200 bg-gray-50/60"
                   }`}
                 >
@@ -510,7 +511,7 @@ export default function ImageHotspotBannerConfigForm({
             }
             className="sr-only peer"
           />
-          <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-[#d72828] after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full" />
+          <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-[#ED1C24] after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full" />
         </label>
         <span className="text-sm font-medium">Set Active</span>
       </div>
@@ -526,7 +527,7 @@ export default function ImageHotspotBannerConfigForm({
         <button
           type="submit"
           disabled={saving}
-          className="rounded-lg bg-[#d72828] px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+          className="rounded-lg bg-[#ED1C24] px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
         >
           {saving ? "Saving…" : "Save"}
         </button>

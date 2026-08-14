@@ -4,8 +4,8 @@ import { getCategoryPagesAvailability } from "@/lib/categoryPageComponents/resol
 
 /**
  * POST /api/category-pages/availability
- * Body: { pages: [{ categoryId, pageType, slug? }, ...] }
- * Response: { success, availability: { "<categoryId>:<pageType>": boolean } }
+ * Body: { pages: [{ categoryId, pageType, slug?, brandId?, brandSlug? }, ...] }
+ * Response: { success, availability: { "<categoryId>:<pageType>[:brandId]": boolean } }
  */
 export async function POST(req) {
   try {

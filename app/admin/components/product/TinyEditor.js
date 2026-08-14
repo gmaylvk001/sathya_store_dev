@@ -53,7 +53,7 @@ const TinyEditor = ({ value, onChange }) => {
       base_url: "/tinymce",
       suffix: ".min",
       content_style:
-        "body { font-family: Helvetica, Arial, sans-serif; font-size:14px; direction: ltr; unicode-bidi: embed; }",
+        "body { font-family: Poppins, sans-serif; font-size:14px; direction: ltr; unicode-bidi: embed; }",
     }),
     []
   );

@@ -10,6 +10,7 @@ import {
   getComponentMeta,
   getInstanceLabels,
   PAGE_TYPE_LABELS,
+  PAGE_TYPES,
 } from "@/lib/categoryPageComponents/registry";
 import TopBannerConfigForm from "./TopBannerConfigForm";
 import ImageCarouselConfigForm from "./ImageCarouselConfigForm";
@@ -22,13 +23,17 @@ import SingleBannerProductsConfigForm from "./SingleBannerProductsConfigForm";
 import BrandCarouselConfigForm from "./BrandCarouselConfigForm";
 import ImageHotspotBannerConfigForm from "./ImageHotspotBannerConfigForm";
 import CategoryContentConfigForm from "./CategoryContentConfigForm";
+import SplitBannerConfigForm from "./SplitBannerConfigForm";
 
 /**
  * Page Builder:
  * - Top Banner: one per page (carousel for many images)
  * - Future components: allowMultiple → add many instances, each on Order page
  */
-export default function PageBuilder() {
+export default function PageBuilder({
+  listHref = "/admin/category-pages",
+  listLabel = "Category Pages",
+}) {
   const { id } = useParams();
   const router = useRouter();
   const [page, setPage] = useState(null);
@@ -59,6 +64,13 @@ export default function PageBuilder() {
 
   const available = getAvailableComponents();
   const components = page?.components || [];
+  const isBrandPage = page?.pageType === PAGE_TYPES.BRAND;
+  const isCategoryBrandPage = page?.pageType === PAGE_TYPES.CATEGORY_BRAND;
+  const productOwnerType = isBrandPage
+    ? "brand"
+    : isCategoryBrandPage
+      ? "category_brand"
+      : "category";
   const instanceLabels = getInstanceLabels(components);
   const countByType = components.reduce((acc, c) => {
     acc[c.type] = (acc[c.type] || 0) + 1;
@@ -275,6 +287,24 @@ export default function PageBuilder() {
     }
   };
 
+  const addNewSplitBannerSet = async () => {
+    setMessage("");
+    try {
+      const res = await fetch(`/api/category-pages/${id}/components`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: COMPONENT_TYPES.SPLIT_BANNER }),
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.message);
+      setPage(data.page);
+      setConfigType(COMPONENT_TYPES.SPLIT_BANNER);
+      setConfigInstanceId(data.instance?.instanceId || null);
+    } catch (e) {
+      alert(e.message);
+    }
+  };
+
   const openEditInstance = (c) => {
     setConfigType(c.type);
     setConfigInstanceId(c.instanceId);
@@ -322,7 +352,7 @@ export default function PageBuilder() {
   if (loading) {
     return (
       <div className="flex justify-center py-20">
-        <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-[#d72828]" />
+        <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-[#ED1C24]" />
       </div>
     );
   }
@@ -331,7 +361,7 @@ export default function PageBuilder() {
     return (
       <div className="p-6">
         <p className="text-red-600">{error || "Not found"}</p>
-        <Link href="/admin/category-pages" className="text-[#d72828] text-sm">
+        <Link href={listHref} className="text-[#ED1C24] text-sm">
           Back
         </Link>
       </div>
@@ -339,25 +369,29 @@ export default function PageBuilder() {
   }
 
   return (
-    <div className="flex flex-col max-w-6xl mx-auto py-4 box-border lg:h-[calc(100vh-3.5rem)] lg:overflow-hidden">
+    <div className="flex flex-col w-full py-4 box-border lg:h-[calc(100vh-3.5rem)] lg:overflow-hidden">
       <div className="shrink-0 flex flex-wrap items-start justify-between gap-4 mb-4">
         <div>
           <Link
-            href="/admin/category-pages"
+            href={listHref}
             className="inline-flex items-center gap-1 text-sm text-gray-500 mb-2"
           >
-            <Icon icon="mdi:arrow-left" /> Category Pages
+            <Icon icon="mdi:arrow-left" /> {listLabel}
           </Link>
           <h1 className="text-2xl font-semibold">Page Builder</h1>
           <p className="text-sm text-gray-500 mt-1">
-            <span className="font-medium text-gray-800">{page.categoryName}</span>
+            <span className="font-medium text-gray-800">
+              {page.pageType === PAGE_TYPES.CATEGORY_BRAND
+                ? `${page.categoryName} · ${page.brandName}`
+                : page.categoryName}
+            </span>
             {" · "}
             {PAGE_TYPE_LABELS[page.pageType] || page.pageType}
           </p>
         </div>
         <button
           type="button"
-          onClick={() => router.push(`/admin/category-pages/${id}/order`)}
+          onClick={() => router.push(`${listHref}/${id}/order`)}
           className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium hover:bg-gray-50"
         >
           <Icon icon="mdi:drag" className="text-lg" />
@@ -391,9 +425,9 @@ export default function PageBuilder() {
                     key={comp.type}
                     type="button"
                     onClick={() => selectComponent(comp.type)}
-                    className={`w-full text-left rounded-xl border overflow-hidden transition hover:border-[#d72828] ${
+                    className={`w-full text-left rounded-xl border overflow-hidden transition hover:border-[#ED1C24] ${
                       configType === comp.type
-                        ? "border-[#d72828] ring-1 ring-[#d72828]"
+                        ? "border-[#ED1C24] ring-1 ring-[#ED1C24]"
                         : "border-gray-200"
                     }`}
                   >
@@ -410,7 +444,7 @@ export default function PageBuilder() {
                           {comp.description}
                         </div>
                         {comp.allowMultiple && (
-                          <div className="text-[10px] text-[#d72828] mt-1">
+                          <div className="text-[10px] text-[#ED1C24] mt-1">
                             Can add multiple sets
                           </div>
                         )}
@@ -456,7 +490,7 @@ export default function PageBuilder() {
                           <div className="flex items-center gap-3">
                             <button
                               type="button"
-                              className="text-[#d72828] text-xs font-medium"
+                              className="text-[#ED1C24] text-xs font-medium"
                               onClick={() => openEditInstance(c)}
                             >
                               Edit
@@ -492,7 +526,7 @@ export default function PageBuilder() {
                     <button
                       type="button"
                       onClick={addNewTopBanner}
-                      className="shrink-0 inline-flex items-center gap-1.5 rounded-lg bg-[#d72828] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#b82222]"
+                      className="shrink-0 inline-flex items-center gap-1.5 rounded-lg bg-[#ED1C24] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#C4161D]"
                     >
                       <Icon icon="mdi:plus" />
                       Add New
@@ -514,7 +548,7 @@ export default function PageBuilder() {
                         onClick={() =>
                           setConfigInstanceId(topBannerInstance.instanceId)
                         }
-                        className="text-sm font-semibold text-[#d72828] hover:underline"
+                        className="text-sm font-semibold text-[#ED1C24] hover:underline"
                       >
                         Edit
                       </button>
@@ -550,9 +584,16 @@ export default function PageBuilder() {
             ) : configType === COMPONENT_TYPES.TOP_BANNER ? (
               <TopBannerConfigForm
                 key={configInstanceId}
-                categoryId={page.categoryId}
+                categoryId={
+                  isCategoryBrandPage ? page._id : page.categoryId
+                }
+                ownerIdKey={isCategoryBrandPage ? "pageId" : "categoryId"}
                 pageType={page.pageType}
-                categoryName={page.categoryName}
+                categoryName={
+                  isCategoryBrandPage
+                    ? `${page.categoryName} · ${page.brandName}`
+                    : page.categoryName
+                }
                 onCancel={() => {
                   setConfigInstanceId(null);
                 }}
@@ -607,6 +648,8 @@ export default function PageBuilder() {
                 pageId={page._id}
                 categoryId={page.categoryId}
                 categoryName={page.categoryName}
+                ownerType={productOwnerType}
+                brandId={page.brandId}
                 instanceId={configInstanceId}
                 setLabel={
                   configInstanceId
@@ -649,6 +692,8 @@ export default function PageBuilder() {
                 pageId={page._id}
                 categoryId={page.categoryId}
                 categoryName={page.categoryName}
+                ownerType={productOwnerType}
+                brandId={page.brandId}
                 instanceId={configInstanceId}
                 setLabel={
                   configInstanceId
@@ -693,6 +738,8 @@ export default function PageBuilder() {
                 pageId={page._id}
                 categoryId={page.categoryId}
                 categoryName={page.categoryName}
+                ownerType={productOwnerType}
+                brandId={page.brandId}
                 instanceId={configInstanceId}
                 setLabel={
                   configInstanceId
@@ -737,6 +784,8 @@ export default function PageBuilder() {
                 pageId={page._id}
                 categoryId={page.categoryId}
                 categoryName={page.categoryName}
+                ownerType={productOwnerType}
+                brandId={page.brandId}
                 instanceId={configInstanceId}
                 setLabel={
                   configInstanceId
@@ -817,6 +866,8 @@ export default function PageBuilder() {
                 pageId={page._id}
                 categoryId={page.categoryId}
                 categoryName={page.categoryName}
+                ownerType={productOwnerType}
+                brandId={page.brandId}
                 instanceId={configInstanceId}
                 setLabel={
                   configInstanceId
@@ -972,6 +1023,45 @@ export default function PageBuilder() {
                 }}
                 onSaved={() => {
                   setMessage("Category Content saved.");
+                  load();
+                }}
+              />
+            ) : configType === COMPONENT_TYPES.SPLIT_BANNER ? (
+              <SplitBannerConfigForm
+                key={configInstanceId || "split-list"}
+                pageId={page._id}
+                instanceId={configInstanceId}
+                setLabel={
+                  configInstanceId
+                    ? instanceLabels[configInstanceId]
+                    : null
+                }
+                existingSets={[...components]
+                  .filter((c) => c.type === COMPONENT_TYPES.SPLIT_BANNER)
+                  .sort((a, b) => a.order - b.order)
+                  .map((c) => ({
+                    instanceId: c.instanceId,
+                    title: c.title || "",
+                    label:
+                      instanceLabels[c.instanceId] ||
+                      c.title ||
+                      "Single / Double Banner",
+                  }))}
+                onAddNew={addNewSplitBannerSet}
+                onEditSet={(instanceId) => {
+                  setConfigInstanceId(instanceId);
+                  setMessage("");
+                }}
+                onDeleteSet={() => {
+                  setMessage("Single / Double Banner set deleted.");
+                  load();
+                }}
+                onBackToList={() => {
+                  setConfigInstanceId(null);
+                  load();
+                }}
+                onSaved={() => {
+                  setMessage("Single / Double Banner set saved.");
                   load();
                 }}
               />

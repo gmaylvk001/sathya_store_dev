@@ -175,7 +175,7 @@ export default function HotspotEditor({
   return (
     <div className="space-y-2">
       {drawingEnabled ? (
-        <p className="text-xs text-[#d72828] font-medium">
+        <p className="text-xs text-[#ED1C24] font-medium">
           Draw mode ON — click and drag on the image to create a hotspot.
         </p>
       ) : (
@@ -212,7 +212,7 @@ export default function HotspotEditor({
               tabIndex={0}
               className={`absolute box-border ${
                 selected
-                  ? "border-2 border-[#d72828] bg-[#d72828]/25 z-20"
+                  ? "border-2 border-[#ED1C24] bg-[#ED1C24]/25 z-20"
                   : hs.isActive === false
                     ? "border border-dashed border-gray-400 bg-gray-400/20 z-10"
                     : "border border-[#2563eb] bg-[#2563eb]/20 z-10"
@@ -229,7 +229,7 @@ export default function HotspotEditor({
                 onSelect?.(hs.id);
               }}
             >
-              <span className="absolute left-0 top-0 max-w-full truncate bg-[#d72828] px-1 text-[10px] leading-4 text-white">
+              <span className="absolute left-0 top-0 max-w-full truncate bg-[#ED1C24] px-1 text-[10px] leading-4 text-white">
                 {hs.label || "Hotspot"}
               </span>
 
@@ -249,7 +249,7 @@ export default function HotspotEditor({
                   return (
                     <span
                       key={handle}
-                      className={`absolute h-2.5 w-2.5 rounded-sm bg-white border-2 border-[#d72828] z-30 ${pos}`}
+                      className={`absolute h-2.5 w-2.5 rounded-sm bg-white border-2 border-[#ED1C24] z-30 ${pos}`}
                       onPointerDown={(e) => startResize(e, hs, handle)}
                     />
                   );
@@ -260,7 +260,7 @@ export default function HotspotEditor({
 
         {draft ? (
           <div
-            className="absolute box-border border-2 border-dashed border-[#d72828] bg-[#d72828]/30 pointer-events-none z-30"
+            className="absolute box-border border-2 border-dashed border-[#ED1C24] bg-[#ED1C24]/30 pointer-events-none z-30"
             style={{
               left: `${draft.x}%`,
               top: `${draft.y}%`,

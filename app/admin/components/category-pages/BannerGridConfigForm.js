@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Icon } from "@iconify/react";
+import { buildProductSearchQuery } from "@/lib/categoryPageComponents/productSearchQuery";
 import {
   CATEGORY_PAGE_IMAGE_ACCEPT,
   CATEGORY_PAGE_IMAGE_ACCEPT_HINT,
@@ -75,6 +76,10 @@ export default function BannerGridConfigForm({
   onDeleteSet,
   onBackToList,
   onSaved,
+  apiBase = "/api/category-banner-grid",
+  searchApiBase = "/api/category-product-carousel/search",
+  ownerType = "category",
+  brandId,
 }) {
   const isListMode = !instanceId;
   const [name, setName] = useState("");
@@ -108,7 +113,7 @@ export default function BannerGridConfigForm({
       setError("");
       try {
         const res = await fetch(
-          `/api/category-banner-grid?instanceId=${instanceId}`
+          `${apiBase}?instanceId=${instanceId}`
         );
         const data = await res.json();
         if (data.success && data.data) {
@@ -182,9 +187,12 @@ export default function BannerGridConfigForm({
       setSearching(true);
       try {
         const res = await fetch(
-          `/api/category-product-carousel/search?categoryId=${categoryId}&q=${encodeURIComponent(
-            query.trim()
-          )}`
+          `${searchApiBase}?${buildProductSearchQuery({
+            categoryId,
+            ownerType,
+            brandId,
+            q: query.trim(),
+          })}`
         );
         const data = await res.json();
         if (data.success) {
@@ -206,7 +214,7 @@ export default function BannerGridConfigForm({
     }, 280);
 
     return () => clearTimeout(searchTimer.current);
-  }, [query, categoryId, selected]);
+  }, [query, categoryId, selected, ownerType, brandId]);
 
   const addProduct = (product) => {
     setSelected((current) => [...current, product]);
@@ -312,7 +320,7 @@ export default function BannerGridConfigForm({
     setError("");
     try {
       const res = await fetch(
-        `/api/category-banner-grid?instanceId=${encodeURIComponent(setInstanceId)}`,
+        `${apiBase}?instanceId=${encodeURIComponent(setInstanceId)}`,
         { method: "DELETE" }
       );
       const data = await res.json();
@@ -373,7 +381,7 @@ export default function BannerGridConfigForm({
         JSON.stringify(selected.map((product) => product._id))
       );
 
-      const res = await fetch("/api/category-banner-grid", {
+      const res = await fetch(apiBase, {
         method: "POST",
         body: fd,
       });
@@ -407,14 +415,14 @@ export default function BannerGridConfigForm({
               </span>
               .
             </p>
-            <p className="text-sm font-medium text-[#d72828] mt-2">
+            <p className="text-sm font-medium text-[#ED1C24] mt-2">
               All images must be the same height and width and below 600×600px.
             </p>
           </div>
           <button
             type="button"
             onClick={onAddNew}
-            className="shrink-0 inline-flex items-center gap-1.5 rounded-lg bg-[#d72828] px-3 py-2 text-sm font-medium text-white hover:bg-[#b82222]"
+            className="shrink-0 inline-flex items-center gap-1.5 rounded-lg bg-[#ED1C24] px-3 py-2 text-sm font-medium text-white hover:bg-[#C4161D]"
           >
             <Icon icon="mdi:plus" className="text-base" />
             ADD NEW
@@ -450,7 +458,7 @@ export default function BannerGridConfigForm({
                   <button
                     type="button"
                     onClick={() => onEditSet?.(s.instanceId)}
-                    className="text-sm font-medium text-[#d72828] hover:underline"
+                    className="text-sm font-medium text-[#ED1C24] hover:underline"
                   >
                     Edit
                   </button>
@@ -474,7 +482,7 @@ export default function BannerGridConfigForm({
   if (loading) {
     return (
       <div className="flex justify-center py-10">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#d72828]" />
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#ED1C24]" />
       </div>
     );
   }
@@ -493,14 +501,14 @@ export default function BannerGridConfigForm({
           <h3 className="text-lg font-semibold text-gray-900">
             {setLabel || "New Banner Grid"}
           </h3>
-          <p className="text-sm font-medium text-[#d72828] mt-2">
+          <p className="text-sm font-medium text-[#ED1C24] mt-2">
             All images must be the same height and width and below 600×600px.
           </p>
         </div>
         <button
           type="button"
           onClick={onAddNew}
-          className="shrink-0 inline-flex items-center gap-1.5 rounded-lg bg-[#d72828] px-3 py-2 text-sm font-medium text-white hover:bg-[#b82222]"
+          className="shrink-0 inline-flex items-center gap-1.5 rounded-lg bg-[#ED1C24] px-3 py-2 text-sm font-medium text-white hover:bg-[#C4161D]"
         >
           <Icon icon="mdi:plus" className="text-base" />
           ADD NEW
@@ -539,7 +547,7 @@ export default function BannerGridConfigForm({
             onClick={() => setShowGap(true)}
             className={`rounded-lg border px-6 py-2 text-sm font-semibold transition ${
               showGap
-                ? "border-[#d72828] bg-[#d72828] text-white"
+                ? "border-[#ED1C24] bg-[#ED1C24] text-white"
                 : "border-gray-300 bg-white text-gray-700 hover:border-gray-400"
             }`}
           >
@@ -550,7 +558,7 @@ export default function BannerGridConfigForm({
             onClick={() => setShowGap(false)}
             className={`rounded-lg border px-6 py-2 text-sm font-semibold transition ${
               !showGap
-                ? "border-[#d72828] bg-[#d72828] text-white"
+                ? "border-[#ED1C24] bg-[#ED1C24] text-white"
                 : "border-gray-300 bg-white text-gray-700 hover:border-gray-400"
             }`}
           >
@@ -571,7 +579,7 @@ export default function BannerGridConfigForm({
               onClick={() => handleImageCountChange(n)}
               className={`rounded-lg border px-4 py-2 text-sm font-medium transition ${
                 imageCount === n
-                  ? "border-[#d72828] bg-[#d72828] text-white"
+                  ? "border-[#ED1C24] bg-[#ED1C24] text-white"
                   : "border-gray-300 bg-white text-gray-700 hover:border-gray-400"
               }`}
             >
@@ -759,7 +767,7 @@ export default function BannerGridConfigForm({
             }
             className="sr-only peer"
           />
-          <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-[#d72828] after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full" />
+          <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-[#ED1C24] after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full" />
         </label>
         <span className="text-sm font-medium">Set Active</span>
       </div>
@@ -775,7 +783,7 @@ export default function BannerGridConfigForm({
         <button
           type="submit"
           disabled={saving}
-          className="rounded-lg bg-[#d72828] px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+          className="rounded-lg bg-[#ED1C24] px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
         >
           {saving ? "Saving…" : "Save"}
         </button>

@@ -36,7 +36,10 @@ export async function GET(request, { params }) {
         return acc;
       }, []);
     }
-    const allCategoryIds = getAllCategoryIds(categoryTree);
+    const allCategoryIds = [
+      main_category._id,
+      ...getAllCategoryIds(categoryTree),
+    ];
 
     const productMatch = {
       status: "Active",

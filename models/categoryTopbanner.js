@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { PAGE_TYPES } from "@/lib/categoryPageComponents/registry";
 
 const BannerItemSchema = new mongoose.Schema(
   {
@@ -12,22 +13,27 @@ const BannerItemSchema = new mongoose.Schema(
 );
 
 /**
- * Top Banner set for one Category / Sub Category / Child Category.
- * Multiple banner images per category document.
+ * Top Banner set for one Category / Sub / Child / Brand page.
+ * category_brand pages key banners by pageId so they do not collide
+ * with the parent category overview banner.
  */
 const CategoryTopBannerSchema = new mongoose.Schema(
   {
     categoryId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "ecom_category_infos",
       required: true,
     },
     categoryName: { type: String, default: "" },
     categorySlug: { type: String, default: "" },
+    pageId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "CategoryPage",
+      default: undefined,
+    },
     pageType: {
       type: String,
-      enum: ["category", "sub_category", "child_category"],
-      default: "category",
+      enum: Object.values(PAGE_TYPES),
+      default: PAGE_TYPES.CATEGORY,
     },
     banners: { type: [BannerItemSchema], default: [] },
     status: {
@@ -39,8 +45,32 @@ const CategoryTopBannerSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-CategoryTopBannerSchema.index({ categoryId: 1 }, { unique: true });
+CategoryTopBannerSchema.index(
+  { categoryId: 1 },
+  {
+    unique: true,
+    name: "categoryId_unique_no_page",
+    partialFilterExpression: { pageId: { $exists: false } },
+  }
+);
+CategoryTopBannerSchema.index(
+  { pageId: 1 },
+  { unique: true, sparse: true, name: "pageId_unique" }
+);
 CategoryTopBannerSchema.index({ categorySlug: 1 });
 
-export default mongoose.models.CategoryTopBanner ||
-  mongoose.model("CategoryTopBanner", CategoryTopBannerSchema);
+if (mongoose.models.CategoryTopBanner) {
+  delete mongoose.models.CategoryTopBanner;
+}
+
+export default mongoose.model("CategoryTopBanner", CategoryTopBannerSchema);
+
+export async function ensureCategoryTopBannerIndexes() {
+  try {
+    await mongoose
+      .model("CategoryTopBanner")
+      .collection.dropIndex("categoryId_1");
+  } catch {
+    /* old unique index may already be gone */
+  }
+}

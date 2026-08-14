@@ -7,8 +7,6 @@ import { FiBox, FiHash } from "react-icons/fi";
 import Image from "next/image";
 import { FaShoppingCart, FaStar } from "react-icons/fa";
 import Link from "next/link";
-import { Poppins } from "next/font/google";
-const poppins = Poppins({ subsets: ["latin"], weight: ["400","500","600"] });
 import { formatDistanceToNow, format } from "date-fns";
 import { useHeaderdetails } from '@/context/HeaderContext';
 import { ToastContainer, toast } from 'react-toastify';
@@ -103,7 +101,7 @@ function DynamicTabs({ tabs, activeName, onTabChange }) {
 
     return (
       <div>
-<div className={`flex overflow-x-auto scrollbar-hide border-b border-gray-200 gap-6 sm:gap-10 px-1 ${poppins.className}`}>
+<div className="flex overflow-x-auto scrollbar-hide border-b border-gray-200 gap-6 sm:gap-10 px-1">
           {tabs.map((tab) => (
             <button
               key={tab.name}
@@ -137,7 +135,7 @@ function DynamicTabs({ tabs, activeName, onTabChange }) {
       </div>
     );
   }
- function ReviewsTab({ reviewForm, setReviewForm, handleReviewSubmit, submitting, tabData, formatReviewDate, poppins }) {
+ function ReviewsTab({ reviewForm, setReviewForm, handleReviewSubmit, submitting, tabData, formatReviewDate }) {
   return (
     <div>
       <form onSubmit={handleReviewSubmit} className="bg-white p-4 rounded-md shadow mt-3">
@@ -163,7 +161,7 @@ function DynamicTabs({ tabs, activeName, onTabChange }) {
         </button>
       </form>
 
-      <h2 className={`text-sm font-bold text-left mt-3 ${poppins.className}`}>Customer Reviews</h2>
+      <h2 className="text-sm font-bold text-left mt-3">Customer Reviews</h2>
       <div className="flex items-center mt-2">
         {[...Array(5)].map((_, i) => (
           <span key={i} className={`text-2xl ${i < Math.floor(tabData.reviews.rating) ? 'text-yellow-400' : 'text-gray-300'}`}>★</span>
@@ -1199,7 +1197,7 @@ const descriptionContent = (() => {
       {/* Product Description - only show if we have valid content */}
       {/* {(hasValidDescription || hasPlainDescription) && (
         <>
-          <h2 className={`text-sm font-bold text-left ${poppins.className}`}>
+          <h2 className={`text-sm font-bold text-left`}>
             Product Description
           </h2>
 
@@ -1217,10 +1215,10 @@ const descriptionContent = (() => {
                       key={cleanKey}
                       className="grid grid-cols-[150px,1fr] gap-x-2 items-start"
                     >
-                      <div className={`text-xs sm:text-sm font-bold ${poppins.className}`}>
+                      <div className={`text-xs sm:text-sm font-bold`}>
                         {cleanKey}:
                       </div>
-                      <div className={`text-xs sm:text-sm ${poppins.className}`}>
+                      <div className={`text-xs sm:text-sm`}>
                         {cleanVal}
                       </div>
                     </div>
@@ -1240,7 +1238,7 @@ const descriptionContent = (() => {
 
       {(hasValidDescription || hasPlainDescription) && (
         <>
-          <h2 className={`text-sm font-bold text-left ${poppins.className}`}>Product Description</h2>
+          <h2 className="text-sm font-bold text-left">Product Description</h2>
           {hasValidDescription ? (
             <div className="mt-3 text-xs sm:text-sm text-gray-700 space-y-1">
               {Object.entries(descObj)
@@ -1258,8 +1256,8 @@ const descriptionContent = (() => {
 
                   return (
                     <div key={cleanKey} className="grid grid-cols-[150px,1fr] gap-x-2 items-start">
-                      <div className={`text-xs sm:text-sm font-bold ${poppins.className}`}>{cleanKey}:</div>
-                      <div className={`text-xs sm:text-sm ${poppins.className}`}>{cleanVal}</div>
+                      <div className="text-xs sm:text-sm font-bold">{cleanKey}:</div>
+                      <div className="text-xs sm:text-sm">{cleanVal}</div>
                     </div>
                   );
                 })}
@@ -1325,7 +1323,7 @@ const descriptionContent = (() => {
       {/* Product Specifications - only show if we have valid specifications */}
       {hasSpecifications && (
         <>
-          <h2 className={`text-sm font-bold mt-3 text-left ${poppins.className}`}>
+          <h2 className="text-sm font-bold mt-3 text-left">
             Product Specifications
           </h2>
 
@@ -1336,10 +1334,10 @@ const descriptionContent = (() => {
                   {item.icon}
                 </div>
                 <div className="flex gap-x-1">
-                  <strong className={`text-xs sm:text-sm ${poppins.className}`}>
+                  <strong className="text-xs sm:text-sm">
                     {item.label}:
                   </strong>
-                  <span className={`${poppins.className}`}>{item.value}</span>
+                  <span>{item.value}</span>
                 </div>
               </li>
             ))}
@@ -1352,7 +1350,7 @@ const descriptionContent = (() => {
   //const resolveFlixIds = (p = {}) => { ... }
 {/*   {activeTab === "videos" && (
           <div>
-            <h2 className={`text-sm font-bold transition-all duration-200 text-left mt-3 ${poppins.className}`}>Product Videos</h2>
+            <h2 className={`text-sm font-bold transition-all duration-200 text-left mt-3`}>Product Videos</h2>
             {tabData.videos.length > 0 ? (
               <div className="grid grid-cols-1 gap-3 sm:gap-4 mt-2 sm:mt-4">
                 {tabData.videos.map((video, index) => (
@@ -1480,7 +1478,6 @@ const tabsForUI = useMemo(() => [
       submitting={submitting}
       tabData={tabData}
       formatReviewDate={formatReviewDate}
-      poppins={poppins}
     />
   )},
   { name: "faq", content: faqContent },
@@ -1575,7 +1572,6 @@ return (
   tabs={tabsForUI}
   activeName={activeTab}
   onTabChange={setActiveTab}
-  poppins={poppins}
 />
     </div>
 

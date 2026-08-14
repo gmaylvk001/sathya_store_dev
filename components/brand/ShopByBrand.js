@@ -7,6 +7,8 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/navigation";
+import { PAGE_TYPES } from "@/lib/categoryPageComponents/registry";
+import { buildCategoryBrandHref } from "@/lib/categoryPageComponents/categoryHref";
 
 function slugify(text) {
   return text
@@ -22,6 +24,7 @@ export default function ShopByBrand({ categorySlug }) {
   const [brands, setBrands] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [overviewMap, setOverviewMap] = useState({});
 
   useEffect(() => {
     if (!categorySlug) return;
@@ -33,6 +36,37 @@ export default function ShopByBrand({ categorySlug }) {
         const data = await res.json();
         if (data.success) {
           setBrands(data.brands);
+          const pages = (data.brands || [])
+            .filter((b) => b._id && (b.brand_slug || b.brand_name))
+            .map((b) => ({
+              pageType: PAGE_TYPES.CATEGORY_BRAND,
+              slug: categorySlug,
+              brandSlug: b.brand_slug || slugify(b.brand_name),
+              brandId: b._id,
+            }));
+          if (pages.length) {
+            try {
+              const availRes = await fetch("/api/category-pages/availability", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ pages }),
+                cache: "no-store",
+              });
+              const availData = await availRes.json();
+              if (availData?.success) {
+                const next = {};
+                for (const [key, val] of Object.entries(
+                  availData.availability || {}
+                )) {
+                  const brandKey = key.split(":").pop();
+                  next[brandKey] = val;
+                }
+                setOverviewMap(next);
+              }
+            } catch {
+              setOverviewMap({});
+            }
+          }
         } else {
           setError(data.error || "Failed to fetch brands");
         }
@@ -88,7 +122,11 @@ export default function ShopByBrand({ categorySlug }) {
         {brands.map((brand) => (
           <SwiperSlide key={brand._id}>
             <Link
-              href={`/category/brand/${categorySlug}/${brand.brand_slug || slugify(brand.brand_name)}`}
+              href={buildCategoryBrandHref(
+                categorySlug,
+                brand.brand_slug || slugify(brand.brand_name),
+                Boolean(overviewMap[String(brand._id)])
+              )}
               className="flex flex-col items-center gap-2 group"
             >
               {/* Brand logo */}

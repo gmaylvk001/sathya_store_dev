@@ -34,6 +34,8 @@ export default function BrandCarouselConfigForm({
   onDeleteSet,
   onBackToList,
   onSaved,
+  apiBase = "/api/category-brand-carousel",
+  autoBrandsScope = "category",
 }) {
   const isListMode = !instanceId;
   const [name, setName] = useState("");
@@ -58,7 +60,7 @@ export default function BrandCarouselConfigForm({
     setError("");
     try {
       const res = await fetch(
-        `/api/category-brand-carousel?instanceId=${encodeURIComponent(setInstanceId)}`,
+        `${apiBase}?instanceId=${encodeURIComponent(setInstanceId)}`,
         { method: "DELETE" }
       );
       const data = await res.json();
@@ -81,7 +83,7 @@ export default function BrandCarouselConfigForm({
       setError("");
       try {
         const res = await fetch(
-          `/api/category-brand-carousel?instanceId=${instanceId}`
+          `${apiBase}?instanceId=${instanceId}`
         );
         const data = await res.json();
         if (data.success && data.data) {
@@ -168,7 +170,7 @@ export default function BrandCarouselConfigForm({
         });
       }
 
-      const res = await fetch("/api/category-brand-carousel", {
+      const res = await fetch(apiBase, {
         method: "POST",
         body: fd,
       });
@@ -200,14 +202,14 @@ export default function BrandCarouselConfigForm({
               <strong>ADD NEW</strong> to create another set (name + many brand logos
               &amp; URLs).
             </p>
-            <p className="text-sm font-medium text-[#d72828] mt-2">
+            <p className="text-sm font-medium text-[#ED1C24] mt-2">
               All images must be the same height and width.
             </p>
           </div>
           <button
             type="button"
             onClick={onAddNew}
-            className="shrink-0 inline-flex items-center gap-1.5 rounded-lg bg-[#d72828] px-3 py-2 text-sm font-medium text-white hover:bg-[#b82222]"
+            className="shrink-0 inline-flex items-center gap-1.5 rounded-lg bg-[#ED1C24] px-3 py-2 text-sm font-medium text-white hover:bg-[#C4161D]"
           >
             <Icon icon="mdi:plus" className="text-base" />
             ADD NEW
@@ -244,7 +246,7 @@ export default function BrandCarouselConfigForm({
                   <button
                     type="button"
                     onClick={() => onEditSet?.(s.instanceId)}
-                    className="text-sm font-medium text-[#d72828] hover:underline"
+                    className="text-sm font-medium text-[#ED1C24] hover:underline"
                   >
                     Edit
                   </button>
@@ -268,7 +270,7 @@ export default function BrandCarouselConfigForm({
   if (loading) {
     return (
       <div className="flex justify-center py-10">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#d72828]" />
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#ED1C24]" />
       </div>
     );
   }
@@ -292,14 +294,14 @@ export default function BrandCarouselConfigForm({
             One set = many brand logos + URLs. Storefront shows 5 per page with
             left/right and dots.
           </p>
-          <p className="text-sm font-medium text-[#d72828] mt-2">
+          <p className="text-sm font-medium text-[#ED1C24] mt-2">
             All images must be the same height and width.
           </p>
         </div>
         <button
           type="button"
           onClick={onAddNew}
-          className="shrink-0 inline-flex items-center gap-1.5 rounded-lg bg-[#d72828] px-3 py-2 text-sm font-medium text-white hover:bg-[#b82222]"
+          className="shrink-0 inline-flex items-center gap-1.5 rounded-lg bg-[#ED1C24] px-3 py-2 text-sm font-medium text-white hover:bg-[#C4161D]"
         >
           <Icon icon="mdi:plus" className="text-base" />
           ADD NEW
@@ -338,7 +340,7 @@ export default function BrandCarouselConfigForm({
             onClick={() => setShowGap(true)}
             className={`rounded-lg border px-6 py-2 text-sm font-semibold transition ${
               showGap
-                ? "border-[#d72828] bg-[#d72828] text-white"
+                ? "border-[#ED1C24] bg-[#ED1C24] text-white"
                 : "border-gray-300 bg-white text-gray-700 hover:border-gray-400"
             }`}
           >
@@ -349,7 +351,7 @@ export default function BrandCarouselConfigForm({
             onClick={() => setShowGap(false)}
             className={`rounded-lg border px-6 py-2 text-sm font-semibold transition ${
               !showGap
-                ? "border-[#d72828] bg-[#d72828] text-white"
+                ? "border-[#ED1C24] bg-[#ED1C24] text-white"
                 : "border-gray-300 bg-white text-gray-700 hover:border-gray-400"
             }`}
           >
@@ -358,16 +360,18 @@ export default function BrandCarouselConfigForm({
         </div>
       </div>
 
-      <div className="rounded-xl border-2 border-[#d72828]/30 bg-[#fffdf5] p-4">
+      <div className="rounded-xl border-2 border-[#ED1C24]/30 bg-[#fffdf5] p-4">
         <div className="flex items-start justify-between gap-3">
           <div>
             <label className="block text-sm font-semibold text-gray-900 mb-1">
-              Auto Brands From Category
+              {autoBrandsScope === "all"
+                ? "Show all brands"
+                : "Auto Brands From Category"}
             </label>
             <p className="text-xs text-gray-600">
-              ON automatically shows brands that have products in this category
-              (including child categories). Manual brand images and URLs are not
-              required.
+              {autoBrandsScope === "all"
+                ? "ON loads every active brand on the home page. Each brand opens /brand/slug/overview when that brand has a designed page, otherwise /brand/slug."
+                : "ON automatically shows brands that have products in this category (including child categories). Manual brand images and URLs are not required."}
             </p>
           </div>
           <label className="relative inline-flex items-center cursor-pointer shrink-0 mt-0.5">
@@ -377,11 +381,11 @@ export default function BrandCarouselConfigForm({
               onChange={(e) => setAutoBrandsFromCategory(e.target.checked)}
               className="sr-only peer"
             />
-            <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-[#d72828] after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full" />
+            <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-[#ED1C24] after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full" />
           </label>
         </div>
         {autoBrandsFromCategory ? (
-          <p className="mt-3 text-xs text-[#b82222] font-medium">
+          <p className="mt-3 text-xs text-[#C4161D] font-medium">
             Manual brand configuration is disabled while Auto mode is ON.
           </p>
         ) : null}
@@ -397,7 +401,7 @@ export default function BrandCarouselConfigForm({
             }
             className="sr-only peer"
           />
-          <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-[#d72828] after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full" />
+          <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-[#ED1C24] after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full" />
         </label>
         <span className="text-sm font-medium">Set Active</span>
       </div>
@@ -406,15 +410,17 @@ export default function BrandCarouselConfigForm({
         <div className="rounded-xl border border-dashed border-gray-300 bg-white px-4 py-8 text-center">
           <Icon
             icon="mdi:storefront-outline"
-            className="mx-auto text-3xl text-[#d72828] mb-2"
+            className="mx-auto text-3xl text-[#ED1C24] mb-2"
           />
           <p className="text-sm font-medium text-gray-800">
-            Brands will load automatically from this category
+            {autoBrandsScope === "all"
+              ? "All brands will load automatically"
+              : "Brands will load automatically from this category"}
           </p>
           <p className="text-xs text-gray-500 mt-1 max-w-md mx-auto">
-            On the storefront overview page, this carousel will show brand logos
-            and links for brands that currently have products under this
-            category context.
+            {autoBrandsScope === "all"
+              ? "On the home page this carousel lists every active brand. Links use /brand/slug/overview only when that brand overview has components."
+              : "On the storefront overview page, this carousel will show brand logos and links for brands that currently have products under this category context."}
           </p>
         </div>
       ) : (
@@ -422,14 +428,14 @@ export default function BrandCarouselConfigForm({
       <div className="flex items-center justify-between">
         <div>
           <h4 className="text-sm font-semibold">Brands ({items.length})</h4>
-          <p className="text-sm font-medium text-[#d72828] mt-0.5">
+          <p className="text-sm font-medium text-[#ED1C24] mt-0.5">
             All images must be the same height and width.
           </p>
         </div>
         <button
           type="button"
           onClick={() => setItems((p) => [...p, emptyItem()])}
-          className="text-sm text-[#d72828] font-medium hover:underline inline-flex items-center gap-1"
+          className="text-sm text-[#ED1C24] font-medium hover:underline inline-flex items-center gap-1"
         >
           <Icon icon="mdi:image-plus" /> Add brand
         </button>
@@ -509,7 +515,7 @@ export default function BrandCarouselConfigForm({
                 }
                 className="sr-only peer"
               />
-              <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-[#d72828] after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full" />
+              <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-[#ED1C24] after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full" />
             </label>
             <span className="text-sm">
               {item.isActive ? "Active" : "Inactive"}
@@ -531,7 +537,7 @@ export default function BrandCarouselConfigForm({
         <button
           type="submit"
           disabled={saving}
-          className="rounded-lg bg-[#d72828] px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+          className="rounded-lg bg-[#ED1C24] px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
         >
           {saving ? "Saving…" : "Save Brand Carousel"}
         </button>

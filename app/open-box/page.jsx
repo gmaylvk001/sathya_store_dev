@@ -1579,10 +1579,6 @@ const handleShare = async (product) => {
           {expandedGroups[g._id] && (
             <ul className={`mt-2 ${FILTER_LIST_MAX_HEIGHT} overflow-y-auto pr-2`}>
               {g.filters.map((f) => {
-                const cnt =
-                  (filterSummaryRaw.find(
-                    (x) => String(x.filterId) === String(f._id)
-                  ) || {}).count || 0;
                 return (
                   <li key={f._id} className="py-1">
                     <label className="flex items-center gap-2">
@@ -1592,10 +1588,7 @@ const handleShare = async (product) => {
                         onChange={() => toggleProductFilter(String(f._id))}
                       />
                       <span className="text-sm text-gray-700">
-                        {f.filter_name}{" "}
-                        {cnt ? (
-                          <span className="text-xs text-gray-400">({cnt})</span>
-                        ) : null}
+                        {f.filter_name}
                       </span>
                     </label>
                   </li>

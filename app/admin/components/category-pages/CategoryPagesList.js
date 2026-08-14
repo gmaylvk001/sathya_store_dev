@@ -43,7 +43,7 @@ export default function CategoryPagesList() {
   };
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
+    <div className="py-4 w-full">
       <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
         <div>
           <h1 className="text-2xl font-semibold text-gray-900">Category Pages</h1>
@@ -54,7 +54,7 @@ export default function CategoryPagesList() {
         </div>
         <Link
           href="/admin/category-pages/create"
-          className="inline-flex items-center gap-2 bg-[#d72828] hover:bg-[#b82020] text-white px-4 py-2.5 rounded-lg text-sm font-medium"
+          className="inline-flex items-center gap-2 bg-[#ED1C24] hover:bg-[#C4161D] text-white px-4 py-2.5 rounded-lg text-sm font-medium"
         >
           <Icon icon="mdi:plus" /> Create Page
         </Link>
@@ -68,14 +68,14 @@ export default function CategoryPagesList() {
 
       {loading ? (
         <div className="flex justify-center py-20">
-          <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-[#d72828]" />
+          <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-[#ED1C24]" />
         </div>
       ) : pages.length === 0 ? (
         <div className="rounded-xl border border-dashed border-gray-300 py-16 text-center">
           <p className="text-gray-600 font-medium">No category pages yet</p>
           <Link
             href="/admin/category-pages/create"
-            className="text-[#d72828] text-sm mt-2 inline-block hover:underline"
+            className="text-[#ED1C24] text-sm mt-2 inline-block hover:underline"
           >
             Create your first page
           </Link>
@@ -110,7 +110,7 @@ export default function CategoryPagesList() {
                       onClick={() =>
                         router.push(`/admin/category-pages/${page._id}`)
                       }
-                      className="text-xs font-medium text-[#d72828] hover:underline"
+                      className="text-xs font-medium text-[#ED1C24] hover:underline"
                     >
                       Open Builder
                     </button>

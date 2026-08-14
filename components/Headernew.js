@@ -25,6 +25,7 @@ import { filterAndRankProducts } from '@/lib/searchMatch';
 import { PAGE_TYPES } from '@/lib/categoryPageComponents/registry';
 import {
   buildCategoryHref,
+  buildCategoryBrandHref,
   hasOverviewAvailability as categoryHasOverviewDesign,
   pageTypeFromLevel,
 } from '@/lib/categoryPageComponents/categoryHref';
@@ -40,15 +41,15 @@ const alphaSortString = (a, b) => {
 const HEADER_ACTION_LINK_CLASS =
   "group flex flex-col items-center gap-1 rounded-xl px-1 py-0.5 transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 active:scale-95";
 const HEADER_ACTION_ICON_WRAP_CLASS =
-  "relative flex h-9 w-9 items-center justify-center rounded-xl border border-[#d72828]/25 bg-gradient-to-b from-[#fffdf5] to-white text-[#d72828] shadow-[0_1px_2px_rgba(215,40,40,0.08)] transition-all duration-200 group-hover:border-[#d72828] group-hover:bg-[#fbe002] group-hover:text-[#b82222] group-hover:shadow-[0_4px_10px_rgba(215,40,40,0.18)]";
+  "relative flex h-9 w-9 items-center justify-center rounded-xl border border-[#ED1C24]/25 bg-gradient-to-b from-[#fffdf5] to-white text-[#ED1C24] shadow-[0_1px_2px_rgba(215,40,40,0.08)] transition-all duration-200 group-hover:border-[#ED1C24] group-hover:bg-[#FFF200] group-hover:text-[#C4161D] group-hover:shadow-[0_4px_10px_rgba(215,40,40,0.18)]";
 const HEADER_ACTION_ICON_WRAP_SM_CLASS =
-  "relative flex h-8 w-8 items-center justify-center rounded-lg border border-[#d72828]/25 bg-gradient-to-b from-[#fffdf5] to-white text-[#d72828] shadow-[0_1px_2px_rgba(215,40,40,0.08)] transition-all duration-200 group-hover:border-[#d72828] group-hover:bg-[#fbe002] group-hover:text-[#b82222]";
+  "relative flex h-8 w-8 items-center justify-center rounded-lg border border-[#ED1C24]/25 bg-gradient-to-b from-[#fffdf5] to-white text-[#ED1C24] shadow-[0_1px_2px_rgba(215,40,40,0.08)] transition-all duration-200 group-hover:border-[#ED1C24] group-hover:bg-[#FFF200] group-hover:text-[#C4161D]";
 const HEADER_ACTION_LABEL_CLASS =
-  "text-[#d72828] font-semibold leading-none transition-colors duration-200 group-hover:text-[#b82222]";
+  "text-[#ED1C24] font-semibold leading-none transition-colors duration-200 group-hover:text-[#C4161D]";
 const HEADER_ACTION_BADGE_CLASS =
-  "absolute -top-1.5 -right-1.5 min-w-[16px] h-4 px-1 text-[9px] font-bold bg-[#d72828] text-[#fbe002] rounded-full flex items-center justify-center ring-2 ring-white";
+  "absolute -top-1.5 -right-1.5 min-w-[16px] h-4 px-1 text-[9px] font-bold bg-[#ED1C24] text-[#FFF200] rounded-full flex items-center justify-center ring-2 ring-white";
 const HEADER_ACTION_BADGE_SM_CLASS =
-  "absolute -top-1.5 -right-1.5 min-w-[14px] h-3.5 px-0.5 text-[8px] font-bold bg-[#d72828] text-[#fbe002] rounded-full flex items-center justify-center ring-2 ring-white";
+  "absolute -top-1.5 -right-1.5 min-w-[14px] h-3.5 px-0.5 text-[8px] font-bold bg-[#ED1C24] text-[#FFF200] rounded-full flex items-center justify-center ring-2 ring-white";
 
 
 
@@ -61,7 +62,6 @@ const Header = () => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const { wishlistCount } = useWishlist();
     const { cartCount, updateCartCount } = useCart();
-    const [loyaltyPoints, setLoyaltyPoints] = useState(0);
     const [overviewAvailability, setOverviewAvailability] = useState({});
 
     // ADD: Cross-tab cart sync helpers
@@ -333,17 +333,6 @@ const Header = () => {
                     setIsAdmin(false);
                 }
                 setUserData(data.user);
-                
-                try {
-                const loyaltyRes = await fetch(`/api/award-points?phone=${data.phone || ''}`);
-              const loyaltyData = await loyaltyRes.json();
-             if (loyaltyData.success) {
-
-             setLoyaltyPoints(loyaltyData.points);
-              }
-             } catch (e) {
-            console.error('Loyalty fetch failed:', e);
-             }
             } else {
                 localStorage.removeItem('token');
                 setIsLoggedIn(false);
@@ -489,6 +478,15 @@ const Header = () => {
             categoryId: String(node._id),
             pageType: pageTypeFromLevel(level),
           });
+          const brands = Array.isArray(node.brands) ? node.brands : [];
+          for (const brand of brands) {
+            if (!brand?._id) continue;
+            out.push({
+              categoryId: String(node._id),
+              pageType: PAGE_TYPES.CATEGORY_BRAND,
+              brandId: String(brand._id),
+            });
+          }
         }
         if (Array.isArray(node?.subcategories) && node.subcategories.length > 0) {
           collectAvailabilityRequests(node.subcategories, level + 1, out);
@@ -507,10 +505,26 @@ const Header = () => {
       return buildCategoryHref(slugs, hasOverview);
     }, [overviewAvailability]);
 
+    const resolveCategoryBrandNavHref = useCallback(
+      (categorySlug, brand, categoryId) =>
+        buildCategoryBrandHref(
+          categorySlug,
+          brand?.brand_slug,
+          categoryHasOverviewDesign(
+            overviewAvailability,
+            categoryId,
+            PAGE_TYPES.CATEGORY_BRAND,
+            brand?._id
+          )
+        ),
+      [overviewAvailability]
+    );
+
     useEffect(() => {
       try {
         localStorage.removeItem('category_overview_availability_v1');
         localStorage.removeItem('category_overview_availability_v2');
+        localStorage.removeItem('category_overview_availability_v3');
       } catch {
         /* ignore */
       }
@@ -521,7 +535,7 @@ const Header = () => {
 
       let cancelled = false;
       // Bump key to drop stale v1 caches that kept /overview links off.
-      const AVAIL_CACHE_KEY = 'category_overview_availability_v3';
+      const AVAIL_CACHE_KEY = 'category_overview_availability_v4';
       const AVAIL_TTL_MS = 2 * 60 * 1000;
 
       const loadAvailability = async () => {
@@ -575,6 +589,63 @@ const Header = () => {
     }, [overviewAvailability]);
     const [sortOption, setSortOption] = useState('');
     const [hoveredCategory, setHoveredCategory] = useState(null);
+
+    useEffect(() => {
+      if (!hoveredCategory?._id) return;
+      const brands = [
+        ...(Array.isArray(hoveredCategory.brands) ? hoveredCategory.brands : []),
+        ...(Array.isArray(hoveredCategory.subcategories)
+          ? hoveredCategory.subcategories.flatMap((sub) =>
+              Array.isArray(sub?.brands) ? sub.brands : []
+            )
+          : []),
+      ];
+      const pages = [];
+      const seen = new Set();
+      for (const brand of brands) {
+        if (!brand?._id) continue;
+        const key = `${hoveredCategory._id}:${brand._id}`;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        pages.push({
+          categoryId: String(hoveredCategory._id),
+          pageType: PAGE_TYPES.CATEGORY_BRAND,
+          brandId: String(brand._id),
+        });
+      }
+      if (!pages.length) return;
+      const missing = pages.filter(
+        (p) =>
+          overviewAvailability[
+            `${p.categoryId}:${PAGE_TYPES.CATEGORY_BRAND}:${p.brandId}`
+          ] === undefined
+      );
+      if (!missing.length) return;
+
+      let cancelled = false;
+      const loadBrandAvailability = async () => {
+        try {
+          const res = await fetch('/api/category-pages/availability', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ pages: missing }),
+            cache: 'no-store',
+          });
+          const data = await res.json();
+          if (cancelled || !data?.success || !data.availability) return;
+          setOverviewAvailability((prev) => ({
+            ...(prev || {}),
+            ...data.availability,
+          }));
+        } catch (err) {
+          console.error('Failed to load category-brand overview availability:', err);
+        }
+      };
+      loadBrandAvailability();
+      return () => {
+        cancelled = true;
+      };
+    }, [hoveredCategory, overviewAvailability]);
     const [dropdownLeft, setDropdownLeft] = useState(0);
     const [dropdownTop, setDropdownTop] = useState(0);
     const [dropdownCenterX, setDropdownCenterX] = useState(null);
@@ -1430,7 +1501,7 @@ const Header = () => {
               className="ml-2"
             >
               <FiChevronRight
-                className={`text-white rounded-full p-1 transition-transform duration-200 bg-[#d72828] ${
+                className={`text-white rounded-full p-1 transition-transform duration-200 bg-[#ED1C24] ${
                   isOpen ? "rotate-90" : "rotate-0"
                 }`}
                 size={18}
@@ -1464,7 +1535,7 @@ const Header = () => {
               :root{
                 --search-h:42px;
                 --search-radius:999px;
-                --accent:#d72828;
+                --accent:#ED1C24;
                 --search-border:#e5e7eb;
                 --muted:#6b7280;
               }
@@ -1552,17 +1623,8 @@ const Header = () => {
                 cursor:pointer;
                 transition:background .15s ease;
               }
-              .header-search-btn:hover{ background:#b82020; }
+              .header-search-btn:hover{ background:#C4161D; }
               .header-search-btn:active{ transform:scale(0.98); }
-              @keyframes loyaltyNewBlink{
-                0%,100%{background:#ef4444;color:#fff;box-shadow:0 0 6px rgba(239,68,68,.6)}
-                25%{background:#f59e0b;color:#fff;box-shadow:0 0 6px rgba(245,158,11,.6)}
-                50%{background:#22c55e;color:#fff;box-shadow:0 0 6px rgba(34,197,94,.6)}
-                75%{background:#3b82f6;color:#fff;box-shadow:0 0 6px rgba(59,130,246,.6)}
-              }
-              .loyalty-new-badge{
-                animation:loyaltyNewBlink 1.1s ease-in-out infinite;
-              }
               @media (max-width:640px){
                 :root{ --search-h:40px; --search-radius:12px; }
                 .header-search-select{ min-width:78px; max-width:92px; font-size:11px; padding:0 22px 0 8px; }
@@ -1861,8 +1923,8 @@ const Header = () => {
                     {/* Mobile Category Block (accordion) */}
                       <div className=" bg-white rounded-md border border-gray-200 overflow-hidden">
                           <div
-                            className="text-white bg-[#d72828]"
-                            style={{ borderTop: "4px solid #fbe002" }}
+                            className="text-white bg-[#ED1C24]"
+                            style={{ borderTop: "4px solid #FFF200" }}
                           >
                             <div className="px-3 py-4 text-[14px] font-semibold tracking-wide">
                               Browse Category
@@ -1882,9 +1944,9 @@ const Header = () => {
                           <Link
                             href="/contact"
                             onClick={() => setIsMobileMenuOpen(false)}
-                            className="flex flex-col items-center justify-center gap-1.5 rounded-xl border border-[#d72828]/20 bg-gradient-to-b from-[#fffdf5] to-white px-2 py-3 text-[#d72828] shadow-sm"
+                            className="flex flex-col items-center justify-center gap-1.5 rounded-xl border border-[#ED1C24]/20 bg-gradient-to-b from-[#fffdf5] to-white px-2 py-3 text-[#ED1C24] shadow-sm"
                           >
-                            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#fbe002]/60">
+                            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#FFF200]/60">
                               <HiOutlinePhone size={18} strokeWidth={1.75} />
                             </span>
                             <span className="text-[11px] font-semibold">Contact</span>
@@ -1892,35 +1954,14 @@ const Header = () => {
                           <Link
                             href="/location"
                             onClick={() => setIsMobileMenuOpen(false)}
-                            className="flex flex-col items-center justify-center gap-1.5 rounded-xl border border-[#d72828]/20 bg-gradient-to-b from-[#fffdf5] to-white px-2 py-3 text-[#d72828] shadow-sm"
+                            className="flex flex-col items-center justify-center gap-1.5 rounded-xl border border-[#ED1C24]/20 bg-gradient-to-b from-[#fffdf5] to-white px-2 py-3 text-[#ED1C24] shadow-sm"
                           >
-                            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#fbe002]/60">
+                            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#FFF200]/60">
                               <HiOutlineBuildingStorefront size={18} strokeWidth={1.75} />
                             </span>
                             <span className="text-[11px] font-semibold">Store</span>
                           </Link>
                         </div>
-                        {/* Open Box Sale - Mobile */}
-                           <Link
-                       href="/open-box"
-                        className="mt-3 flex items-center justify-between bg-white rounded-md px-4 py-3 text-black font-semibold text-sm"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                         >
-                   <span> Open Box Clearance Sale</span>
-              <FiChevronRight className="bg-[#d72828] rounded-full text-white" size={18} />
-                       </Link>
-                        {/* Loyalty - Mobile */}
-                        <Link
-                          href="/loyalty"
-                          className="mt-3 relative flex items-center justify-between bg-white rounded-md px-4 py-3 text-black font-semibold text-sm"
-                          onClick={() => setIsMobileMenuOpen(false)}
-                        >
-                          <span>Loyalty</span>
-                          <span className="loyalty-new-badge absolute top-2 right-10 text-[9px] font-bold px-1.5 py-0.5 rounded leading-none">
-                            NEW
-                          </span>
-                          <FiChevronRight className="bg-[#d72828] rounded-full text-white" size={18} />
-                        </Link>
                   </div>
                 )}
                 {/* Auth Modal */}
@@ -2222,8 +2263,8 @@ const Header = () => {
             </div>
             {/* Category listing bar — red bar with yellow line on top (Sathya brand) */}
             <div
-              className="hidden sm:flex relative w-full min-h-[56px] items-center bg-[#d72828] shadow"
-              style={{ borderTop: "4px solid #fbe002" }}
+              className="hidden sm:flex relative w-full min-h-[56px] items-center bg-[#ED1C24] shadow"
+              style={{ borderTop: "4px solid #FFF200" }}
             >
                 <div className="w-full relative">
                     <div className="relative">
@@ -2253,7 +2294,7 @@ const Header = () => {
                                                   category._id
                                                 );
                                               }}
-                                              className="text-sm text-base text-white hover:text-[#fbe002] whitespace-nowrap"
+                                              className="text-sm text-base text-white hover:text-[#FFF200] whitespace-nowrap"
                                             >
                                                 {category.category_name} 
                                             </Link>
@@ -2261,38 +2302,6 @@ const Header = () => {
                                         </div>
                                     </SwiperSlide>
                                 ))}
-                                <SwiperSlide className="!w-[140px] overflow-visible flex justify-center">
-  <Link
-    href="/open-box"
-    className="relative flex items-center justify-center h-[40px]"
-  >
-    <video
-      src="/assets/open-box-video.mp4"
-      autoPlay
-      loop
-      muted
-      playsInline
-      preload="none"
-      className="h-[110px] w-auto object-contain rounded pointer-events-none"
-    />
-  </Link>
-</SwiperSlide>
-                                <SwiperSlide className="!w-[140px] overflow-visible flex justify-center">
-                                  <Link
-                                    href="/loyalty"
-                                    className="relative flex items-center justify-center h-[40px]"
-                                    aria-label="Loyalty"
-                                  >
-                                    <Image
-                                      src="/uploads/loyaltyIcon.png"
-                                      alt="Loyalty"
-                                      width={150}
-                                      height={125}
-                                      className="h-[125px] w-auto object-contain hover:opacity-90 transition-opacity"
-                                      unoptimized
-                                    />
-                                  </Link>
-                                </SwiperSlide>
  </Swiper>
   </div>
        </div>
@@ -2322,14 +2331,14 @@ const Header = () => {
       .dd-sidebar::-webkit-scrollbar { display: none; }
       .dd-sidebar { -ms-overflow-style: none; scrollbar-width: none; }
       .dd-brands::-webkit-scrollbar { width: 3px; }
-      .dd-brands::-webkit-scrollbar-thumb { background: #d72828; border-radius: 2px; }
+      .dd-brands::-webkit-scrollbar-thumb { background: #ED1C24; border-radius: 2px; }
       .dd-brands::-webkit-scrollbar-track { background: #f1f1f1; }
-      .dd-sub-scroll { overflow-y: auto; overflow-x: hidden; scrollbar-width: thin; scrollbar-color: #d72828 #f1f1f1; }
+      .dd-sub-scroll { overflow-y: auto; overflow-x: hidden; scrollbar-width: thin; scrollbar-color: #ED1C24 #f1f1f1; }
       .dd-sub-scroll::-webkit-scrollbar { width: 3px; }
-      .dd-sub-scroll::-webkit-scrollbar-thumb { background: #d72828; border-radius: 2px; }
+      .dd-sub-scroll::-webkit-scrollbar-thumb { background: #ED1C24; border-radius: 2px; }
       .dd-sub-scroll::-webkit-scrollbar-track { background: #f1f1f1; }
       .dd-child-link { display:block; font-size:13px; color:#374151; text-decoration:none; padding:5px 8px; border-radius:4px; white-space:nowrap; transition: color 0.1s, background 0.1s; }
-      .dd-child-link:hover { color:#d72828; background:#FEF2F2; }
+      .dd-child-link:hover { color:#ED1C24; background:#FEF2F2; }
       .dd-brand-item { display:flex; align-items:center; justify-content:center; padding:5px 6px; border:none; border-radius:6px; text-decoration:none; transition: background 0.1s; }
       .dd-brand-item:hover { background:#FEF2F2; }
     `}</style>
@@ -2351,7 +2360,7 @@ const Header = () => {
       >
        <div style={{
   padding: '10px 16px',
-  fontSize: '13px', fontWeight: 700, color: '#9B1B1B',
+  fontSize: '13px', fontWeight: 700, color: '#C4161D',
   letterSpacing: '0.04em', textTransform: 'uppercase',
   borderBottom: 'none', flexShrink: 0,
   paddingTop:"16px"
@@ -2390,7 +2399,7 @@ const Header = () => {
                         background: '#FEE2E2', display: 'flex', alignItems: 'center',
                         justifyContent: 'center', flexShrink: 0,
                       }}>
-                        <span style={{ fontSize: '9px', color: '#d72828', fontWeight: 700 }}>
+                        <span style={{ fontSize: '9px', color: '#ED1C24', fontWeight: 700 }}>
                           {(sub.category_name || '').charAt(0)}
                         </span>
                       </div>
@@ -2404,14 +2413,14 @@ const Header = () => {
             style={{
                    fontSize: '13px',
                    fontWeight: isActive ? 700 : 600,
-                    color: isActive ? '#d72828' : '#9B1B1B',
+                    color: isActive ? '#ED1C24' : '#C4161D',
                     textDecoration: 'none', lineHeight: 1.3,
                       }}
                   >
                    {sub.category_name}
                      </Link>
                   </div>
-                  <FiChevronRight size={13} style={{ color: isActive ? '#d72828' : '#d1d5db', flexShrink: 0 }} />
+                  <FiChevronRight size={13} style={{ color: isActive ? '#ED1C24' : '#d1d5db', flexShrink: 0 }} />
                 </div>
               );
             })}
@@ -2425,7 +2434,7 @@ const Header = () => {
     onClick={() => setHoveredCategory(null)}
     style={{
       display: 'flex', alignItems: 'center', gap: '4px',
-      fontSize: '13px', fontWeight: 600, color: '#d72828', textDecoration: 'none',
+      fontSize: '13px', fontWeight: 600, color: '#ED1C24', textDecoration: 'none',
     }}
   >
     View All {hoveredCategory.category_name}
@@ -2475,7 +2484,11 @@ const Header = () => {
             .map((brand) => ({
               key: brand._id || brand.brand_slug,
               label: brand.brand_name,
-              href: `/category/brand/${hoveredCategory.category_slug}/${brand.brand_slug}`,
+              href: resolveCategoryBrandNavHref(
+                hoveredCategory.category_slug,
+                brand,
+                hoveredCategory._id
+              ),
               kind: 'brand',
             }));
         };
@@ -2521,7 +2534,7 @@ const Header = () => {
         const renderBrands = () => brands.length > 0 && (
           <div style={{ marginTop: 'auto', paddingTop: '12px', paddingLeft: '196px', borderTop: '1px solid #e5e7eb', flexShrink: 0, width: '100%', boxSizing: 'border-box' }}>
             <div style={{
-              fontSize: '11px', fontWeight: 700, color: '#9B1B1B',
+              fontSize: '11px', fontWeight: 700, color: '#C4161D',
               textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '8px',
             }}>
               Top Brands
@@ -2540,7 +2553,11 @@ const Header = () => {
                 .map((brand) => (
                   <Link
                     key={brand._id || brand.brand_slug}
-                    href={`/category/brand/${hoveredCategory.category_slug}/${brand.brand_slug}`}
+                    href={resolveCategoryBrandNavHref(
+                      hoveredCategory.category_slug,
+                      brand,
+                      hoveredCategory._id
+                    )}
                     onClick={() => setHoveredCategory(null)}
                     className="dd-brand-item"
                   >
@@ -2575,7 +2592,7 @@ const Header = () => {
                     0
                   )}
                   onClick={() => setHoveredCategory(null)}
-                  style={{ display: 'flex', alignItems: 'center', gap: '2px', padding: '5px 6px', fontSize: '11px', fontWeight: 600, color: '#d72828', textDecoration: 'none' }}
+                  style={{ display: 'flex', alignItems: 'center', gap: '2px', padding: '5px 6px', fontSize: '11px', fontWeight: 600, color: '#ED1C24', textDecoration: 'none' }}
                 >
                   +{brands.length - 10} more <FiChevronRight size={11} />
                 </Link>
@@ -2598,7 +2615,7 @@ const Header = () => {
                         )}
                         onClick={() => setHoveredCategory(null)}
                         style={{
-                          fontSize: '13px', fontWeight: 700, color: '#d72828',
+                          fontSize: '13px', fontWeight: 700, color: '#ED1C24',
                           textDecoration: 'none', textTransform: 'uppercase', letterSpacing: '0.05em',
                         }}
                       >
@@ -2631,7 +2648,7 @@ const Header = () => {
                                   )}
                                   onClick={() => setHoveredCategory(null)}
                                   style={{
-                                    fontSize: '13px', fontWeight: 700, color: '#d72828',
+                                    fontSize: '13px', fontWeight: 700, color: '#ED1C24',
                                     textDecoration: 'none', textTransform: 'uppercase',
                                     letterSpacing: '0.04em', marginBottom: '8px',
                                     paddingBottom: '6px', borderBottom: 'none',
@@ -2670,7 +2687,7 @@ const Header = () => {
                                 onClick={() => setHoveredCategory(null)}
                                 style={{
                                   display: 'block', fontSize: '13px', fontWeight: 700,
-                                  color: '#9B1B1B', textDecoration: 'none',
+                                  color: '#C4161D', textDecoration: 'none',
                                   textTransform: 'uppercase', letterSpacing: '0.04em',
                                   marginBottom: '8px', paddingBottom: '6px',
                                   borderBottom: 'none',
@@ -2801,15 +2818,6 @@ const Header = () => {
                       <FaUserShield className="w-3 h-3 sm:w-4 sm:h-4" />
                     </span>
                     Admin Panel
-                  </Link>
-                )}
-                {isLoggedIn && (
-                  <Link href="/loyalty" onClick={() => setDropdownOpen(false)} className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm text-gray-700 hover:bg-red-50 transition-colors">
-                    <span className="w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center rounded-full bg-brandRed text-white">
-                      🏆
-                    </span>
-                    Loyalty Points
-                    <span className="ml-auto text-xs font-bold text-brandRed">{loyaltyPoints} pts</span>
                   </Link>
                 )}
                 <Link href="/orders" onClick={() => setDropdownOpen(false)} className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm text-gray-700 hover:bg-red-50 transition-colors">

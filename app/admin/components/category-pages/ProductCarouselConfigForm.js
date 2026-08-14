@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Icon } from "@iconify/react";
+import { buildProductSearchQuery } from "@/lib/categoryPageComponents/productSearchQuery";
 
 function productImageSrc(product) {
   const img = product?.images?.[0];
@@ -28,6 +29,10 @@ export default function ProductCarouselConfigForm({
   onDeleteSet,
   onBackToList,
   onSaved,
+  apiBase = "/api/category-product-carousel",
+  searchApiBase = "/api/category-product-carousel/search",
+  ownerType = "category",
+  brandId,
 }) {
   const isListMode = !instanceId;
   const [name, setName] = useState("");
@@ -55,7 +60,7 @@ export default function ProductCarouselConfigForm({
       setError("");
       try {
         const res = await fetch(
-          `/api/category-product-carousel?instanceId=${instanceId}`
+          `${apiBase}?instanceId=${instanceId}`
         );
         const data = await res.json();
         if (data.success && data.data) {
@@ -98,7 +103,12 @@ export default function ProductCarouselConfigForm({
       setSearching(true);
       try {
         const res = await fetch(
-          `/api/category-product-carousel/search?categoryId=${categoryId}&q=${encodeURIComponent(query.trim())}`
+          `${searchApiBase}?${buildProductSearchQuery({
+            categoryId,
+            ownerType,
+            brandId,
+            q: query.trim(),
+          })}`
         );
         const data = await res.json();
         if (data.success) {
@@ -115,7 +125,7 @@ export default function ProductCarouselConfigForm({
       }
     }, 280);
     return () => clearTimeout(searchTimer.current);
-  }, [query, categoryId, selected]);
+  }, [query, categoryId, selected, ownerType, brandId]);
 
   const addProduct = (p) => {
     setSelected((prev) => [...prev, p]);
@@ -150,7 +160,7 @@ export default function ProductCarouselConfigForm({
     setError("");
     try {
       const res = await fetch(
-        `/api/category-product-carousel?instanceId=${encodeURIComponent(setInstanceId)}`,
+        `${apiBase}?instanceId=${encodeURIComponent(setInstanceId)}`,
         { method: "DELETE" }
       );
       const data = await res.json();
@@ -176,7 +186,7 @@ export default function ProductCarouselConfigForm({
     }
     setSaving(true);
     try {
-      const res = await fetch("/api/category-product-carousel", {
+      const res = await fetch(apiBase, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -217,7 +227,7 @@ export default function ProductCarouselConfigForm({
           <button
             type="button"
             onClick={onAddNew}
-            className="shrink-0 inline-flex items-center gap-1.5 rounded-lg bg-[#d72828] px-3 py-2 text-sm font-medium text-white hover:bg-[#b82222]"
+            className="shrink-0 inline-flex items-center gap-1.5 rounded-lg bg-[#ED1C24] px-3 py-2 text-sm font-medium text-white hover:bg-[#C4161D]"
           >
             <Icon icon="mdi:plus" className="text-base" />
             ADD NEW
@@ -253,7 +263,7 @@ export default function ProductCarouselConfigForm({
                   <button
                     type="button"
                     onClick={() => onEditSet?.(s.instanceId)}
-                    className="text-sm font-medium text-[#d72828] hover:underline"
+                    className="text-sm font-medium text-[#ED1C24] hover:underline"
                   >
                     Edit
                   </button>
@@ -277,7 +287,7 @@ export default function ProductCarouselConfigForm({
   if (loading) {
     return (
       <div className="flex justify-center py-10">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#d72828]" />
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#ED1C24]" />
       </div>
     );
   }
@@ -307,7 +317,7 @@ export default function ProductCarouselConfigForm({
         <button
           type="button"
           onClick={onAddNew}
-          className="shrink-0 inline-flex items-center gap-1.5 rounded-lg bg-[#d72828] px-3 py-2 text-sm font-medium text-white hover:bg-[#b82222]"
+          className="shrink-0 inline-flex items-center gap-1.5 rounded-lg bg-[#ED1C24] px-3 py-2 text-sm font-medium text-white hover:bg-[#C4161D]"
         >
           <Icon icon="mdi:plus" className="text-base" />
           ADD NEW
@@ -360,7 +370,7 @@ export default function ProductCarouselConfigForm({
             }
             className="sr-only peer"
           />
-          <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-[#d72828] after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full" />
+          <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-[#ED1C24] after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full" />
         </label>
         <span className="text-sm font-medium">Set Active</span>
       </div>
@@ -369,7 +379,7 @@ export default function ProductCarouselConfigForm({
         <label className="block text-sm font-medium text-gray-700 mb-1">
           Add products
         </label>
-        <p className="text-sm font-medium text-[#d72828] mb-2">
+        <p className="text-sm font-medium text-[#ED1C24] mb-2">
           Add minimum {MIN_PRODUCTS} products must be added.
         </p>
         <input
@@ -416,7 +426,7 @@ export default function ProductCarouselConfigForm({
           Selected products ({selected.length} / {MIN_PRODUCTS} minimum)
         </h4>
         {selected.length > 0 && selected.length < MIN_PRODUCTS && (
-          <p className="text-sm font-medium text-[#d72828] mb-2">
+          <p className="text-sm font-medium text-[#ED1C24] mb-2">
             Add {MIN_PRODUCTS - selected.length} more product
             {MIN_PRODUCTS - selected.length === 1 ? "" : "s"} to save.
           </p>
@@ -495,7 +505,7 @@ export default function ProductCarouselConfigForm({
         <button
           type="submit"
           disabled={saving}
-          className="rounded-lg bg-[#d72828] px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+          className="rounded-lg bg-[#ED1C24] px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
         >
           {saving ? "Saving…" : "Save Product Carousel"}
         </button>

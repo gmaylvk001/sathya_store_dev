@@ -11,7 +11,9 @@ import {
   PAGE_TYPE_LABELS,
 } from "@/lib/categoryPageComponents/registry";
 
-export default function OrderTemplate() {
+export default function OrderTemplate({
+  builderHrefPrefix = "/admin/category-pages",
+}) {
   const { id } = useParams();
   const [page, setPage] = useState(null);
   const [items, setItems] = useState([]);
@@ -82,15 +84,15 @@ export default function OrderTemplate() {
   if (loading) {
     return (
       <div className="flex justify-center py-20">
-        <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-[#d72828]" />
+        <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-[#ED1C24]" />
       </div>
     );
   }
 
   return (
-    <div className="p-6 max-w-3xl mx-auto">
+    <div className="py-4 w-full">
       <Link
-        href={`/admin/category-pages/${id}`}
+        href={`${builderHrefPrefix}/${id}`}
         className="inline-flex items-center gap-1 text-sm text-gray-500 mb-2"
       >
         <Icon icon="mdi:arrow-left" /> Back to Page Builder
@@ -111,7 +113,7 @@ export default function OrderTemplate() {
           type="button"
           onClick={handleSave}
           disabled={saving || items.length === 0}
-          className="inline-flex items-center gap-2 rounded-lg bg-[#d72828] px-4 py-2.5 text-sm font-medium text-white disabled:opacity-50"
+          className="inline-flex items-center gap-2 rounded-lg bg-[#ED1C24] px-4 py-2.5 text-sm font-medium text-white disabled:opacity-50"
         >
           <Icon icon="mdi:content-save" />
           {saving ? "Saving…" : "Save Order"}
@@ -158,7 +160,7 @@ export default function OrderTemplate() {
                           {...drag.draggableProps}
                           className={`flex items-center gap-3 rounded-xl border bg-white px-4 py-3 ${
                             snapshot.isDragging
-                              ? "border-[#d72828] shadow-md"
+                              ? "border-[#ED1C24] shadow-md"
                               : "border-gray-200"
                           }`}
                         >

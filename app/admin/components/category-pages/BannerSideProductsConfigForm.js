@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Icon } from "@iconify/react";
+import { buildProductSearchQuery } from "@/lib/categoryPageComponents/productSearchQuery";
 import {
   CATEGORY_PAGE_IMAGE_ACCEPT,
   CATEGORY_PAGE_IMAGE_ACCEPT_HINT,
@@ -59,6 +60,10 @@ export default function BannerSideProductsConfigForm({
   onDeleteSet,
   onBackToList,
   onSaved,
+  apiBase = "/api/category-banner-side-products",
+  searchApiBase = "/api/category-product-carousel/search",
+  ownerType = "category",
+  brandId,
 }) {
   const isListMode = !instanceId;
   const [name, setName] = useState("");
@@ -97,7 +102,7 @@ export default function BannerSideProductsConfigForm({
       setError("");
       try {
         const res = await fetch(
-          `/api/category-banner-side-products?instanceId=${instanceId}`
+          `${apiBase}?instanceId=${instanceId}`
         );
         const data = await res.json();
         if (data.success && data.data) {
@@ -159,7 +164,12 @@ export default function BannerSideProductsConfigForm({
       setSearching(true);
       try {
         const res = await fetch(
-          `/api/category-product-carousel/search?categoryId=${categoryId}&q=${encodeURIComponent(query.trim())}`
+          `${searchApiBase}?${buildProductSearchQuery({
+            categoryId,
+            ownerType,
+            brandId,
+            q: query.trim(),
+          })}`
         );
         const data = await res.json();
         if (data.success) {
@@ -176,7 +186,7 @@ export default function BannerSideProductsConfigForm({
       }
     }, 280);
     return () => clearTimeout(searchTimer.current);
-  }, [query, categoryId, selected]);
+  }, [query, categoryId, selected, ownerType, brandId]);
 
   const pickMainDesktop = (file) => {
     setMainDesktopFile(file);
@@ -224,7 +234,7 @@ export default function BannerSideProductsConfigForm({
     setError("");
     try {
       const res = await fetch(
-        `/api/category-banner-side-products?instanceId=${encodeURIComponent(setInstanceId)}`,
+        `${apiBase}?instanceId=${encodeURIComponent(setInstanceId)}`,
         { method: "DELETE" }
       );
       const data = await res.json();
@@ -270,7 +280,7 @@ export default function BannerSideProductsConfigForm({
       if (mainMobileFile) fd.append("mainBannerMobile", mainMobileFile);
       if (sideImageFile) fd.append("sideBannerImage", sideImageFile);
 
-      const res = await fetch("/api/category-banner-side-products", {
+      const res = await fetch(apiBase, {
         method: "POST",
         body: fd,
       });
@@ -303,7 +313,7 @@ export default function BannerSideProductsConfigForm({
           <button
             type="button"
             onClick={onAddNew}
-            className="shrink-0 inline-flex items-center gap-1.5 rounded-lg bg-[#d72828] px-3 py-2 text-sm font-medium text-white hover:bg-[#b82222]"
+            className="shrink-0 inline-flex items-center gap-1.5 rounded-lg bg-[#ED1C24] px-3 py-2 text-sm font-medium text-white hover:bg-[#C4161D]"
           >
             <Icon icon="mdi:plus" className="text-base" />
             ADD NEW
@@ -339,7 +349,7 @@ export default function BannerSideProductsConfigForm({
                   <button
                     type="button"
                     onClick={() => onEditSet?.(s.instanceId)}
-                    className="text-sm font-medium text-[#d72828] hover:underline"
+                    className="text-sm font-medium text-[#ED1C24] hover:underline"
                   >
                     Edit
                   </button>
@@ -363,7 +373,7 @@ export default function BannerSideProductsConfigForm({
   if (loading) {
     return (
       <div className="flex justify-center py-10">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#d72828]" />
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#ED1C24]" />
       </div>
     );
   }
@@ -386,7 +396,7 @@ export default function BannerSideProductsConfigForm({
         <button
           type="button"
           onClick={onAddNew}
-          className="shrink-0 inline-flex items-center gap-1.5 rounded-lg bg-[#d72828] px-3 py-2 text-sm font-medium text-white hover:bg-[#b82222]"
+          className="shrink-0 inline-flex items-center gap-1.5 rounded-lg bg-[#ED1C24] px-3 py-2 text-sm font-medium text-white hover:bg-[#C4161D]"
         >
           <Icon icon="mdi:plus" className="text-base" />
           ADD NEW
@@ -502,7 +512,7 @@ export default function BannerSideProductsConfigForm({
             }
             className="sr-only peer"
           />
-          <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-[#d72828] after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full" />
+          <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-[#ED1C24] after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full" />
         </label>
         <span className="text-sm font-medium">Set Active</span>
       </div>
@@ -600,7 +610,7 @@ export default function BannerSideProductsConfigForm({
         <button
           type="submit"
           disabled={saving}
-          className="rounded-lg bg-[#d72828] px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+          className="rounded-lg bg-[#ED1C24] px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
         >
           {saving ? "Saving…" : "Save"}
         </button>

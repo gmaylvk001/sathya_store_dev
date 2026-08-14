@@ -14,7 +14,7 @@ import { FiMail, FiPhone } from "react-icons/fi";
 import { TbTruckDelivery } from "react-icons/tb";
 import { IoCardOutline, IoPricetagOutline } from "react-icons/io5";
 
-const BRAND_RED = "#d72828";
+const BRAND_RED = "#ED1C24";
 const FOOTER_BG = "#1a1a1a";
 
 const ABOUT_LINKS = [
@@ -201,7 +201,7 @@ const Footer = () => {
           bottom: 0;
           width: 100%;
           height: 1.5px;
-          background: #d72828;
+          background: #ED1C24;
           transform: scaleX(0);
           transform-origin: left center;
           transition: transform 0.45s ease;

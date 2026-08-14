@@ -1,5 +1,5 @@
-/* Font Family*/
-@import url("https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400..700&family=Exo:ital,wght@0,100..900;1,100..900&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Outfit:wght@100..900&family=Quicksand:wght@300..700&display=swap");
+/* Font Family — Poppins (loaded via next/font in the app) */
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap");
 
 $colors: (
   "main": (
@@ -284,12 +284,12 @@ $font-sizes: (
 
 /* ========================= Variable Css Start ======================== */
 :root {
-  /* Font Family Variable */
-  --heading-font: "Quicksand", sans-serif;
-  --heading-font-two: "Exo", sans-serif;
-  --heading-font-three: "Outfit", sans-serif;
-  --heading-font-four: "Dancing Script", cursive;
-  --body-font: "Inter", sans-serif;
+  /* Font Family Variable — Poppins */
+  --heading-font: "Poppins", sans-serif;
+  --heading-font-two: "Poppins", sans-serif;
+  --heading-font-three: "Poppins", sans-serif;
+  --heading-font-four: "Poppins", sans-serif;
+  --body-font: "Poppins", sans-serif;
 
   /* Font Size Variable Start */
   --heading-one: clamp(

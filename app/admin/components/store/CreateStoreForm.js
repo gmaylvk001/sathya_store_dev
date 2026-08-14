@@ -37,7 +37,7 @@ function ProductSearchInput({ onSelect }) {
         placeholder="Search product by name or item code…"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#d72828]/20 focus:border-[#d72828]"
+        className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#ED1C24]/20 focus:border-[#ED1C24]"
       />
       {loading && <div className="text-xs text-gray-400 mt-1.5">Searching…</div>}
       {results.length > 0 && (
@@ -599,11 +599,11 @@ formData.append("existing_customer_images", JSON.stringify(customerExisting));
     { title: "Content", desc: "Banners & extras" },
   ];
   const fieldClass =
-    "w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm bg-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#d72828]/20 focus:border-[#d72828] transition";
+    "w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm bg-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#ED1C24]/20 focus:border-[#ED1C24] transition";
   const labelClass = "block text-sm font-medium text-gray-700 mb-1.5";
   const sectionClass = "rounded-xl border border-gray-200 bg-gray-50/50 p-5 space-y-4";
   const fileInputClass =
-    "block w-full text-sm text-gray-600 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-[#d72828] hover:file:bg-red-100 cursor-pointer";
+    "block w-full text-sm text-gray-600 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-[#ED1C24] hover:file:bg-red-100 cursor-pointer";
   const addBtnClass =
     "inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-medium bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 transition";
 
@@ -629,7 +629,7 @@ formData.append("existing_customer_images", JSON.stringify(customerExisting));
                   key={step.title}
                   className={`flex-1 rounded-lg px-2 sm:px-3 py-2.5 border transition ${
                     active
-                      ? "border-[#d72828] bg-red-50"
+                      ? "border-[#ED1C24] bg-red-50"
                       : done
                         ? "border-emerald-200 bg-emerald-50/60"
                         : "border-gray-100 bg-gray-50"
@@ -639,7 +639,7 @@ formData.append("existing_customer_images", JSON.stringify(customerExisting));
                     <span
                       className={`h-6 w-6 shrink-0 rounded-full text-xs font-semibold flex items-center justify-center ${
                         active
-                          ? "bg-[#d72828] text-white"
+                          ? "bg-[#ED1C24] text-white"
                           : done
                             ? "bg-emerald-500 text-white"
                             : "bg-white text-gray-500 border border-gray-200"
@@ -650,7 +650,7 @@ formData.append("existing_customer_images", JSON.stringify(customerExisting));
                     <div className="min-w-0 hidden sm:block">
                       <p
                         className={`text-xs font-semibold truncate ${
-                          active ? "text-[#d72828]" : done ? "text-emerald-700" : "text-gray-600"
+                          active ? "text-[#ED1C24]" : done ? "text-emerald-700" : "text-gray-600"
                         }`}
                       >
                         {step.title}
@@ -664,7 +664,7 @@ formData.append("existing_customer_images", JSON.stringify(customerExisting));
           </div>
           <div className="mt-3 h-1.5 rounded-full bg-gray-100 overflow-hidden">
             <div
-              className="h-full bg-[#d72828] transition-all duration-300"
+              className="h-full bg-[#ED1C24] transition-all duration-300"
               style={{ width: `${((currentStep - 1) / (storeSteps.length - 1)) * 100}%` }}
             />
           </div>
@@ -678,7 +678,7 @@ formData.append("existing_customer_images", JSON.stringify(customerExisting));
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="md:col-span-2">
                     <label className={labelClass}>
-                      Organisation Name <span className="text-[#d72828]">*</span>
+                      Organisation Name <span className="text-[#ED1C24]">*</span>
                     </label>
                     <input
                       type="text"
@@ -703,7 +703,7 @@ formData.append("existing_customer_images", JSON.stringify(customerExisting));
                         }
                         className={`rounded-lg border px-3 py-3 text-sm font-medium text-left transition ${
                           !newStore.multibrandstore
-                            ? "border-[#d72828] bg-red-50 text-[#d72828]"
+                            ? "border-[#ED1C24] bg-red-50 text-[#ED1C24]"
                             : "border-gray-200 bg-white text-gray-700 hover:border-gray-300"
                         }`}
                       >
@@ -716,7 +716,7 @@ formData.append("existing_customer_images", JSON.stringify(customerExisting));
                         }
                         className={`rounded-lg border px-3 py-3 text-sm font-medium text-left transition ${
                           newStore.multibrandstore
-                            ? "border-[#d72828] bg-red-50 text-[#d72828]"
+                            ? "border-[#ED1C24] bg-red-50 text-[#ED1C24]"
                             : "border-gray-200 bg-white text-gray-700 hover:border-gray-300"
                         }`}
                       >
@@ -797,13 +797,13 @@ formData.append("existing_customer_images", JSON.stringify(customerExisting));
                               <button
                                 type="button"
                                 onClick={() => handleRemoveImage("store_images", index)}
-                                className="absolute -top-1.5 -right-1.5 bg-[#d72828] text-white rounded-full p-1 text-xs shadow"
+                                className="absolute -top-1.5 -right-1.5 bg-[#ED1C24] text-white rounded-full p-1 text-xs shadow"
                               >
                                 <FaTimes size={10} />
                               </button>
                             </>
                           ) : (
-                            <label className="h-24 w-24 flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-[#d72828] hover:bg-red-50 transition bg-white">
+                            <label className="h-24 w-24 flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-[#ED1C24] hover:bg-red-50 transition bg-white">
                               <FaPlus className="text-gray-400 mb-1" size={16} />
                               <span className="text-[10px] text-gray-400">Upload</span>
                               <input
@@ -853,7 +853,7 @@ formData.append("existing_customer_images", JSON.stringify(customerExisting));
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className={labelClass}>
-                    Location ID <span className="text-[#d72828]">*</span>
+                    Location ID <span className="text-[#ED1C24]">*</span>
                   </label>
                   <input
                     type="text"
@@ -926,7 +926,7 @@ formData.append("existing_customer_images", JSON.stringify(customerExisting));
                           <button
                             type="button"
                             onClick={() => handleRemoveImage("images", index)}
-                            className="absolute -top-1.5 -right-1.5 bg-[#d72828] text-white rounded-full p-1 text-xs"
+                            className="absolute -top-1.5 -right-1.5 bg-[#ED1C24] text-white rounded-full p-1 text-xs"
                           >
                             <FaTimes size={10} />
                           </button>
@@ -1058,7 +1058,7 @@ formData.append("existing_customer_images", JSON.stringify(customerExisting));
                           onClick={() => setNewStore((prev) => ({ ...prev, verified: v }))}
                           className={`rounded-lg border px-3 py-2.5 text-sm font-medium transition ${
                             newStore.verified === v
-                              ? "border-[#d72828] bg-red-50 text-[#d72828]"
+                              ? "border-[#ED1C24] bg-red-50 text-[#ED1C24]"
                               : "border-gray-200 bg-white text-gray-600"
                           }`}
                         >
@@ -1078,7 +1078,7 @@ formData.append("existing_customer_images", JSON.stringify(customerExisting));
                           onClick={() => setNewStore((prev) => ({ ...prev, approved: v }))}
                           className={`rounded-lg border px-3 py-2.5 text-sm font-medium transition ${
                             newStore.approved === v
-                              ? "border-[#d72828] bg-red-50 text-[#d72828]"
+                              ? "border-[#ED1C24] bg-red-50 text-[#ED1C24]"
                               : "border-gray-200 bg-white text-gray-600"
                           }`}
                         >
@@ -1102,7 +1102,7 @@ formData.append("existing_customer_images", JSON.stringify(customerExisting));
                           ...base,
                           borderRadius: "0.5rem",
                           minHeight: "42px",
-                          borderColor: state.isFocused ? "#d72828" : "#d1d5db",
+                          borderColor: state.isFocused ? "#ED1C24" : "#d1d5db",
                           boxShadow: state.isFocused
                             ? "0 0 0 2px rgba(215,40,40,0.15)"
                             : "none",
@@ -1124,7 +1124,7 @@ formData.append("existing_customer_images", JSON.stringify(customerExisting));
                           onClick={() => setNewStore((prev) => ({ ...prev, status: s }))}
                           className={`rounded-lg border px-3 py-2.5 text-sm font-medium transition ${
                             newStore.status === s
-                              ? "border-[#d72828] bg-red-50 text-[#d72828]"
+                              ? "border-[#ED1C24] bg-red-50 text-[#ED1C24]"
                               : "border-gray-200 bg-white text-gray-600"
                           }`}
                         >
@@ -1156,7 +1156,7 @@ formData.append("existing_customer_images", JSON.stringify(customerExisting));
                       <button
                         type="button"
                         onClick={() => handleRemoveImage("banners", idx)}
-                        className="absolute -top-1.5 -right-1.5 bg-[#d72828] text-white rounded-full p-1 text-xs"
+                        className="absolute -top-1.5 -right-1.5 bg-[#ED1C24] text-white rounded-full p-1 text-xs"
                       >
                         <FaTimes size={10} />
                       </button>
@@ -1202,7 +1202,7 @@ formData.append("existing_customer_images", JSON.stringify(customerExisting));
                             featuredProducts: prev.featuredProducts.filter((_, i) => i !== idx),
                           }));
                         }}
-                        className="text-[#d72828] ml-1"
+                        className="text-[#ED1C24] ml-1"
                       >
                         <FaTimes size={10} />
                       </button>
@@ -1277,7 +1277,7 @@ formData.append("existing_customer_images", JSON.stringify(customerExisting));
                       <button
                         type="button"
                         onClick={() => handleRemoveImage("offers", idx)}
-                        className="bg-[#d72828] text-white rounded-lg p-2"
+                        className="bg-[#ED1C24] text-white rounded-lg p-2"
                       >
                         <FaTimes />
                       </button>
@@ -1326,7 +1326,7 @@ formData.append("existing_customer_images", JSON.stringify(customerExisting));
                       <button
                         type="button"
                         onClick={() => handleRemoveImage("highlights", idx)}
-                        className="bg-[#d72828] text-white rounded-lg p-2"
+                        className="bg-[#ED1C24] text-white rounded-lg p-2"
                       >
                         <FaTimes />
                       </button>
@@ -1510,7 +1510,7 @@ formData.append("existing_customer_images", JSON.stringify(customerExisting));
                       <button
                         type="button"
                         onClick={() => handleRemoveImage("customer_images", index)}
-                        className="absolute -top-1.5 -right-1.5 bg-[#d72828] text-white rounded-full p-1 text-xs"
+                        className="absolute -top-1.5 -right-1.5 bg-[#ED1C24] text-white rounded-full p-1 text-xs"
                       >
                         <FaTimes size={10} />
                       </button>
@@ -1538,7 +1538,7 @@ formData.append("existing_customer_images", JSON.stringify(customerExisting));
                 <button
                   type="button"
                   onClick={handleNext}
-                  className="w-full sm:w-auto px-5 py-2.5 rounded-lg bg-[#d72828] hover:bg-[#b82222] text-white text-sm font-semibold shadow-sm transition"
+                  className="w-full sm:w-auto px-5 py-2.5 rounded-lg bg-[#ED1C24] hover:bg-[#C4161D] text-white text-sm font-semibold shadow-sm transition"
                 >
                   Next step
                 </button>

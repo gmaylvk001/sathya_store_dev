@@ -3,15 +3,29 @@ import mongoose from "mongoose";
 import dbConnect from "@/lib/db";
 import Product from "@/models/product";
 import Category from "@/models/ecom_category_info";
+import Brand from "@/models/ecom_brand_info";
 
 function escapeRegExp(str = "") {
   return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-/**
- * Collect this category + all descendant category docs.
- * parentid is stored as a string of the parent ObjectId.
- */
+function scoreProduct(product, q) {
+  const query = String(q || "").toLowerCase();
+  const name = String(product.name || "").toLowerCase();
+  const itemCode = String(product.item_code || "").toLowerCase();
+  const model = String(product.model_number || "").toLowerCase();
+  const keywords = String(product.search_keywords || "").toLowerCase();
+
+  if (name === query) return 100;
+  if (name.startsWith(query)) return 90;
+  if (itemCode === query || model === query) return 85;
+  if (name.includes(` ${query}`) || name.includes(`${query} `)) return 75;
+  if (name.includes(query)) return 60;
+  if (itemCode.includes(query) || model.includes(query)) return 50;
+  if (keywords.includes(query)) return 40;
+  return 10;
+}
+
 async function collectCategoryTree(rootId) {
   const root = await Category.findById(rootId)
     .select("_id md5_cat_name category_name")
@@ -39,28 +53,9 @@ async function collectCategoryTree(rootId) {
   return tree;
 }
 
-function scoreProduct(product, q) {
-  const query = q.toLowerCase();
-  const name = String(product.name || "").toLowerCase();
-  const itemCode = String(product.item_code || "").toLowerCase();
-  const model = String(product.model_number || "").toLowerCase();
-  const keywords = String(product.search_keywords || "").toLowerCase();
-
-  if (name === query) return 100;
-  if (name.startsWith(query)) return 90;
-  if (itemCode === query || model === query) return 85;
-  if (name.includes(` ${query}`) || name.includes(`${query} `)) return 75;
-  if (name.includes(query)) return 60;
-  if (itemCode.includes(query) || model.includes(query)) return 50;
-  if (keywords.includes(query)) return 40;
-  return 10;
-}
-
 /**
  * GET /api/category-product-carousel/search?categoryId=&q=
- * Dropdown search for all category-page product pickers.
- * Matches products via ObjectId category fields AND md5 category chains
- * (sub_category_new / category_new) — same linkage the storefront uses.
+ * Search Active products within the category tree only.
  */
 export async function GET(req) {
   try {
@@ -68,6 +63,8 @@ export async function GET(req) {
     const { searchParams } = new URL(req.url);
     const categoryId = searchParams.get("categoryId");
     const q = (searchParams.get("q") || "").trim();
+    const ownerType = searchParams.get("ownerType") || "category";
+    const brandIdParam = searchParams.get("brandId");
 
     if (!categoryId || !mongoose.Types.ObjectId.isValid(categoryId)) {
       return NextResponse.json(
@@ -80,34 +77,7 @@ export async function GET(req) {
       return NextResponse.json({ success: true, products: [] });
     }
 
-    const tree = await collectCategoryTree(categoryId);
-    if (!tree.length) {
-      return NextResponse.json({ success: true, products: [] });
-    }
-
-    const catIds = tree.map((c) => String(c._id));
-    const md5List = tree
-      .map((c) => c.md5_cat_name)
-      .filter(Boolean);
-    const md5Regex =
-      md5List.length > 0
-        ? new RegExp(md5List.map(escapeRegExp).join("|"), "i")
-        : null;
-
     const rx = new RegExp(escapeRegExp(q), "i");
-
-    // Products store category linkage in multiple shapes:
-    // - category / sub_category → ObjectId strings
-    // - category_new / sub_category_new → md5 hashes (##-joined chain)
-    const categoryMatch = {
-      $or: [
-        { category: { $in: catIds } },
-        { sub_category: { $in: catIds } },
-        ...(md5List.length ? [{ category_new: { $in: md5List } }] : []),
-        ...(md5Regex ? [{ sub_category_new: md5Regex }] : []),
-      ],
-    };
-
     const textMatch = {
       $or: [
         { name: rx },
@@ -118,9 +88,92 @@ export async function GET(req) {
       ],
     };
 
+    if (ownerType === "brand") {
+      const brand = await Brand.findById(categoryId)
+        .select("brand_name _id")
+        .lean();
+      if (!brand) {
+        return NextResponse.json({ success: true, products: [] });
+      }
+      const brandName = String(brand.brand_name || "").trim();
+      const brandMatch = {
+        $or: [
+          { brand: brandName },
+          { brand: new RegExp(`^${escapeRegExp(brandName)}$`, "i") },
+          { brand: String(brand._id) },
+        ],
+      };
+      const products = await Product.find({
+        status: "Active",
+        $and: [brandMatch, textMatch],
+      })
+        .select(
+          "name slug images price special_price model_number item_code stock_status quantity brand search_keywords"
+        )
+        .limit(120)
+        .lean();
+
+      const ranked = products
+        .map((p) => ({ ...p, _score: scoreProduct(p, q) }))
+        .sort((a, b) => {
+          if (b._score !== a._score) return b._score - a._score;
+          return String(a.name || "").localeCompare(String(b.name || ""));
+        })
+        .slice(0, 50)
+        .map(({ _score, ...rest }) => rest);
+
+      return NextResponse.json({ success: true, products: ranked });
+    }
+
+    const tree = await collectCategoryTree(categoryId);
+    if (!tree.length) {
+      return NextResponse.json({ success: true, products: [] });
+    }
+
+    const catIds = tree.map((c) => String(c._id));
+    const md5List = tree.map((c) => c.md5_cat_name).filter(Boolean);
+    const md5Regex =
+      md5List.length > 0
+        ? new RegExp(md5List.map(escapeRegExp).join("|"), "i")
+        : null;
+
+    const categoryMatch = {
+      $or: [
+        { category: { $in: catIds } },
+        { sub_category: { $in: catIds } },
+        ...(md5List.length ? [{ category_new: { $in: md5List } }] : []),
+        ...(md5Regex ? [{ sub_category_new: md5Regex }] : []),
+      ],
+    };
+
+    const filters = [categoryMatch, textMatch];
+
+    if (ownerType === "category_brand") {
+      if (!brandIdParam || !mongoose.Types.ObjectId.isValid(brandIdParam)) {
+        return NextResponse.json(
+          { success: false, message: "Valid brandId required" },
+          { status: 400 }
+        );
+      }
+      const brand = await Brand.findById(brandIdParam)
+        .select("brand_name _id")
+        .lean();
+      if (!brand) {
+        return NextResponse.json({ success: true, products: [] });
+      }
+      const brandName = String(brand.brand_name || "").trim();
+      filters.push({
+        $or: [
+          { brand: brandName },
+          { brand: new RegExp(`^${escapeRegExp(brandName)}$`, "i") },
+          { brand: String(brand._id) },
+        ],
+      });
+    }
+
     const products = await Product.find({
       status: "Active",
-      $and: [categoryMatch, textMatch],
+      $and: filters,
     })
       .select(
         "name slug images price special_price model_number item_code stock_status quantity brand search_keywords"

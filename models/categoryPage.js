@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import { PAGE_TYPES } from "@/lib/categoryPageComponents/registry";
 
 /**
- * Layout for one Category / Sub / Child category page.
+ * Layout for one Category / Sub / Child / Brand / Category+Brand page.
  * components[] = ordered pluggable blocks (Top Banner first; more later).
  */
 const PageComponentSchema = new mongoose.Schema(
@@ -28,11 +28,17 @@ const CategoryPageSchema = new mongoose.Schema(
     },
     categoryId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "ecom_category_infos",
       required: true,
     },
     categoryName: { type: String, default: "" },
     categorySlug: { type: String, default: "" },
+    /** Used by category_brand pages; null for category / brand-only layouts. */
+    brandId: {
+      type: mongoose.Schema.Types.ObjectId,
+      default: null,
+    },
+    brandName: { type: String, default: "" },
+    brandSlug: { type: String, default: "" },
     status: {
       type: String,
       enum: ["active", "inactive"],
@@ -43,8 +49,23 @@ const CategoryPageSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-CategoryPageSchema.index({ pageType: 1, categoryId: 1 }, { unique: true });
+CategoryPageSchema.index(
+  { pageType: 1, categoryId: 1, brandId: 1 },
+  { unique: true, name: "pageType_categoryId_brandId" }
+);
 CategoryPageSchema.index({ categorySlug: 1, pageType: 1 });
+CategoryPageSchema.index({ brandSlug: 1, pageType: 1 });
 
-export default mongoose.models.CategoryPage ||
-  mongoose.model("CategoryPage", CategoryPageSchema);
+if (mongoose.models.CategoryPage) {
+  delete mongoose.models.CategoryPage;
+}
+
+export default mongoose.model("CategoryPage", CategoryPageSchema);
+
+export async function ensureCategoryPageIndexes() {
+  try {
+    await mongoose.model("CategoryPage").collection.dropIndex("pageType_1_categoryId_1");
+  } catch {
+    /* old unique index may already be gone */
+  }
+}

@@ -49,7 +49,7 @@ function getPageStarts(total, perPage) {
  * auto-play + scrollable + L/R + dots. Brand logos with optional URLs.
  */
 export default function CategoryBrandCarousel({ config }) {
-  const items = (config?.items || []).filter((i) => i?.image);
+  const items = (config?.items || []).filter((i) => i?.image || i?.notes);
   const name = config?.name || "";
   const showGap = Boolean(config?.showGap);
   const perPage = usePerPage();
@@ -224,14 +224,18 @@ export default function CategoryBrandCarousel({ config }) {
       : { width: `${100 / perPage}%` };
 
   const renderItem = (item, idx) => {
-    const img = (
+    const img = item.image ? (
       // eslint-disable-next-line @next/next/no-img-element
       <img
         src={item.image}
-        alt={name || `Brand ${idx + 1}`}
+        alt={item.notes || name || `Brand ${idx + 1}`}
         className="block w-full h-auto max-w-[200px] max-h-[120px] object-contain pointer-events-none select-none"
         draggable={false}
       />
+    ) : (
+      <span className="text-sm font-semibold text-gray-700 text-center px-2">
+        {item.notes || `Brand ${idx + 1}`}
+      </span>
     );
 
     const wrapClass =
@@ -296,7 +300,7 @@ export default function CategoryBrandCarousel({ config }) {
           aria-label="Previous"
           disabled={page <= 0}
           onClick={() => scrollToPage(page - 1)}
-          className="absolute left-0 top-1/2 -translate-y-1/2 z-10 h-10 w-10 sm:h-11 sm:w-11 rounded-full bg-[#d72828] text-white flex items-center justify-center shadow disabled:opacity-30 disabled:pointer-events-none"
+          className="absolute left-0 top-1/2 -translate-y-1/2 z-10 h-10 w-10 sm:h-11 sm:w-11 rounded-full bg-[#ED1C24] text-white flex items-center justify-center shadow disabled:opacity-30 disabled:pointer-events-none"
         >
           <FiChevronLeft size={22} />
         </button>
@@ -305,7 +309,7 @@ export default function CategoryBrandCarousel({ config }) {
           aria-label="Next"
           disabled={page >= pageCount - 1}
           onClick={() => scrollToPage(page + 1)}
-          className="absolute right-0 top-1/2 -translate-y-1/2 z-10 h-10 w-10 sm:h-11 sm:w-11 rounded-full bg-[#d72828] text-white flex items-center justify-center shadow disabled:opacity-30 disabled:pointer-events-none"
+          className="absolute right-0 top-1/2 -translate-y-1/2 z-10 h-10 w-10 sm:h-11 sm:w-11 rounded-full bg-[#ED1C24] text-white flex items-center justify-center shadow disabled:opacity-30 disabled:pointer-events-none"
         >
           <FiChevronRight size={22} />
         </button>
@@ -352,7 +356,7 @@ export default function CategoryBrandCarousel({ config }) {
               onClick={() => scrollToPage(i)}
               className={`h-1.5 w-1.5 rounded-full transition ${
                 i === page
-                  ? "bg-[#d72828] scale-110"
+                  ? "bg-[#ED1C24] scale-110"
                   : "bg-gray-300 hover:bg-gray-400"
               }`}
             />

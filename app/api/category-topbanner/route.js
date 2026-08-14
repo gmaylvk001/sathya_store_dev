@@ -1,8 +1,13 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
-import CategoryTopBanner from "@/models/categoryTopbanner";
+import CategoryTopBanner, {
+  ensureCategoryTopBannerIndexes,
+} from "@/models/categoryTopbanner";
+import CategoryPage from "@/models/categoryPage";
 import ecom_category_info from "@/models/ecom_category_info";
+import ecom_brand_info from "@/models/ecom_brand_info";
 import { saveCategoryTopBannerImage } from "@/lib/categoryTopbannerUpload";
+import { PAGE_TYPES } from "@/lib/categoryPageComponents/registry";
 
 /**
  * GET /api/category-topbanner
@@ -12,15 +17,19 @@ import { saveCategoryTopBannerImage } from "@/lib/categoryTopbannerUpload";
 export async function GET(req) {
   try {
     await dbConnect();
+    await ensureCategoryTopBannerIndexes();
     const { searchParams } = new URL(req.url);
     const categoryId = searchParams.get("categoryId");
+    const pageId = searchParams.get("pageId");
     const slug = searchParams.get("slug");
     const activeOnly = searchParams.get("activeOnly") === "1";
 
-    if (categoryId || slug) {
-      const filter = categoryId
-        ? { categoryId }
-        : { categorySlug: slug };
+    if (pageId || categoryId || slug) {
+      const filter = pageId
+        ? { pageId }
+        : categoryId
+          ? { categoryId, pageId: { $exists: false } }
+          : { categorySlug: slug, pageId: { $exists: false } };
 
       const doc = await CategoryTopBanner.findOne(filter).lean();
       if (!doc) {
@@ -70,9 +79,11 @@ export async function GET(req) {
 export async function POST(req) {
   try {
     await dbConnect();
+    await ensureCategoryTopBannerIndexes();
     const contentType = req.headers.get("content-type") || "";
 
     let categoryId;
+    let pageId;
     let pageType = "category";
     let status = "active";
     let banners = [];
@@ -80,6 +91,7 @@ export async function POST(req) {
     if (contentType.includes("multipart/form-data")) {
       const formData = await req.formData();
       categoryId = formData.get("categoryId");
+      pageId = formData.get("pageId") || null;
       pageType = formData.get("pageType") || "category";
       status = formData.get("status") || "active";
 
@@ -112,6 +124,7 @@ export async function POST(req) {
     } else {
       const body = await req.json();
       categoryId = body.categoryId;
+      pageId = body.pageId || null;
       pageType = body.pageType || "category";
       status = body.status || "active";
       banners = (body.banners || []).map((b, i) => ({
@@ -123,32 +136,67 @@ export async function POST(req) {
       }));
     }
 
-    if (!categoryId) {
+    let categoryName = "";
+    let categorySlug = "";
+
+    if (pageType === PAGE_TYPES.CATEGORY_BRAND && pageId) {
+      const page = await CategoryPage.findById(pageId).lean();
+      if (!page) {
+        return NextResponse.json(
+          { success: false, message: "Page not found" },
+          { status: 404 }
+        );
+      }
+      categoryId = page.categoryId;
+      categoryName = page.categoryName || "";
+      categorySlug = page.categorySlug || "";
+    } else if (!categoryId) {
       return NextResponse.json(
         { success: false, message: "categoryId is required" },
         { status: 400 }
       );
-    }
-
-    const category = await ecom_category_info.findById(categoryId).lean();
-    if (!category) {
-      return NextResponse.json(
-        { success: false, message: "Category not found" },
-        { status: 404 }
-      );
+    } else if (pageType === "brand") {
+      const brand = await ecom_brand_info.findById(categoryId).lean();
+      if (!brand) {
+        return NextResponse.json(
+          { success: false, message: "Brand not found" },
+          { status: 404 }
+        );
+      }
+      categoryName = brand.brand_name;
+      categorySlug = brand.brand_slug;
+    } else {
+      const category = await ecom_category_info.findById(categoryId).lean();
+      if (!category) {
+        return NextResponse.json(
+          { success: false, message: "Category not found" },
+          { status: 404 }
+        );
+      }
+      categoryName = category.category_name;
+      categorySlug = category.category_slug;
     }
 
     const payload = {
       categoryId,
-      categoryName: category.category_name,
-      categorySlug: category.category_slug,
+      categoryName,
+      categorySlug,
       pageType,
       status,
       banners,
     };
 
+    const query =
+      pageType === PAGE_TYPES.CATEGORY_BRAND && pageId
+        ? { pageId }
+        : { categoryId, pageId: { $exists: false } };
+
+    if (pageType === PAGE_TYPES.CATEGORY_BRAND && pageId) {
+      payload.pageId = pageId;
+    }
+
     const doc = await CategoryTopBanner.findOneAndUpdate(
-      { categoryId },
+      query,
       { $set: payload },
       { upsert: true, new: true }
     );

@@ -34,6 +34,7 @@ export default function ImageCarouselConfigForm({
   onDeleteSet,
   onBackToList,
   onSaved,
+  apiBase = "/api/category-image-carousel",
 }) {
   const isListMode = !instanceId;
   const [name, setName] = useState("");
@@ -57,7 +58,7 @@ export default function ImageCarouselConfigForm({
     setError("");
     try {
       const res = await fetch(
-        `/api/category-image-carousel?instanceId=${encodeURIComponent(setInstanceId)}`,
+        `${apiBase}?instanceId=${encodeURIComponent(setInstanceId)}`,
         { method: "DELETE" }
       );
       const data = await res.json();
@@ -80,7 +81,7 @@ export default function ImageCarouselConfigForm({
       setError("");
       try {
         const res = await fetch(
-          `/api/category-image-carousel?instanceId=${instanceId}`
+          `${apiBase}?instanceId=${instanceId}`
         );
         const data = await res.json();
         if (data.success && data.data) {
@@ -157,7 +158,7 @@ export default function ImageCarouselConfigForm({
         if (it.imageFile) fd.append(`image_${i}`, it.imageFile);
       });
 
-      const res = await fetch("/api/category-image-carousel", {
+      const res = await fetch(apiBase, {
         method: "POST",
         body: fd,
       });
@@ -188,14 +189,14 @@ export default function ImageCarouselConfigForm({
               <strong>ADD NEW</strong> to create another set (name + many images
               &amp; URLs).
             </p>
-            <p className="text-sm font-medium text-[#d72828] mt-2">
+            <p className="text-sm font-medium text-[#ED1C24] mt-2">
               All images must be the same height and width.
             </p>
           </div>
           <button
             type="button"
             onClick={onAddNew}
-            className="shrink-0 inline-flex items-center gap-1.5 rounded-lg bg-[#d72828] px-3 py-2 text-sm font-medium text-white hover:bg-[#b82222]"
+            className="shrink-0 inline-flex items-center gap-1.5 rounded-lg bg-[#ED1C24] px-3 py-2 text-sm font-medium text-white hover:bg-[#C4161D]"
           >
             <Icon icon="mdi:plus" className="text-base" />
             ADD NEW
@@ -232,7 +233,7 @@ export default function ImageCarouselConfigForm({
                   <button
                     type="button"
                     onClick={() => onEditSet?.(s.instanceId)}
-                    className="text-sm font-medium text-[#d72828] hover:underline"
+                    className="text-sm font-medium text-[#ED1C24] hover:underline"
                   >
                     Edit
                   </button>
@@ -256,7 +257,7 @@ export default function ImageCarouselConfigForm({
   if (loading) {
     return (
       <div className="flex justify-center py-10">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#d72828]" />
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#ED1C24]" />
       </div>
     );
   }
@@ -280,14 +281,14 @@ export default function ImageCarouselConfigForm({
             One set = many images + URLs. Storefront shows 5 per page with
             left/right and dots.
           </p>
-          <p className="text-sm font-medium text-[#d72828] mt-2">
+          <p className="text-sm font-medium text-[#ED1C24] mt-2">
             All images must be the same height and width.
           </p>
         </div>
         <button
           type="button"
           onClick={onAddNew}
-          className="shrink-0 inline-flex items-center gap-1.5 rounded-lg bg-[#d72828] px-3 py-2 text-sm font-medium text-white hover:bg-[#b82222]"
+          className="shrink-0 inline-flex items-center gap-1.5 rounded-lg bg-[#ED1C24] px-3 py-2 text-sm font-medium text-white hover:bg-[#C4161D]"
         >
           <Icon icon="mdi:plus" className="text-base" />
           ADD NEW
@@ -326,7 +327,7 @@ export default function ImageCarouselConfigForm({
             onClick={() => setShowGap(true)}
             className={`rounded-lg border px-6 py-2 text-sm font-semibold transition ${
               showGap
-                ? "border-[#d72828] bg-[#d72828] text-white"
+                ? "border-[#ED1C24] bg-[#ED1C24] text-white"
                 : "border-gray-300 bg-white text-gray-700 hover:border-gray-400"
             }`}
           >
@@ -337,7 +338,7 @@ export default function ImageCarouselConfigForm({
             onClick={() => setShowGap(false)}
             className={`rounded-lg border px-6 py-2 text-sm font-semibold transition ${
               !showGap
-                ? "border-[#d72828] bg-[#d72828] text-white"
+                ? "border-[#ED1C24] bg-[#ED1C24] text-white"
                 : "border-gray-300 bg-white text-gray-700 hover:border-gray-400"
             }`}
           >
@@ -356,7 +357,7 @@ export default function ImageCarouselConfigForm({
             }
             className="sr-only peer"
           />
-          <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-[#d72828] after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full" />
+          <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-[#ED1C24] after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full" />
         </label>
         <span className="text-sm font-medium">Set Active</span>
       </div>
@@ -364,14 +365,14 @@ export default function ImageCarouselConfigForm({
       <div className="flex items-center justify-between">
         <div>
           <h4 className="text-sm font-semibold">Images ({items.length})</h4>
-          <p className="text-sm font-medium text-[#d72828] mt-0.5">
+          <p className="text-sm font-medium text-[#ED1C24] mt-0.5">
             All images must be the same height and width.
           </p>
         </div>
         <button
           type="button"
           onClick={() => setItems((p) => [...p, emptyItem()])}
-          className="text-sm text-[#d72828] font-medium hover:underline inline-flex items-center gap-1"
+          className="text-sm text-[#ED1C24] font-medium hover:underline inline-flex items-center gap-1"
         >
           <Icon icon="mdi:image-plus" /> Add image
         </button>
@@ -451,7 +452,7 @@ export default function ImageCarouselConfigForm({
                 }
                 className="sr-only peer"
               />
-              <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-[#d72828] after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full" />
+              <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-[#ED1C24] after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full" />
             </label>
             <span className="text-sm">
               {item.isActive ? "Active" : "Inactive"}
@@ -471,7 +472,7 @@ export default function ImageCarouselConfigForm({
         <button
           type="submit"
           disabled={saving}
-          className="rounded-lg bg-[#d72828] px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+          className="rounded-lg bg-[#ED1C24] px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
         >
           {saving ? "Saving…" : "Save Image Carousel"}
         </button>

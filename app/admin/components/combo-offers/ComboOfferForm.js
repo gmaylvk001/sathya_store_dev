@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Icon } from "@iconify/react";
 import { calculateComboPricing } from "@/lib/comboOffers/pricingEngine";
+import { comboImagePublicUrl } from "@/lib/comboOffers/imagePaths";
 
 const emptyForm = {
   purpose: "",
@@ -47,12 +48,15 @@ function toDatetimeLocal(value) {
 
 export default function ComboOfferForm({ comboId = null }) {
   const router = useRouter();
+  const imageInputRef = useRef(null);
   const [form, setForm] = useState(emptyForm);
   const [selectedProducts, setSelectedProducts] = useState([]);
   const [searchQ, setSearchQ] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [generating, setGenerating] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [localPreview, setLocalPreview] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(Boolean(comboId));
@@ -62,6 +66,15 @@ export default function ComboOfferForm({ comboId = null }) {
       ...prev,
       [key]: value,
     }));
+
+  const imagePreviewSrc =
+    localPreview || comboImagePublicUrl(form.marketingImage);
+
+  useEffect(() => {
+    return () => {
+      if (localPreview) URL.revokeObjectURL(localPreview);
+    };
+  }, [localPreview]);
 
   useEffect(() => {
     if (!comboId) return;
@@ -79,7 +92,10 @@ export default function ComboOfferForm({ comboId = null }) {
           productIds: (c.productIds || []).map((p) => p._id || p),
           name: c.name || "",
           shortDescription: c.shortDescription || "",
-          longDescription: c.longDescription || "",
+          longDescription: String(c.longDescription || "")
+            .replace(/<[^>]+>/g, " ")
+            .replace(/\s+/g, " ")
+            .trim(),
           metaTitle: c.metaTitle || "",
           metaDescription: c.metaDescription || "",
           metaKeywords: c.metaKeywords || "",
@@ -174,6 +190,37 @@ export default function ComboOfferForm({ comboId = null }) {
     else setError(json.error || "Logo upload failed");
   };
 
+  const uploadMarketingImage = async (file) => {
+    if (!file) return;
+    setError("");
+    setUploadingImage(true);
+    if (localPreview) URL.revokeObjectURL(localPreview);
+    const previewUrl = URL.createObjectURL(file);
+    setLocalPreview(previewUrl);
+    try {
+      const fd = new FormData();
+      fd.append("action", "marketing-image");
+      fd.append("image", file);
+      const res = await fetch("/api/combo-offers/upload", {
+        method: "POST",
+        body: fd,
+      });
+      const json = await res.json();
+      if (!json.success) throw new Error(json.error || "Image upload failed");
+      setField("marketingImage", json.data.marketingImage);
+      setMessage(
+        "Product image uploaded. Save the combo to apply it on the storefront."
+      );
+      if (imageInputRef.current) imageInputRef.current.value = "";
+    } catch (e) {
+      setError(e.message);
+      setLocalPreview("");
+      URL.revokeObjectURL(previewUrl);
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
   const generateWithAI = async () => {
     setError("");
     setMessage("");
@@ -202,11 +249,18 @@ export default function ComboOfferForm({ comboId = null }) {
       const json = await res.json();
       if (!json.success) throw new Error(json.error || "Generation failed");
       const d = json.data;
+      if (localPreview) {
+        URL.revokeObjectURL(localPreview);
+        setLocalPreview("");
+      }
       setForm((prev) => ({
         ...prev,
         name: d.name || prev.name,
         shortDescription: d.shortDescription || "",
-        longDescription: d.longDescription || "",
+        longDescription: String(d.longDescription || "")
+          .replace(/<[^>]+>/g, " ")
+          .replace(/\s+/g, " ")
+          .trim(),
         metaTitle: d.metaTitle || "",
         metaDescription: d.metaDescription || "",
         metaKeywords: d.metaKeywords || "",
@@ -225,8 +279,8 @@ export default function ComboOfferForm({ comboId = null }) {
       }));
       setMessage(
         d._source === "openai"
-          ? "AI content generated (OpenAI). Review and edit before saving."
-          : "Marketing content generated. Review and edit before saving."
+          ? "AI generated product content + image. Review or edit before saving."
+          : "Content + image generated. Review or edit before saving. You can also upload an image manually."
       );
     } catch (e) {
       setError(e.message);
@@ -236,6 +290,7 @@ export default function ComboOfferForm({ comboId = null }) {
   };
 
   const regenerateImage = async () => {
+    setError("");
     const fd = new FormData();
     fd.append("action", "regenerate-image");
     fd.append("productIds", JSON.stringify(selectedProducts.map((p) => p._id)));
@@ -249,6 +304,10 @@ export default function ComboOfferForm({ comboId = null }) {
     });
     const json = await res.json();
     if (json.success) {
+      if (localPreview) {
+        URL.revokeObjectURL(localPreview);
+        setLocalPreview("");
+      }
       setField("marketingImage", json.data.marketingImage);
       setMessage("Marketing image regenerated");
     } else setError(json.error || "Image regenerate failed");
@@ -262,7 +321,9 @@ export default function ComboOfferForm({ comboId = null }) {
       return;
     }
     if (!form.name.trim()) {
-      setError("Combo product name is required — generate with AI or enter manually");
+      setError(
+        "Combo product name is required — generate with AI or enter manually"
+      );
       return;
     }
     if (!form.startDate || !form.endDate) {
@@ -286,7 +347,9 @@ export default function ComboOfferForm({ comboId = null }) {
       });
       const json = await res.json();
       if (!json.success) throw new Error(json.error || "Save failed");
-      setMessage("Combo offer saved. Product created under Combo Offers category.");
+      setMessage(
+        "Combo offer saved. Product created under Combo Offers category."
+      );
       router.push("/admin/combo-offers");
     } catch (e) {
       setError(e.message);
@@ -294,15 +357,6 @@ export default function ComboOfferForm({ comboId = null }) {
       setSaving(false);
     }
   };
-
-  const imageSrc = useMemo(() => {
-    if (!form.marketingImage) return "";
-    if (form.marketingImage.startsWith("http") || form.marketingImage.startsWith("/")) {
-      if (form.marketingImage.startsWith("/uploads/")) return form.marketingImage;
-      return form.marketingImage;
-    }
-    return `/uploads/products/${form.marketingImage}`;
-  }, [form.marketingImage]);
 
   if (loading) {
     return <div className="py-10 text-center text-gray-500">Loading…</div>;
@@ -336,7 +390,6 @@ export default function ComboOfferForm({ comboId = null }) {
         </div>
       ) : null}
 
-      {/* 1. Products */}
       <section className="bg-white border border-gray-200 rounded-lg p-5 mb-5 shadow-sm">
         <h2 className="text-lg font-medium text-gray-900 mb-1">1. Select Products</h2>
         <p className="text-sm text-gray-500 mb-4">
@@ -404,7 +457,6 @@ export default function ComboOfferForm({ comboId = null }) {
         </div>
       </section>
 
-      {/* 2. Purpose + Branding */}
       <section className="bg-white border border-gray-200 rounded-lg p-5 mb-5 shadow-sm">
         <h2 className="text-lg font-medium text-gray-900 mb-4">2. Combo Purpose & Branding</h2>
         <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -456,61 +508,74 @@ export default function ComboOfferForm({ comboId = null }) {
           className="mt-5 inline-flex items-center gap-2 px-4 py-2.5 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700 disabled:opacity-60"
         >
           <Icon icon="mdi:auto-fix" width={18} />
-          {generating ? "Generating…" : "Generate with AI"}
+          {generating ? "Generating…" : "Generate with AI (content + image)"}
         </button>
+        <p className="text-xs text-gray-500 mt-2">
+          Optional. AI fills product name, description, SEO, highlights, and image.
+          Or skip and enter everything manually below — including the image.
+        </p>
       </section>
 
-      {/* 3. AI content fields */}
       <section className="bg-white border border-gray-200 rounded-lg p-5 mb-5 shadow-sm">
-        <h2 className="text-lg font-medium text-gray-900 mb-4">
-          3. Marketing Content (editable)
-        </h2>
+        <h2 className="text-lg font-medium text-gray-900 mb-1">3. Product Details</h2>
+        <p className="text-sm text-gray-500 mb-4">
+          Same fields as Add Product. Fill manually or use Generate with AI above.
+        </p>
         <div className="grid gap-3">
-          {[
-            ["name", "Combo Product Name"],
-            ["offerTitle", "Offer Title"],
-            ["tagline", "Marketing Tagline"],
-            ["ctaContent", "CTA Content"],
-            ["shortDescription", "Short Description"],
-            ["metaTitle", "SEO Meta Title"],
-            ["metaDescription", "Meta Description"],
-            ["metaKeywords", "Meta Keywords"],
-            ["whyBuy", "Why Buy This Combo"],
-            ["socialCaption", "Social Caption"],
-          ].map(([key, label]) => (
-            <div key={key}>
-              <label className="block text-xs font-medium text-gray-600 mb-1">
-                {label}
-              </label>
-              {key === "shortDescription" ||
-              key === "whyBuy" ||
-              key === "socialCaption" ||
-              key === "metaDescription" ? (
-                <textarea
-                  value={form[key]}
-                  onChange={(e) => setField(key, e.target.value)}
-                  rows={key === "whyBuy" ? 3 : 2}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
-                />
-              ) : (
-                <input
-                  type="text"
-                  value={form[key]}
-                  onChange={(e) => setField(key, e.target.value)}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
-                />
-              )}
-            </div>
-          ))}
           <div>
             <label className="block text-xs font-medium text-gray-600 mb-1">
-              Long Description (HTML)
+              Product Name *
+            </label>
+            <input
+              type="text"
+              value={form.name}
+              onChange={(e) => setField("name", e.target.value)}
+              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">
+              Description
             </label>
             <textarea
               value={form.longDescription}
               onChange={(e) => setField("longDescription", e.target.value)}
               rows={6}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm font-mono"
+              placeholder="Plain text description (no HTML)"
+              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">
+              Meta Title
+            </label>
+            <input
+              type="text"
+              value={form.metaTitle}
+              onChange={(e) => setField("metaTitle", e.target.value)}
+              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">
+              Meta Keywords
+            </label>
+            <input
+              type="text"
+              value={form.metaKeywords}
+              onChange={(e) => setField("metaKeywords", e.target.value)}
+              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">
+              Meta Description
+            </label>
+            <textarea
+              value={form.metaDescription}
+              onChange={(e) => setField("metaDescription", e.target.value)}
+              rows={2}
+              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
             />
           </div>
           <div>
@@ -522,23 +587,10 @@ export default function ComboOfferForm({ comboId = null }) {
               onChange={(e) =>
                 setField(
                   "highlights",
-                  e.target.value.split("\n").map((s) => s.trim()).filter(Boolean)
-                )
-              }
-              rows={4}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">
-              Key Benefits (one per line)
-            </label>
-            <textarea
-              value={(form.keyBenefits || []).join("\n")}
-              onChange={(e) =>
-                setField(
-                  "keyBenefits",
-                  e.target.value.split("\n").map((s) => s.trim()).filter(Boolean)
+                  e.target.value
+                    .split("\n")
+                    .map((s) => s.trim())
+                    .filter(Boolean)
                 )
               }
               rows={4}
@@ -548,33 +600,61 @@ export default function ComboOfferForm({ comboId = null }) {
         </div>
       </section>
 
-      {/* 4. Image */}
       <section className="bg-white border border-gray-200 rounded-lg p-5 mb-5 shadow-sm">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-lg font-medium text-gray-900">4. Marketing Image</h2>
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+          <div>
+            <h2 className="text-lg font-medium text-gray-900">4. Product Image</h2>
+            <p className="text-sm text-gray-500">
+              Upload manually, or use AI Generate / Regenerate. Preview shows next to the input.
+            </p>
+          </div>
           <button
             type="button"
             onClick={regenerateImage}
             className="text-sm text-indigo-600 hover:underline"
           >
-            Regenerate image
+            Regenerate with AI
           </button>
         </div>
-        {imageSrc ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={imageSrc}
-            alt="Marketing banner"
-            className="w-full max-w-xl border border-gray-200 rounded-md bg-gray-50"
-          />
-        ) : (
-          <p className="text-sm text-gray-500">
-            Generate with AI to create a themed banner.
-          </p>
-        )}
+        <div className="flex flex-col sm:flex-row sm:items-start gap-4">
+          <div className="flex-1 min-w-0">
+            <input
+              ref={imageInputRef}
+              type="file"
+              accept="image/*"
+              disabled={uploadingImage}
+              onChange={(e) => uploadMarketingImage(e.target.files?.[0])}
+              className="w-full text-sm"
+            />
+            <p className="text-sm text-gray-500 mt-2">
+              {uploadingImage
+                ? "Uploading…"
+                : form.marketingImage
+                  ? `Saved: ${form.marketingImage}`
+                  : "No image yet. Upload a file or click Generate with AI."}
+            </p>
+          </div>
+          {imagePreviewSrc ? (
+            <div className="shrink-0">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={imagePreviewSrc}
+                alt="Combo product preview"
+                className="w-28 h-28 object-contain rounded border border-gray-200 bg-gray-50"
+                onError={(e) => {
+                  e.currentTarget.onerror = null;
+                  e.currentTarget.src = "/placeholder.jpg";
+                }}
+              />
+            </div>
+          ) : (
+            <div className="w-28 h-28 rounded border border-dashed border-gray-300 bg-gray-50 flex items-center justify-center text-xs text-gray-400">
+              No preview
+            </div>
+          )}
+        </div>
       </section>
 
-      {/* 5. Pricing */}
       <section className="bg-white border border-gray-200 rounded-lg p-5 mb-5 shadow-sm">
         <h2 className="text-lg font-medium text-gray-900 mb-4">5. Pricing</h2>
         <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-4">
@@ -608,7 +688,6 @@ export default function ComboOfferForm({ comboId = null }) {
         </div>
       </section>
 
-      {/* 6. Duration + Stock */}
       <section className="bg-white border border-gray-200 rounded-lg p-5 mb-5 shadow-sm">
         <h2 className="text-lg font-medium text-gray-900 mb-4">
           6. Offer Duration & Stock
@@ -653,7 +732,7 @@ export default function ComboOfferForm({ comboId = null }) {
       <div className="flex flex-wrap gap-3 pb-10">
         <button
           type="button"
-          disabled={saving}
+          disabled={saving || uploadingImage}
           onClick={() => save(false)}
           className="px-5 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 disabled:opacity-60"
         >
@@ -661,7 +740,7 @@ export default function ComboOfferForm({ comboId = null }) {
         </button>
         <button
           type="button"
-          disabled={saving}
+          disabled={saving || uploadingImage}
           onClick={() => save(true)}
           className="px-5 py-2.5 border border-gray-300 bg-white text-sm rounded-md hover:bg-gray-50"
         >

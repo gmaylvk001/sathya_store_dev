@@ -75,7 +75,7 @@ export default function CreateCategoryPage() {
   };
 
   return (
-    <div className="p-6 max-w-2xl mx-auto">
+    <div className="py-4 w-full">
       <Link
         href="/admin/category-pages"
         className="inline-flex items-center gap-1 text-sm text-gray-500 mb-4"
@@ -107,7 +107,7 @@ export default function CreateCategoryPage() {
                 onClick={() => setPageType(type)}
                 className={`rounded-lg border px-3 py-3 text-sm font-medium text-left ${
                   pageType === type
-                    ? "border-[#d72828] bg-red-50 text-[#d72828]"
+                    ? "border-[#ED1C24] bg-red-50 text-[#ED1C24]"
                     : "border-gray-200"
                 }`}
               >
@@ -153,7 +153,7 @@ export default function CreateCategoryPage() {
           <button
             type="submit"
             disabled={submitting || !pageType || !categoryId}
-            className="rounded-lg bg-[#d72828] px-4 py-2.5 text-sm font-medium text-white disabled:opacity-50"
+            className="rounded-lg bg-[#ED1C24] px-4 py-2.5 text-sm font-medium text-white disabled:opacity-50"
           >
             {submitting ? "Opening…" : "Open Page Builder"}
           </button>

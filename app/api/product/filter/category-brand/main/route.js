@@ -3,6 +3,8 @@ import Product from "@/models/product";
 import ProductFilter from "@/models/ecom_productfilter_info";
 import ecom_category_info from "@/models/ecom_category_info";
 import Brand from "@/models/ecom_brand_info";
+import { brandMatchQuery } from "@/lib/brandMatchQuery";
+import { getFiltersForProductIds } from "@/lib/availableProductFilters";
 
 export async function GET(req) {
   try {
@@ -14,7 +16,7 @@ export async function GET(req) {
     const brandSlug = searchParams.get("brandSlug");
     const minPrice = parseFloat(searchParams.get("minPrice")) || 0;
     const maxPrice = parseFloat(searchParams.get("maxPrice")) || 1000000;
-    const filterIds = searchParams.get("filters")?.split(",") || [];
+    const filterIds = (searchParams.get("filters")?.split(",") || []).filter(Boolean);
     const page = parseInt(searchParams.get("page")) || 1;
     const limit = parseInt(searchParams.get("limit")) || 20;
 
@@ -172,8 +174,8 @@ const categoryMatchClause = {
 
 let query = {
   status: "Active",
-  brand: find_brand._id.toString(),
   $and: [
+    brandMatchQuery(find_brand),
     categoryMatchClause, 
     priceClause,
     {
@@ -185,10 +187,7 @@ let query = {
   ],
 };
 
-    let productsQuery = Product.find(query).populate(
-      "brand",
-      "brand_name brand_slug",
-    );
+    let productsQuery = Product.find(query);
 
     /* --------------------------------------------------
        5️⃣ Apply FILTERS (must match ALL)
@@ -213,10 +212,7 @@ let query = {
       );
 
       query._id = { $in: matchedProductIds };
-      productsQuery = Product.find(query).populate(
-        "brand",
-        "brand_name brand_slug",
-      );
+      productsQuery = Product.find(query);
     }
 
     /* --------------------------------------------------
@@ -228,6 +224,8 @@ let query = {
 
     const totalProducts = await Product.countDocuments(query);
     const totalPages = Math.ceil(totalProducts / limit);
+    const matchingIds = await Product.distinct("_id", query);
+    const filters = await getFiltersForProductIds(matchingIds);
 
     return Response.json({
       products,
@@ -238,6 +236,7 @@ let query = {
         hasNext: page < totalPages,
         hasPrev: page > 1,
       },
+      filters,
     });
   } catch (error) {
     console.error("Error in category-brand filter:", error);

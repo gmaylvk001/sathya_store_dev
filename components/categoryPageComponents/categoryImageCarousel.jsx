@@ -296,7 +296,7 @@ export default function CategoryImageCarousel({ config }) {
           aria-label="Previous"
           disabled={page <= 0}
           onClick={() => scrollToPage(page - 1)}
-          className="absolute left-0 top-1/2 -translate-y-1/2 z-10 h-10 w-10 sm:h-11 sm:w-11 rounded-full bg-[#d72828] text-white flex items-center justify-center shadow disabled:opacity-30 disabled:pointer-events-none"
+          className="absolute left-0 top-1/2 -translate-y-1/2 z-10 h-10 w-10 sm:h-11 sm:w-11 rounded-full bg-[#ED1C24] text-white flex items-center justify-center shadow disabled:opacity-30 disabled:pointer-events-none"
         >
           <FiChevronLeft size={22} />
         </button>
@@ -305,7 +305,7 @@ export default function CategoryImageCarousel({ config }) {
           aria-label="Next"
           disabled={page >= pageCount - 1}
           onClick={() => scrollToPage(page + 1)}
-          className="absolute right-0 top-1/2 -translate-y-1/2 z-10 h-10 w-10 sm:h-11 sm:w-11 rounded-full bg-[#d72828] text-white flex items-center justify-center shadow disabled:opacity-30 disabled:pointer-events-none"
+          className="absolute right-0 top-1/2 -translate-y-1/2 z-10 h-10 w-10 sm:h-11 sm:w-11 rounded-full bg-[#ED1C24] text-white flex items-center justify-center shadow disabled:opacity-30 disabled:pointer-events-none"
         >
           <FiChevronRight size={22} />
         </button>
@@ -352,7 +352,7 @@ export default function CategoryImageCarousel({ config }) {
               onClick={() => scrollToPage(i)}
               className={`h-1.5 w-1.5 rounded-full transition ${
                 i === page
-                  ? "bg-[#d72828] scale-110"
+                  ? "bg-[#ED1C24] scale-110"
                   : "bg-gray-300 hover:bg-gray-400"
               }`}
             />

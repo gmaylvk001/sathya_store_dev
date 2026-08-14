@@ -17,6 +17,7 @@ export default function CategoryContentConfigForm({
   onDeleteSet,
   onBackToList,
   onSaved,
+  apiBase = "/api/category-content",
 }) {
   const isListMode = !instanceId;
   const [name, setName] = useState("");
@@ -37,7 +38,7 @@ export default function CategoryContentConfigForm({
       setError("");
       try {
         const res = await fetch(
-          `/api/category-content?instanceId=${encodeURIComponent(instanceId)}`
+          `${apiBase}?instanceId=${encodeURIComponent(instanceId)}`
         );
         const data = await res.json();
         if (data.success && data.data) {
@@ -70,7 +71,7 @@ export default function CategoryContentConfigForm({
     setError("");
     try {
       const res = await fetch(
-        `/api/category-content?instanceId=${encodeURIComponent(setInstanceId)}`,
+        `${apiBase}?instanceId=${encodeURIComponent(setInstanceId)}`,
         { method: "DELETE" }
       );
       const data = await res.json();
@@ -92,7 +93,7 @@ export default function CategoryContentConfigForm({
     }
     setSaving(true);
     try {
-      const res = await fetch("/api/category-content", {
+      const res = await fetch(apiBase, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -132,7 +133,7 @@ export default function CategoryContentConfigForm({
           <button
             type="button"
             onClick={onAddNew}
-            className="shrink-0 inline-flex items-center gap-1.5 rounded-lg bg-[#d72828] px-3 py-2 text-sm font-medium text-white hover:bg-[#b82222]"
+            className="shrink-0 inline-flex items-center gap-1.5 rounded-lg bg-[#ED1C24] px-3 py-2 text-sm font-medium text-white hover:bg-[#C4161D]"
           >
             <Icon icon="mdi:plus" className="text-base" />
             ADD NEW
@@ -168,7 +169,7 @@ export default function CategoryContentConfigForm({
                   <button
                     type="button"
                     onClick={() => onEditSet?.(s.instanceId)}
-                    className="text-sm font-medium text-[#d72828] hover:underline"
+                    className="text-sm font-medium text-[#ED1C24] hover:underline"
                   >
                     Edit
                   </button>
@@ -192,7 +193,7 @@ export default function CategoryContentConfigForm({
   if (loading) {
     return (
       <div className="flex justify-center py-10">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#d72828]" />
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#ED1C24]" />
       </div>
     );
   }
@@ -204,7 +205,7 @@ export default function CategoryContentConfigForm({
           <button
             type="button"
             onClick={onBackToList}
-            className="text-xs text-gray-500 hover:text-[#d72828] mb-1 inline-flex items-center gap-1"
+            className="text-xs text-gray-500 hover:text-[#ED1C24] mb-1 inline-flex items-center gap-1"
           >
             <Icon icon="mdi:arrow-left" width={14} />
             Back to list
@@ -272,7 +273,7 @@ export default function CategoryContentConfigForm({
         <button
           type="submit"
           disabled={saving}
-          className="px-4 py-2 text-sm font-medium text-white bg-[#d72828] rounded-md hover:bg-[#b82222] disabled:opacity-60"
+          className="px-4 py-2 text-sm font-medium text-white bg-[#ED1C24] rounded-md hover:bg-[#C4161D] disabled:opacity-60"
         >
           {saving ? "Saving…" : "Save"}
         </button>

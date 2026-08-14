@@ -51,7 +51,7 @@ export default function CategoryImageHotspotBanner({ config }) {
           };
 
           const className =
-            "absolute z-10 block cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#d72828] focus-visible:ring-offset-1";
+            "absolute z-10 block cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#ED1C24] focus-visible:ring-offset-1";
 
           const external = /^https?:\/\//i.test(href);
           if (external) {

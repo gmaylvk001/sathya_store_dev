@@ -21,6 +21,7 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Autoplay } from "swiper/modules";
 import RecentlyViewedProducts from '@/components/RecentlyViewedProducts';
 import CategoryProducts from '@/components/CategoryProducts';
+import HomePageRenderer from '@/components/homePageComponents/HomePageRenderer';
 // import OurLocations from '@/components/OurLocations';
 import { ChevronRight } from "lucide-react";
 import 'swiper/css';
@@ -495,8 +496,10 @@ export default function HomeComponent() {
         setIsSectionLoading(false);
       }
     };
+    // Old HomeSection order/render disabled — home now uses Home Page Builder only.
     useEffect(() => {
-      fetchHomeSections();
+      setHomeSectionData({ sections: [] });
+      setIsSectionLoading(false);
     }, []);
     useEffect(() => {
         setHasMounted(true);
@@ -1748,28 +1751,7 @@ return (
             <div className={`relative transition-opacity duration-300 ${isLoading ? 'opacity-0 h-0 overflow-hidden' : 'opacity-100'}`} ref={containerRef} >
                 {/* Banner Section start */}
                 <div className="home-container">
-                  {isSectionLoading ? (
-                      <div className="flex justify-center items-center h-64">
-                          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
-                      </div>
-                      ) : homeSectionData.sections.length > 0 ? (
-                      // Render sections in the order specified by homeSectionData
-                      homeSectionData.sections
-                          .sort((a, b) => a.position - b.position)
-                          .map(section => (
-                              <div key={section.id}>
-                                  {renderSection(getSectionComponentName(section.name))}
-                              </div>
-                          ))
-                  ) : (
-                      // Fallback order if no sections are configured
-                      <>
-                          {renderSection('category_banner')}
-                          {renderSection('flash_sales')}
-                          {renderSection('brands')}
-                          {renderSection('features')}
-                      </>
-                  )}
+                  <HomePageRenderer />
                 </div>
                 <ToastContainer />
                 <RecentlyViewedProducts />

@@ -16,14 +16,18 @@ import {
 export default function CategoryOverviewPage({
   pageType,
   slug,
+  brandSlug,
   listingSlugs = [],
+  listingPath: listingPathProp,
 }) {
   const router = useRouter();
   const [hasDesign, setHasDesign] = useState(null);
 
-  const listingPath = buildCategoryBasePath(
-    listingSlugs.length ? listingSlugs : slug ? [slug] : []
-  );
+  const listingPath =
+    listingPathProp ||
+    buildCategoryBasePath(
+      listingSlugs.length ? listingSlugs : slug ? [slug] : []
+    );
 
   useEffect(() => {
     if (hasDesign !== false) return;
@@ -43,6 +47,7 @@ export default function CategoryOverviewPage({
         <CategoryPageRenderer
           pageType={pageType}
           slug={slug}
+          brandSlug={brandSlug}
           onHasDesign={setHasDesign}
         />
       </div>

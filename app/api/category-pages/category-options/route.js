@@ -27,7 +27,7 @@ export async function GET(req) {
     const isRoot = (c) => !c.parentid || c.parentid === "none";
 
     let options = [];
-    if (pageType === PAGE_TYPES.CATEGORY) {
+    if (pageType === PAGE_TYPES.CATEGORY || pageType === PAGE_TYPES.CATEGORY_BRAND) {
       options = all.filter(isRoot);
     } else if (pageType === PAGE_TYPES.SUB_CATEGORY) {
       options = all.filter((c) => {
