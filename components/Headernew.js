@@ -23,6 +23,7 @@ import { Navigation, Scrollbar } from 'swiper/modules';
 import { useHeaderdetails } from "@/context/HeaderContext"; 
 import { useRegion } from "@/context/RegionContext"; 
 import { filterAndRankProducts } from '@/lib/searchMatch';
+import { uniqueById } from '@/lib/uniqueById';
 import { PAGE_TYPES } from '@/lib/categoryPageComponents/registry';
 import {
   buildCategoryHref,
@@ -361,11 +362,18 @@ const Header = () => {
         });
 
         const nestedCategories = [];
+        const seenTop = new Set();
         activeCategories.forEach((cat) => {
+          const id = String(cat._id);
           if (cat.parentid === "none") {
+            if (seenTop.has(id)) return;
+            seenTop.add(id);
             nestedCategories.push(categoryMap[cat._id]);
           } else if (categoryMap[cat.parentid]) {
-            categoryMap[cat.parentid].subcategories.push(categoryMap[cat._id]);
+            const parent = categoryMap[cat.parentid];
+            if (!parent.subcategories.some((c) => String(c._id) === id)) {
+              parent.subcategories.push(categoryMap[cat._id]);
+            }
           }
         });
 
@@ -1445,7 +1453,7 @@ const Header = () => {
       if (!Array.isArray(nodes) || nodes.length === 0) return null;
       return (
         <div className="divide-y divide-gray-100">
-         {nodes
+         {uniqueById(nodes)
   .slice() // make a shallow copy to avoid mutating original
   .sort((a, b) => {
     const nameA = (a.category_name || "").toLowerCase();
@@ -1706,7 +1714,7 @@ const Header = () => {
                       >
                         <option value="All Category">All</option>
                         {categories.map((cat) => (
-                          <option key={cat._id} value={cat.category_name} title={cat.category_name}>
+                          <option key={String(cat._id)} value={cat.category_name} title={cat.category_name}>
                             {cat.category_name}
                           </option>
                         ))}
@@ -1809,7 +1817,7 @@ const Header = () => {
                           >
                             <option value="All Category">All Category</option>
                             {categories.map((cat) => (
-                              <option key={cat._id} value={cat.category_name}>
+                              <option key={String(cat._id)} value={cat.category_name}>
                                 {cat.category_name}
                               </option>
                             ))}
@@ -2312,7 +2320,7 @@ const Header = () => {
                               className="pl-10 pr-14"
                             >
                                 {categories.map((category) => (
-                                    <SwiperSlide key={category._id} className="!w-auto">
+                                    <SwiperSlide key={String(category._id)} className="!w-auto">
                                         <div ref={(el) => (slideRefs.current[category._id] = el)} onMouseEnter={() => handleMouseEnter(category._id)} onMouseLeave={() => startHide(120)} className="px-5 py-2 flex flex-col items-center text-center" >
                                             <Link
                                               href={resolveCategoryNavHref([category.category_slug], category._id, 0)}

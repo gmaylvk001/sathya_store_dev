@@ -9,6 +9,8 @@ import {
   getVisibleFilterGroups,
   VISIBLE_FILTER_GROUP_LIMIT,
 } from "@/lib/filterGroupDefaults";
+import { uniqueById } from "@/lib/uniqueById";
+import { humanLabel } from "@/lib/humanLabel";
 
 /** Sathya Stores brand */
 const BRAND = {
@@ -78,7 +80,9 @@ function clampRangeValues(values, min, max, step = 100) {
 function findCategoryName(categories, categoryId) {
   const walk = (nodes) => {
     for (const n of nodes || []) {
-      if (String(n._id) === String(categoryId)) return n.category_name || n.name;
+      if (String(n._id) === String(categoryId)) {
+        return humanLabel(n.category_name, n.name);
+      }
       const nested = walk(n.subCategories || n.subcategories);
       if (nested) return nested;
     }
@@ -409,22 +413,24 @@ export default function ProductFilters({
             })}
             {(selectedFilters.brands || []).map((brandId) => {
               const brand = findBrand(brands, brandId);
-              if (!brand) return null;
+              const label = humanLabel(brand?.brand_name, brand?.name);
+              if (!label) return null;
               return (
                 <FilterChip
                   key={brandId}
-                  label={brand.brand_name}
+                  label={label}
                   onRemove={() => onFilterChange("brands", brandId)}
                 />
               );
             })}
             {(selectedFilters.filters || []).map((filterId) => {
               const filter = findFilterMeta(filterGroups, filterId);
-              if (!filter) return null;
+              const label = humanLabel(filter?.filter_name, filter?.name);
+              if (!label) return null;
               return (
                 <FilterChip
                   key={filterId}
-                  label={filter.filter_name}
+                  label={label}
                   onRemove={() => onFilterChange("filters", filterId)}
                 />
               );
@@ -535,16 +541,22 @@ export default function ProductFilters({
                   label="All Categories"
                 />
               </li>
-              {categoryTree.map((cat) => (
-                <li key={cat._id}>
+              {uniqueById(categoryTree)
+                .map((cat) => ({
+                  ...cat,
+                  label: humanLabel(cat.category_name, cat.name),
+                }))
+                .filter((cat) => cat.label)
+                .map((cat) => (
+                <li key={String(cat._id)}>
                   <RadioRow
                     name="pf-category"
-                    checked={selectedCategory === cat.category_name}
+                    checked={selectedCategory === cat.category_name || selectedCategory === cat.label}
                     onChange={() => {
-                      setSelectedCategory?.(cat.category_name);
+                      setSelectedCategory?.(cat.category_name || cat.label);
                       setSelectedSubCategory?.("");
                     }}
-                    label={cat.category_name}
+                    label={cat.label}
                   />
                 </li>
               ))}
@@ -574,15 +586,24 @@ export default function ProductFilters({
                   label={`All ${selectedCategory}`}
                 />
               </li>
-              {children.map((child) => (
-                <li key={child._id}>
+              {uniqueById(children)
+                .map((child) => ({
+                  ...child,
+                  label: humanLabel(child.category_name, child.name),
+                }))
+                .filter((child) => child.label)
+                .map((child) => (
+                <li key={String(child._id)}>
                   <RadioRow
                     name="pf-subcategory"
-                    checked={selectedSubCategory === child.category_name}
-                    onChange={() =>
-                      setSelectedSubCategory?.(child.category_name)
+                    checked={
+                      selectedSubCategory === child.category_name ||
+                      selectedSubCategory === child.label
                     }
-                    label={child.category_name}
+                    onChange={() =>
+                      setSelectedSubCategory?.(child.category_name || child.label)
+                    }
+                    label={child.label}
                   />
                 </li>
               ))}
@@ -606,18 +627,21 @@ export default function ProductFilters({
         />
         {isBrandsExpanded && (
           <ul className="max-h-52 space-y-0.5 overflow-y-auto px-2 pb-3">
-            {[...brands]
+            {uniqueById(brands)
+              .map((brand) => ({
+                ...brand,
+                label: humanLabel(brand.brand_name, brand.name),
+              }))
+              .filter((brand) => brand.label)
               .sort((a, b) =>
-                String(a.brand_name || "").localeCompare(
-                  String(b.brand_name || "")
-                )
+                String(a.label).localeCompare(String(b.label))
               )
               .map((brand) => (
-                <li key={brand._id}>
+                <li key={String(brand._id)}>
                   <CheckRow
                     checked={idInList(selectedFilters.brands, brand._id)}
                     onChange={() => onFilterChange("brands", brand._id)}
-                    label={brand.brand_name}
+                    label={brand.label}
                   />
                 </li>
               ))}
@@ -638,9 +662,9 @@ export default function ProductFilters({
           count={(selectedFilters.filters || []).length}
         />
         <div className="space-y-1 px-2 pb-3">
-          {visibleFilterGroups.map((group) => (
+          {visibleFilterGroups.map((group, groupIdx) => (
             <div
-              key={group._id}
+              key={String(group._id || group.name || groupIdx)}
               className="rounded-lg border border-transparent hover:border-red-50"
             >
               <button
@@ -667,10 +691,13 @@ export default function ProductFilters({
               </button>
               {expandedFilters[group._id] && (
                 <ul className="mb-2 max-h-48 space-y-0.5 overflow-y-auto px-1 pb-1">
-                  {[...(group.filters || [])]
+                  {[...uniqueById(group.filters || [])]
                     .sort(sortFilterValues)
-                    .map((filter) => (
-                      <li key={filter._id}>
+                    .map((filter) => {
+                      const label = humanLabel(filter.filter_name, filter.name);
+                      if (!label) return null;
+                      return (
+                      <li key={String(filter._id)}>
                         <CheckRow
                           checked={idInList(
                             selectedFilters.filters,
@@ -683,10 +710,11 @@ export default function ProductFilters({
                               e.target.checked
                             )
                           }
-                          label={filter.filter_name}
+                          label={label}
                         />
                       </li>
-                    ))}
+                      );
+                    })}
                 </ul>
               )}
             </div>

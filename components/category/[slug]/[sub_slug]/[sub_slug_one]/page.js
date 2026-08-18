@@ -831,8 +831,8 @@ const handlePageChange = (page) => {
           {products.length > 0 ? (
             <>
              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3">
-                        {getSortedProducts().map(product => (
-                          <div key={product._id} className="group relative bg-white rounded-lg border hover:border-red-200 transition-all shadow-sm hover:shadow-md flex flex-col h-full">
+                        {getSortedProducts().map((product, index) => (
+                          <div key={`${product._id}-${index}`} className="group relative bg-white rounded-lg border hover:border-red-200 transition-all shadow-sm hover:shadow-md flex flex-col h-full">
                             {/* Product Image */}
                             <div className="relative aspect-square bg-white">
                               <Link

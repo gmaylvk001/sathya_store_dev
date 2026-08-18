@@ -11,6 +11,7 @@ export async function GET(req) {
     const { searchParams } = new URL(req.url);
     const categoryId = searchParams.get("categoryId");
     const slug = searchParams.get("slug");
+    const parentSlug = searchParams.get("parent");
     const brandSlug = searchParams.get("brandSlug");
     const brandId = searchParams.get("brandId");
     const pageType = searchParams.get("pageType");
@@ -18,6 +19,7 @@ export async function GET(req) {
     const result = await resolveCategoryPageComponents({
       categoryId,
       slug,
+      parentSlug,
       brandSlug,
       brandId,
       pageType,

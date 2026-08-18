@@ -141,9 +141,18 @@ const scroll = (direction) => {
 
   const fetchInitialData = async () => {
     try {
-      //setLoading(true);
-      const categoryRes = await fetch(`/api/categories/${sub_slug}`);
+      const categoryRes = await fetch(
+        `/api/categories/${sub_slug}?parent=${encodeURIComponent(slug || "")}`
+      );
+      if (!categoryRes.ok) {
+        router.push("/noproduct");
+        return;
+      }
       const categoryData = await categoryRes.json();
+      if (!categoryData?.main_category) {
+        router.push("/noproduct");
+        return;
+      }
       //console.log('categoryData: ',categoryData);
       setCategoryData({
         ...categoryData,
@@ -200,7 +209,11 @@ const scroll = (direction) => {
               filters: []
             };
           }
-          groups[groupId].filters.push(normalizeFilterOption(filter));
+          const option = normalizeFilterOption(filter);
+          const exists = groups[groupId].filters.some(
+            (f) => String(f._id) === String(option._id)
+          );
+          if (!exists) groups[groupId].filters.push(option);
         }
       });
 
@@ -349,7 +362,11 @@ const scroll = (direction) => {
               filters: []
             };
           }
-          groups[groupId].filters.push(normalizeFilterOption(filter));
+          const option = normalizeFilterOption(filter);
+          const exists = groups[groupId].filters.some(
+            (f) => String(f._id) === String(option._id)
+          );
+          if (!exists) groups[groupId].filters.push(option);
         }
       });
       setFilterGroups(groups);
@@ -629,7 +646,7 @@ const handlePageChange = (page) => {
     );
   };
 
-  if ((loading && !filterUrlReady) || (!categoryData.category && pagination.currentPage === 1 && !filterUrlReady)) {
+  if ((loading && !filterUrlReady) || (!categoryData.main_category && !filterUrlReady)) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="flex justify-center items-center h-64">
@@ -639,20 +656,16 @@ const handlePageChange = (page) => {
     );
   }
 
-  // if (!categoryData.category) {
-  //   return (
-  //     <div className="container mx-auto px-4 py-8">
-  //       <h1 className="text-2xl font-bold">Category not found</h1>
-  //     </div>
-  //   );
-  // }
+  if (!categoryData.main_category) {
+    return null;
+  }
 
 
 //console.log('categoryData: ',categoryData);
 
   return (
     <div className={`${CATEGORY_PAGE_SHELL_CLASS} py-2 pb-3`}>
-      {categoryData.main_category.banners && categoryData.main_category.banners.length > 0 && (
+      {categoryData.main_category?.banners && categoryData.main_category.banners.length > 0 && (
         <div className="relative w-full mb-8 rounded-lg overflow-hidden shadow-md">
           <div className="relative w-full aspect-[16/6] sm:aspect-[16/7] lg:aspect-[16/5] cursor-pointer"
             onClick={() => {
@@ -956,8 +969,8 @@ const handlePageChange = (page) => {
           {products.length > 0 ? (
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3">
-                {getSortedProducts().map(product => (
-                  <div key={product._id} className="group relative bg-white rounded-lg border hover:border-red-200 transition-all shadow-sm hover:shadow-md flex flex-col h-full">
+                {getSortedProducts().map((product, index) => (
+                  <div key={`${product._id}-${index}`} className="group relative bg-white rounded-lg border hover:border-red-200 transition-all shadow-sm hover:shadow-md flex flex-col h-full">
                     {/* Product Image */}
                     <div className="relative aspect-square bg-white">
                       <Link

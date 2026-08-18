@@ -16,12 +16,14 @@ import {
 export default function CategoryOverviewPage({
   pageType,
   slug,
+  parentSlug = "",
   brandSlug,
   listingSlugs = [],
   listingPath: listingPathProp,
 }) {
   const router = useRouter();
   const [hasDesign, setHasDesign] = useState(null);
+  const [loaded, setLoaded] = useState(false);
 
   const listingPath =
     listingPathProp ||
@@ -29,15 +31,20 @@ export default function CategoryOverviewPage({
       listingSlugs.length ? listingSlugs : slug ? [slug] : []
     );
 
+  const handleHasDesign = (value) => {
+    setHasDesign(Boolean(value));
+    setLoaded(true);
+  };
+
   useEffect(() => {
-    if (hasDesign !== false) return;
+    if (!loaded || hasDesign !== false) return;
     router.replace(listingPath);
-  }, [hasDesign, listingPath, router]);
+  }, [loaded, hasDesign, listingPath, router]);
 
   return (
     <div className={CATEGORY_OVERVIEW_OUTER_CLASS} style={{ backgroundColor: "#EBEBEB" }}>
       <div className={CATEGORY_OVERVIEW_INNER_CLASS}>
-        {hasDesign !== true && (
+        {!loaded && (
           <div className="py-8">
             <div className="flex justify-center items-center h-64">
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#d72828]" />
@@ -47,8 +54,9 @@ export default function CategoryOverviewPage({
         <CategoryPageRenderer
           pageType={pageType}
           slug={slug}
+          parentSlug={parentSlug}
           brandSlug={brandSlug}
-          onHasDesign={setHasDesign}
+          onHasDesign={handleHasDesign}
         />
       </div>
     </div>

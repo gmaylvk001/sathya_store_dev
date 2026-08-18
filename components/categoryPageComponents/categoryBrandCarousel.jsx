@@ -246,7 +246,7 @@ export default function CategoryBrandCarousel({ config }) {
       if (external) {
         return (
           <a
-            key={`${item._id || idx}-${item.image}`}
+            key={`brand-${idx}`}
             href={item.url}
             target="_blank"
             rel="noopener noreferrer"
@@ -259,7 +259,7 @@ export default function CategoryBrandCarousel({ config }) {
       }
       return (
         <Link
-          key={`${item._id || idx}-${item.image}`}
+          key={`brand-${idx}`}
           href={item.url}
           className={wrapClass}
           style={cellStyle}
@@ -271,7 +271,7 @@ export default function CategoryBrandCarousel({ config }) {
 
     return (
       <div
-        key={`${item._id || idx}-${item.image}`}
+        key={`brand-${idx}`}
         className={wrapClass}
         style={cellStyle}
       >

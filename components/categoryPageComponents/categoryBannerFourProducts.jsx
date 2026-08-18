@@ -130,7 +130,7 @@ function RelatedProducts({ products, seeAllHref, name }) {
     width: `calc((100% - ${(perPage - 1) * gapPx}px) / ${perPage})`,
   };
 
-  const renderCard = (product) => {
+  const renderCard = (product, key) => {
     const price = Number(product.price) || 0;
     const special = Number(product.special_price) || 0;
     const hasOffer = special > 0 && special < price;
@@ -145,7 +145,7 @@ function RelatedProducts({ products, seeAllHref, name }) {
 
     return (
       <div
-        key={product._id}
+        key={key}
         className="box-border min-w-0 shrink-0"
         style={cellStyle}
       >
@@ -247,7 +247,7 @@ function RelatedProducts({ products, seeAllHref, name }) {
               className="flex w-full min-w-full shrink-0 snap-start snap-always"
               style={{ gap: `${gapPx}px` }}
             >
-              {chunk.map((p) => renderCard(p))}
+              {chunk.map((p, i) => renderCard(p, `${p._id}-${pageIdx}-${i}`))}
             </div>
           ))}
         </div>

@@ -1,5 +1,6 @@
 import dbConnect from "@/lib/db";
 import ecom_category_info from "@/models/ecom_category_info";
+import { resolveCategoryBySlug } from "@/lib/resolveCategorySlug";
 import Product from "@/models/product";
 import Brand from "@/models/ecom_brand_info"; 
 import Filter from "@/models/ecom_filter_infos";
@@ -19,11 +20,33 @@ export async function GET(request, { params }) {
   try {
     await dbConnect();
     const { slug } = await params;
+    const parentSlug = new URL(request.url).searchParams.get("parent") || null;
 
-    const main_category = await ecom_category_info.findOne({ category_slug: slug }).lean();
+    const main_category = await resolveCategoryBySlug(slug, parentSlug);
     if (!main_category) {
       return Response.json({ error: "Main Category not found" }, { status: 404 });
     }
+
+    return buildCategoryResponse(main_category, getCategoryTree, {
+      Product,
+      Brand,
+      Filter,
+      FilterGroup,
+      CategoryFilter,
+      mongoose,
+    });
+  } catch (error) {
+    console.error(error);
+    return Response.json(
+      { error: error.message, stack: error.stack },
+      { status: 500 }
+    );
+  }
+}
+
+async function buildCategoryResponse(main_category, getCategoryTree, models) {
+  const { Product, Brand, Filter, FilterGroup, CategoryFilter, mongoose } =
+    models;
 
     const categoryTree = await getCategoryTree(main_category._id);
 
@@ -140,11 +163,4 @@ export async function GET(request, { params }) {
       brands: brandsWithCount,
       filters: formattedFilters,
     });
-  } catch (error) {
-    console.error(error);
-    return Response.json(
-      { error: error.message, stack: error.stack },
-      { status: 500 }
-    );
-  }
 }

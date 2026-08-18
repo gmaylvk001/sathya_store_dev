@@ -9,6 +9,7 @@ import FilterGroup from "@/models/ecom_filter_group_infos";
 import mongoose from "mongoose";
 import { buildSearchOrConditions, scoreProductMatch, getBrandSearchConstraints } from "@/lib/searchMatch";
 import { getActiveBrandsForSearch } from "@/lib/brandSearch";
+import { humanLabel, looksLikeMongoId } from "@/lib/humanLabel";
 
 export const runtime = "nodejs";
 
@@ -284,9 +285,34 @@ searchFilter.$and = [
       { $sort: { count: -1 } },
     ]);
 
-    const brandSummary = brandAgg
-      .filter((b) => mongoose.Types.ObjectId.isValid(b._id))
-      .map((b) => ({ brandId: b._id, count: b.count }));
+    const brandById = new Map(
+      (allBrands || []).map((b) => [String(b._id), b])
+    );
+    const brandByName = new Map(
+      (allBrands || [])
+        .filter((b) => humanLabel(b.brand_name))
+        .map((b) => [String(b.brand_name).trim().toLowerCase(), b])
+    );
+
+    const brandSummary = [];
+    const seenBrandIds = new Set();
+    for (const row of brandAgg) {
+      if (row?._id == null || row._id === "") continue;
+      const raw = String(row._id).trim();
+      let brand = brandById.get(raw) || brandByName.get(raw.toLowerCase());
+      if (!brand && looksLikeMongoId(raw)) continue;
+      const id = brand ? String(brand._id) : raw;
+      const name = humanLabel(brand?.brand_name, looksLikeMongoId(raw) ? "" : raw);
+      if (!name || seenBrandIds.has(id)) continue;
+      seenBrandIds.add(id);
+      brandSummary.push({
+        _id: id,
+        brandId: id,
+        brand_name: name,
+        brand_slug: brand?.brand_slug || "",
+        count: row.count,
+      });
+    }
 
     /* ---------------- GLOBAL PRODUCT FILTER COUNT ---------------- */
     const filterAggMatch = { ...searchFilter };
@@ -370,77 +396,63 @@ let categoryTree = [];
 
 if (productCategoryIds.size > 0) {
   const allCategories = await Category.find().lean();
+  const byId = new Map(allCategories.map((c) => [String(c._id), c]));
+  const childrenByParent = new Map();
+  for (const cat of allCategories) {
+    const parentKey =
+      cat.parentid && cat.parentid !== "none" ? String(cat.parentid) : "none";
+    if (!childrenByParent.has(parentKey)) childrenByParent.set(parentKey, []);
+    childrenByParent.get(parentKey).push(cat);
+  }
 
-  // Recursive —  descendant IDs 
-  const getDescendantIds = (catId, allCats) => {
-    const children = allCats.filter(
-      c => c.parentid?.toString() === catId.toString()
-    );
-    let ids = [catId.toString()];
-    for (const child of children) {
-      ids = ids.concat(getDescendantIds(child._id, allCats));
+  const matchedIds = new Set(
+    [...productCategoryIds].filter((id) => byId.has(String(id)))
+  );
+  const includeIds = new Set(matchedIds);
+  for (const id of [...matchedIds]) {
+    let current = byId.get(id);
+    let guard = 0;
+    while (current && guard++ < 12) {
+      const parentKey =
+        current.parentid && current.parentid !== "none"
+          ? String(current.parentid)
+          : "";
+      if (!parentKey || !byId.has(parentKey)) break;
+      includeIds.add(parentKey);
+      current = byId.get(parentKey);
     }
-    return ids;
+  }
+
+  const toNode = (cat) => {
+    const name = humanLabel(cat.category_name, cat.name);
+    if (!name) return null;
+    const kids = (childrenByParent.get(String(cat._id)) || [])
+      .filter((child) => includeIds.has(String(child._id)))
+      .map(toNode)
+      .filter(Boolean);
+    return {
+      _id: String(cat._id),
+      category_name: name,
+      category_slug: cat.category_slug || "",
+      subCategories: kids,
+    };
   };
 
-  // Top level categories
+  categoryTree = (childrenByParent.get("none") || [])
+    .filter((cat) => includeIds.has(String(cat._id)))
+    .map(toNode)
+    .filter(Boolean);
 
- 
-  const directCatDocs = allCategories.filter(c =>
-    productCategoryIds.has(c._id.toString())
-  );
-
-  const queryWords = query ? query.toLowerCase().split(/\s+/).filter(Boolean) : [];
-
-  const filteredDirectCatDocs = queryWords.length > 0
-    ? directCatDocs.filter(c => {
-        const name = c.category_name?.toLowerCase() || "";
-     
-        if (queryWords.some(w => name.includes(w))) return true;
- 
-        const parent = allCategories.find(
-          p => p._id.toString() === c.parentid?.toString()
-        );
-        const parentName = parent?.category_name?.toLowerCase() || "";
-        return queryWords.some(w => parentName.includes(w));
-      })
-    : directCatDocs;
-  
-// அந்த categories-ஓட parent எடு
-  const parentIds = [...new Set(
-    filteredDirectCatDocs.map(c => c.parentid?.toString()).filter(Boolean)
-  )];
-
-  const parentDocs = allCategories.filter(c =>
-    parentIds.includes(c._id.toString())
-  );
-
-  // Parent → children group
-  categoryTree = parentDocs.map(parent => {
-    const children = filteredDirectCatDocs.filter(
-      c => c.parentid?.toString() === parent._id.toString()
-    );
-
-    return {
-      _id: parent._id.toString(),
-      category_name: parent.category_name,
-      subCategories: children.map(c => {
-        // child-ஓட children (3rd level)
-        const grandChildren = allCategories.filter(
-          g => g.parentid?.toString() === c._id.toString()
-            && productCategoryIds.has(g._id.toString())
-        );
-        return {
-          _id: c._id.toString(),
-          category_name: c.category_name,
-          subCategories: grandChildren.map(g => ({
-            _id: g._id.toString(),
-            category_name: g.category_name,
-          }))
-        };
-      })
-    };
-  });
+  for (const id of includeIds) {
+    const cat = byId.get(id);
+    if (!cat) continue;
+    const parentKey =
+      cat.parentid && cat.parentid !== "none" ? String(cat.parentid) : "none";
+    if (parentKey !== "none" && byId.has(parentKey)) continue;
+    if (categoryTree.some((node) => node._id === id)) continue;
+    const node = toNode(cat);
+    if (node) categoryTree.push(node);
+  }
 }
     /* ---------------- RETURN ---------------- */
     return NextResponse.json({

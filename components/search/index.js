@@ -16,6 +16,7 @@ import {
   buildFilterGroupsFromList,
 } from "@/lib/filterUrl";
 import { CATEGORY_PAGE_SHELL_CLASS } from "@/lib/categoryPageComponents/layout";
+import { humanLabel } from "@/lib/humanLabel";
 
 export default function SearchPage() {
   const router = useRouter();
@@ -220,9 +221,18 @@ export default function SearchPage() {
         const nextBrands = (data.brandSummary || [])
           .map((b) => {
             const id = String(b.brandId ?? b._id ?? "");
-            return id
-              ? { _id: id, brand_name: brandMap[id] || id }
-              : null;
+            const name = humanLabel(
+              b.brand_name,
+              b.name,
+              brandMap[id],
+              brandMap[String(b.brandId || "")]
+            );
+            if (!id || !name) return null;
+            return {
+              _id: id,
+              brand_name: name,
+              brand_slug: b.brand_slug || "",
+            };
           })
           .filter(Boolean);
         setBrands(nextBrands);
@@ -236,7 +246,17 @@ export default function SearchPage() {
             const byId = new Map();
             for (const b of [...(prev?.brands || []), ...nextBrands]) {
               const id = b?._id?.toString?.() || b?._id;
-              if (id) byId.set(String(id), b);
+              if (!id) continue;
+              const incoming = humanLabel(b.brand_name, b.name);
+              const existing = byId.get(String(id));
+              if (!existing || (incoming && !humanLabel(existing.brand_name))) {
+                byId.set(String(id), {
+                  ...existing,
+                  ...b,
+                  _id: String(id),
+                  brand_name: incoming || existing?.brand_name,
+                });
+              }
             }
             return [...byId.values()];
           })(),
@@ -295,7 +315,9 @@ export default function SearchPage() {
         const arr = json?.data || [];
         const map = {};
         arr.forEach((b) => {
-          if (b?._id) map[b._id] = b.brand_name;
+          const id = b?._id != null ? String(b._id) : "";
+          const name = humanLabel(b.brand_name, b.name);
+          if (id && name) map[id] = name;
         });
         if (mounted) setBrandMap(map);
       } catch (err) {
@@ -453,9 +475,9 @@ export default function SearchPage() {
             </div>
           ) : products.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-              {products.map((p) => (
+              {products.map((p, index) => (
                 <div
-                  key={p._id}
+                  key={`${p._id}-${index}`}
                   className="group relative bg-white rounded-lg border hover:border-blue-200 transition-all shadow-sm hover:shadow-md flex flex-col h-full"
                 >
                   <div className="relative aspect-square bg-white">
@@ -497,12 +519,12 @@ export default function SearchPage() {
                   <div className="p-3 flex flex-col h-full">
                     <h4 className="text-xs text-gray-500 mb-2 uppercase">
                       <Link
-                        href={`/brand/${(brandMap[p.brand] || "")
+                        href={`/brand/${(humanLabel(brandMap[String(p.brand)], p.brand_name) || "")
                           .toLowerCase()
                           .replace(/\s+/g, "-")}`}
                         className="hover:text-blue-600"
                       >
-                        {brandMap[p.brand] || ""}
+                        {humanLabel(brandMap[String(p.brand)], p.brand_name)}
                       </Link>
                     </h4>
                     <Link href={`/product/${p.slug}`} className="block mb-1">

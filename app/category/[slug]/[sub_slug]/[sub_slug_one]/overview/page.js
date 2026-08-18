@@ -7,9 +7,10 @@ export async function generateMetadata({ params }) {
   const baseUrl = process.env.NEXT_PUBLIC_API_URL;
 
   try {
-    const res = await fetch(`${baseUrl}/api/categories/${sub_slug_one}`, {
-      cache: "no-store",
-    });
+    const res = await fetch(
+      `${baseUrl}/api/categories/${sub_slug_one}?parent=${encodeURIComponent(sub_slug || "")}`,
+      { cache: "no-store" }
+    );
 
     if (!res.ok) {
       return {
@@ -63,6 +64,7 @@ export default async function Page({ params }) {
     <CategoryOverviewPage
       pageType={PAGE_TYPES.CHILD_CATEGORY}
       slug={sub_slug_one}
+      parentSlug={sub_slug}
       listingSlugs={[slug, sub_slug, sub_slug_one]}
     />
   );

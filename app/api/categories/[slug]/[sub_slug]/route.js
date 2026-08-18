@@ -1,5 +1,6 @@
 import dbConnect from "@/lib/db";
 import ecom_category_info from "@/models/ecom_category_info";
+import { resolveCategoryBySlug } from "@/lib/resolveCategorySlug";
 import Product from "@/models/product";
 import ProductFilter from "@/models/ecom_productfilter_info";
 import Brand from "@/models/ecom_brand_info"; 
@@ -11,10 +12,10 @@ export async function GET(req, { params }) {
   try {
     await dbConnect();
 
-    const {sub_slug} = await params;
-    
-    // Fetch category
-    const category = await ecom_category_info.findOne({ category_slug: sub_slug });
+    const { slug, sub_slug } = await params;
+    const parentSlug = new URL(req.url).searchParams.get("parent") || slug;
+
+    const category = await resolveCategoryBySlug(sub_slug, parentSlug);
     if (!category) {
       return Response.json({ error: "Category not found" }, { status: 404 });
     }

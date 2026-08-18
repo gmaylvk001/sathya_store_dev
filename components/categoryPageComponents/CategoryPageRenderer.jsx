@@ -24,6 +24,7 @@ export default function CategoryPageRenderer({
   pageType,
   categoryId,
   slug,
+  parentSlug,
   brandSlug,
   onHasDesign,
 }) {
@@ -47,6 +48,7 @@ export default function CategoryPageRenderer({
       try {
         const params = new URLSearchParams({ pageType });
         if (slug) params.set("slug", String(slug));
+        if (parentSlug) params.set("parent", String(parentSlug));
         if (brandSlug) params.set("brandSlug", String(brandSlug));
         if (categoryId) params.set("categoryId", String(categoryId));
 
@@ -72,7 +74,7 @@ export default function CategoryPageRenderer({
     return () => {
       cancelled = true;
     };
-  }, [pageType, categoryId, slug, brandSlug]);
+  }, [pageType, categoryId, slug, parentSlug, brandSlug]);
 
   if (!loaded || !components.length) return null;
 
@@ -81,7 +83,7 @@ export default function CategoryPageRenderer({
       {components.map((item, idx) => {
         if (item.type === COMPONENT_TYPES.TOP_BANNER) {
           return (
-            <div key={item.instanceId || idx} className="w-full bg-white">
+            <div key={item.instanceId ? `${item.instanceId}-${idx}` : idx} className="w-full bg-white">
               <CategoryTopBanner
                 banners={item.config?.banners}
                 categoryId={categoryId}
@@ -93,7 +95,7 @@ export default function CategoryPageRenderer({
         if (item.type === COMPONENT_TYPES.IMAGE_CAROUSEL) {
           return (
             <CategoryImageCarousel
-              key={item.instanceId || idx}
+              key={item.instanceId ? `${item.instanceId}-${idx}` : idx}
               config={item.config}
             />
           );
@@ -101,7 +103,7 @@ export default function CategoryPageRenderer({
         if (item.type === COMPONENT_TYPES.PRODUCT_CAROUSEL) {
           return (
             <CategoryProductCarousel
-              key={item.instanceId || idx}
+              key={item.instanceId ? `${item.instanceId}-${idx}` : idx}
               config={item.config}
             />
           );
@@ -109,7 +111,7 @@ export default function CategoryPageRenderer({
         if (item.type === COMPONENT_TYPES.BANNER_SIDE_PRODUCTS) {
           return (
             <CategoryBannerSideProducts
-              key={item.instanceId || idx}
+              key={item.instanceId ? `${item.instanceId}-${idx}` : idx}
               config={item.config}
             />
           );
@@ -117,7 +119,7 @@ export default function CategoryPageRenderer({
         if (item.type === COMPONENT_TYPES.BANNER_FOUR_PRODUCTS) {
           return (
             <CategoryBannerFourProducts
-              key={item.instanceId || idx}
+              key={item.instanceId ? `${item.instanceId}-${idx}` : idx}
               config={item.config}
             />
           );
@@ -125,7 +127,7 @@ export default function CategoryPageRenderer({
         if (item.type === COMPONENT_TYPES.BANNER_GRID) {
           return (
             <CategoryBannerGrid
-              key={item.instanceId || idx}
+              key={item.instanceId ? `${item.instanceId}-${idx}` : idx}
               config={item.config}
             />
           );
@@ -133,7 +135,7 @@ export default function CategoryPageRenderer({
         if (item.type === COMPONENT_TYPES.IMAGE_COLUMNS) {
           return (
             <CategoryImageColumns
-              key={item.instanceId || idx}
+              key={item.instanceId ? `${item.instanceId}-${idx}` : idx}
               config={item.config}
             />
           );
@@ -141,7 +143,7 @@ export default function CategoryPageRenderer({
         if (item.type === COMPONENT_TYPES.SINGLE_BANNER_PRODUCTS) {
           return (
             <CategorySingleBannerProducts
-              key={item.instanceId || idx}
+              key={item.instanceId ? `${item.instanceId}-${idx}` : idx}
               config={item.config}
             />
           );
@@ -149,7 +151,7 @@ export default function CategoryPageRenderer({
         if (item.type === COMPONENT_TYPES.BRAND_CAROUSEL) {
           return (
             <CategoryBrandCarousel
-              key={item.instanceId || idx}
+              key={item.instanceId ? `${item.instanceId}-${idx}` : idx}
               config={item.config}
             />
           );
@@ -157,7 +159,7 @@ export default function CategoryPageRenderer({
         if (item.type === COMPONENT_TYPES.IMAGE_HOTSPOT_BANNER) {
           return (
             <CategoryImageHotspotBanner
-              key={item.instanceId || idx}
+              key={item.instanceId ? `${item.instanceId}-${idx}` : idx}
               config={item.config}
             />
           );
@@ -165,7 +167,7 @@ export default function CategoryPageRenderer({
         if (item.type === COMPONENT_TYPES.CATEGORY_CONTENT) {
           return (
             <CategoryContentBlock
-              key={item.instanceId || idx}
+              key={item.instanceId ? `${item.instanceId}-${idx}` : idx}
               config={item.config}
             />
           );
@@ -173,7 +175,7 @@ export default function CategoryPageRenderer({
         if (item.type === COMPONENT_TYPES.SPLIT_BANNER) {
           return (
             <CategorySplitBanner
-              key={item.instanceId || idx}
+              key={item.instanceId ? `${item.instanceId}-${idx}` : idx}
               config={item.config}
             />
           );
