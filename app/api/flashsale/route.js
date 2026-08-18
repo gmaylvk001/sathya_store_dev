@@ -11,17 +11,19 @@ async function saveFile(file, width, height) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    let metadata;
     try {
-      metadata = await sharp(buffer).metadata();
+      const metadata = await sharp(buffer).metadata();
+      if (metadata.width && metadata.height) {
+        if (metadata.width !== width || metadata.height !== height) {
+          throw new Error(
+            `Image must be exactly ${width}x${height} pixels. Your image is ${metadata.width}x${metadata.height} pixels.`
+          );
+        }
+      }
     } catch (err) {
-      throw new Error("Invalid image file. Please upload a valid image.");
-    }
-
-    if (metadata.width !== width || metadata.height !== height) {
-      throw new Error(
-        `Image must be exactly ${width}x${height} pixels. Your image is ${metadata.width}x${metadata.height} pixels.`
-      );
+      if (String(err.message || "").startsWith("Image must be exactly")) {
+        throw err;
+      }
     }
 
     const uploadDir = path.join(process.cwd(), "public", "uploads", "flashsale");
@@ -32,7 +34,7 @@ async function saveFile(file, width, height) {
     const filename = Date.now() + "-" + file.name.replace(/\s/g, "_");
     const filepath = path.join(uploadDir, filename);
 
-    await sharp(buffer).toFile(filepath);
+    fs.writeFileSync(filepath, buffer);
 
     return "/uploads/flashsale/" + filename;
   } catch (err) {

@@ -3,10 +3,8 @@ import dbConnect from "@/lib/db";
 import VideoCard from "@/models/VideoCard";
 import fs from "fs";
 import path from "path";
-import sharp from "sharp";
 
-// Save File Function with Dimension Validation
-// Save File Function (accepts any image size)
+// Save File Function (accepts any image size; original bytes, original format)
 async function saveFile(file) {
   try {
     const bytes = await file.arrayBuffer();
@@ -19,9 +17,7 @@ async function saveFile(file) {
 
     const filename = Date.now() + "-" + file.name.replace(/\s/g, "_");
     const filepath = path.join(uploadDir, filename);
-
-    // just save the file as it is (no size validation)
-    await sharp(buffer).toFile(filepath);
+    fs.writeFileSync(filepath, buffer);
 
     return "/uploads/videocard/" + filename;
   } catch (err) {

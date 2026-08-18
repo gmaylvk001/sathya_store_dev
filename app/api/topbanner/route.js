@@ -3,26 +3,11 @@ import dbConnect from "@/lib/db";
 import TopBanner from "@/models/topbanner";
 import fs from "fs";
 import path from "path";
-import sharp from "sharp";
 
-// ✅ Save File Function with Dimension Validation
 async function saveFile(file) {
   try {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
-
-    let metadata;
-    try {
-      metadata = await sharp(buffer).metadata();
-    } catch (err) {
-      throw new Error("Invalid image file. Please upload a valid image.");
-    }
-
-    // if (metadata.width !== 1920 || metadata.height !== 550) {
-    //   throw new Error(
-    //     `Image must be exactly 1920x550 pixels. Your image is ${metadata.width}x${metadata.height} pixels.`
-    //   );
-    // }
 
     const uploadDir = path.join(process.cwd(), "public", "uploads", "topbanner");
     if (!fs.existsSync(uploadDir)) {
@@ -31,8 +16,7 @@ async function saveFile(file) {
 
     const filename = Date.now() + "-" + file.name.replace(/\s/g, "_");
     const filepath = path.join(uploadDir, filename);
-
-    await sharp(buffer).toFile(filepath);
+    fs.writeFileSync(filepath, buffer);
 
     return "/uploads/topbanner/" + filename;
   } catch (err) {
