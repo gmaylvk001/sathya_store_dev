@@ -23,6 +23,7 @@ export async function GET(req) {
     const pageId = searchParams.get("pageId");
     const slug = searchParams.get("slug");
     const activeOnly = searchParams.get("activeOnly") === "1";
+    const targetRegion = (searchParams.get("region") || searchParams.get("state") || "all").toLowerCase();
 
     if (pageId || categoryId || slug) {
       const filter = pageId
@@ -53,6 +54,20 @@ export async function GET(req) {
         }
       }
 
+      // Region/State Filtering with Fallback: 1. Target region match, 2. 'all' fallback
+      if (targetRegion && targetRegion !== "all") {
+        const regionBanners = banners.filter(
+          (b) => (b.state || "all").toLowerCase() === targetRegion
+        );
+        if (regionBanners.length > 0) {
+          banners = regionBanners;
+        } else {
+          banners = banners.filter(
+            (b) => !b.state || b.state === "all"
+          );
+        }
+      }
+
       return NextResponse.json({ success: true, data: doc, banners });
     }
 
@@ -74,7 +89,7 @@ export async function GET(req) {
  * POST /api/category-topbanner
  * Create or replace banner set for a category.
  * multipart: categoryId, pageType, status, banners JSON metadata + files desktopImage_0, mobileImage_0, ...
- * OR JSON: { categoryId, pageType, status, banners: [{ url, isActive, desktopImage?, mobileImage? }] }
+ * OR JSON: { categoryId, pageType, status, banners: [{ url, isActive, state, desktopImage?, mobileImage? }] }
  */
 export async function POST(req) {
   try {
@@ -117,6 +132,7 @@ export async function POST(req) {
           desktopImage,
           mobileImage,
           url: item.url || "",
+          state: item.state || "all",
           isActive: item.isActive !== false,
           order: typeof item.order === "number" ? item.order : i,
         });
@@ -131,6 +147,7 @@ export async function POST(req) {
         desktopImage: b.desktopImage || "",
         mobileImage: b.mobileImage || "",
         url: b.url || "",
+        state: b.state || "all",
         isActive: b.isActive !== false,
         order: typeof b.order === "number" ? b.order : i,
       }));

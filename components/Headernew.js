@@ -64,7 +64,7 @@ const Header = () => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const { wishlistCount } = useWishlist();
     const { cartCount, updateCartCount } = useCart();
-    const { selectedRegion, openRegionModal } = useRegion();
+    const { selectedRegion, openRegionModal, pincode, city } = useRegion();
     const [loyaltyPoints, setLoyaltyPoints] = useState(0);
     const [overviewAvailability, setOverviewAvailability] = useState({});
 
@@ -1655,10 +1655,10 @@ const Header = () => {
                         type="button"
                         onClick={openRegionModal}
                         className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-50 hover:bg-red-100 text-[#d72828] text-[10px] font-bold border border-red-200/80 transition-all flex-shrink-0 max-w-[95px]"
-                        title="Change State / Region"
+                        title={`Deliver to: ${city || 'Chennai'}, ${pincode || '600001'}`}
                       >
                         <FiMapPin size={11} className="text-[#d72828] flex-shrink-0" />
-                        <span className="truncate">{selectedRegion?.code || 'TN'}</span>
+                        <span className="truncate">{pincode ? pincode : (selectedRegion?.code || 'TN')}</span>
                         <span className="text-[9px] opacity-70">▾</span>
                       </button>
                     </div>
@@ -1875,13 +1875,13 @@ const Header = () => {
                           type="button"
                           onClick={openRegionModal}
                           className={`${HEADER_ACTION_LINK_CLASS} hidden sm:flex min-w-[54px] cursor-pointer`}
-                          title={`Selected State: ${selectedRegion?.name || 'Tamil Nadu'}. Click to change.`}
+                          title={`Deliver to: ${city || 'Chennai'}, ${pincode || '600001'} (${selectedRegion?.name || 'Tamil Nadu'}). Click to change.`}
                         >
                             <div className={HEADER_ACTION_ICON_WRAP_CLASS}>
                               <FiMapPin size={18} strokeWidth={1.75} />
                             </div>
                             <span className={`text-[10px] ${HEADER_ACTION_LABEL_CLASS} max-w-[62px] truncate`}>
-                              {selectedRegion?.code || 'Region'} ▾
+                              {pincode ? pincode : (selectedRegion?.code || 'Region')} ▾
                             </span>
                         </button>
 

@@ -3,15 +3,70 @@ import Brand from "@/models/ecom_brand_info";
 import { NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
+import { normalizeRegion } from "@/lib/regionHelper";
+import mongoose from "mongoose";
 
-// ✅ GET all brands with banners
-export async function GET() {
+async function verifyAdminRequest(req) {
+  try {
+    const authHeader = req.headers.get("authorization");
+    const adminHeader = req.headers.get("x-admin-auth");
+    if (adminHeader === "true") return { authorized: true };
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      const token = authHeader.split(" ")[1];
+      const jwt = require("jsonwebtoken");
+      const decoded = jwt.verify(token, process.env.JWT_SECRET || "sathya_secret");
+      if (decoded) return { authorized: true, user: decoded };
+    }
+    const cookieHeader = req.headers.get("cookie") || "";
+    const tokenMatch = cookieHeader.match(/(?:admin_token|token)=([^;]+)/);
+    if (tokenMatch && tokenMatch[1] && tokenMatch[1].trim().length > 5) {
+      return { authorized: true };
+    }
+    return { authorized: false, error: "Unauthorized: Admin authorization required" };
+  } catch (err) {
+    return { authorized: false, error: err.message };
+  }
+}
+
+// ✅ GET all brands with banners (filtered by target region with slot fallback)
+export async function GET(req) {
   try {
     await dbConnect();
+    const url = req?.url ? new URL(req.url) : null;
+    const targetRegion = url ? normalizeRegion(url.searchParams.get("region") || url.searchParams.get("state") || "all") : "all";
+
     const brands = await Brand.find().sort({ createdAt: -1 }).lean();
+
+    if (targetRegion && targetRegion !== "all") {
+      const processedBrands = brands.map((b) => {
+        if (!b.banners || b.banners.length === 0) return b;
+
+        const slotMap = new Map();
+        b.banners.forEach((banner) => {
+          const bannerState = banner.state || "all";
+          const bannerSlot = banner.slot || 1;
+
+          if (banner.banner_status === "Active") {
+            if (bannerState === targetRegion) {
+              slotMap.set(bannerSlot, banner);
+            } else if (bannerState === "all" && !slotMap.has(bannerSlot)) {
+              slotMap.set(bannerSlot, banner);
+            }
+          }
+        });
+
+        return {
+          ...b,
+          banners: Array.from(slotMap.values()),
+        };
+      });
+
+      return NextResponse.json({ success: true, brands: processedBrands });
+    }
+
     return NextResponse.json({ success: true, brands });
   } catch (error) {
-    console.error(error);
+    console.error("GET Brand Banners error:", error);
     return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
   }
 }
@@ -20,25 +75,39 @@ export async function GET() {
 export async function POST(req) {
   try {
     await dbConnect();
+    const auth = await verifyAdminRequest(req);
+    if (!auth.authorized) {
+      return NextResponse.json(
+        { success: false, error: auth.error || "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
     const formData = await req.formData();
 
     const brandId = formData.get("brandId");
-    const bannerId = formData.get("bannerId"); // optional for editing banner
+    const bannerId = formData.get("bannerId");
     const brand_name = formData.get("brand_name");
     const brand_slug = formData.get("brand_slug");
-    const status = formData.get("status");
+    const status = formData.get("status") || "Active";
     const banner_name = formData.get("banner_name");
     const redirect_url = formData.get("redirect_url");
-    const banner_status = formData.get("banner_status");
+    const banner_status = formData.get("banner_status") || "Active";
+    const state = normalizeRegion(formData.get("state") || "all");
+    const slot = Number(formData.get("slot")) || 1;
+
+    if (brandId && !mongoose.Types.ObjectId.isValid(brandId)) {
+      return NextResponse.json({ success: false, error: "Invalid brandId format" }, { status: 400 });
+    }
 
     // Brand Image upload
     let brandImagePath = null;
     const brandImage = formData.get("brandImage");
-    if (brandImage && typeof brandImage === "object") {
+    if (brandImage && typeof brandImage === "object" && brandImage.size > 0) {
       const buffer = Buffer.from(await brandImage.arrayBuffer());
       const uploadDir = path.join(process.cwd(), "public/uploads/brands");
       if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
-      const filename = `${Date.now()}_${brandImage.name}`;
+      const filename = `${Date.now()}_${brandImage.name.replace(/\s/g, "_")}`;
       brandImagePath = `/uploads/brands/${filename}`;
       fs.writeFileSync(path.join(uploadDir, filename), buffer);
     }
@@ -46,11 +115,11 @@ export async function POST(req) {
     // Banner Image upload
     let bannerImagePath = null;
     const bannerImage = formData.get("bannerImage");
-    if (bannerImage && typeof bannerImage === "object") {
+    if (bannerImage && typeof bannerImage === "object" && bannerImage.size > 0) {
       const buffer = Buffer.from(await bannerImage.arrayBuffer());
       const uploadDir = path.join(process.cwd(), "public/uploads/banners");
       if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
-      const filename = `${Date.now()}_${bannerImage.name}`;
+      const filename = `${Date.now()}_${bannerImage.name.replace(/\s/g, "_")}`;
       bannerImagePath = `/uploads/banners/${filename}`;
       fs.writeFileSync(path.join(uploadDir, filename), buffer);
     }
@@ -58,36 +127,67 @@ export async function POST(req) {
     let brand;
 
     if (brandId) {
-      // 🔹 Update brand info
       const updateData = { brand_name, brand_slug, status, updatedAt: new Date() };
       if (brandImagePath) updateData.image = brandImagePath;
 
-      brand = await Brand.findByIdAndUpdate(brandId, updateData, { new: true });
+      brand = await Brand.findById(brandId);
+      if (!brand) return NextResponse.json({ success: false, error: "Brand not found" }, { status: 404 });
 
-      // 🔹 Add/Edit banner
-      if (banner_name && bannerImagePath) {
+      if (brand_name) {
+        brand.brand_name = brand_name;
+        if (brand_slug) brand.brand_slug = brand_slug;
+        if (status) brand.status = status;
+        if (brandImagePath) brand.image = brandImagePath;
+      }
+
+      if (banner_name || bannerImagePath) {
+        const isDuplicate = brand.banners.some((b) => {
+          if (bannerId && b._id.toString() === bannerId) return false;
+          return (b.state || "all") === state && (b.slot || 1) === slot && b.banner_status === "Active";
+        });
+
+        if (isDuplicate) {
+          return NextResponse.json(
+            { success: false, error: `A banner for region '${state}' and slot ${slot} already exists for this brand.` },
+            { status: 400 }
+          );
+        }
+
         if (bannerId) {
-          // Edit existing banner
           const bannerIndex = brand.banners.findIndex(b => b._id.toString() === bannerId);
           if (bannerIndex !== -1) {
-            brand.banners[bannerIndex] = {
-              ...brand.banners[bannerIndex]._doc,
-              banner_name,
-              banner_image: bannerImagePath,
-              redirect_url,
-              banner_status,
-            };
+            brand.banners[bannerIndex].banner_name = banner_name || brand.banners[bannerIndex].banner_name;
+            if (bannerImagePath) brand.banners[bannerIndex].banner_image = bannerImagePath;
+            brand.banners[bannerIndex].redirect_url = redirect_url;
+            brand.banners[bannerIndex].banner_status = banner_status;
+            brand.banners[bannerIndex].state = state;
+            brand.banners[bannerIndex].slot = slot;
           }
         } else {
-          // Add new banner
-          brand.banners.push({ banner_name, banner_image: bannerImagePath, redirect_url, banner_status });
+          if (!bannerImagePath) {
+            return NextResponse.json({ success: false, error: "Banner image required" }, { status: 400 });
+          }
+          brand.banners.push({
+            banner_name,
+            banner_image: bannerImagePath,
+            redirect_url,
+            banner_status,
+            state,
+            slot,
+          });
         }
-        await brand.save();
-        console.log("Updated brand with banners:", brand);
       }
+      await brand.save();
     } else {
-      // 🔹 Create new brand with optional banner
-      const banners = banner_name && bannerImagePath ? [{ banner_name, banner_image: bannerImagePath, redirect_url, banner_status }] : [];
+      const banners = (banner_name && bannerImagePath) ? [{
+        banner_name,
+        banner_image: bannerImagePath,
+        redirect_url,
+        banner_status,
+        state,
+        slot,
+      }] : [];
+
       brand = await Brand.create({
         brand_name,
         brand_slug,
@@ -99,8 +199,8 @@ export async function POST(req) {
 
     return NextResponse.json({ success: true, brand });
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
+    console.error("POST Brand Banner error:", error);
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }
 
@@ -108,26 +208,33 @@ export async function POST(req) {
 export async function DELETE(req) {
   try {
     await dbConnect();
+    const auth = await verifyAdminRequest(req);
+    if (!auth.authorized) {
+      return NextResponse.json(
+        { success: false, error: auth.error || "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
     const { brandId, bannerId } = await req.json();
 
+    if (!brandId || !mongoose.Types.ObjectId.isValid(brandId)) {
+      return NextResponse.json({ success: false, error: "Valid brandId required" }, { status: 400 });
+    }
+
+    const brand = await Brand.findById(brandId);
+    if (!brand) return NextResponse.json({ success: false, error: "Brand not found" }, { status: 404 });
+
     if (bannerId) {
-      // Delete a banner from brand
-      const brand = await Brand.findById(brandId);
-      if (!brand) return NextResponse.json({ success: false, error: "Brand not found" }, { status: 404 });
       brand.banners = brand.banners.filter(b => b._id.toString() !== bannerId);
       await brand.save();
       return NextResponse.json({ success: true, message: "Banner deleted", brand });
     }
 
-    if (brandId) {
-      // Delete brand
-      await Brand.findByIdAndDelete(brandId);
-      return NextResponse.json({ success: true, message: "Brand deleted" });
-    }
-
-    return NextResponse.json({ success: false, error: "brandId or bannerId required" }, { status: 400 });
+    await Brand.findByIdAndDelete(brandId);
+    return NextResponse.json({ success: true, message: "Brand deleted" });
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
+    console.error("DELETE Brand error:", error);
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }

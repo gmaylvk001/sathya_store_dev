@@ -2,7 +2,10 @@ import { NextResponse } from "next/server";
 import connectDB from "@/lib/db";
 import Cart from "@/models/ecom_cart_info";
 import Product from "@/models/product";
+import OwnerProduct from "@/models/OwnerProduct";
 import jwt from "jsonwebtoken";
+import { normalizeRegion, isKarnatakaPincode } from "@/lib/regionHelper";
+import { resolveProductPrice } from "@/lib/priceResolver";
 
 /** Utils **/
 const extractToken = (req) => {
@@ -59,16 +62,18 @@ export async function POST(req) {
     }
 
     const {
-  productId,
-  original_prod_quantity,
-  quantity = 1,
-  selectedWarranty = 0,
-  selectedExtendedWarranty = 0,
-  upsellProducts = [],
-  guestCartId,
-  warrantyData = null,
-  
-} = await req.json();
+      productId,
+      original_prod_quantity,
+      quantity = 1,
+      selectedWarranty = 0,
+      selectedExtendedWarranty = 0,
+      upsellProducts = [],
+      guestCartId,
+      warrantyData = null,
+      region: reqRegion,
+      pincode: reqPincode,
+    } = await req.json();
+
     if (!productId) {
       return NextResponse.json({ error: "Product ID is required" }, { status: 400 });
     }
@@ -77,6 +82,38 @@ export async function POST(req) {
     if (!product) {
       return NextResponse.json({ error: "Product not found" }, { status: 404 });
     }
+
+    // Determine user region
+    const cookieLoc = req.cookies.get("sathya_location")?.value;
+    let userRegion = "tamilnadu";
+    if (cookieLoc) {
+      try {
+        const parsed = JSON.parse(cookieLoc);
+        userRegion = normalizeRegion(parsed.region || parsed.state || parsed.stateName);
+      } catch {}
+    } else if (reqRegion) {
+      userRegion = normalizeRegion(reqRegion);
+    } else if (reqPincode && isKarnatakaPincode(reqPincode)) {
+      userRegion = "karnataka";
+    }
+
+    let ownerProduct = null;
+    if (userRegion === "karnataka") {
+      ownerProduct = await OwnerProduct.findOne({
+        $or: [{ product_id: product._id }, { product_item_code: product.item_code }],
+        is_active: true,
+      }).lean();
+
+      if (!ownerProduct || ownerProduct.stock <= 0 || ownerProduct.stock_status === "Out of Stock") {
+        return NextResponse.json(
+          { error: "Not Available for Delivery at Your Location" },
+          { status: 400 }
+        );
+      }
+    }
+
+    const priceInfo = resolveProductPrice(product, ownerProduct, userRegion);
+    const itemEffectivePrice = priceInfo.effectivePrice;
 
     // choose key
     const query = userId ? { userId } : { guestId: guestCartId };
@@ -91,32 +128,34 @@ export async function POST(req) {
       (item) => item.productId.toString() === productId
     );
 
-    // const original_prod_quantity = product.data.quantity;
+    const availableStock = priceInfo.stock;
 
     if (existingItemIndex >= 0) {
       cart.items[existingItemIndex].quantity += quantity;
 
-      if(original_prod_quantity && original_prod_quantity < cart.items[existingItemIndex].quantity ) {
+      if (availableStock && availableStock < cart.items[existingItemIndex].quantity) {
         return NextResponse.json(
-          { error: "Requested quantity exceeds available stock."},
+          { error: "Requested quantity exceeds available stock." },
           { status: 409 }
         );
       }
+      cart.items[existingItemIndex].price = itemEffectivePrice;
+      cart.items[existingItemIndex].actual_price = priceInfo.price;
       cart.items[existingItemIndex].warranty = selectedWarranty;
       cart.items[existingItemIndex].extendedWarranty = selectedExtendedWarranty;
-       cart.items[existingItemIndex].warrantyData = warrantyData;
+      cart.items[existingItemIndex].warrantyData = warrantyData;
     } else {
       cart.items.push({
         item_code: product.item_code,
         productId,
         quantity,
-        price: product.special_price ?? product.price,
+        price: itemEffectivePrice,
         name: product.name,
         image: product.images[0],
         warranty: selectedWarranty,
         extendedWarranty: selectedExtendedWarranty,
         warrantyData: warrantyData,
-        actual_price: product.special_price ?? product.price,
+        actual_price: priceInfo.price,
       });
     }
 

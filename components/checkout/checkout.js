@@ -560,7 +560,7 @@ export default function CheckoutPage() {
   const getFieldError = (name) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const phoneRegex = /^[0-9]{10}$/;
-    const postCodeRegex = /^[0-9]{4,6}$/;
+    const postCodeRegex = /^[1-9][0-9]{5}$/;
     if (!touched[name]) return null;
     switch (name) {
       case 'firstName': return !formData.firstName ? 'First name is required' : null;
@@ -570,7 +570,7 @@ export default function CheckoutPage() {
       case 'country': return !formData.country ? 'Country is required' : null;
       case 'address': return !formData.address ? 'Address is required' : null;
       case 'city': return !formData.city ? 'City is required' : null;
-      case 'postCode': return !formData.postCode ? 'Post code is required' : !postCodeRegex.test(formData.postCode) ? 'Enter a valid postal code' : null;
+      case 'postCode': return !formData.postCode ? 'Post code is required' : !postCodeRegex.test(formData.postCode) ? 'Enter a valid 6-digit postal code' : null;
       default: return null;
     }
   };

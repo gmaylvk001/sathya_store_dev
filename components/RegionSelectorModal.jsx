@@ -3,8 +3,9 @@
 import React, { useState, useMemo, useEffect, useRef } from "react";
 import { useRegion } from "@/context/RegionContext";
 import { FiSearch, FiX } from "react-icons/fi";
+import { isValidPincode } from "@/lib/regionHelper";
 
-// Bespoke Line-Art Icons for the 4 South Indian States
+// Bespoke Line-Art Icons for the 5 South Indian States
 const StateLineArt = ({
   type,
   isSelected,
@@ -92,7 +93,7 @@ const StateLineArt = ({
       );
 
     case "stupa":
-      // Andhra Pradesh - Amaravati Stupa / Heritage Line Art
+      // Andhra Pradesh & Telangana - Heritage Line Art
       return (
         <svg
           viewBox="0 0 64 64"
@@ -129,7 +130,9 @@ export default function RegionSelectorModal() {
     detectionError,
     closeRegionModal,
     selectRegion,
+    setPincode,
     detectLocation,
+    setDetectionError,
   } = useRegion();
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -148,7 +151,7 @@ export default function RegionSelectorModal() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isRegionModalOpen, closeRegionModal]);
 
-  // Lock body scroll completely when modal is open without layout shift
+  // Lock body scroll completely when modal is open
   useEffect(() => {
     if (isRegionModalOpen) {
       const scrollBarWidth =
@@ -177,17 +180,22 @@ export default function RegionSelectorModal() {
     return allRegions.find((r) => r.id === hoveredRegionId) || null;
   }, [allRegions, hoveredRegionId]);
 
-  // Search filter across the 4 states and their cities
+  // Search filter across states and cities
   const searchResults = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
     if (!q) return null;
+
+    // Direct pincode check
+    if (isValidPincode(q)) {
+      return [{ isPincode: true, pincode: q }];
+    }
 
     const matches = [];
     allRegions.forEach((region) => {
       const stateMatch =
         region.name.toLowerCase().includes(q) ||
-        region.nativeName.toLowerCase().includes(q) ||
-        region.code.toLowerCase().includes(q);
+        region.nativeName?.toLowerCase().includes(q) ||
+        region.code?.toLowerCase().includes(q);
 
       region.popularCities.forEach((city) => {
         if (city.toLowerCase().includes(q) || stateMatch) {
@@ -204,8 +212,20 @@ export default function RegionSelectorModal() {
 
   // Handle city selection
   const handleSelectCity = (region, city) => {
-    selectRegion(region);
+    selectRegion(region, city);
     closeRegionModal();
+  };
+
+  // Handle pincode submit
+  const handlePincodeSubmit = async (pin) => {
+    if (isValidPincode(pin)) {
+      const success = await setPincode(pin);
+      if (success) {
+        setSearchQuery("");
+      }
+    } else {
+      setDetectionError?.("Please enter a valid 6-digit pincode");
+    }
   };
 
   if (!isRegionModalOpen) return null;
@@ -218,27 +238,45 @@ export default function RegionSelectorModal() {
         onClick={closeRegionModal}
       />
 
-      {/* Main Small & Compact Modal Card */}
+      {/* Main Modal Card */}
       <div
         ref={modalRef}
-        className="relative w-full max-w-[540px] bg-white rounded-xl shadow-2xl overflow-hidden z-10 border border-gray-100/90 transition-all duration-300 p-5 sm:p-6 animate-fadeIn"
+        className="relative w-full max-w-[580px] bg-white rounded-xl shadow-2xl overflow-hidden z-10 border border-gray-100/90 transition-all duration-300 p-5 sm:p-6 animate-fadeIn"
         onClick={(e) => e.stopPropagation()}
         style={{
           boxShadow:
             "0 20px 50px -10px rgba(0, 0, 0, 0.35), 0 0 1px 1px rgba(0, 0, 0, 0.05)",
         }}
       >
-        {/* Top Search Input with Close Button */}
-        <div className="relative flex items-center w-full">
+        {/* Top Search / Pincode Input with Submit & Close */}
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (isValidPincode(searchQuery)) {
+              handlePincodeSubmit(searchQuery);
+            }
+          }}
+          className="relative flex items-center w-full"
+        >
           <FiSearch className="absolute left-3.5 sm:left-4 text-gray-400 text-base sm:text-lg pointer-events-none" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search for your city"
+            placeholder="Search by city or enter 6-digit pincode"
             autoFocus
-            className="w-full pl-10 sm:pl-11 pr-10 py-2.5 bg-white border border-gray-300 hover:border-gray-400 focus:border-gray-400 rounded-lg text-xs sm:text-sm text-gray-800 placeholder-gray-400 focus:outline-none transition-colors"
+            maxLength={20}
+            className="w-full pl-10 sm:pl-11 pr-24 py-2.5 bg-white border border-gray-300 hover:border-gray-400 focus:border-red-500 rounded-lg text-xs sm:text-sm text-gray-800 placeholder-gray-400 focus:outline-none transition-colors"
           />
+          {isValidPincode(searchQuery) && (
+            <button
+              type="submit"
+              disabled={isDetecting}
+              className="absolute right-9 px-2.5 py-1 bg-red-600 hover:bg-red-700 text-white rounded text-xs font-semibold cursor-pointer transition-colors"
+            >
+              Apply
+            </button>
+          )}
           <button
             type="button"
             onClick={() => {
@@ -253,7 +291,7 @@ export default function RegionSelectorModal() {
           >
             <FiX size={17} />
           </button>
-        </div>
+        </form>
 
         {/* Sub-header: Detect Location & Selected State */}
         <div className="flex items-center justify-between mt-2.5 sm:mt-3 text-xs">
@@ -282,7 +320,7 @@ export default function RegionSelectorModal() {
           <div className="mt-2 px-3 py-1.5 bg-red-50 border border-red-100 rounded-md text-xs text-red-700 flex items-center justify-between">
             <span>{detectionError}</span>
             <button
-              onClick={() => useRegion().setDetectionError?.(null)}
+              onClick={() => setDetectionError?.(null)}
               className="text-red-500 hover:text-red-700 ml-2 cursor-pointer"
             >
               ✕
@@ -290,32 +328,51 @@ export default function RegionSelectorModal() {
           </div>
         )}
 
-        {/* Content View: Search Results OR 4 States */}
+        {/* Content View: Search Results OR 5 States */}
         {searchQuery ? (
           /* Search Results View */
-          <div className="mt-4 pt-3 border-t border-gray-100 min-h-[120px] max-h-[200px] overflow-hidden">
-            <p className="text-xs text-gray-400 font-medium mb-2">
-              Matching Cities & States ({searchResults?.length || 0}):
-            </p>
-            {searchResults && searchResults.length > 0 ? (
-              <div className="flex flex-wrap gap-1.5 max-h-[160px] overflow-y-auto">
-                {searchResults.slice(0, 15).map(({ city, region }, idx) => (
-                  <button
-                    key={`${region.id}-${city}-${idx}`}
-                    onClick={() => handleSelectCity(region, city)}
-                    className="flex items-center gap-1 px-3 py-1.5 bg-gray-50 hover:bg-red-50 hover:text-red-600 hover:border-red-200 border border-gray-200 rounded-md text-xs font-medium text-gray-700 transition-all active:scale-95 cursor-pointer"
-                  >
-                    <span>{city}</span>
-                    <span className="text-[10px] text-gray-400 font-normal">
-                      ({region.code})
-                    </span>
-                  </button>
-                ))}
+          <div className="mt-4 pt-3 border-t border-gray-100 min-h-[120px] max-h-[220px] overflow-hidden">
+            {searchResults && searchResults[0]?.isPincode ? (
+              <div className="py-4 text-center">
+                <p className="text-xs text-gray-600 mb-2">
+                  Apply delivery location for pincode:{" "}
+                  <strong>{searchResults[0].pincode}</strong>
+                </p>
+                <button
+                  type="button"
+                  onClick={() => handlePincodeSubmit(searchResults[0].pincode)}
+                  disabled={isDetecting}
+                  className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md text-xs font-semibold transition-all cursor-pointer"
+                >
+                  {isDetecting ? "Verifying..." : "Deliver to this Pincode"}
+                </button>
               </div>
             ) : (
-              <div className="py-6 text-center text-xs text-gray-500">
-                No matching city found for "{searchQuery}".
-              </div>
+              <>
+                <p className="text-xs text-gray-400 font-medium mb-2">
+                  Matching Cities & States ({searchResults?.length || 0}):
+                </p>
+                {searchResults && searchResults.length > 0 ? (
+                  <div className="flex flex-wrap gap-1.5 max-h-[160px] overflow-y-auto">
+                    {searchResults.slice(0, 15).map(({ city, region }, idx) => (
+                      <button
+                        key={`${region.id}-${city}-${idx}`}
+                        onClick={() => handleSelectCity(region, city)}
+                        className="flex items-center gap-1 px-3 py-1.5 bg-gray-50 hover:bg-red-50 hover:text-red-600 hover:border-red-200 border border-gray-200 rounded-md text-xs font-medium text-gray-700 transition-all active:scale-95 cursor-pointer"
+                      >
+                        <span>{city}</span>
+                        <span className="text-[10px] text-gray-400 font-normal">
+                          ({region.code})
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="py-6 text-center text-xs text-gray-500">
+                    No matching city found for "{searchQuery}".
+                  </div>
+                )}
+              </>
             )}
           </div>
         ) : showAllCities ? (
@@ -332,7 +389,7 @@ export default function RegionSelectorModal() {
                 Back to States
               </button>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
               {allRegions.map((region) => (
                 <div key={region.id} className="space-y-1">
                   <div
@@ -360,15 +417,14 @@ export default function RegionSelectorModal() {
             </div>
           </div>
         ) : (
-          /* Default 4 States Layout */
+          /* Default 5 States Layout */
           <div className="mt-4" onMouseLeave={() => setHoveredRegionId(null)}>
-            {/* Centered "Popular Cities" Title */}
             <div className="text-center text-xs text-gray-500 font-normal mb-3">
-              Popular Cities
+              Select Your State or Location
             </div>
 
-            {/* Exactly 4 South Indian States */}
-            <div className="grid grid-cols-4 gap-2 items-start justify-center">
+            {/* Exactly 5 South Indian States */}
+            <div className="grid grid-cols-5 gap-1.5 sm:gap-2 items-start justify-center">
               {allRegions.map((region) => {
                 const isHovered = hoveredRegionId === region.id;
                 const isSelected = selectedRegion?.id === region.id;
@@ -377,7 +433,7 @@ export default function RegionSelectorModal() {
                 return (
                   <div
                     key={region.id}
-                    className="flex flex-col items-center justify-center cursor-pointer group select-none py-1 rounded-lg transition-all"
+                    className="flex flex-col items-center justify-center cursor-pointer group select-none py-1.5 px-1 rounded-lg transition-all border border-transparent hover:border-gray-200"
                     onMouseEnter={() => setHoveredRegionId(region.id)}
                     onClick={() => {
                       selectRegion(region);
@@ -393,13 +449,13 @@ export default function RegionSelectorModal() {
                       <StateLineArt
                         type={region.iconType}
                         isSelected={isActive}
-                        className="w-11 h-11 sm:w-12 sm:h-12 transition-colors duration-150"
+                        className="w-10 h-10 sm:w-11 sm:h-11 transition-colors duration-150"
                       />
                     </div>
 
                     {/* State Name */}
                     <span
-                      className={`mt-1.5 text-xs text-center leading-tight transition-colors duration-150 ${
+                      className={`mt-1.5 text-[11px] sm:text-xs text-center leading-tight transition-colors duration-150 ${
                         isActive
                           ? "text-gray-900 font-bold"
                           : "text-gray-600 group-hover:text-gray-900"

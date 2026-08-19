@@ -2,7 +2,14 @@ import mongoose from "mongoose";
 
 const TopBannerSchema = new mongoose.Schema({
   banner_image: { type: String, required: true }, // store image path
+  mobile_banner_image: { type: String, default: "" },
   redirect_url: { type: String, required: true },
+  state: {
+    type: String,
+    enum: ["tamilnadu", "andhra", "kerala", "karnataka", "telangana", "all"],
+    default: "all",
+    index: true,
+  },
   status: { type: String, enum: ["Active", "Inactive"], default: "Active" },
   order: { type: Number, default: 0 }, // 👈 added for sorting
   createdAt: { type: Date, default: Date.now },
@@ -11,3 +18,4 @@ const TopBannerSchema = new mongoose.Schema({
 
 export default mongoose.models.top_banners ||
   mongoose.model("top_banners", TopBannerSchema);
+

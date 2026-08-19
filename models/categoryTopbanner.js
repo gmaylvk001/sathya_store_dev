@@ -6,6 +6,12 @@ const BannerItemSchema = new mongoose.Schema(
     desktopImage: { type: String, default: "" },
     mobileImage: { type: String, default: "" },
     url: { type: String, default: "" },
+    state: {
+      type: String,
+      enum: ["tamilnadu", "andhra", "kerala", "karnataka", "telangana", "all"],
+      default: "all",
+    },
+    slot: { type: Number, default: 1 },
     isActive: { type: Boolean, default: true },
     order: { type: Number, default: 0 },
   },

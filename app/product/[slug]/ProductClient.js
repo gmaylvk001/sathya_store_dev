@@ -18,6 +18,7 @@ import { IoFastFoodOutline, IoReload, IoCardOutline, IoShieldCheckmark, IoStoref
 import Link from "next/link";
 import { useCart } from '@/context/CartContext';
 import { useModal } from '@/context/ModalContext';
+import { useRegion } from '@/context/RegionContext';
 import ProductCard from "@/components/ProductCard";
 import ProductAddtoCart from "@/components/ProductAddtoCart"
 import AddToWishlistButton from "@/components/ProductCard";
@@ -75,9 +76,43 @@ export default function ProductClient() {
   const [faqs, setFaqs] = useState([]);
   const [recentlyViewedProducts, setRecentlyViewedProducts] = useState([]);
   const [isDesktop, setIsDesktop] = useState(false);
-const [addOnProducts, setAddOnProducts] = useState([]);
- const [warranties, setWarranties] = useState([]);
-const [selectedWarrantyData, setSelectedWarrantyData] = useState(null);
+  const [addOnProducts, setAddOnProducts] = useState([]);
+  const [warranties, setWarranties] = useState([]);
+  const [selectedWarrantyData, setSelectedWarrantyData] = useState(null);
+
+  const { pincode: globalPincode, region: globalRegion } = useRegion();
+  const [deliveryPincode, setDeliveryPincode] = useState("");
+  const [deliveryInfo, setDeliveryInfo] = useState(null);
+  const [isCheckingDelivery, setIsCheckingDelivery] = useState(false);
+
+  useEffect(() => {
+    if (globalPincode) {
+      setDeliveryPincode(globalPincode);
+    }
+  }, [globalPincode]);
+
+  const handleCheckDelivery = async (pin) => {
+    const pinVal = (pin || deliveryPincode || globalPincode || "600001").toString().trim();
+    if (!pinVal || pinVal.length !== 6) return;
+    try {
+      setIsCheckingDelivery(true);
+      const res = await fetch(
+        `/api/pincode/check-delivery?pincode=${pinVal}&item_code=${product?.item_code || ""}&productId=${product?._id || ""}`
+      );
+      const data = await res.json();
+      setDeliveryInfo(data);
+    } catch (e) {
+      console.error("Delivery check error:", e);
+    } finally {
+      setIsCheckingDelivery(false);
+    }
+  };
+
+  useEffect(() => {
+    if (product) {
+      handleCheckDelivery(deliveryPincode || globalPincode || "600001");
+    }
+  }, [product, globalPincode]);
 
 const outlineActionBtnClass =
   "flex items-center justify-center gap-2 border border-gray-300 rounded-md bg-white px-4 py-2 text-sm font-medium text-[#d72828] hover:border-red-400 hover:bg-red-50 transition-colors whitespace-nowrap";
@@ -1553,22 +1588,38 @@ const fetchBrand = async () => {
     <div className="border border-gray-200 rounded-lg p-3 bg-gray-50">
       <div className="flex items-center justify-between mb-2">
         <span className="text-xs font-bold text-gray-800">Delivery Options:</span>
-        <div className="flex items-center gap-1 bg-white border border-gray-300 rounded px-2 py-1">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleCheckDelivery(deliveryPincode);
+          }}
+          className="flex items-center gap-1 bg-white border border-gray-300 rounded px-2 py-1"
+        >
           <TbTruckDelivery className="text-[#d72828] w-4 h-4" />
           <input
             type="text"
+            value={deliveryPincode}
+            onChange={(e) => setDeliveryPincode(e.target.value.replace(/\D/g, "").slice(0, 6))}
             placeholder="Enter Pincode"
             maxLength={6}
             className="w-24 text-xs focus:outline-none"
           />
-          <button className="text-xs font-bold text-[#d72828] hover:underline ml-1">Check</button>
-        </div>
+          <button
+            type="submit"
+            disabled={isCheckingDelivery}
+            className="text-xs font-bold text-[#d72828] hover:underline ml-1 cursor-pointer disabled:opacity-50"
+          >
+            {isCheckingDelivery ? "..." : "Check"}
+          </button>
+        </form>
       </div>
 
       <div className="grid grid-cols-2 gap-2 mt-2">
         <div className="bg-white border border-gray-200 rounded-md p-2 text-center">
           <span className="text-xs font-bold text-gray-800 block">REGULAR DELIVERY</span>
-          <span className="text-[10px] text-green-600 font-medium">Delivery in 2 - 4 Days</span>
+          <span className={`text-[10px] font-medium ${deliveryInfo?.available === false ? 'text-red-600' : 'text-green-600'}`}>
+            {deliveryInfo?.message || "Delivery in 2 - 4 Days"}
+          </span>
         </div>
         <div className="bg-white border border-gray-200 rounded-md p-2 text-center">
           <span className="text-xs font-bold text-gray-800 block">STORE PICKUP</span>

@@ -6,6 +6,12 @@ const BannerSchema = new mongoose.Schema({
   banner_image: { type: String },
   redirect_url: { type: String },
   banner_status: { type: String, enum: ["Active", "Inactive"], default: "Active" },
+  state: {
+    type: String,
+    enum: ["all", "tamilnadu", "karnataka", "andhra", "kerala", "telangana"],
+    default: "all",
+  },
+  slot: { type: Number, default: 1 },
   createdAt: { type: Date, default: Date.now },
 });
 
