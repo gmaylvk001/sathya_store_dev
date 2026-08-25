@@ -1,15 +1,17 @@
 "use client";
-import { React, useState, useEffect } from "react";
+import { React, useState, useEffect, useRef } from "react";
 import dynamic from 'next/dynamic';
 import { FaPlus, FaMinus, FaArrowLeft, FaArrowRight } from "react-icons/fa";
 import TinyEditor from "./TinyEditor";
 const Select = dynamic(() => import('react-select'), { ssr: false });
 import { combinations } from '@/utils/combinations';
 import { ToastContainer, toast } from 'react-toastify';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { components } from "react-select";
 import { Check } from "react-feather";
 import WarrantySearchInput from "@/app/admin/components/WarrantySearchInput";
+
+const startedNewProductPrefills = new Set();
 
 
 const steps = [
@@ -109,7 +111,19 @@ export default function AddProductPage({ mode = "add", productData = null, produ
   const [selectedCategory, setSelectedCategory] = useState(""); 
   const [allproducts, setAllProducts] = useState([]);
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [selectedParentCategory, setSelectedParentCategory] = useState("");
+  const [isGeneratingContent, setIsGeneratingContent] = useState(false);
+  const [editorRevision, setEditorRevision] = useState(0);
+  const prefillStarted = useRef(false);
+
+  const slugifyName = (value = "") =>
+    String(value || "")
+      .toLowerCase()
+      .replace(/[^\w\s-]/g, "")
+      .replace(/\s+/g, "-")
+      .replace(/-+/g, "-")
+      .replace(/^-+|-+$/g, "");
 
 
   // Extended warranty 
@@ -156,10 +170,15 @@ const handleAddOnsProductsChange = (selectedOptions) => {
     try {
       const response = await fetch("/api/categories/get");
       const result = await response.json();
-      if (result.error) {
+      const list = Array.isArray(result)
+        ? result
+        : Array.isArray(result?.data)
+          ? result.data
+          : [];
+      if (result.error && !list.length) {
         toast.error(result.error);
       } else {
-        setCategories(buildCategoryTree(result));
+        setCategories(buildCategoryTree(list));
       }
     } catch (error) {
       toast.error(error);
@@ -405,6 +424,114 @@ useEffect(() => {
       });
     }
   }, [initialProductData]);
+
+  useEffect(() => {
+    const source = searchParams.get("source");
+    const newProductId = searchParams.get("id");
+    if (source !== "newproduct" || !newProductId || startedNewProductPrefills.has(newProductId)) {
+      return;
+    }
+    startedNewProductPrefills.add(newProductId);
+    prefillStarted.current = true;
+
+    const loadNewProductContent = async () => {
+      setIsGeneratingContent(true);
+      try {
+        const response = await fetch("/api/newproduct/generate-content", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: newProductId }),
+        });
+        const payload = await response.json();
+        if (!response.ok) {
+          toast.error(payload.error || "Failed to generate product content");
+          return;
+        }
+
+        const sourceProduct = payload.source || {};
+        const content = payload.content || {};
+        const mapped = payload.mapped || {};
+        const productName =
+          content.product_name || sourceProduct.name || sourceProduct.item_description || "";
+        const rawDescription = content.description || "";
+        const description = rawDescription
+          ? /<[a-z][\s\S]*>/i.test(rawDescription)
+            ? rawDescription
+            : rawDescription
+                .split(/\n{2,}/)
+                .map((para) => `<p>${para.replace(/\n/g, "<br />")}</p>`)
+                .join("")
+          : "";
+
+        setProduct((prev) => ({
+          ...prev,
+          name: productName,
+          slug: mapped.uniqueSlug || mapped.slug || slugifyName(productName),
+          item_code: sourceProduct.item_code || content.product_code || prev.item_code,
+          price: sourceProduct.price ?? prev.price,
+          special_price:
+            sourceProduct.special_price ?? sourceProduct.price ?? prev.special_price,
+          quantity: sourceProduct.quantity ?? prev.quantity,
+          brand: mapped.brandId || prev.brand,
+          brand_code: sourceProduct.brand_code || prev.brand_code,
+          movement: sourceProduct.movement || prev.movement,
+          category: mapped.parentCategoryId || prev.category,
+          sub_category: mapped.categoryId || prev.sub_category,
+          description: description || prev.description,
+          product_highlights: Array.isArray(content.highlights) && content.highlights.length
+            ? content.highlights
+            : prev.product_highlights,
+          key_specifications: Array.isArray(content.key_features) && content.key_features.length
+            ? content.key_features.join(", ")
+            : prev.key_specifications,
+          meta_title: content.meta_title || prev.meta_title,
+          meta_description: content.meta_description || prev.meta_description,
+          search_keywords: content.meta_keywords || prev.search_keywords,
+          stock_status: Number(sourceProduct.quantity) > 0 ? "In Stock" : "Out of Stock",
+        }));
+        setEditorRevision((n) => n + 1);
+
+        if (mapped.categoryId) {
+          setSelectedCategory(mapped.categoryId);
+          setSelectedParentCategory(mapped.parentCategoryId || "");
+        }
+
+        if (payload.aiError) {
+          toast.warn(`AI content was not generated: ${payload.aiError}`);
+        } else {
+          toast.success("Product content generated. Review and save.");
+        }
+      } catch (error) {
+        toast.error(error.message || "Failed to load new product content");
+      } finally {
+        setIsGeneratingContent(false);
+      }
+    };
+
+    loadNewProductContent();
+  }, [searchParams]);
+
+  const collectAncestorIds = (nodes, targetId, trail = []) => {
+    for (const node of nodes || []) {
+      if (node._id === targetId) return trail;
+      const found = collectAncestorIds(node.children, targetId, [...trail, node._id]);
+      if (found) return found;
+    }
+    return null;
+  };
+
+  useEffect(() => {
+    if (!selectedCategory || !categories.length) return;
+    const ancestors = collectAncestorIds(categories, selectedCategory) || [];
+    if (!ancestors.length) return;
+    setExpandedCategories((prev) => {
+      const next = { ...prev };
+      ancestors.forEach((id) => {
+        next[id] = true;
+      });
+      return next;
+    });
+  }, [selectedCategory, categories]);
 
    const handleVariantFieldChange1 = (index, field, value) => {
   const updatedVariants = variant.map((v, i) =>
@@ -762,6 +889,7 @@ setProduct(prev => ({
 
 
   const buildCategoryTree = (categories, parentId = "none") => {
+    if (!Array.isArray(categories)) return [];
     return categories
       .filter((category) => category.parentid === parentId)
       .map((category) => ({
@@ -1163,12 +1291,17 @@ const uploadImages = async (files) => {
   
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setProduct((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-      slug: name === "name" 
-        ? value.toLowerCase().replace(/[^\w\s-]/g, "").replace(/\s+/g, "-").replace(/-+/g, "-") : prev.slug,
-    }));
+    setProduct((prev) => {
+      const nextValue = type === "checkbox" ? checked : value;
+      const next = {
+        ...prev,
+        [name]: nextValue,
+      };
+      if (name === "name") {
+        next.slug = slugifyName(value);
+      }
+      return next;
+    });
   };
 
   const handleTagsChange = (selectedOptions) => {
@@ -1295,6 +1428,7 @@ const handleSubmit = async (e) => {
     const cleanedProduct = {
       ...restProduct,
       ...(trimmedBrandCode ? { brand_code: trimmedBrandCode } : {}),
+      slug: (product.slug || "").trim() || slugifyName(product.name),
       extend_warranty: validWarranties.length > 0 ? validWarranties : [],
       filters: (product.filters || []).map(f => f.value),
       related_products: product.related_products || [],
@@ -1592,6 +1726,11 @@ const updatedFilter = Filter.map((group) => ({
   );
   return (
     <div className="mx-auto p-6 bg-white shadow-md rounded-lg" >
+      {isGeneratingContent && (
+        <div className="mb-4 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          Generating product content from OpenAI. Please wait…
+        </div>
+      )}
     
       <h2 className="text-2xl font-bold mb-4">{mode === "edit" ? " " : "Add Product"}</h2>
       <ProgressStepper />
@@ -1623,12 +1762,23 @@ const updatedFilter = Filter.map((group) => ({
                           </p>
                         )}
               </div>
-        
               <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Item Code</label>
                 <input type="text" name="item_code" value={product.item_code} onChange={handleChange} className="w-full border p-2 rounded" required />
               </div>
-              
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Slug*</label>
+                <input
+                  type="text"
+                  name="slug"
+                  value={product.slug || ''}
+                  onChange={handleChange}
+                  className="w-full border p-2 rounded"
+                  required
+                />
+              </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
             <div className="rounded-md mb-2">
@@ -1804,7 +1954,11 @@ const updatedFilter = Filter.map((group) => ({
               <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
                 {/* <textarea name="description" value={product.description || ''} onChange={handleChange} className="w-full border p-2 rounded" rows="4"></textarea> */}
-                <TinyEditor value={product.description} onChange={handleChange} />
+                <TinyEditor
+                  key={editorRevision}
+                  value={product.description || ""}
+                  onChange={handleChange}
+                />
                 
                       {/* <h3 className="mt-4 font-semibold">Preview:</h3>
                       <div

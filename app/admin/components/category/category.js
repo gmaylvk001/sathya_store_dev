@@ -91,11 +91,18 @@ export default function CategoryComponent() {
   const fetchCategories = async () => {
     try {
       const response = await fetch("/api/categories/get");
-      const data = await response.json();
-      setCategories(data);
+      const json = await response.json();
+      // API returns { data: [...] }; keep a fallback for a raw array
+      const list = Array.isArray(json)
+        ? json
+        : Array.isArray(json?.data)
+          ? json.data
+          : [];
+      setCategories(list);
       setIsLoading(false);
     } catch (error) {
       console.error("Error fetching categories:", error);
+      setCategories([]);
       setIsLoading(false);
     }
   };
@@ -675,6 +682,7 @@ export default function CategoryComponent() {
 
   // Build category tree
   const buildCategoryTree = (categories, parentId = "none") => {
+    if (!Array.isArray(categories)) return [];
     return categories
       .filter((category) => category.parentid === parentId)
       .map((category) => ({
@@ -690,6 +698,7 @@ export default function CategoryComponent() {
     level = 0,
     result = [],
   ) => {
+    if (!Array.isArray(categories)) return result;
     categories
       .filter((category) => category.parentid === parentId)
       .forEach((category) => {
@@ -804,6 +813,7 @@ export default function CategoryComponent() {
     level = 0,
     result = [],
   ) => {
+    if (!Array.isArray(categories)) return result;
     categories
       .filter((category) => category.parentid === parentId)
       .forEach((category) => {

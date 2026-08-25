@@ -1,21 +1,19 @@
 "use client";
-import { useState, useEffect } from "react";
-
+import { Suspense } from "react";
 import ProductComponent from "@/app/admin/components/product/create";
 
-
-
-export default function Dashboard() {
-  const [time, setTime] = useState(null);
-
-  useEffect(() => {
-    setTime(Date.now());
-  }, []);
-
+function CreateProductForm() {
   return (
     <div className="px-2">
-      
-      <ProductComponent /> {/* Use the category component here */}
+      <ProductComponent />
     </div>
+  );
+}
+
+export default function Dashboard() {
+  return (
+    <Suspense fallback={<div className="p-6">Loading product form…</div>}>
+      <CreateProductForm />
+    </Suspense>
   );
 }
