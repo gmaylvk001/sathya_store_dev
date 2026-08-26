@@ -2,6 +2,20 @@
 @tailwind components;
 @tailwind utilities;
 
+iframe[src*="tawk.to"],
+iframe[title*="chat widget"],
+[id*="tawk"],
+[class*="tawk"],
+#tawkchat-minified-container,
+#tawkchat-container {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  opacity: 0 !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
 .swiper-button-next,
 .swiper-button-prev {
   width: 36px !important;
