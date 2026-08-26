@@ -18,6 +18,7 @@ export async function GET(req) {
     const instanceId = searchParams.get("instanceId");
     const configId = searchParams.get("configId");
     const activeOnly = searchParams.get("activeOnly") === "1";
+    const targetRegion = (searchParams.get("region") || searchParams.get("state") || "all").toLowerCase();
 
     let doc = null;
     if (configId) {
@@ -43,6 +44,20 @@ export async function GET(req) {
         return NextResponse.json({ success: true, data: doc, items: [] });
       }
       items = items.filter((i) => i.isActive !== false);
+    }
+
+    // Region/State Filtering with Fallback: 1. Target region match, 2. 'all' fallback
+    if (targetRegion && targetRegion !== "all") {
+      const regionItems = items.filter(
+        (i) => (i.state || "all").toLowerCase() === targetRegion
+      );
+      if (regionItems.length > 0) {
+        items = regionItems;
+      } else {
+        items = items.filter(
+          (i) => !i.state || i.state === "all"
+        );
+      }
     }
 
     return NextResponse.json({ success: true, data: doc, items });
@@ -99,15 +114,17 @@ export async function POST(req) {
         const item = meta[i] || {};
         let image = item.image || "";
         const file = formData.get(`image_${i}`);
+
         if (file && typeof file === "object" && file.size > 0) {
           const saved = await saveCategoryBrandCarouselImage(file);
           image = saved.path;
         }
-        if (!image) continue;
+
         items.push({
           image,
           url: item.url || "",
-          notes: "",
+          notes: item.notes || "",
+          state: item.state || "all",
           isActive: item.isActive !== false,
           order: typeof item.order === "number" ? item.order : i,
         });

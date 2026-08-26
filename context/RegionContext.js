@@ -1,16 +1,25 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import {
+  STATE_DEFAULTS,
+  DEFAULT_LOCATION,
+  normalizeRegion,
+  isValidPincode,
+} from '@/lib/regionHelper';
 
 const STORAGE_KEY = 'sathya_selected_region';
+const LOCATION_STORAGE_KEY = 'sathya_user_location';
 const PROMPT_KEY = 'sathya_region_prompted';
 
 export const SOUTH_INDIAN_STATES = [
   {
-    id: 'tamil-nadu',
+    id: 'tamilnadu',
     name: 'Tamil Nadu',
     nativeName: 'தமிழ்நாடு',
     code: 'TN',
+    defaultPincode: '600001',
+    defaultCity: 'chennai',
     tagline: 'Home of Sathya • 100+ Showrooms',
     deliveryTime: '24-48h Express Delivery',
     landmark: 'Meenakshi & Tanjore Gopuram',
@@ -43,6 +52,8 @@ export const SOUTH_INDIAN_STATES = [
     name: 'Kerala',
     nativeName: 'കേരളം',
     code: 'KL',
+    defaultPincode: '695001',
+    defaultCity: 'thiruvananthapuram',
     tagline: "God's Own Country • Express Hubs",
     deliveryTime: '24-48h Express Delivery',
     landmark: 'Traditional Houseboat & Palm Groves',
@@ -70,6 +81,8 @@ export const SOUTH_INDIAN_STATES = [
     name: 'Karnataka',
     nativeName: 'ಕರ್ನಾಟಕ',
     code: 'KA',
+    defaultPincode: '560001',
+    defaultCity: 'bengaluru',
     tagline: 'Tech Hub & Heritage • Fast Dispatch',
     deliveryTime: '24-48h Express Delivery',
     landmark: 'Mysore Palace & Vidhana Soudha',
@@ -93,10 +106,12 @@ export const SOUTH_INDIAN_STATES = [
     badgeBg: 'bg-amber-600',
   },
   {
-    id: 'andhra-pradesh',
+    id: 'andhra',
     name: 'Andhra Pradesh',
     nativeName: 'ఆంధ్రప్రదేశ్',
     code: 'AP',
+    defaultPincode: '517501',
+    defaultCity: 'tirupati',
     tagline: 'Sunrise State • Statewide Network',
     deliveryTime: '24-48h Express Delivery',
     landmark: 'Amaravati Stupa & Tirupati Arch',
@@ -119,66 +134,203 @@ export const SOUTH_INDIAN_STATES = [
     borderColor: 'border-indigo-200',
     badgeBg: 'bg-indigo-600',
   },
+  {
+    id: 'telangana',
+    name: 'Telangana',
+    nativeName: 'తెలంగాణ',
+    code: 'TG',
+    defaultPincode: '500001',
+    defaultCity: 'hyderabad',
+    tagline: 'Pearl City & IT Hub',
+    deliveryTime: '24-48h Express Delivery',
+    landmark: 'Charminar & Kakatiya Arch',
+    iconType: 'stupa',
+    popularCities: [
+      'Hyderabad',
+      'Warangal',
+      'Nizamabad',
+      'Khammam',
+      'Karimnagar',
+      'Ramagundam',
+      'Mahbubnagar',
+      'Nalgonda',
+    ],
+    accentColor: '#8b5cf6',
+    gradient: 'from-purple-600 via-violet-600 to-purple-700',
+    lightBg: 'bg-purple-50/70',
+    borderColor: 'border-purple-200',
+    badgeBg: 'bg-purple-600',
+  },
 ];
+
+const syncLocationCookie = (locObj) => {
+  if (typeof document === 'undefined') return;
+  try {
+    const jsonStr = JSON.stringify(locObj);
+    document.cookie = `sathya_location=${encodeURIComponent(jsonStr)}; path=/; max-age=2592000; SameSite=Lax`;
+  } catch (e) {
+    console.error('Cookie sync error:', e);
+  }
+};
 
 const RegionContext = createContext();
 
 export const RegionProvider = ({ children }) => {
-  const [selectedRegion, setSelectedRegion] = useState(null);
+  const [selectedRegion, setSelectedRegion] = useState(SOUTH_INDIAN_STATES[0]);
+  const [userLocation, setUserLocation] = useState(DEFAULT_LOCATION);
   const [isRegionModalOpen, setIsRegionModalOpen] = useState(false);
   const [isDetecting, setIsDetecting] = useState(false);
   const [detectionError, setDetectionError] = useState(null);
   const [isInitialized, setIsInitialized] = useState(false);
 
-  // Initialize region from localStorage on mount
+  // Initialize region & location on mount
   useEffect(() => {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        const matched = SOUTH_INDIAN_STATES.find(
-          (s) => s.id === parsed.id || s.code === parsed.code || s.name?.toLowerCase() === parsed.name?.toLowerCase()
-        );
-        if (matched) {
-          setSelectedRegion(matched);
-        } else {
-          setSelectedRegion(SOUTH_INDIAN_STATES[0]);
-        }
+      const savedLoc = localStorage.getItem(LOCATION_STORAGE_KEY);
+      const savedRegion = localStorage.getItem(STORAGE_KEY);
+
+      if (savedLoc) {
+        const parsed = JSON.parse(savedLoc);
+        const norm = normalizeRegion(parsed.region || parsed.state || parsed.stateName);
+        const matched = SOUTH_INDIAN_STATES.find((s) => s.id === norm) || SOUTH_INDIAN_STATES[0];
+
+        const locData = {
+          pincode: parsed.pincode || matched.defaultPincode,
+          city: parsed.city || matched.defaultCity,
+          region: norm,
+          stateName: matched.name,
+          code: matched.code,
+        };
+
+        setUserLocation(locData);
+        setSelectedRegion(matched);
+        syncLocationCookie(locData);
+      } else if (savedRegion) {
+        const parsed = JSON.parse(savedRegion);
+        const norm = normalizeRegion(parsed.id || parsed.code || parsed.name);
+        const matched = SOUTH_INDIAN_STATES.find((s) => s.id === norm) || SOUTH_INDIAN_STATES[0];
+
+        const locData = {
+          pincode: matched.defaultPincode,
+          city: matched.defaultCity,
+          region: matched.id,
+          stateName: matched.name,
+          code: matched.code,
+        };
+
+        setUserLocation(locData);
+        setSelectedRegion(matched);
+        syncLocationCookie(locData);
       } else {
-        // New visitor: Automatically open modal
+        // First visitor: fallback default to Tamil Nadu 600001
+        setUserLocation(DEFAULT_LOCATION);
+        setSelectedRegion(SOUTH_INDIAN_STATES[0]);
+        syncLocationCookie(DEFAULT_LOCATION);
         setIsRegionModalOpen(true);
       }
     } catch {
+      setUserLocation(DEFAULT_LOCATION);
       setSelectedRegion(SOUTH_INDIAN_STATES[0]);
+      syncLocationCookie(DEFAULT_LOCATION);
     } finally {
       setIsInitialized(true);
     }
   }, []);
 
   // Save selected region
-  const selectRegion = useCallback((regionOrId) => {
+  const selectRegion = useCallback((regionOrId, customCity = null, customPincode = null) => {
     let targetRegion = null;
     if (typeof regionOrId === 'string') {
+      const norm = normalizeRegion(regionOrId);
       targetRegion = SOUTH_INDIAN_STATES.find(
-        (s) => s.id === regionOrId || s.code === regionOrId || s.name.toLowerCase() === regionOrId.toLowerCase()
+        (s) => s.id === norm || s.code.toLowerCase() === norm.toLowerCase() || s.name.toLowerCase() === norm.toLowerCase()
       );
     } else if (regionOrId && typeof regionOrId === 'object') {
-      targetRegion = SOUTH_INDIAN_STATES.find(
-        (s) => s.id === regionOrId.id || s.code === regionOrId.code || s.name === regionOrId.name
-      ) || regionOrId;
+      const norm = normalizeRegion(regionOrId.id || regionOrId.code || regionOrId.name);
+      targetRegion = SOUTH_INDIAN_STATES.find((s) => s.id === norm) || regionOrId;
     }
 
-    if (targetRegion) {
-      setSelectedRegion(targetRegion);
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(targetRegion));
-        localStorage.setItem(PROMPT_KEY, 'true');
-      } catch {
-        // ignore quota
-      }
+    if (!targetRegion) {
+      targetRegion = SOUTH_INDIAN_STATES[0];
     }
+
+    const locData = {
+      pincode: customPincode || targetRegion.defaultPincode,
+      city: (customCity || targetRegion.defaultCity).toLowerCase(),
+      region: targetRegion.id,
+      stateName: targetRegion.name,
+      code: targetRegion.code,
+    };
+
+    setSelectedRegion(targetRegion);
+    setUserLocation(locData);
+
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(targetRegion));
+      localStorage.setItem(LOCATION_STORAGE_KEY, JSON.stringify(locData));
+      localStorage.setItem(PROMPT_KEY, 'true');
+      syncLocationCookie(locData);
+    } catch {
+      // ignore storage quota errors
+    }
+
     setIsRegionModalOpen(false);
     setDetectionError(null);
+  }, []);
+
+  // Pincode submission resolver
+  const setPincode = useCallback(async (pincode) => {
+    if (!isValidPincode(pincode)) {
+      setDetectionError('Please enter a valid 6-digit pincode');
+      return false;
+    }
+
+    try {
+      setIsDetecting(true);
+      setDetectionError(null);
+
+      const res = await fetch('/api/pincode/check-state', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pincode: pincode.trim() }),
+      });
+
+      const data = await res.json();
+      if (data.status) {
+        const norm = normalizeRegion(data.region || data.state);
+        const matched = SOUTH_INDIAN_STATES.find((s) => s.id === norm) || SOUTH_INDIAN_STATES[0];
+
+        const locData = {
+          pincode: data.pincode || pincode.trim(),
+          city: (data.city || matched.defaultCity).toLowerCase(),
+          region: matched.id,
+          stateName: matched.name,
+          code: matched.code,
+        };
+
+        setSelectedRegion(matched);
+        setUserLocation(locData);
+
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(matched));
+          localStorage.setItem(LOCATION_STORAGE_KEY, JSON.stringify(locData));
+          localStorage.setItem(PROMPT_KEY, 'true');
+          syncLocationCookie(locData);
+        } catch {}
+
+        setIsRegionModalOpen(false);
+        return true;
+      } else {
+        setDetectionError('Could not verify pincode. Please select your state.');
+        return false;
+      }
+    } catch (err) {
+      console.error('Pincode submit error:', err);
+      setDetectionError('Failed to verify pincode. Please try again.');
+      return false;
+    } finally {
+      setIsDetecting(false);
+    }
   }, []);
 
   const openRegionModal = useCallback(() => {
@@ -187,19 +339,21 @@ export const RegionProvider = ({ children }) => {
   }, []);
 
   const closeRegionModal = useCallback(() => {
-    // Default fallback to Tamil Nadu if no region selected yet
     if (!selectedRegion) {
       const defaultState = SOUTH_INDIAN_STATES[0];
       setSelectedRegion(defaultState);
+      setUserLocation(DEFAULT_LOCATION);
+      syncLocationCookie(DEFAULT_LOCATION);
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(defaultState));
+        localStorage.setItem(LOCATION_STORAGE_KEY, JSON.stringify(DEFAULT_LOCATION));
       } catch {}
     }
     setIsRegionModalOpen(false);
     setDetectionError(null);
   }, [selectedRegion]);
 
-  // Detect user's location using HTML5 Geolocation
+  // Detect user's location via HTML5 Geolocation + Server Reverse Geocoding
   const detectLocation = useCallback(async () => {
     if (typeof window === 'undefined' || !navigator?.geolocation) {
       setDetectionError('Geolocation is not supported by your browser.');
@@ -213,44 +367,41 @@ export const RegionProvider = ({ children }) => {
       async (position) => {
         try {
           const { latitude, longitude } = position.coords;
-          const res = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`,
-            { headers: { 'Accept-Language': 'en' } }
-          );
-          const data = await res.json();
-          const address = data?.address || {};
-          const detectedStateName = (address.state || address.region || '').toLowerCase();
-          const detectedCity = (address.city || address.town || address.village || address.county || '').toLowerCase();
-
-          const matched = SOUTH_INDIAN_STATES.find((s) => {
-            const sn = s.name.toLowerCase();
-            return (
-              detectedStateName.includes(sn) ||
-              sn.includes(detectedStateName) ||
-              s.popularCities.some((c) => c.toLowerCase() === detectedCity)
-            );
+          const res = await fetch('/api/pincode/check-state', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ latitude, longitude }),
           });
 
-          if (matched) {
-            selectRegion(matched);
+          const data = await res.json();
+          if (data.status) {
+            const norm = normalizeRegion(data.region || data.state);
+            const matched = SOUTH_INDIAN_STATES.find((s) => s.id === norm) || SOUTH_INDIAN_STATES[0];
+
+            const locData = {
+              pincode: data.pincode || matched.defaultPincode,
+              city: (data.city || matched.defaultCity).toLowerCase(),
+              region: matched.id,
+              stateName: matched.name,
+              code: matched.code,
+            };
+
+            setSelectedRegion(matched);
+            setUserLocation(locData);
+
+            try {
+              localStorage.setItem(STORAGE_KEY, JSON.stringify(matched));
+              localStorage.setItem(LOCATION_STORAGE_KEY, JSON.stringify(locData));
+              localStorage.setItem(PROMPT_KEY, 'true');
+              syncLocationCookie(locData);
+            } catch {}
+
+            setIsRegionModalOpen(false);
           } else {
-            // Coordinate boundaries
-            if (latitude >= 8.0 && latitude <= 13.5 && longitude >= 76.5 && longitude <= 80.5) {
-              selectRegion(SOUTH_INDIAN_STATES[0]);
-            } else if (longitude <= 77.2 && latitude >= 8.3 && latitude <= 12.8) {
-              selectRegion(SOUTH_INDIAN_STATES[1]);
-            } else if (latitude >= 12.0 && latitude <= 18.5 && longitude <= 78.5) {
-              selectRegion(SOUTH_INDIAN_STATES[2]);
-            } else if (longitude >= 78.5 && latitude >= 13.0 && latitude <= 19.5) {
-              selectRegion(SOUTH_INDIAN_STATES[3]);
-            } else {
-              setDetectionError(
-                `Your location was detected outside the 4 South Indian states. Please choose your state below.`
-              );
-            }
+            setDetectionError('Location detected outside covered South Indian states. Please select your state.');
           }
         } catch {
-          setDetectionError('Could not auto-detect state. Please select manually below.');
+          setDetectionError('Could not auto-detect state. Please select manually.');
         } finally {
           setIsDetecting(false);
         }
@@ -265,12 +416,16 @@ export const RegionProvider = ({ children }) => {
       },
       { timeout: 8000, enableHighAccuracy: false }
     );
-  }, [selectRegion]);
+  }, []);
 
   return (
     <RegionContext.Provider
       value={{
         selectedRegion: selectedRegion || SOUTH_INDIAN_STATES[0],
+        userLocation: userLocation || DEFAULT_LOCATION,
+        pincode: userLocation?.pincode || selectedRegion?.defaultPincode || '600001',
+        city: userLocation?.city || selectedRegion?.defaultCity || 'chennai',
+        region: userLocation?.region || selectedRegion?.id || 'tamilnadu',
         allRegions: SOUTH_INDIAN_STATES,
         isRegionModalOpen,
         isDetecting,
@@ -279,7 +434,9 @@ export const RegionProvider = ({ children }) => {
         openRegionModal,
         closeRegionModal,
         selectRegion,
+        setPincode,
         detectLocation,
+        setDetectionError,
       }}
     >
       {children}

@@ -2,13 +2,15 @@
 import { useEffect, useState } from "react";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd"; // + dnd import
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 
 export default function TopBannerPage() {
   const [banners, setBanners] = useState([]);
+  const [selectedFilterRegion, setSelectedFilterRegion] = useState("all");
   const [newBanner, setNewBanner] = useState({
     banner_image: null,
     redirect_url: "",
+    state: "all",
     status: "Active",
   });
   const [error, setError] = useState("");
@@ -19,21 +21,26 @@ export default function TopBannerPage() {
   const [editingStates, setEditingStates] = useState({});
 
   // Fetch banners
-  const fetchBanners = async () => {
+  const fetchBanners = async (filterRegion = selectedFilterRegion) => {
     try {
-      const res = await fetch("/api/topbanner");
+      const url = filterRegion && filterRegion !== "all" 
+        ? `/api/topbanner?admin=true&state=${filterRegion}` 
+        : `/api/topbanner?admin=true`;
+      const res = await fetch(url, {
+        headers: { "x-admin-auth": "true" },
+      });
       const data = await res.json();
       if (data.success) {
         setBanners(data.banners);
-        // Initialize editing states
         const states = {};
         data.banners.forEach((banner) => {
           states[banner._id] = {
             redirect_url: banner.redirect_url || "",
+            state: banner.state || "all",
             status: banner.status || "Active",
             banner_image: null,
             hasChanges: false,
-            error: "", // ✅ per-banner error state
+            error: "",
           };
         });
         setEditingStates(states);
@@ -45,7 +52,7 @@ export default function TopBannerPage() {
 
   useEffect(() => {
     fetchBanners();
-  }, []);
+  }, [selectedFilterRegion]);
 
   // Save new banner
   const handleSave = async () => {
@@ -64,21 +71,23 @@ export default function TopBannerPage() {
     const formData = new FormData();
     formData.append("banner_image", newBanner.banner_image);
     formData.append("redirect_url", newBanner.redirect_url);
+    formData.append("state", newBanner.state || "all");
     formData.append("status", newBanner.status);
 
     try {
       const res = await fetch("/api/topbanner", {
         method: "POST",
+        headers: { "x-admin-auth": "true" },
         body: formData,
       });
 
       const data = await res.json();
       if (data.success) {
-        setNewBanner({ banner_image: null, redirect_url: "", status: "Active" });
+        setNewBanner({ banner_image: null, redirect_url: "", state: "all", status: "Active" });
         setShowAddForm(false);
         fetchBanners();
       } else {
-        if (data.message.includes("1920x550")) {
+        if (data.message && data.message.includes("1920x550")) {
           setImageError(data.message);
         } else {
           setError(data.message || "Something went wrong.");
@@ -103,30 +112,31 @@ export default function TopBannerPage() {
       formData.append("redirect_url", value);
     } else if (field === "status") {
       formData.append("status", value);
+    } else if (field === "state") {
+      formData.append("state", value);
     }
 
     try {
       const res = await fetch("/api/topbanner", {
         method: "PUT",
+        headers: { "x-admin-auth": "true" },
         body: formData,
       });
       const data = await res.json();
 
       if (data.success) {
-        // Reset editing state
         setEditingStates((prev) => ({
           ...prev,
           [id]: {
             ...prev[id],
             [field]: field === "banner_image" ? null : value,
             hasChanges: false,
-            error: "", // ✅ clear error
+            error: "",
           },
         }));
         fetchBanners();
       } else {
-        if (data.message.includes("1920x550")) {
-          // ✅ show per-banner error
+        if (data.message && data.message.includes("1920x550")) {
           setEditingStates((prev) => ({
             ...prev,
             [id]: {
@@ -143,7 +153,6 @@ export default function TopBannerPage() {
     }
   };
 
-  // Handle input changes for existing banners
   const handleInputChange = (id, field, value) => {
     setEditingStates((prev) => ({
       ...prev,
@@ -151,7 +160,7 @@ export default function TopBannerPage() {
         ...prev[id],
         [field]: value,
         hasChanges: true,
-        error: "", // ✅ clear old error on change
+        error: "",
       },
     }));
   };
@@ -163,7 +172,10 @@ export default function TopBannerPage() {
     try {
       await fetch("/api/topbanner", {
         method: "DELETE",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "x-admin-auth": "true",
+        },
         body: JSON.stringify({ id: bannerToDelete._id }),
       });
       fetchBanners();
@@ -184,7 +196,6 @@ export default function TopBannerPage() {
     setBannerToDelete(null);
   };
 
-  // + drag end handler to reorder, update 1-based order locally, and persist
   const onDragEnd = async (result) => {
     const { destination, source } = result;
     if (!destination) return;
@@ -195,7 +206,6 @@ export default function TopBannerPage() {
     const [moved] = reordered.splice(source.index, 1);
     reordered.splice(destination.index, 0, moved);
 
-    // Optimistic UI: also set 1-based order locally
     const reorderedWithOrder = reordered.map((b, i) => ({ ...b, order: i + 1 }));
     setBanners(reorderedWithOrder);
 
@@ -203,13 +213,15 @@ export default function TopBannerPage() {
     try {
       const res = await fetch("/api/topbanner", {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "x-admin-auth": "true",
+        },
         body: JSON.stringify({ orderedIds }),
       });
       if (!res.ok) {
         setError("Failed to update order");
         setBanners(prev);
-        // restore from server
         fetchBanners();
       }
     } catch {
@@ -220,84 +232,130 @@ export default function TopBannerPage() {
   };
 
   return (
-    <div className="container mx-auto">
-      <div className="flex justify-between items-center mb-5 mt-5">
-        <h2 className="text-2xl font-bold">Top Banner Manager</h2>
+    <div className="container mx-auto p-4 sm:p-6 max-w-7xl">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+        <div>
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Top Banner Manager</h2>
+          <p className="text-xs sm:text-sm text-gray-500 mt-1">Manage state-wise & global homepage top banners</p>
+        </div>
         <Link
           href="/admin/homesettings"
-          className="flex items-center gap-2 bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-800 transition"
+          className="flex items-center gap-2 bg-gray-700 text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition text-sm font-medium"
         >
           <ArrowLeft size={18} /> Back
         </Link>
       </div>
 
-      <div className="bg-white shadow-md rounded-lg p-5 overflow-x-auto">
-        {error && <p className="text-red-500 mb-4">{error}</p>}
+      <div className="bg-white shadow-md rounded-xl p-4 sm:p-6 space-y-6">
+        {error && <p className="text-red-600 text-sm font-medium bg-red-50 p-3 rounded-lg border border-red-200">{error}</p>}
+
+        {/* Region Filter Bar */}
+        <div className="bg-gray-50 p-4 rounded-xl border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <span className="text-lg">🗺️</span>
+            <label className="text-sm font-bold text-gray-700">Filter Banners by Region:</label>
+          </div>
+          <select
+            value={selectedFilterRegion}
+            onChange={(e) => setSelectedFilterRegion(e.target.value)}
+            className="w-full sm:w-auto px-3 py-2 border rounded-lg text-sm font-medium bg-white text-gray-800"
+          >
+            <option value="all">All Regions Banners</option>
+            <option value="karnataka">Karnataka</option>
+            <option value="tamilnadu">Tamil Nadu</option>
+            <option value="andhra">Andhra Pradesh</option>
+            <option value="kerala">Kerala</option>
+            <option value="telangana">Telangana</option>
+          </select>
+        </div>
 
         {/* Add New Banner */}
-        <div className="mb-6">
+        <div>
           {!showAddForm ? (
             <button
               onClick={() => setShowAddForm(true)}
-              className="bg-green-600 text-white px-4 py-2 rounded"
+              className="w-full sm:w-auto bg-green-600 text-white px-5 py-2.5 rounded-lg hover:bg-green-700 transition font-semibold text-sm shadow-sm"
             >
               + Add New Banner
             </button>
           ) : (
-            <div className="border p-4 rounded-lg space-y-3">
-              <h3 className="font-medium text-lg">Add New Banner</h3>
+            <div className="border border-green-200 bg-green-50/50 p-4 sm:p-6 rounded-xl space-y-4">
+              <h3 className="font-bold text-lg text-gray-900">Add New Top Banner</h3>
 
               <div>
-                <p className="text-gray-500 text-sm mb-2">
-                Topbanner size: <span className="font-semibold">2000 × 667 px</span>
+                <p className="text-gray-500 text-xs sm:text-sm mb-1.5">
+                  Recommended Size: <span className="font-semibold text-gray-700">2000 × 667 px</span>
                 </p>
                 <input
                   type="file"
                   onChange={(e) =>
                     setNewBanner({ ...newBanner, banner_image: e.target.files[0] })
                   }
-                  className="border px-2 py-1 rounded w-full"
+                  className="border px-3 py-2 rounded-lg w-full text-sm bg-white"
                 />
-                {imageError && <p className="text-red-500 text-sm mt-1">{imageError}</p>}
+                {imageError && <p className="text-red-500 text-xs mt-1">{imageError}</p>}
               </div>
 
               <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">Redirect URL</label>
                 <input
                   type="text"
-                  placeholder="Redirect URL"
+                  placeholder="https://example.com/offer"
                   value={newBanner.redirect_url}
                   onChange={(e) =>
                     setNewBanner({ ...newBanner, redirect_url: e.target.value })
                   }
-                  className="border px-2 py-1 rounded w-full"
+                  className="border px-3 py-2 rounded-lg w-full text-sm bg-white"
                 />
-                {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
               </div>
 
-              <select
-                value={newBanner.status}
-                onChange={(e) =>
-                  setNewBanner({ ...newBanner, status: e.target.value })
-                }
-                className="border px-2 py-1 rounded w-full"
-              >
-                <option value="Active">Active</option>
-                <option value="Inactive">Inactive</option>
-              </select>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Target Region / State</label>
+                  <select
+                    value={newBanner.state || "all"}
+                    onChange={(e) =>
+                      setNewBanner({ ...newBanner, state: e.target.value })
+                    }
+                    className="border px-3 py-2 rounded-lg w-full text-sm bg-white"
+                  >
+                    <option value="all">All Regions (Global Fallback)</option>
+                    <option value="karnataka">Karnataka</option>
+                    <option value="tamilnadu">Tamil Nadu</option>
+                    <option value="andhra">Andhra Pradesh</option>
+                    <option value="kerala">Kerala</option>
+                    <option value="telangana">Telangana</option>
+                  </select>
+                </div>
 
-              <div className="flex gap-2">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Status</label>
+                  <select
+                    value={newBanner.status}
+                    onChange={(e) =>
+                      setNewBanner({ ...newBanner, status: e.target.value })
+                    }
+                    className="border px-3 py-2 rounded-lg w-full text-sm bg-white"
+                  >
+                    <option value="Active">Active</option>
+                    <option value="Inactive">Inactive</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap gap-2 pt-2">
                 <button
                   onClick={handleSave}
-                  className="bg-[#d72828] text-white px-4 py-2 rounded"
+                  className="bg-[#d72828] text-white px-5 py-2 rounded-lg text-sm font-semibold hover:bg-red-700 transition"
                 >
-                  Save
+                  Save Banner
                 </button>
                 <button
                   onClick={() => {
-                    setNewBanner({ banner_image: null, redirect_url: "", status: "Active" });
+                    setNewBanner({ banner_image: null, redirect_url: "", state: "all", status: "Active" });
                     setShowAddForm(false);
                   }}
-                  className="bg-gray-500 text-white px-4 py-2 rounded"
+                  className="bg-gray-500 text-white px-4 py-2 rounded-lg text-sm hover:bg-gray-600 transition"
                 >
                   Cancel
                 </button>
@@ -306,7 +364,7 @@ export default function TopBannerPage() {
           )}
         </div>
 
-        {/* Existing Banners (now draggable) */}
+        {/* Existing Banners */}
         <DragDropContext onDragEnd={onDragEnd}>
           <Droppable droppableId="banners">
             {(dropProvided) => (
@@ -315,134 +373,135 @@ export default function TopBannerPage() {
                 ref={dropProvided.innerRef}
                 {...dropProvided.droppableProps}
               >
-                {banners.map((banner, index) => (
-                  <Draggable key={banner._id} draggableId={banner._id} index={index}>
-                    {(dragProvided) => (
-                      <div
-                        ref={dragProvided.innerRef}
-                        {...dragProvided.draggableProps}
-                        {...dragProvided.dragHandleProps}
-                        className="flex flex-col md:flex-row items-center gap-4 border p-4 rounded-lg"
-                      >
-                        <img
-                          src={banner.banner_image}
-                          alt="banner"
-                          className="w-48 h-20 object-cover rounded"
-                        />
-
-                        {/* URL */}
-                        <div className="flex flex-col md:flex-row gap-2 items-center flex-grow">
-                          <input
-                            type="text"
-                            value={editingStates[banner._id]?.redirect_url || ""}
-                            onChange={(e) =>
-                              handleInputChange(banner._id, "redirect_url", e.target.value)
-                            }
-                            className="border px-2 py-1 rounded flex-grow"
+                {banners.length === 0 ? (
+                  <p className="text-center text-gray-500 py-8">No banners found for selected filter.</p>
+                ) : (
+                  banners.map((banner, index) => (
+                    <Draggable key={banner._id} draggableId={banner._id} index={index}>
+                      {(dragProvided) => (
+                        <div
+                          ref={dragProvided.innerRef}
+                          {...dragProvided.draggableProps}
+                          {...dragProvided.dragHandleProps}
+                          className="flex flex-col lg:flex-row items-start lg:items-center gap-4 border p-4 rounded-xl bg-white shadow-sm hover:shadow-md transition"
+                        >
+                          <img
+                            src={banner.banner_image}
+                            alt="banner"
+                            className="w-full lg:w-48 h-32 lg:h-20 object-cover rounded-lg border bg-gray-50"
                           />
-                          <button
-                            onClick={() =>
-                              handleUpdate(
-                                banner._id,
-                                "redirect_url",
-                                editingStates[banner._id]?.redirect_url
-                              )
-                            }
-                            disabled={!editingStates[banner._id]?.hasChanges}
-                            className={`p-2 rounded ${
-                              editingStates[banner._id]?.hasChanges
-                                ? "bg-[#d72828] text-white"
-                                : "bg-gray-300 text-gray-500"
-                            }`}
-                          >
-                            ✔
-                          </button>
-                        </div>
 
-                        {/* Status */}
-                        <div className="flex flex-col md:flex-row gap-2 items-center">
-                          <select
-                            value={editingStates[banner._id]?.status || "Active"}
-                            onChange={(e) =>
-                              handleInputChange(banner._id, "status", e.target.value)
-                            }
-                            className="border px-2 py-1 rounded"
-                          >
-                            <option value="Active">Active</option>
-                            <option value="Inactive">Inactive</option>
-                          </select>
-                          <button
-                            onClick={() =>
-                              handleUpdate(
-                                banner._id,
-                                "status",
-                                editingStates[banner._id]?.status
-                              )
-                            }
-                            disabled={!editingStates[banner._id]?.hasChanges}
-                            className={`p-2 rounded ${
-                              editingStates[banner._id]?.hasChanges
-                                ? "bg-[#d72828] text-white"
-                                : "bg-gray-300 text-gray-500"
-                            }`}
-                          >
-                            ✔
-                          </button>
-                        </div>
-
-                        {/* Update Image */}
-                        <div className="flex flex-col md:flex-row gap-2 items-center">
-                          <div className="flex flex-col">
+                          {/* URL Input */}
+                          <div className="w-full lg:flex-1">
+                            <label className="block text-xs font-semibold text-gray-500 mb-1 lg:hidden">Redirect URL</label>
                             <input
-                              type="file"
-                              onChange={(e) => {
-                                if (e.target.files[0]) {
-                                  handleInputChange(
-                                    banner._id,
-                                    "banner_image",
-                                    e.target.files[0]
-                                  );
-                                }
-                              }}
-                              className="border rounded w-40 text-sm px-2 py-1"
+                              type="text"
+                              value={editingStates[banner._id]?.redirect_url || ""}
+                              onChange={(e) =>
+                                handleInputChange(banner._id, "redirect_url", e.target.value)
+                              }
+                              className="border px-3 py-1.5 rounded-lg w-full text-sm"
                             />
-                            {editingStates[banner._id]?.error && (
-                              <p className="text-red-500 text-sm mt-1">
-                                {editingStates[banner._id].error}
-                              </p>
-                            )}
                           </div>
 
-                          <button
-                            onClick={() =>
-                              handleUpdate(
-                                banner._id,
-                                "banner_image",
-                                editingStates[banner._id]?.banner_image
-                              )
-                            }
-                            disabled={!editingStates[banner._id]?.banner_image}
-                            className={`p-2 rounded ${
-                              editingStates[banner._id]?.banner_image
-                                ? "bg-[#d72828] text-white"
-                                : "bg-gray-300 text-gray-500"
-                            }`}
-                          >
-                            ✔
-                          </button>
-                        </div>
+                          {/* Region Select */}
+                          <div className="w-full lg:w-44">
+                            <label className="block text-xs font-semibold text-gray-500 mb-1 lg:hidden">Region</label>
+                            <select
+                              value={editingStates[banner._id]?.state || "all"}
+                              onChange={(e) => {
+                                handleInputChange(banner._id, "state", e.target.value);
+                                handleUpdate(banner._id, "state", e.target.value);
+                              }}
+                              className="w-full border px-3 py-1.5 rounded-lg text-sm bg-amber-50 border-amber-300 font-medium text-amber-900"
+                            >
+                              <option value="all">All Regions</option>
+                              <option value="karnataka">Karnataka</option>
+                              <option value="tamilnadu">Tamil Nadu</option>
+                              <option value="andhra">Andhra Pradesh</option>
+                              <option value="kerala">Kerala</option>
+                              <option value="telangana">Telangana</option>
+                            </select>
+                          </div>
 
-                        {/* Delete */}
-                        <button
-                          onClick={() => openDeleteModal(banner)}
-                          className="bg-red-500 text-white p-2 rounded"
-                        >
-                          🗑
-                        </button>
-                      </div>
-                    )}
-                  </Draggable>
-                ))}
+                          {/* Status */}
+                          <div className="w-full lg:w-36 flex items-center gap-2">
+                            <select
+                              value={editingStates[banner._id]?.status || "Active"}
+                              onChange={(e) =>
+                                handleInputChange(banner._id, "status", e.target.value)
+                              }
+                              className="border px-3 py-1.5 rounded-lg text-sm flex-1"
+                            >
+                              <option value="Active">Active</option>
+                              <option value="Inactive">Inactive</option>
+                            </select>
+                            <button
+                              onClick={() =>
+                                handleUpdate(
+                                  banner._id,
+                                  "status",
+                                  editingStates[banner._id]?.status
+                                )
+                              }
+                              disabled={!editingStates[banner._id]?.hasChanges}
+                              className={`p-2 rounded-lg text-xs font-bold ${
+                                editingStates[banner._id]?.hasChanges
+                                  ? "bg-[#d72828] text-white hover:bg-red-700"
+                                  : "bg-gray-200 text-gray-400"
+                              }`}
+                            >
+                              ✔
+                            </button>
+                          </div>
+
+                          {/* Update Image & Delete Actions */}
+                          <div className="w-full lg:w-auto flex items-center gap-2 justify-between lg:justify-end border-t lg:border-0 pt-2 lg:pt-0">
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="file"
+                                onChange={(e) => {
+                                  if (e.target.files[0]) {
+                                    handleInputChange(
+                                      banner._id,
+                                      "banner_image",
+                                      e.target.files[0]
+                                    );
+                                  }
+                                }}
+                                className="border rounded-lg text-xs px-2 py-1 max-w-[140px]"
+                              />
+                              <button
+                                onClick={() =>
+                                  handleUpdate(
+                                    banner._id,
+                                    "banner_image",
+                                    editingStates[banner._id]?.banner_image
+                                  )
+                                }
+                                disabled={!editingStates[banner._id]?.banner_image}
+                                className={`p-2 rounded-lg text-xs font-bold ${
+                                  editingStates[banner._id]?.banner_image
+                                    ? "bg-[#d72828] text-white hover:bg-red-700"
+                                    : "bg-gray-200 text-gray-400"
+                                }`}
+                              >
+                                ✔
+                              </button>
+                            </div>
+
+                            <button
+                              onClick={() => openDeleteModal(banner)}
+                              className="bg-red-500 text-white p-2 rounded-lg hover:bg-red-600 transition"
+                            >
+                              🗑
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </Draggable>
+                  ))
+                )}
                 {dropProvided.placeholder}
               </div>
             )}
@@ -452,20 +511,20 @@ export default function TopBannerPage() {
 
       {/* Delete Modal */}
       {showDeleteModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-xl w-96">
-            <h3 className="text-xl font-semibold mb-4">Confirm Delete</h3>
-            <p className="mb-6">Are you sure you want to delete this banner?</p>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white p-6 rounded-xl shadow-xl max-w-sm w-full">
+            <h3 className="text-lg font-bold text-gray-900 mb-2">Confirm Delete</h3>
+            <p className="text-sm text-gray-600 mb-6">Are you sure you want to delete this top banner?</p>
             <div className="flex justify-end gap-3">
               <button
                 onClick={closeDeleteModal}
-                className="bg-gray-300 text-gray-700 px-4 py-2 rounded"
+                className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-300 transition"
               >
                 Cancel
               </button>
               <button
                 onClick={handleDelete}
-                className="bg-red-600 text-white px-4 py-2 rounded"
+                className="bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-red-700 transition"
               >
                 Yes, Delete
               </button>

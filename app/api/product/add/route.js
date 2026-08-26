@@ -7,6 +7,7 @@ import Category from "@/models/ecom_category_info";
 import Product_filter from "@/models/ecom_productfilter_info";
 import fs from "fs";
 import md5 from "md5";
+import { uniqueProductSlug } from "@/lib/productSlug";
 
 async function buildCategoryChain(categoryId) {
   let md5_chain = [];
@@ -105,13 +106,23 @@ export async function POST(req) {
     let variants = JSON.parse(formData.get("variant"));
     const Filters    = productData.filters;
     const item_code  = productData.item_code;
-    const slug       = productData.slug;
     const overviewimageFiles = formData.getAll("overviewImages");
-    let md5_cat_name = md5(slug);
+    await connectDB();
     let existingProduct = await Product.findOne({ item_code });
       if (existingProduct) {
         return NextResponse.json({ error: "Product already exists" }, { status: 400 });
       }
+
+    const requestedSlug = (productData.slug || "").toString().trim();
+    let slug = requestedSlug
+      ? requestedSlug
+      : await uniqueProductSlug(productData.name || item_code || "product");
+    const existingProductname = await Product.findOne({ slug });
+    if (existingProductname) {
+      slug = await uniqueProductSlug(productData.name || slug || item_code || "product");
+    }
+    productData.slug = slug;
+    let md5_cat_name = md5(slug);
 
       // ✅ Duplicate check for model_number (optional - remove if not needed)
       /*
@@ -126,10 +137,6 @@ export async function POST(req) {
       console.log(productData);
 console.log("..............................................................");
  const category = productData.sub_category;
-      let existingProductname = await Product.findOne({ slug });
-      if (existingProductname) {
-        return NextResponse.json({ error: "Product name already exists" }, { status: 400 });
-      }
 
     const savedImages = [];
     const OverviewSavedImages = [];

@@ -15,6 +15,7 @@ const emptyBanner = () => ({
   desktopPreview: "",
   mobilePreview: "",
   url: "",
+  state: "all",
   isActive: true,
 });
 
@@ -58,6 +59,7 @@ export default function TopBannerConfigForm({
                   desktopPreview: b.desktopImage || "",
                   mobilePreview: b.mobileImage || "",
                   url: b.url || "",
+                  state: b.state || "all",
                   isActive: b.isActive !== false,
                 }))
               : [emptyBanner()]
@@ -103,6 +105,7 @@ export default function TopBannerConfigForm({
             desktopImage: b.desktopImage || "",
             mobileImage: b.mobileImage || "",
             url: b.url || "",
+            state: b.state || "all",
             isActive: b.isActive !== false,
             order: i,
           }))
@@ -252,18 +255,38 @@ export default function TopBannerConfigForm({
               )}
             </div>
           </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">
-              Banner URL
-            </label>
-            <input
-              type="text"
-              value={banner.url}
-              onChange={(e) => updateBanner(index, { url: e.target.value })}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-              placeholder="/category/... or https://..."
-            />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">
+                Target Region / State
+              </label>
+              <select
+                value={banner.state || "all"}
+                onChange={(e) => updateBanner(index, { state: e.target.value })}
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm bg-white"
+              >
+                <option value="all">All Regions (Default)</option>
+                <option value="karnataka">Karnataka (Unilet)</option>
+                <option value="tamilnadu">Tamil Nadu</option>
+                <option value="andhra">Andhra Pradesh</option>
+                <option value="kerala">Kerala</option>
+                <option value="telangana">Telangana</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">
+                Banner URL
+              </label>
+              <input
+                type="text"
+                value={banner.url}
+                onChange={(e) => updateBanner(index, { url: e.target.value })}
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                placeholder="/category/... or https://..."
+              />
+            </div>
           </div>
+
           <div className="flex items-center gap-3">
             <label className="relative inline-flex items-center cursor-pointer">
               <input

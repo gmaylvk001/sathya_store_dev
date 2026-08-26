@@ -1313,12 +1313,20 @@ updateWishlist(wishlistData.items, wishlistData.count);
   }
 };   
 const checkDelivery = (pincode) => {
-  const pin = parseInt(pincode.trim());
-  if (!pincode.trim() || pincode.trim().length !== 6 || isNaN(pin)) {
+  const pinStr = (pincode || "").toString().trim();
+  const pin = parseInt(pinStr, 10);
+  if (!pinStr || pinStr.length !== 6 || isNaN(pin)) {
     return { available: false, message: "Please enter a valid 6-digit pincode" };
   }
-  // Tamil Nadu pincode range: 600000 - 643999
-  if (pin >= 600000 && pin <= 643999) {
+  // South Indian Serviceable Pincodes (TN: 60-64, KL: 67-69, KA: 56-59, AP/TG: 50-53)
+  const prefix2 = parseInt(pinStr.substring(0, 2), 10);
+  const isSouthIndia =
+    (prefix2 >= 60 && prefix2 <= 64) || // Tamil Nadu
+    (prefix2 >= 67 && prefix2 <= 69) || // Kerala
+    (prefix2 >= 56 && prefix2 <= 59) || // Karnataka
+    (prefix2 >= 50 && prefix2 <= 53);   // Andhra Pradesh & Telangana
+
+  if (isSouthIndia) {
     return { available: true, message: "✓ Delivery available to this location" };
   }
   return { available: false, message: "✗ Delivery not available for this pincode" };

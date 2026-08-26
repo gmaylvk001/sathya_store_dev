@@ -27,6 +27,7 @@ export default function CategoryComponent() {
   const [statusFilter, setStatusFilter] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
   const [brandFilter, setBrandFilter] = useState("");
+  const [groupPropertyFilter, setGroupPropertyFilter] = useState("");
   const [dateFilter, setDateFilter] = useState({
     startDate: null,
     endDate: null
@@ -280,21 +281,44 @@ const exportToExcel = () => {
   };
 
   const renderBrandOptions = () => {
+    const uniqueBrands = [
+      ...new Set(
+        products
+          .map((product) => String(product.brand || "").trim())
+          .filter(Boolean)
+      ),
+    ].sort((a, b) => a.localeCompare(b));
+
     return [
       <option key="all" value="">
         All Brands
       </option>,
-      ...brands.map(brand => (
-        <option 
-          key={brand.id} 
-          value={brand.id}
-        >
-          {brand.brand_name}
+      ...uniqueBrands.map((brandName) => (
+        <option key={brandName} value={brandName}>
+          {brandName}
         </option>
+      )),
+    ];
+  };
 
+  const renderGroupPropertyOptions = () => {
+    const uniqueGroups = [
+      ...new Set(
+        products
+          .map((product) => String(product.group_property || "").trim())
+          .filter(Boolean)
+      ),
+    ].sort((a, b) => a.localeCompare(b));
 
-
-      ))
+    return [
+      <option key="all" value="">
+        All Group Properties
+      </option>,
+      ...uniqueGroups.map((groupName) => (
+        <option key={groupName} value={groupName}>
+          {groupName}
+        </option>
+      )),
     ];
   };
 /* const getFilteredProducts = () => {
@@ -392,7 +416,9 @@ if (stockFilter) {
       debouncedSearchQuery === "" ||
       product.name?.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
       product.slug?.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
-      product.item_code?.toLowerCase().includes(debouncedSearchQuery.toLowerCase());
+      product.item_code?.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
+      product.group_property?.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
+      product.brand?.toLowerCase().includes(debouncedSearchQuery.toLowerCase());
 
     // Status filter
     const matchesStatus =
@@ -459,19 +485,20 @@ if (stockFilter) {
       }
     }
 
-    // Brand filter
+    // Brand filter (product_alls stores brand as a name string)
     let matchesBrand = true;
-
     if (brandFilter) {
-      if (product.brand && typeof product.brand === "object") {
-        matchesBrand =
-          product.brand._id.toString() === brandFilter;
-      } else if (product.brand) {
-        matchesBrand =
-          product.brand.toString() === brandFilter;
-      } else {
-        matchesBrand = false;
-      }
+      matchesBrand =
+        String(product.brand || "").trim().toLowerCase() ===
+        brandFilter.toLowerCase();
+    }
+
+    // Group property filter
+    let matchesGroupProperty = true;
+    if (groupPropertyFilter) {
+      matchesGroupProperty =
+        String(product.group_property || "").trim().toLowerCase() ===
+        groupPropertyFilter.toLowerCase();
     }
 
     // Stock filter
@@ -489,6 +516,7 @@ if (stockFilter) {
       matchesDate &&
       matchesCategory &&
       matchesBrand &&
+      matchesGroupProperty &&
       matchesStock
     );
   });
@@ -517,14 +545,14 @@ if (stockFilter) {
   );
 
   return (
-    <div className="container mx-auto p-4">
+    <div className="w-full max-w-full min-w-0 p-4">
       {showAlert && (
         <div className="bg-green-500 text-white px-4 py-2 rounded-md mb-4">
           {alertMessage}
         </div>
       )}
 
-  <div className="flex justify-between items-center mb-5">
+  <div className="flex justify-between items-center mb-5 flex-wrap gap-3">
   <h2 className="text-2xl font-bold">New Product List</h2>
    <div className="flex items-center gap-4">
       <button
@@ -544,27 +572,71 @@ if (stockFilter) {
       {isLoading ? (
         <p>Loading Products...</p>
       ) : (
-        <div className="bg-white shadow-md rounded-lg p-5 mb-5 overflow-x-auto">
+        <div className="bg-white shadow-md rounded-lg p-5 mb-5 w-full max-w-full min-w-0">
           {/* Search and Filters */}
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end mb-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4 items-end mb-4">
             {/* Search Filter */}
-            <div>
+            <div className="min-w-0">
               <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
               <input
                 type="text"
                 placeholder="Search Product..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500"
+                className="w-full min-w-0 p-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500"
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Quantity Status</label>
+            <div className="min-w-0">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Brand</label>
+              <select
+                value={brandFilter}
+                onChange={(e) => {
+                  setBrandFilter(e.target.value);
+                  setCurrentPage(0);
+                }}
+                className="w-full min-w-0 p-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500"
+              >
+                {renderBrandOptions()}
+              </select>
+            </div>
+
+            <div className="min-w-0">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+              <select
+                value={statusFilter}
+                onChange={(e) => {
+                  setStatusFilter(e.target.value);
+                  setCurrentPage(0);
+                }}
+                className="w-full min-w-0 p-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500"
+              >
+                <option value="">All</option>
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+              </select>
+            </div>
+
+            <div className="min-w-0">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Group Property</label>
+              <select
+                value={groupPropertyFilter}
+                onChange={(e) => {
+                  setGroupPropertyFilter(e.target.value);
+                  setCurrentPage(0);
+                }}
+                className="w-full min-w-0 p-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500"
+              >
+                {renderGroupPropertyOptions()}
+              </select>
+            </div>
+
+            <div className="min-w-0">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
               <select value={quantitySort} onChange={(e) => {
                 setQuantitySort(e.target.value);
                 setCurrentPage(0);}}
-                className="w-full p-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500"
+                className="w-full min-w-0 p-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500"
               >
                 <option value="">All</option>
                 <option value="high-to-low">High → Low Quantity</option>
@@ -646,18 +718,18 @@ if (stockFilter) {
           <hr className="border-t border-gray-200 mb-4" />
 
           {/* Products Table */}
-          <table className="w-full border border-gray-300">
+          <div className="w-full max-w-full overflow-x-auto">
+          <table className="w-full min-w-[1100px] border border-gray-300">
             <thead>
               <tr className="bg-gray-200">
                 <th className="p-2">Item Code</th>
-                {/* <th className="p-2">Image</th> */}
-                {/* <th className="p-2">Name</th> */}
+                <th className="p-2 text-left">Name</th>
+                <th className="p-2">Group Property</th>
                 <th className="p-2">Price</th>
                 <th className="p-2 whitespace-nowrap">Spl Price</th>
                 <th className="p-2">Quantity</th>
                 <th className="p-2">Brand</th>
-                {/* <th className="p-2">Status</th> */}
-               {/* // <th className="p-2">Action</th> */}
+                <th className="p-2">Action</th>
               </tr>
             </thead>
             <tbody>
@@ -668,36 +740,12 @@ if (stockFilter) {
                     <td className="p-2 text-center align-middle">
                       {product.item_code}
                     </td>
-                  
-                    {/* Image Column */}
-                    {/* <td className="p-2">
-                      {product.images && product.images.length > 0 ? (
-                        <img 
-                          src={`/uploads/products/${product.images[0]}`}
-                          alt={product.name}
-                          className="w-12 h-12 object-contain mx-auto"
-                          onError={(e) => {
-                            e.target.onerror = null;
-                            e.target.src = '/no-image.jpg';
-                          }}
-                        />
-                      ) : (
-                        <div className="w-12 h-12 bg-gray-100 flex items-center justify-center mx-auto">
-                          <span className="text-xs text-gray-400">No Image</span>
-                        </div>
-                      )}
-                    </td> */}
-                    
-                    {/* Name Column */}
-                    {/* <td className="p-2 text-center align-middle">
-                      <a
-                        href={`/product/${product.slug}`}
-                        className="block mx-auto text-center truncate max-w-xs text-sm hover:underline"
-                        title={product.name}
-                      >
-                        {product.name}
-                      </a>
-                    </td> */}
+                    <td className="p-2 text-left align-middle max-w-xs">
+                      <span className="block truncate text-sm" title={product.name || ""}>
+                        {product.name || product.item_description || "-"}
+                      </span>
+                    </td>
+                    <td className="p-2">{product.group_property || "-"}</td>
                     
                     {/* Price Column */}
                     <td className="p-2">{product.price}</td>
@@ -708,6 +756,15 @@ if (stockFilter) {
                     {/* Quantity Column */}
                     <td className="p-2">{product.quantity}</td>
                     <td className="p-2">{product.brand}</td>
+                    <td className="p-2">
+                      <Link
+                        href={`/admin/product/create?source=newproduct&id=${product._id}`}
+                        className="inline-flex items-center bg-red-600 hover:bg-red-700 text-white text-sm px-3 py-1.5 rounded-md"
+                        title={`Upload ${product.name || product.item_code}`}
+                      >
+                        Upload
+                      </Link>
+                    </td>
                     
                     {/* Status Column */}
                     {/* <td className="p-2 font-semibold">
@@ -751,6 +808,7 @@ if (stockFilter) {
               )}
             </tbody>
           </table>
+          </div>
 
           {/* Pagination */}
           <div className="flex justify-between items-center mt-6 flex-wrap gap-3">

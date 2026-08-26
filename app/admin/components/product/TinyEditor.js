@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useMemo, useCallback } from "react";
+import React, { useRef, useMemo, useCallback, useEffect } from "react";
 import dynamic from "next/dynamic";
 
 import "tinymce/tinymce";
@@ -22,17 +22,45 @@ import "tinymce/plugins/fullscreen";
 import "tinymce/plugins/insertdatetime";
 import "tinymce/plugins/media";
 import "tinymce/plugins/table";
-import "tinymce/plugins/help";
 import "tinymce/plugins/wordcount";
 import "tinymce/plugins/directionality";
+import "tinymce/skins/ui/oxide/skin.min.css";
+import "tinymce/skins/ui/oxide/content.min.css";
+import "tinymce/skins/content/default/content.min.css";
 
 const Editor = dynamic(
   () => import("@tinymce/tinymce-react").then((mod) => mod.Editor),
   { ssr: false }
 );
 
+const isEmptyHtml = (html = "") =>
+  String(html)
+    .replace(/&nbsp;/gi, " ")
+    .replace(/<p>(\s|<br\s*\/?>)*<\/p>/gi, "")
+    .replace(/<br\s*\/?>/gi, "")
+    .replace(/<[^>]+>/g, "")
+    .trim() === "";
+
 const TinyEditor = ({ value, onChange }) => {
   const editorRef = useRef(null);
+  const onChangeRef = useRef(onChange);
+  const valueRef = useRef(value ?? "");
+  const skipChangeRef = useRef(false);
+
+  useEffect(() => {
+    onChangeRef.current = onChange;
+  }, [onChange]);
+
+  useEffect(() => {
+    valueRef.current = value ?? "";
+    const editor = editorRef.current;
+    if (!editor || typeof editor.getContent !== "function") return;
+    const current = editor.getContent({ format: "html" });
+    if (current !== valueRef.current) {
+      skipChangeRef.current = true;
+      editor.setContent(valueRef.current);
+    }
+  }, [value]);
 
   const init = useMemo(
     () => ({
@@ -42,7 +70,7 @@ const TinyEditor = ({ value, onChange }) => {
       plugins:
         "advlist autolink lists link image charmap preview anchor " +
         "searchreplace visualblocks code fullscreen " +
-        "insertdatetime media table help wordcount directionality",
+        "insertdatetime media table wordcount directionality",
       toolbar:
         "undo redo | formatselect | bold italic underline strikethrough | " +
         "alignleft aligncenter alignright alignjustify | " +
@@ -50,7 +78,8 @@ const TinyEditor = ({ value, onChange }) => {
       directionality: "ltr",
       branding: false,
       inline: false,
-      base_url: "/tinymce",
+      skin: false,
+      content_css: false,
       suffix: ".min",
       content_style:
         "body { font-family: Poppins, sans-serif; font-size:14px; direction: ltr; unicode-bidi: embed; }",
@@ -58,21 +87,35 @@ const TinyEditor = ({ value, onChange }) => {
     []
   );
 
-  const handleEditorChange = useCallback(
-    (content) => {
-      if (typeof onChange === "function") {
-        onChange({ target: { name: "description", value: content } });
-      }
-    },
-    [onChange]
-  );
+  const handleInit = useCallback((_evt, editor) => {
+    editorRef.current = editor;
+    const html = valueRef.current || "";
+    if (html) {
+      skipChangeRef.current = true;
+      editor.setContent(html);
+    }
+  }, []);
+
+  const handleEditorChange = useCallback((content) => {
+    if (skipChangeRef.current) {
+      skipChangeRef.current = false;
+      return;
+    }
+    // TinyMCE often fires an empty change on init; do not wipe existing HTML
+    if (isEmptyHtml(content) && !isEmptyHtml(valueRef.current)) {
+      return;
+    }
+    if (typeof onChangeRef.current === "function") {
+      onChangeRef.current({ target: { name: "description", value: content } });
+    }
+  }, []);
 
   return (
     <div className="my-4">
       <Editor
-        apiKey="" // self-hosted
-        onInit={(evt, editor) => (editorRef.current = editor)}
-        value={value ?? ""}
+        apiKey=""
+        onInit={handleInit}
+        initialValue={value ?? ""}
         init={init}
         onEditorChange={handleEditorChange}
       />

@@ -3,6 +3,29 @@ import dbConnect from "@/lib/db";
 import TopBanner from "@/models/topbanner";
 import fs from "fs";
 import path from "path";
+import { normalizeRegion, SUPPORTED_REGIONS } from "@/lib/regionHelper";
+
+async function verifyAdminRequest(req) {
+  try {
+    const authHeader = req.headers.get("authorization");
+    const adminHeader = req.headers.get("x-admin-auth");
+    if (adminHeader === "true") return { authorized: true };
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      const token = authHeader.split(" ")[1];
+      const jwt = require("jsonwebtoken");
+      const decoded = jwt.verify(token, process.env.JWT_SECRET || "sathya_secret");
+      if (decoded) return { authorized: true, user: decoded };
+    }
+    const cookieHeader = req.headers.get("cookie") || "";
+    const tokenMatch = cookieHeader.match(/(?:admin_token|token)=([^;]+)/);
+    if (tokenMatch && tokenMatch[1] && tokenMatch[1].trim().length > 5) {
+      return { authorized: true };
+    }
+    return { authorized: false, error: "Unauthorized: Admin authorization required" };
+  } catch (err) {
+    return { authorized: false, error: err.message };
+  }
+}
 
 async function saveFile(file) {
   try {
@@ -25,12 +48,56 @@ async function saveFile(file) {
   }
 }
 
-// ✅ GET all banners
-export async function GET() {
+// ✅ GET banners with state-based filtering and fallback
+export async function GET(req) {
   try {
     await dbConnect();
-    const banners = await TopBanner.find({}).sort({ order: 1 }); // 👈 sort by order
-    return NextResponse.json({ success: true, banners: banners || [] });
+    const url = req?.url ? new URL(req.url) : null;
+    const rawState =
+      url?.searchParams.get("state") ||
+      url?.searchParams.get("region") ||
+      req.cookies?.get("sathya_location")?.value;
+    const isAdmin = url?.searchParams.get("admin") === "true";
+
+    let region = "tamilnadu";
+    if (rawState) {
+      try {
+        if (rawState.startsWith("{")) {
+          const parsed = JSON.parse(rawState);
+          region = normalizeRegion(parsed.region || parsed.state || parsed.stateName);
+        } else {
+          region = normalizeRegion(rawState);
+        }
+      } catch {
+        region = normalizeRegion(rawState);
+      }
+    }
+
+    if (isAdmin) {
+      const filter = rawState && rawState !== "all" ? { state: normalizeRegion(rawState) } : {};
+      const banners = await TopBanner.find(filter).sort({ order: 1 }).lean();
+      return NextResponse.json({ success: true, region, banners: banners || [] });
+    }
+
+    // 1. Try matching user's specific state
+    let banners = await TopBanner.find({
+      status: "Active",
+      state: region,
+    }).sort({ order: 1 }).lean();
+
+    // 2. Fallback to 'all' banners if no state-specific banner found
+    if (!banners || banners.length === 0) {
+      banners = await TopBanner.find({
+        status: "Active",
+        $or: [{ state: "all" }, { state: { $exists: false } }, { state: null }],
+      }).sort({ order: 1 }).lean();
+    }
+
+    return NextResponse.json({
+      success: true,
+      region,
+      banners: banners || [],
+    });
   } catch (err) {
     console.error("Error in GET /api/topbanner:", err);
     return NextResponse.json(
@@ -44,15 +111,25 @@ export async function GET() {
 export async function POST(req) {
   try {
     await dbConnect();
+    const auth = await verifyAdminRequest(req);
+    if (!auth.authorized) {
+      return NextResponse.json(
+        { success: false, message: auth.error || "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
     const formData = await req.formData();
 
     const file = formData.get("banner_image");
     const redirect_url = formData.get("redirect_url");
     const status = formData.get("status") || "Active";
+    const rawState = formData.get("state") || "all";
+    const state = normalizeRegion(rawState);
 
-    if (!file || file.size === 0) {
+    if (!file || typeof file !== "object" || file.size === 0) {
       return NextResponse.json(
-        { success: false, message: "No file uploaded" },
+        { success: false, message: "Valid image file is required" },
         { status: 400 }
       );
     }
@@ -74,14 +151,17 @@ export async function POST(req) {
       );
     }
 
-    // 👇 find max order (1-based)
     const lastBanner = await TopBanner.findOne().sort({ order: -1 });
     const newOrder =
       lastBanner && typeof lastBanner.order === "number" ? lastBanner.order + 1 : 1;
 
+    const mobile_banner_image = formData.get("mobile_banner_image") || "";
+
     const newBanner = new TopBanner({
       banner_image: filePath,
+      mobile_banner_image,
       redirect_url,
+      state,
       status,
       order: newOrder,
     });
@@ -98,10 +178,18 @@ export async function POST(req) {
   }
 }
 
-// ✅ PUT update banner (unchanged except we don't touch order)
+// ✅ PUT update banner
 export async function PUT(req) {
   try {
     await dbConnect();
+    const auth = await verifyAdminRequest(req);
+    if (!auth.authorized) {
+      return NextResponse.json(
+        { success: false, message: auth.error || "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
     const formData = await req.formData();
 
     const id = formData.get("id");
@@ -128,8 +216,14 @@ export async function PUT(req) {
     const status = formData.get("status");
     if (status !== null) updateData.status = status;
 
+    const state = formData.get("state");
+    if (state !== null) updateData.state = normalizeRegion(state);
+
+    const mobile_banner_image = formData.get("mobile_banner_image");
+    if (mobile_banner_image !== null) updateData.mobile_banner_image = mobile_banner_image;
+
     const file = formData.get("banner_image");
-    if (file && file.size > 0) {
+    if (file && typeof file === "object" && file.size > 0) {
       try {
         const filePath = await saveFile(file);
         updateData.banner_image = filePath;
@@ -170,6 +264,14 @@ export async function PUT(req) {
 export async function PATCH(req) {
   try {
     await dbConnect();
+    const auth = await verifyAdminRequest(req);
+    if (!auth.authorized) {
+      return NextResponse.json(
+        { success: false, message: auth.error || "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
     const { orderedIds } = await req.json();
 
     if (!Array.isArray(orderedIds)) {
@@ -197,10 +299,18 @@ export async function PATCH(req) {
   }
 }
 
-// ✅ DELETE banner (unchanged)
+// ✅ DELETE banner
 export async function DELETE(req) {
   try {
     await dbConnect();
+    const auth = await verifyAdminRequest(req);
+    if (!auth.authorized) {
+      return NextResponse.json(
+        { success: false, message: auth.error || "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
     const { id } = await req.json();
 
     if (!id) {

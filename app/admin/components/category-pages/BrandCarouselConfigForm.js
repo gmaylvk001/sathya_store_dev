@@ -12,6 +12,7 @@ const emptyItem = () => ({
   imageFile: null,
   imagePreview: "",
   url: "",
+  state: "all",
   isActive: true,
 });
 
@@ -99,6 +100,7 @@ export default function BrandCarouselConfigForm({
                   imageFile: null,
                   imagePreview: it.image || "",
                   url: it.url || "",
+                  state: it.state || "all",
                   isActive: it.isActive !== false,
                 }))
               : [emptyItem()]
@@ -160,6 +162,7 @@ export default function BrandCarouselConfigForm({
             items.map((it, i) => ({
               image: it.image || "",
               url: it.url || "",
+              state: it.state || "all",
               isActive: it.isActive !== false,
               order: i,
             }))
@@ -492,17 +495,36 @@ export default function BrandCarouselConfigForm({
             )}
           </div>
 
-          <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">
-              URL
-            </label>
-            <input
-              type="text"
-              value={item.url}
-              onChange={(e) => updateItem(index, { url: e.target.value })}
-              placeholder="/category/brand/... or https://..."
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-            />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">
+                Target Region / State
+              </label>
+              <select
+                value={item.state || "all"}
+                onChange={(e) => updateItem(index, { state: e.target.value })}
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm bg-white"
+              >
+                <option value="all">All Regions (Default)</option>
+                <option value="karnataka">Karnataka (Unilet)</option>
+                <option value="tamilnadu">Tamil Nadu</option>
+                <option value="andhra">Andhra Pradesh</option>
+                <option value="kerala">Kerala</option>
+                <option value="telangana">Telangana</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">
+                URL
+              </label>
+              <input
+                type="text"
+                value={item.url}
+                onChange={(e) => updateItem(index, { url: e.target.value })}
+                placeholder="/category/brand/... or https://..."
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+              />
+            </div>
           </div>
 
           <div className="flex items-center gap-3">

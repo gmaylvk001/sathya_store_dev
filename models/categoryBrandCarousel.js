@@ -5,6 +5,11 @@ const BrandItemSchema = new mongoose.Schema(
     image: { type: String, default: "" },
     url: { type: String, default: "" },
     notes: { type: String, default: "" },
+    state: {
+      type: String,
+      enum: ["tamilnadu", "andhra", "kerala", "karnataka", "telangana", "all"],
+      default: "all",
+    },
     isActive: { type: Boolean, default: true },
     order: { type: Number, default: 0 },
   },

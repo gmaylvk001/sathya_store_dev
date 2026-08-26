@@ -91,15 +91,16 @@ export default function CategoryComponent() {
   const fetchCategories = async () => {
     try {
       const response = await fetch("/api/categories/get");
-      const resJson = await response.json();
-      const data = Array.isArray(resJson)
-        ? resJson
-        : Array.isArray(resJson?.data)
-          ? resJson.data
-          : Array.isArray(resJson?.categories)
-            ? resJson.categories
+      const json = await response.json();
+      // API returns { data: [...] }; keep fallbacks for a raw array or { categories: [...] }
+      const list = Array.isArray(json)
+        ? json
+        : Array.isArray(json?.data)
+          ? json.data
+          : Array.isArray(json?.categories)
+            ? json.categories
             : [];
-      setCategories(data);
+      setCategories(list);
       setIsLoading(false);
     } catch (error) {
       console.error("Error fetching categories:", error);
@@ -683,6 +684,7 @@ export default function CategoryComponent() {
 
   // Build category tree
   const buildCategoryTree = (categories, parentId = "none") => {
+    if (!Array.isArray(categories)) return [];
     return categories
       .filter((category) => category.parentid === parentId)
       .map((category) => ({
@@ -698,6 +700,7 @@ export default function CategoryComponent() {
     level = 0,
     result = [],
   ) => {
+    if (!Array.isArray(categories)) return result;
     categories
       .filter((category) => category.parentid === parentId)
       .forEach((category) => {
@@ -812,6 +815,7 @@ export default function CategoryComponent() {
     level = 0,
     result = [],
   ) => {
+    if (!Array.isArray(categories)) return result;
     categories
       .filter((category) => category.parentid === parentId)
       .forEach((category) => {
