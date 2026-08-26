@@ -91,11 +91,19 @@ export default function CategoryComponent() {
   const fetchCategories = async () => {
     try {
       const response = await fetch("/api/categories/get");
-      const data = await response.json();
+      const resJson = await response.json();
+      const data = Array.isArray(resJson)
+        ? resJson
+        : Array.isArray(resJson?.data)
+          ? resJson.data
+          : Array.isArray(resJson?.categories)
+            ? resJson.categories
+            : [];
       setCategories(data);
       setIsLoading(false);
     } catch (error) {
       console.error("Error fetching categories:", error);
+      setCategories([]);
       setIsLoading(false);
     }
   };

@@ -15,8 +15,6 @@ export default function AdminSider({ collapsed }) {
   const menuItems = [
     { icon: 'material-symbols:dashboard', label: 'Dashboard', link: 'dashboard' },
     { icon: 'material-symbols:category', label: 'Category', link: 'category' },
-    { icon: 'mdi:view-dashboard-edit-outline', label: 'Category Pages', link: 'category-pages' },
-    { icon: 'mdi:tag-multiple-outline', label: 'Brand Pages', link: 'brand-pages' },
     {
       icon: 'mdi:package-variant-closed',
       label: 'Product',
@@ -90,8 +88,8 @@ export default function AdminSider({ collapsed }) {
     label: 'Settings',
     submenu: [
       { icon: 'mdi:home-outline', label: 'Home Settings', link: 'homesettings', dotColor: 'bg-green-500' },
-      { icon: 'mdi:category-outline', label: 'Category Settings', link: 'categorysettings', dotColor: 'bg-green-500' },
-      { icon: 'mdi:category-outline', label: 'Brand Settings', link: 'brandsettings', dotColor: 'bg-green-500' },
+      { icon: 'mdi:view-dashboard-edit-outline', label: 'Category Settings', link: 'category-pages', dotColor: 'bg-green-500' },
+      { icon: 'mdi:tag-multiple-outline', label: 'Brand Settings', link: 'brand-pages', dotColor: 'bg-green-500' },
       { icon: 'mdi:store-outline', label: 'Store Settings', link: 'store', dotColor: 'bg-yellow-500' },
       { icon: 'mdi:map', label: 'Mapbox Settings', link: 'mapbox', dotColor: 'bg-yellow-500' },
     ]

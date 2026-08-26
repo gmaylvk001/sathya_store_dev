@@ -40,6 +40,26 @@ const alphaSortString = (a, b) => {
   return sa.localeCompare(sb, undefined, { sensitivity: 'base' });
 };
 
+/** Prefer admin-set position; fall back to name for equal/missing positions. */
+const sortByCategoryPosition = (a, b) => {
+  const pa = Number(a?.position);
+  const pb = Number(b?.position);
+  const na = Number.isFinite(pa) ? pa : 0;
+  const nb = Number.isFinite(pb) ? pb : 0;
+  if (na !== nb) return na - nb;
+  return alphaSortString(a?.category_name, b?.category_name);
+};
+
+const sortNestedCategories = (nodes) => {
+  if (!Array.isArray(nodes)) return [];
+  return [...nodes]
+    .sort(sortByCategoryPosition)
+    .map((node) => ({
+      ...node,
+      subcategories: sortNestedCategories(node.subcategories),
+    }));
+};
+
 const HEADER_ACTION_LINK_CLASS =
   "group flex flex-col items-center gap-1 rounded-xl px-1 py-0.5 transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 active:scale-95";
 const HEADER_ACTION_ICON_WRAP_CLASS =
@@ -348,8 +368,8 @@ const Header = () => {
     };
 
     useEffect(() => {
-      const rawKey = 'categories_raw_cache';
-      const nestedKey = 'categories_nested_cache';
+      const rawKey = 'categories_raw_cache_v2';
+      const nestedKey = 'categories_nested_cache_v2';
       let mounted = true;
 
       const buildNestedAndCache = (rawData) => {
@@ -377,8 +397,9 @@ const Header = () => {
           }
         });
 
-        saveCache(nestedKey, nestedCategories);
-        return nestedCategories;
+        const sortedNested = sortNestedCategories(nestedCategories);
+        saveCache(nestedKey, sortedNested);
+        return sortedNested;
       };
 
       const applyRawToWords = (raw) => {
@@ -1129,7 +1150,7 @@ const Header = () => {
         if (!cat) return;
         setHoveredCategory(cat);
         const sortedSubs = [...(cat.subcategories || [])]
-     .sort((a, b) => alphaSortString(a.category_name, b.category_name));
+     .sort(sortByCategoryPosition);
       setActiveSubCategory(null);
 
         const el = slideRefs.current[categoryId];
@@ -1399,12 +1420,12 @@ const Header = () => {
 
       try {
         // use raw cache if available, otherwise fetch
-        let raw = loadCache('categories_raw_cache')?.data;
+        let raw = loadCache('categories_raw_cache_v2')?.data;
         let rawArr = extractCategoryArray(raw);
         if (!Array.isArray(rawArr) || rawArr.length === 0) {
           const res = await fetch('/api/categories/get');
           raw = await res.json();
-          saveCache('categories_raw_cache', raw);
+          saveCache('categories_raw_cache_v2', raw);
           rawArr = extractCategoryArray(raw);
         }
 
@@ -1421,8 +1442,9 @@ const Header = () => {
           if (c.parentid === 'none' || !map[c.parentid]) nested.push(map[c._id]);
         });
 
-        setCategories(nested);
-        saveCache('categories_nested_cache', nested);
+        const sortedNested = sortNestedCategories(nested);
+        setCategories(sortedNested);
+        saveCache('categories_nested_cache_v2', sortedNested);
       } catch (e) {
         console.error('ensureSubcategories failed:', e);
       } finally {
@@ -1455,11 +1477,7 @@ const Header = () => {
         <div className="divide-y divide-gray-100">
          {uniqueById(nodes)
   .slice() // make a shallow copy to avoid mutating original
-  .sort((a, b) => {
-    const nameA = (a.category_name || "").toLowerCase();
-    const nameB = (b.category_name || "").toLowerCase();
-    return nameA.localeCompare(nameB);
-  })
+  .sort(sortByCategoryPosition)
   .map((node) => {
     const hasChildren =
       Array.isArray(node.subcategories) && node.subcategories.length > 0;
@@ -2409,7 +2427,7 @@ const Header = () => {
 
         <div className="dd-sidebar" style={{ flex: 1, overflowY: 'auto' }}>
           {[...hoveredCategory.subcategories]
-            .sort((a, b) => alphaSortString(a.category_name, b.category_name))
+            .sort(sortByCategoryPosition)
             .map((sub) => {
               const isActive = activeSubCategory?._id === sub._id;
               return (
@@ -2497,7 +2515,7 @@ const Header = () => {
         // Children if any; otherwise brand names for that subcategory (e.g. Audio)
         const getSubListItems = (sub) => {
           const children = Array.isArray(sub?.subcategories) && sub.subcategories.length > 0
-            ? [...sub.subcategories].sort((a, b) => alphaSortString(a.category_name, b.category_name))
+            ? [...sub.subcategories].sort(sortByCategoryPosition)
             : [];
           if (children.length > 0) {
             return children.map((child) => ({
@@ -2664,7 +2682,7 @@ const Header = () => {
                     {(() => {
                       const activeItems = getSubListItems(activeSub);
                       const otherSubs = [...hoveredCategory.subcategories]
-                        .sort((a, b) => alphaSortString(a.category_name, b.category_name))
+                        .sort(sortByCategoryPosition)
                         .filter((s) => s._id !== activeSub._id)
                         .slice(0, 3);
                       return (
@@ -2709,7 +2727,7 @@ const Header = () => {
                   <>
                     <div style={{ display: 'flex', gap: 0, alignItems: 'flex-start' }}>
                       {[...hoveredCategory.subcategories]
-                        .sort((a, b) => alphaSortString(a.category_name, b.category_name))
+                        .sort(sortByCategoryPosition)
                         .slice(0, 4)
                         .map((sub, si, arr) => {
                           const items = getSubListItems(sub);
