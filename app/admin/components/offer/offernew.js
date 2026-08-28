@@ -121,7 +121,14 @@ export default function OfferComponent() {
         }
         const categoriesData = await categoriesResponse.json();
         console.log(categoriesData)
-        setCategories(categoriesData);
+        const categoriesList = Array.isArray(categoriesData)
+          ? categoriesData
+          : Array.isArray(categoriesData?.data)
+            ? categoriesData.data
+            : Array.isArray(categoriesData?.categories)
+              ? categoriesData.categories
+              : [];
+        setCategories(categoriesList);
 
         // Fetch offers
         const offersResponse = await fetch('/api/offers/get');

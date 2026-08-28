@@ -9,7 +9,7 @@ export const metadata = {
     title: 'Super Cool Headphones 1',
     description: 'Crystal clear sound with deep bass. Buy now! 1',
     images: ['https://sathyamobiles.com/img/offer_products/qUdb0c84d6wRQsjh.png'],
-    url: 'https://bea.divinfosys.com/testme',
+    url: `${process.env.NEXT_PUBLIC_API_URL || "https://sathya.store"}/testme`,
     type: "website",
   },
 }

@@ -64,7 +64,14 @@ export default function BlogComponent() {
       if (result.error) {
         console.error("API Error:", result.error);
       } else {
-        setCategories(buildCategoryTree(result));
+        const list = Array.isArray(result)
+          ? result
+          : Array.isArray(result?.data)
+            ? result.data
+            : Array.isArray(result?.categories)
+              ? result.categories
+              : [];
+        setCategories(buildCategoryTree(list));
       }
     } catch (error) {
       console.error("Error fetching categories:", error);

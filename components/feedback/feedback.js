@@ -17,7 +17,6 @@ import {
   Ticket,
   Headphones,
   CheckCircle,
-  MessageCircle,
   ChevronDown,
   ChevronUp,
   ArrowRight
@@ -731,13 +730,13 @@ export default function ContactForm() {
 
             <p className="text-gray-600 text-[15px] leading-6">
               Our support team is ready to help you with all your queries.
-              Contact us through phone, WhatsApp, or leave us a review
+              Contact us through phone, or leave us a review
               on Google.
             </p>
           </div>
 
           {/* Right Side - 50% */}
-          <div className="w-full lg:w-1/2 grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="w-full lg:w-1/2 grid grid-cols-1 md:grid-cols-2 gap-3">
 
             {/* Call Support */}
             <a
@@ -758,29 +757,6 @@ export default function ContactForm() {
                 </p>
               </div>
             </a>
-
-            {/* WhatsApp */}
-            <a
-              href="https://wa.me/919842344323"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="bg-white rounded-xl px-4 py-4 flex items-center gap-3 shadow-sm hover:shadow-md transition-all duration-300"
-            >
-              <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center shrink-0">
-                <MessageCircle className="w-5 h-5 text-green-600" />
-              </div>
-
-              <div>
-                <p className="text-xs text-[#d72828] font-medium">
-                  WhatsApp Support
-                </p>
-
-                <p className="font-semibold text-[#d72828] text-sm">
-                  Chat with us
-                </p>
-              </div>
-            </a>
-
 
           </div>
         </div>

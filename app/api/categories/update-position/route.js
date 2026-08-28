@@ -6,34 +6,38 @@ import Category from "@/models/ecom_category_info";
 export async function POST(request) {
   try {
     await dbConnect();
-    
+
     const { categories } = await request.json();
-    
+
     if (!categories || !Array.isArray(categories)) {
       return NextResponse.json(
         { error: "Categories array is required" },
         { status: 400 }
       );
     }
-    
-    // Update each category's position using bulk operations for better performance
-    const bulkOps = categories.map(category => ({
+
+    const bulkOps = categories.map((category) => ({
       updateOne: {
         filter: { _id: category._id },
-        update: { 
-          $set: { 
+        update: {
+          $set: {
             position: category.position,
-            updatedAt: new Date()
-          }
-        }
-      }
+            updatedAt: new Date(),
+          },
+        },
+      },
     }));
-    
-    // Execute all updates in a single operation
+
     const result = await Category.bulkWrite(bulkOps);
-    
+
+    const cacheStore = globalThis.__sathyaCategoriesCache;
+    if (cacheStore) {
+      cacheStore.data = null;
+      cacheStore.at = 0;
+    }
+
     return NextResponse.json(
-     
+      { success: true, updated: result?.modifiedCount ?? 0 },
       { status: 200 }
     );
   } catch (error) {

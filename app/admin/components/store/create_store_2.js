@@ -77,7 +77,14 @@ export default function CreateStoreForm() {
       if (result.error) {
         toast.error(result.error);
       } else {
-        setCategories(buildCategoryTree(result));
+        const list = Array.isArray(result)
+          ? result
+          : Array.isArray(result?.data)
+            ? result.data
+            : Array.isArray(result?.categories)
+              ? result.categories
+              : [];
+        setCategories(buildCategoryTree(list));
       }
     } catch (error) {
       toast.error(error);

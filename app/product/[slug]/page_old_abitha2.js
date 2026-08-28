@@ -706,17 +706,30 @@ const fetchBrand = async () => {
                 <meta property="og:description" content={product.description} />
                 <meta
           property="og:image"
-          content={"https://bea.divinfosys.com/no-image.jpg"
-          }
+          content={`${process.env.NEXT_PUBLIC_API_URL || ""}/no-image.jpg`}
         />
 
 
-                <meta property="og:url" content={`https://bea.divinfosys.com/product/${product.slug}`} />
+                <meta property="og:url" content={`${process.env.NEXT_PUBLIC_API_URL || ""}/product/${product.slug}`} />
 
                 <meta property="og:type" content="product" />
             
                   {/* Action Buttons */}
-                  <div className="flex items-center gap-1" onClick={() => window.open(`https://wa.me/?text=${encodeURIComponent(`Check this out: https://bea.divinfosys.com/product/${product.slug}`)}`, '_blank')}>
+                  <div
+                    className="flex items-center gap-1"
+                    onClick={async () => {
+                      const url = `${process.env.NEXT_PUBLIC_API_URL || window.location.origin}/product/${product.slug}`;
+                      try {
+                        if (navigator.share) {
+                          await navigator.share({ title: product.name, url });
+                        } else if (navigator.clipboard) {
+                          await navigator.clipboard.writeText(url);
+                        }
+                      } catch {
+                        /* ignore */
+                      }
+                    }}
+                  >
                     <button className="w-6 h-6 flex items-center justify-center rounded-full transition duration-300 ease-in-out bg-red-200 hover:bg-[#d72828] text-[#d72828] hover:text-white">
 
                       <FaShareAlt size={10} />

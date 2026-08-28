@@ -6,7 +6,6 @@ import {
   FaTimes,
   FaShareAlt,
 } from "react-icons/fa";
-import { FaWhatsapp } from "react-icons/fa";
 import { useState } from "react";
 import { useCart } from "@/context/CartContext";
 import { useModal } from "@/context/ModalContext";
@@ -310,11 +309,7 @@ function OpenBoxPopup({ onClose, productName, productSlug, stockQuantity }) {
   const productUrl = `${process.env.NEXT_PUBLIC_API_URL}/product/${productSlug}`;
   const phone = "9842344323";
   const email = "customercare@sathya.store";
-  const whatsappNumber = "919842344323";
 
-  const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(
-    `Hi, I'm interested in this product: ${productName}\n${productUrl}`,
-  )}`;
   const mailUrl = `mailto:${email}?subject=${encodeURIComponent(
     `Enquiry: ${productName}`,
   )}&body=${encodeURIComponent(
@@ -492,35 +487,8 @@ function OpenBoxPopup({ onClose, productName, productSlug, stockQuantity }) {
           </span>
         </div>
 
-        {/* 3 Contact Buttons */}
+        {/* Contact Buttons */}
         <div className="flex flex-col gap-1.5 sm:gap-2 mb-2 sm:mb-3">
-          <a
-            href={whatsappUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-3 bg-green-500 hover:bg-green-600 text-white rounded-xl px-4 py-2 md:py-2.5 transition-colors"
-          >
-            <FaWhatsapp size={20} />
-            <div>
-              <div className="text-[12px] font-semibold leading-tight">
-                WhatsApp Us
-              </div>
-              <div className="text-[10.5px] opacity-80 leading-tight">
-                Chat with our team
-              </div>
-            </div>
-          </a>
-          {/* <button
-            type="button"
-            onClick={handleShare}
-            className="flex items-center gap-3 bg-[#d72828] hover:bg-[#c02020] text-white rounded-full px-4 py-2 md:py-2.5 transition-colors w-full"
-          >
-            <FaShareAlt size={18} />
-            <div className="text-left">
-              <div className="text-[12px] font-semibold leading-tight">Share</div>
-              <div className="text-[10.5px] opacity-80 leading-tight">Share this product</div>
-            </div>
-          </button> */}
           <a
             href={`tel:${phone}`}
             className="flex items-center gap-3 bg-[#d72828] hover:bg-[#c02020] text-white rounded-xl px-4 py-2.5 transition-colors"

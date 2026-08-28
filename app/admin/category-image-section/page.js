@@ -39,7 +39,14 @@ export default function CategoryImageSectionAdmin() {
   const fetchCategories = async () => {
     const res = await fetch("/api/categories/get");
     const data = await res.json();
-    setCategories(data.categories || data);
+    const list = Array.isArray(data)
+      ? data
+      : Array.isArray(data?.data)
+        ? data.data
+        : Array.isArray(data?.categories)
+          ? data.categories
+          : [];
+    setCategories(list);
   };
 
   //   const fetchCategories = async () => {

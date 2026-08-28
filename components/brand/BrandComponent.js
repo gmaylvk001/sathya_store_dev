@@ -74,9 +74,6 @@ export default function BrandPage() {
   });
   const itemsPerPage = 20;
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-  
-  // Banner state
-  const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
 
   // Fetch initial data
   useEffect(() => {
@@ -183,45 +180,6 @@ export default function BrandPage() {
       }
     }
   };
-  // Banner navigation functions
-  const nextBanner = () => {
-    if (brandData.brand?.banners?.length > 0) {
-      setCurrentBannerIndex((prevIndex) => 
-        prevIndex === brandData.brand.banners.length - 1 ? 0 : prevIndex + 1
-      );
-    }
-  };
-
-  const prevBanner = () => {
-    if (brandData.brand?.banners?.length > 0) {
-      setCurrentBannerIndex((prevIndex) => 
-        prevIndex === 0 ? brandData.brand.banners.length - 1 : prevIndex - 1
-      );
-    }
-  };
-
-  // Handle banner click with redirect
-  const handleBannerClick = () => {
-    const currentBanner = brandData.brand?.banners[currentBannerIndex];
-    if (currentBanner?.redirect_url) {
-      if (currentBanner.redirect_url.startsWith('http')) {
-        window.open(currentBanner.redirect_url, '_blank');
-      } else {
-        router.push(currentBanner.redirect_url);
-      }
-    }
-  };
-
-  // Auto-rotate banners
-  useEffect(() => {
-    if (brandData.brand?.banners?.length > 1) {
-      const interval = setInterval(() => {
-        nextBanner();
-      }, 5000); // Change banner every 5 seconds
-
-      return () => clearInterval(interval);
-    }
-  }, [brandData.brand?.banners]);
 
   const fetchFilteredProducts = useCallback(async (pageNum = 1) => {
     try {
@@ -600,97 +558,6 @@ export default function BrandPage() {
     <div className={`${CATEGORY_PAGE_SHELL_CLASS} py-2 pb-3`}>
       {brandData.brand ? (
         <>
-          {/* Banner Section */}
-          {brandData.brand?.banners && brandData.brand.banners.length > 0 && (
-            <div className="relative w-full mb-8 rounded-lg overflow-hidden shadow-md">
-              <div className="relative w-full aspect-[16/6] sm:aspect-[16/7] lg:aspect-[16/5] cursor-pointer"
-                onClick={handleBannerClick}
-              >
-                <Image
-                  src={
-                    brandData.brand.banners[currentBannerIndex].banner_image.startsWith("http")
-                      ? brandData.brand.banners[currentBannerIndex].banner_image
-                      : `${brandData.brand.banners[currentBannerIndex].banner_image}`
-                  }
-                  alt={brandData.brand.banners[currentBannerIndex].banner_name}
-                  fill
-                  className="object-cover w-full h-full"
-                  unoptimized
-                />
-                
-                {/* {brandData.brand.banners.length > 1 && (
-                  <>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        prevBanner();
-                      }}
-                      className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-black/30 text-white p-2 rounded-full hover:bg-black/50 transition-colors"
-                    >
-                      <ChevronLeft size={24} />
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        nextBanner();
-                      }}
-                      className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-black/30 text-white p-2 rounded-full hover:bg-black/50 transition-colors"
-                    >
-                      <ChevronRight size={24} />
-                    </button>
-                  </>
-                )} */}
-                
-                {/* Radio Button Indicators */}
-                {brandData.brand.banners.length > 1 && (
-                  <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
-                    {brandData.brand.banners.map((_, index) => (
-                      <label
-                        key={index}
-                        className="flex items-center cursor-pointer"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setCurrentBannerIndex(index);
-                        }}
-                      >
-                        <input
-                          type="radio"
-                          name="banner-indicator"
-                          checked={index === currentBannerIndex}
-                          onChange={() => setCurrentBannerIndex(index)}
-                          className="sr-only"
-                        />
-                        <span
-                          className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
-                            index === currentBannerIndex
-                              ? 'bg-white border-white'
-                              : 'bg-transparent border-white/70'
-                          }`}
-                        >
-                          {index === currentBannerIndex && (
-                            <span className="w-1.5 h-1.5 rounded-full bg-blue-600"></span>
-                          )}
-                        </span>
-                      </label>
-                    ))}
-                  </div>
-                )}
-              </div>
-              
-              {/* Banner Title (Optional) */}
-              {/* {brandData.brand.banners[currentBannerIndex].banner_name && (
-                <div className="absolute bottom-0 left-0 right-0 bg-black/50 text-white p-4">
-                  <h2 className="text-xl font-semibold">
-                    {brandData.brand.banners[currentBannerIndex].banner_name}
-                  </h2>
-                  {brandData.brand.banners[currentBannerIndex].redirect_url && (
-                    <p className="text-sm mt-1 opacity-80">Click to explore</p>
-                  )}
-                </div>
-              )} */}
-            </div>
-          )}
-
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
             <div className="lg:col-span-1 space-y-6">
               {brandData.brand?.image && (
@@ -905,21 +772,6 @@ export default function BrandPage() {
                               productName={product.name}
                               productSlug={product.slug}
                             />
-                            <a
-                              href={`https://wa.me/919842344323?text=${encodeURIComponent(`Check Out This Product: ${apiUrl}/product/${product.slug}`)}`} 
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="bg-green-500 hover:bg-green-600 text-white p-1 rounded-full transition-colors duration-300 flex items-center justify-center"
-                            >
-                              <svg
-                                className="w-5 h-5"
-                                viewBox="0 0 32 32"
-                                fill="currentColor"
-                                xmlns="http://www.w3.org/2000/svg"
-                              >
-                                <path d="M16.003 2.667C8.64 2.667 2.667 8.64 2.667 16c0 2.773.736 5.368 2.009 7.629L2 30l6.565-2.643A13.254 13.254 0 0016.003 29.333C23.36 29.333 29.333 23.36 29.333 16c0-7.36-5.973-13.333-13.33-13.333zm7.608 18.565c-.32.894-1.87 1.749-2.574 1.865-.657.104-1.479.148-2.385-.148-.55-.175-1.256-.412-2.162-.812-3.8-1.648-6.294-5.77-6.49-6.04-.192-.269-1.55-2.066-1.55-3.943 0-1.878.982-2.801 1.33-3.168.346-.364.75-.456 1.001-.456.25 0 .5.002.719.013.231.01.539-.088.845.643.32.768 1.085 2.669 1.18 2.863.096.192.16.423.03.683-.134.26-.2.423-.39.65-.192.231-.413.512-.589.689-.192.192-.391.401-.173.788.222.392.986 1.625 2.116 2.636 1.454 1.298 2.682 1.7 3.075 1.894.393.192.618.173.845-.096.23-.27.975-1.136 1.237-1.527.262-.392.524-.32.894-.192.375.13 2.35 1.107 2.75 1.308.393.205.656.308.75.48.096.173.096 1.003-.224 1.897z" />
-                              </svg>
-                            </a>
                              {/* <button
                     type="button"
                     onClick={() => handleShare(product)}

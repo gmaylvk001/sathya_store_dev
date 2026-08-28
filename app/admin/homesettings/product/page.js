@@ -129,7 +129,14 @@ export default function AllCategoriesPage() {
     async function fetchCategories() {
       try {
         const res = await fetch("/api/categories/get");
-        const data = await res.json();
+        const resJson = await res.json();
+        const data = Array.isArray(resJson)
+          ? resJson
+          : Array.isArray(resJson?.data)
+            ? resJson.data
+            : Array.isArray(resJson?.categories)
+              ? resJson.categories
+              : [];
         setCategories(data);
 
         // Separate main categories and subcategories
@@ -595,7 +602,14 @@ images.forEach((img, index) => {
 
       // Re-fetch categories
       const refreshRes = await fetch("/api/categories/get");
-      const refreshData = await refreshRes.json();
+      const refreshJson = await refreshRes.json();
+      const refreshData = Array.isArray(refreshJson)
+        ? refreshJson
+        : Array.isArray(refreshJson?.data)
+          ? refreshJson.data
+          : Array.isArray(refreshJson?.categories)
+            ? refreshJson.categories
+            : [];
       setCategories(refreshData);
 
       const mainCats = refreshData.filter((cat) => cat.parentid === "none");

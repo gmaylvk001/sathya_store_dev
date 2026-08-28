@@ -3043,7 +3043,7 @@ const handleBrandManufacturerUpload = async (e) => {
                       </svg>
                       Excel/CSV File
                     </h3>
-                    <p className="text-sm text-gray-500 mt-1">Upload your Product Name values file</p>
+                    <p className="text-sm text-gray-500 mt-1">Columns: item_code, name, title, description, keywords</p>
                   </div>
                   <div className="space-y-4">
                     <input id="product_name" type="file" accept=".xlsx,.csv" onChange={(e) => setProduct_name(e.target.files?.[0] || null)} className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-[#d72828] hover:file:bg-red-100" required />

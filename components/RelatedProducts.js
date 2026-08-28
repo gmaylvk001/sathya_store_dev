@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { FaWhatsapp, FaStar } from 'react-icons/fa';
+import { FaStar } from 'react-icons/fa';
 import AddToWishlistButton from '@/components/ProductCard';
 import ProductAddtoCart from '@/components/AddToCart';
 
@@ -205,19 +205,6 @@ const RelatedProductCard = ({ product, brandMap = {} }) => {
             productName={product.name}
             productSlug={product.slug}
           />
-
-          <a
-            href={`https://wa.me/919842344323?text=${encodeURIComponent(
-              `Hi Sathya Stores, I'm interested in: ${product.name}`
-            )}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 hover:bg-emerald-500 hover:text-white transition-all duration-200 flex items-center justify-center flex-shrink-0 border border-emerald-200/60 shadow-2xs"
-            title="Enquire on WhatsApp"
-            aria-label="Enquire on WhatsApp"
-          >
-            <FaWhatsapp size={17} />
-          </a>
         </div>
       </div>
     </div>

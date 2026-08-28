@@ -32,7 +32,7 @@ import SplitBannerConfigForm from "./SplitBannerConfigForm";
  */
 export default function PageBuilder({
   listHref = "/admin/category-pages",
-  listLabel = "Category Pages",
+  listLabel = "Category Settings",
 }) {
   const { id } = useParams();
   const router = useRouter();

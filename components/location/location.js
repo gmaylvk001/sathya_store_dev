@@ -41,14 +41,6 @@ function PhoneIcon() {
   );
 }
 
-function WhatsAppIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 32 32" fill="white">
-      <path d="M16 3C9.4 3 4 8.4 4 15c0 2.6.8 5 2.2 7L4 29l7.2-2.2c1.9 1.1 4.1 1.7 6.3 1.7 6.6 0 12-5.4 12-12S22.6 3 16 3zm0 22c-2.1 0-4.1-.6-5.8-1.7l-.4-.2-4.3 1.3 1.3-4.2-.3-.4C5.6 18 5 16.6 5 15c0-6.1 4.9-11 11-11s11 4.9 11 11-4.9 11-11 11zm6-8.2c-.3-.2-1.8-.9-2.1-1-.3-.1-.5-.2-.7.2-.2.3-.8 1-1 1.2-.2.2-.4.2-.7.1-.3-.2-1.3-.5-2.5-1.6-.9-.8-1.5-1.8-1.7-2.1-.2-.3 0-.5.1-.6l.5-.6c.1-.2.2-.3.3-.5.1-.2 0-.4 0-.5-.1-.2-.7-1.7-1-2.3-.3-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.4s1 2.7 1.2 2.9c.1.2 2 3.1 4.9 4.3.7.3 1.2.5 1.6.6.7.2 1.3.2 1.8.1.5-.1 1.8-.7 2-1.4.2-.7.2-1.3.1-1.4z"/>
-    </svg>
-  );
-}
-
 function DirectionsIcon() {
   return (
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -85,10 +77,6 @@ function StoreTypeIcon({ color = "#d72828", size = 13 }) {
 
 // ─── Store Card ───────────────────────────────────────────────────────────────
 function StoreCard({ store }) {
-  const whatsappMsg = encodeURIComponent(
-    `Sathya Stores ${store.organisation_name}, ${store.city}. ${store.website || ""}`
-  );
-
   const capitalize = (str) =>
     str ? str.charAt(0).toUpperCase() + str.slice(1).toLowerCase() : "";
 
@@ -149,13 +137,6 @@ function StoreCard({ store }) {
             View Details
           </button>
         </Link>
-
-        {/* WhatsApp — icon only */}
-        <a href={`https://wa.me/919842344323?text=${whatsappMsg}`} target="_blank" rel="noopener noreferrer">
-          <button className="bg-[#25D366] hover:bg-[#1ebe5a] text-white border-none rounded-md py-[7px] px-2.5 cursor-pointer flex items-center justify-center transition-colors">
-            <WhatsAppIcon />
-          </button>
-        </a>
 
         {/* Get Direction — icon only on mobile, text on sm+ */}
         <a

@@ -37,28 +37,41 @@ export async function POST(req) {
 
         for (let [index, row] of rows.entries()) {
             try {
-                const item_code = row["item_code"]?.toString().trim();
-                const product_name = row["product_name"]?.toString().trim();
+                const item_code = (row["item_code"] || row["Item Code"] || "").toString().trim();
+                const product_name = (
+                    row["name"] ||
+                    row["product_name"] ||
+                    ""
+                ).toString().trim();
+                const title = (row["title"] || row["meta_title"] || "").toString().trim();
+                const description = (row["description"] || "").toString().trim();
+                const keywords = (
+                    row["keywords"] ||
+                    row["search_keywords"] ||
+                    ""
+                ).toString().trim();
 
-                // ✅ Skip if empty
-                if (!item_code || !product_name) {
+                if (!item_code || (!product_name && !title && !description && !keywords)) {
                     skippedCount++;
                     continue;
                 }
 
-                // Find product
                 const product = await Product.findOne({ item_code });
 
-                // ✅ Skip if not found
                 if (!product) {
                     skippedCount++;
                     continue;
                 }
 
-                // Update name
+                const update = {};
+                if (product_name) update.name = product_name;
+                if (title) update.meta_title = title;
+                if (description) update.description = description;
+                if (keywords) update.search_keywords = keywords;
+
                 await Product.updateOne(
                     { _id: product._id },
-                    { $set: { name: product_name } }
+                    { $set: update }
                 );
 
                 updatedCount++;

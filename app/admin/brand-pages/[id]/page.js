@@ -6,7 +6,7 @@ export default function BrandPageBuilderRoute() {
   return (
     <PageBuilder
       listHref="/admin/brand-pages"
-      listLabel="Brand Pages"
+      listLabel="Brand Settings"
     />
   );
 }

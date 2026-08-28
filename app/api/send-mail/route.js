@@ -68,7 +68,7 @@ const offer = await Offer.findOne({ _id: new mongoose.Types.ObjectId(offerId) })
       </p>
 
       <div style="margin-top: 25px; text-align: center;">
-        <a href="https://bea.divinfosys.com/" style="display: inline-block; background-color: #d1410c; color: #fff; padding: 12px 25px; border-radius: 4px; text-decoration: none; font-weight: bold;">
+        <a href={process.env.NEXT_PUBLIC_API_URL || "https://sathya.store"} style="display: inline-block; background-color: #d1410c; color: #fff; padding: 12px 25px; border-radius: 4px; text-decoration: none; font-weight: bold;">
           Shop Now
         </a>
       </div>

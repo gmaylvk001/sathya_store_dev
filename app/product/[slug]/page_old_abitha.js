@@ -481,32 +481,41 @@ const fetchBrand = async () => {
                 <meta property="og:description" content={product.description} />
                 <meta
           property="og:image"
-          content={selectedImage || "https://bea.divinfosys.com/no-image.jpg"}
+          content={selectedImage || `${process.env.NEXT_PUBLIC_API_URL || ""}/no-image.jpg`}
         />
 
 
-                <meta property="og:url" content={`https://bea.divinfosys.com/product/${product.slug}`} />
+                <meta property="og:url" content={`${process.env.NEXT_PUBLIC_API_URL || ""}/product/${product.slug}`} />
 
                 <meta property="og:type" content="product" />
             
                   {/* Action Buttons */}
-                  <div className="flex items-center gap-1" onClick={() => window.open(`https://wa.me/?text=${encodeURIComponent(`Check this out: https://bea.divinfosys.com/product/${product.slug}`)}`, '_blank')}>
+                  <div
+                    className="flex items-center gap-1"
+                    onClick={async () => {
+                      const url = `${process.env.NEXT_PUBLIC_API_URL || window.location.origin}/product/${product.slug}`;
+                      try {
+                        if (navigator.share) {
+                          await navigator.share({ title: product.name, url });
+                        } else if (navigator.clipboard) {
+                          await navigator.clipboard.writeText(url);
+                        }
+                      } catch {
+                        /* ignore */
+                      }
+                    }}
+                  >
                     <button
                       className="w-6 h-6 flex items-center justify-center rounded-full transition duration-300 ease-in-out bg-red-200 hover:bg-[#d72828] text-[#d72828] hover:text-white"
-                      onClick={() => window.open(
-                        `https://wa.me/?text=${encodeURIComponent(
-                          `Check this out: ${product.name}\n${selectedImage || "https://bea.divinfosys.com/no-image.jpg"}\nhttps://bea.divinfosys.com/product/${product.slug}`
-                        )}`,
-                        '_blank'
-                      )}
                     >
                       <FaShareAlt size={10} />
                     </button>
                     <button
                       className="w-6 h-6 flex items-center justify-center rounded-full transition duration-300 ease-in-out bg-green-200 hover:bg-green-600 text-green-500 hover:text-white ml-2"
-                      onClick={() => {
+                      onClick={(e) => {
+                        e.stopPropagation();
                         const link = document.createElement('a');
-                        link.href = selectedImage || "https://bea.divinfosys.com/no-image.jpg";
+                        link.href = selectedImage || `${process.env.NEXT_PUBLIC_API_URL || ""}/no-image.jpg`;
                         link.download = product.name ? `${product.name.replace(/\s+/g, '_')}.jpg` : 'product.jpg';
                         document.body.appendChild(link);
                         link.click();

@@ -9,7 +9,6 @@ import {
   FaCalendarAlt,
   FaHeadset,
   FaPhoneAlt,
-  FaWhatsapp,
   FaShieldAlt,
   FaArrowRight,
 } from "react-icons/fa";
@@ -17,9 +16,6 @@ import { useModal } from "@/context/ModalContext";
 
 const PHONE_DISPLAY = "98423 44323";
 const PHONE_TEL = "9842344323";
-const WHATSAPP_URL =
-  "https://wa.me/919842344323?text=" +
-  encodeURIComponent("Hi, I'd like to know more about Sathya Stores Live Video Demo.");
 
 const STEPS = [
   {
@@ -206,23 +202,6 @@ export default function LiveVideoDemoPage() {
                   Call Expert
                 </span>
                 <span className="block text-sm font-bold">{PHONE_DISPLAY}</span>
-              </span>
-            </a>
-
-            <a
-              href={WHATSAPP_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-2.5 bg-white hover:bg-gray-50 border border-white rounded-xl px-4 py-3 text-[#041b4d] no-underline shadow-sm transition-colors"
-            >
-              <span className="w-9 h-9 rounded-full bg-[#25D366] text-white flex items-center justify-center flex-shrink-0">
-                <FaWhatsapp className="text-lg" />
-              </span>
-              <span className="text-left">
-                <span className="block text-[11px] text-gray-500 font-medium leading-none mb-0.5">
-                  WhatsApp Us
-                </span>
-                <span className="block text-sm font-bold">Chat on WhatsApp</span>
               </span>
             </a>
           </div>

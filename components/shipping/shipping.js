@@ -13,7 +13,7 @@ import {
   FiMinus,
   FiCheckCircle,
 } from "react-icons/fi";
-import { FaWhatsapp, FaStore, FaUsers, FaTools, FaWind, FaTv, FaSnowflake } from "react-icons/fa";
+import { FaStore, FaUsers, FaTools, FaWind, FaTv, FaSnowflake } from "react-icons/fa";
 import { GiWashingMachine } from "react-icons/gi";
 import { MdMicrowave, MdLocalShipping, MdSettings } from "react-icons/md";
 import { BsDropletHalf } from "react-icons/bs";
@@ -442,7 +442,7 @@ const ShippingPolicy = () => {
             <p className="text-gray-600 mb-4">
               Our support team is here to help you.
             </p>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <a
                 href="tel:9842344323"
                 className="border border-gray-100 rounded-lg p-4 text-center hover:bg-red-50 transition-colors"
@@ -451,17 +451,6 @@ const ShippingPolicy = () => {
                 <p className="font-semibold text-gray-800 text-sm">Call Support</p>
                 <p className="text-sm text-gray-600">9842344323</p>
                 <p className="text-xs text-gray-400">(9 AM - 9 PM)</p>
-              </a>
-              <a
-                href="https://wa.me/919842344323"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="border border-gray-100 rounded-lg p-4 text-center hover:bg-green-50 transition-colors"
-              >
-                <FaWhatsapp className="text-green-600 text-xl mx-auto mb-2" />
-                <p className="font-semibold text-gray-800 text-sm">WhatsApp Support</p>
-                <p className="text-sm text-gray-600">9842344323</p>
-                <p className="text-xs text-gray-400">Chat on WhatsApp</p>
               </a>
               <a
                 href="mailto:customercare@sathya.store"

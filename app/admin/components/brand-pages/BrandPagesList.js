@@ -45,7 +45,7 @@ export default function BrandPagesList() {
     <div className="py-4 w-full">
       <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900">Brand Pages</h1>
+          <h1 className="text-2xl font-semibold text-gray-900">Brand Settings</h1>
           <p className="text-sm text-gray-500 mt-1">
             Create an overview for a brand, or for a category + brand pair.
             Brand only: /brand/slug/overview. Category + brand:

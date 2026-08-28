@@ -92,7 +92,7 @@ export default function CreateBrandPage() {
         href="/admin/brand-pages"
         className="inline-flex items-center gap-1 text-sm text-gray-500 mb-4"
       >
-        <Icon icon="mdi:arrow-left" /> Brand Pages
+        <Icon icon="mdi:arrow-left" /> Brand Settings
       </Link>
       <h1 className="text-2xl font-semibold mb-1">Create Brand Overview</h1>
       <p className="text-sm text-gray-500 mb-6">

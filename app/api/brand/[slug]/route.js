@@ -7,7 +7,10 @@ import FilterGroup from "@/models/ecom_filter_group_infos";
 import ecom_category_info from "@/models/ecom_category_info";
 
 async function getCategoryTree(parentId, productCategoryIds) {
-  const categories = await ecom_category_info.find({ parentid: parentId }).lean();
+  const categories = await ecom_category_info
+    .find({ parentid: parentId })
+    .sort({ position: 1, category_name: 1 })
+    .lean();
 
   let filteredCategories = [];
   for (const category of categories) {

@@ -30,7 +30,14 @@ const CategorySelect = ({ selectedCategory, setSelectedCategory }) => {
     const fetchCategories = async () => {
       try {
         const response = await fetch("/api/categories/get");
-        const data = await response.json();
+        const resJson = await response.json();
+        const data = Array.isArray(resJson)
+          ? resJson
+          : Array.isArray(resJson?.data)
+            ? resJson.data
+            : Array.isArray(resJson?.categories)
+              ? resJson.categories
+              : [];
         setCategories(buildCategoryTree(data));
         setIsLoading(false);
       } catch (error) {

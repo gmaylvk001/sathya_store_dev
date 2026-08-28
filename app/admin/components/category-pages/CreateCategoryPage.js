@@ -80,7 +80,7 @@ export default function CreateCategoryPage() {
         href="/admin/category-pages"
         className="inline-flex items-center gap-1 text-sm text-gray-500 mb-4"
       >
-        <Icon icon="mdi:arrow-left" /> Category Pages
+        <Icon icon="mdi:arrow-left" /> Category Settings
       </Link>
       <h1 className="text-2xl font-semibold mb-1">Create Page</h1>
       <p className="text-sm text-gray-500 mb-6">

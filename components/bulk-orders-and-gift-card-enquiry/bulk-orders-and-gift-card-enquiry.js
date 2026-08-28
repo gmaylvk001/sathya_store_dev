@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import {FaPhoneAlt,FaEnvelope,FaCheck,FaGift,FaBolt,FaChevronDown,FaChevronUp,FaWhatsapp,FaBriefcase,FaHandshake,
+import {FaPhoneAlt,FaEnvelope,FaCheck,FaGift,FaBolt,FaChevronDown,FaChevronUp,FaBriefcase,FaHandshake,
   FaUserTie,
   FaTruck,
   FaShieldAlt,
@@ -271,14 +271,6 @@ const removeProductRow = (index) => {
   <FaBriefcase className="text-[18px]" />
   <span>Get Corporate Pricing</span>
 </button>
-
-                                {/* WHATSAPP BUTTON */}
-                                <a href="https://wa.me/919842344323" target="_blank" rel="noopener noreferrer">
-                                    <button className="flex items-center gap-3 border border-white/30 bg-white/5 backdrop-blur-md hover:bg-white hover:text-[#0b1235] transition-all duration-300 text-white font-semibold text-[15px] px-8 py-4 rounded-xl whitespace-nowrap">
-                                    <FaWhatsapp className="text-[20px]" />
-                                    <span>WhatsApp Our B2B Team</span>
-                                    </button>
-                                </a>
                             </div>
                         </div>
 
@@ -1090,22 +1082,6 @@ const removeProductRow = (index) => {
                                 </div>
                             </div>
                         </div>
-
-                        {/* WHATSAPP */}
-                        <div className="bg-[#f8fbff] border border-[#dce8ff] rounded-[24px] p-5">
-                            <div className="flex items-start gap-1">
-                                {/* ICON */}
-                                <div className="w-16 h-16 rounded-2xl bg-[#e8fff0] flex items-center justify-center text-[#00a63e] text-3xl shrink-0">💬</div>
-                                {/* CONTENT */}
-                                <div className="w-full">
-                                    <h3 className="font-bold text-[15px] text-[#00a63e] mb-2">WhatsApp Support</h3>
-                                    <p className="text-gray-600 text-[15px] leading-7 mb-5">Chat with our B2B team for quick assistance</p>
-                                    <a href="https://wa.me/919842344323" target="_blank" rel="noopener noreferrer">
-                                        <button className="w-full h-[50px] rounded-xl bg-[#00b140] hover:bg-[#009b38] transition-all text-white font-semibold text-[13px]">WhatsApp Us</button>
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </section>
@@ -1158,13 +1134,6 @@ const removeProductRow = (index) => {
                                 </div>
                             </div>
                         </div>
-
-                        {/* WhatsApp Button */}
-                        <a href="https://wa.me/919842344323" target="_blank" rel="noopener noreferrer">
-                            <button className="bg-white text-[#032c7a] px-6 py-3 rounded-xl flex items-center gap-2 font-semibold text-[14px] min-w-max">
-                                <FaWhatsapp className="text-green-500 text-lg" />WhatsApp Our Team
-                            </button>
-                        </a>
                     </div>
                 </div>
             </section>

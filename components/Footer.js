@@ -6,7 +6,6 @@ import {
   FaFacebookF,
   FaInstagram,
   FaYoutube,
-  FaWhatsapp,
   FaHeadset,
 } from "react-icons/fa";
 import { FaXTwitter } from "react-icons/fa6";
@@ -71,7 +70,7 @@ const Footer = () => {
 
   useEffect(() => {
     const CACHE_TTL = 24 * 60 * 60 * 1000;
-    const key = "cache_footer_categories_v1";
+    const key = "cache_footer_categories_v2";
 
     const getCached = () => {
       try {
@@ -465,22 +464,6 @@ const Footer = () => {
           </div>
         </div>
       </footer>
-
-      {/* Floating WhatsApp */}
-      <div className="fixed bottom-5 right-4 z-40 flex flex-col items-end gap-3">
-        <a
-          href="https://wa.me/918880598985?text=Hi"
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="WhatsApp assist"
-          className="relative group"
-        >
-          <span className="absolute -left-2 -right-2 -top-2 -bottom-2 rounded-full border border-green-500/40 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity" />
-          <span className="w-14 h-14 rounded-full bg-[#25D366] text-white shadow-lg flex items-center justify-center hover:scale-105 transition-transform">
-            <FaWhatsapp className="text-3xl" />
-          </span>
-        </a>
-      </div>
     </>
   );
 };

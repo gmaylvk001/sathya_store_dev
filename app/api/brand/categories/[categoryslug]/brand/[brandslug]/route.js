@@ -8,7 +8,10 @@ import ecom_category_info from "@/models/ecom_category_info";
 import { brandMatchQuery } from "@/lib/brandMatchQuery";
  
 async function getCategoryTree(parentId, productCategoryIds = null) {
-  const categories = await ecom_category_info.find({ parentid: parentId }).lean();
+  const categories = await ecom_category_info
+    .find({ parentid: parentId })
+    .sort({ position: 1, category_name: 1 })
+    .lean();
  
   let filteredCategories = [];
   for (const category of categories) {

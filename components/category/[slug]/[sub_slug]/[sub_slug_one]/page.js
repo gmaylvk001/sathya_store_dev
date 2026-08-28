@@ -64,7 +64,6 @@ export default function CategoryPage() {
     ready: filterUrlReady && !!filterCatalog,
   });
 
-  const [currentCategoryBannerIndex, setCurrentCategoryBannerIndex] = useState(0);
   const [nofound,setNofound]=useState(false);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
@@ -585,106 +584,6 @@ const handlePageChange = (page) => {
 
   return(
     <div className={`${CATEGORY_PAGE_SHELL_CLASS} py-2 pb-3`}>
-      {categoryData.category.banners && categoryData.category.banners.length > 0 && (
-        <div className="relative w-full mb-8 rounded-lg overflow-hidden shadow-md">
-          <div className="relative w-full aspect-[16/6] sm:aspect-[16/7] lg:aspect-[16/5] cursor-pointer"
-            onClick={() => {
-              const redirectUrl = categoryData.category.banners[currentCategoryBannerIndex].redirect_url;
-              if (redirectUrl) window.location.href = redirectUrl;
-            }}
-          >
-            <Image
-              src={
-                categoryData.category.banners[currentCategoryBannerIndex].banner_image.startsWith("http")
-                  ? categoryData.category.banners[currentCategoryBannerIndex].banner_image
-                  : `${categoryData.category.banners[currentCategoryBannerIndex].banner_image}`
-              }
-              alt={categoryData.category.banners[currentCategoryBannerIndex].banner_name || "Category Banner"}
-              fill
-              className="object-cover w-full h-full"
-              unoptimized
-            />
-      
-            {/* Navigation Arrows */}
-            {/* {categoryData.banners.length > 1 && (
-              <>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setCurrentCategoryBannerIndex(
-                      (prev) =>
-                        prev === 0 ? categoryData.banners.length - 1 : prev - 1
-                    );
-                  }}
-                  className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-black/30 text-white p-2 rounded-full hover:bg-black/50 transition-colors"
-                >
-                  <ChevronLeft size={24} />
-                </button>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setCurrentCategoryBannerIndex(
-                      (prev) =>
-                        prev === categoryData.banners.length - 1 ? 0 : prev + 1
-                    );
-                  }}
-                  className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-black/30 text-white p-2 rounded-full hover:bg-black/50 transition-colors"
-                >
-                  <ChevronRight size={24} />
-                </button>
-              </>
-            )} */}
-      
-            {/* Radio Button Indicators */}
-            {categoryData.category.banners.length > 1 && (
-              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
-                {categoryData.category.banners.map((_, index) => (
-                  <label
-                    key={index}
-                    className="flex items-center cursor-pointer"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setCurrentCategoryBannerIndex(index);
-                    }}
-                  >
-                    <input
-                      type="radio"
-                      name="category-banner-indicator"
-                      checked={index === currentCategoryBannerIndex}
-                      onChange={() => setCurrentCategoryBannerIndex(index)}
-                      className="sr-only"
-                    />
-                    <span
-                      className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
-                        index === currentCategoryBannerIndex
-                          ? "bg-white border-white"
-                          : "bg-transparent border-white/70"
-                      }`}
-                    >
-                      {index === currentCategoryBannerIndex && (
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#d72828]"></span>
-                      )}
-                    </span>
-                  </label>
-                ))}
-              </div>
-            )}
-          </div>
-      
-          {/* Banner Title */}
-          {/* {categoryData.banners[currentCategoryBannerIndex].banner_name && (
-            <div className="absolute bottom-0 left-0 right-0 bg-black/50 text-white p-4">
-              <h2 className="text-xl font-semibold">
-                {categoryData.banners[currentCategoryBannerIndex].banner_name}
-              </h2>
-              {categoryData.banners[currentCategoryBannerIndex].redirect_url && (
-                <p className="text-sm mt-1 opacity-80">Click to explore</p>
-              )}
-            </div>
-          )} */}
-        </div>
-      )}
-
      <div className="grid grid-cols-1 lg:grid-cols-4 gap-2 lg:gap-8">
   <div className="lg:col-span-1 space-y-6">
     <h1 className="text-3xl font-bold mb-3 text-gray-600 pl-1">{categoryData.category.category_name}</h1>
@@ -980,21 +879,6 @@ const handlePageChange = (page) => {
                                  productName={product.name}
                                   productSlug={product.slug}
                                 />
-                                <a
-                                  href={`https://wa.me/919842344323?text=${encodeURIComponent(`Check Out This Product: ${apiUrl}/product/${product.slug}`)}`}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="bg-green-500 hover:bg-green-600 text-white p-1 rounded-full transition-colors duration-300 flex items-center justify-center"
-                                >
-                                  <svg
-                                    className="w-5 h-5"
-                                    viewBox="0 0 32 32"
-                                    fill="currentColor"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                  >
-                                    <path d="M16.003 2.667C8.64 2.667 2.667 8.64 2.667 16c0 2.773.736 5.368 2.009 7.629L2 30l6.565-2.643A13.254 13.254 0 0016.003 29.333C23.36 29.333 29.333 23.36 29.333 16c0-7.36-5.973-13.333-13.33-13.333zm7.608 18.565c-.32.894-1.87 1.749-2.574 1.865-.657.104-1.479.148-2.385-.148-.55-.175-1.256-.412-2.162-.812-3.8-1.648-6.294-5.77-6.49-6.04-.192-.269-1.55-2.066-1.55-3.943 0-1.878.982-2.801 1.33-3.168.346-.364.75-.456 1.001-.456.25 0 .5.002.719.013.231.01.539-.088.845.643.32.768 1.085 2.669 1.18 2.863.096.192.16.423.03.683-.134.26-.2.423-.39.65-.192.231-.413.512-.589.689-.192.192-.391.401-.173.788.222.392.986 1.625 2.116 2.636 1.454 1.298 2.682 1.7 3.075 1.894.393.192.618.173.845-.096.23-.27.975-1.136 1.237-1.527.262-.392.524-.32.894-.192.375.13 2.35 1.107 2.75 1.308.393.205.656.308.75.48.096.173.096 1.003-.224 1.897z" />
-                                  </svg>
-                                    </a>
                                  {/* <button
                     type="button"
                     onClick={() => handleShare(product)}

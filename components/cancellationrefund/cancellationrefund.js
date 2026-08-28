@@ -37,7 +37,6 @@ import {
   MdOutlineSpeaker,
 } from "react-icons/md";
 import { BsArrowRepeat } from "react-icons/bs";
-import { FaWhatsapp } from "react-icons/fa";
 
 const features = [
   {
@@ -180,7 +179,7 @@ const faqs = [
   },
   {
     q: "6. How can I contact Sathya Stores customer care?",
-    a: "You can reach us via phone, WhatsApp, or email. Our contact details are listed in the Need Help section above.",
+    a: "You can reach us via phone or email. Our contact details are listed in the Need Help section above.",
   },
 ];
 
@@ -407,24 +406,6 @@ const CancellationrefundComponent = () => {
                   <p className="text-[12px] font-bold text-customBlue mb-0.5">Call Us</p>
                   <p className="font-bold text-gray-900 text-[12px] sm:text-[13px]">9842344323</p>
                   <p className="text-[10px] text-gray-500 font-semibold whitespace-nowrap">(9 AM - 9 PM)</p>
-                </div>
-              </div>
-              </a>
-
-              {/* Vertical Divider */}
-              <div className="w-px h-12 bg-gray-200 self-center hidden sm:block"></div>
-
-              {/* WhatsApp Us */}
-               <a
-                href="https://wa.me/919842344323"
-                target="_blank"
-                rel="noopener noreferrer">
-              <div className="flex flex-col sm:flex-row items-center sm:items-start gap-2 sm:gap-3 flex-1 text-center sm:text-left">
-                <FaWhatsapp className="text-xl sm:text-2xl text-green-500 flex-shrink-0 mt-1" />
-                <div>
-                  <p className="text-[12px] font-bold text-green-500 mb-0.5">WhatsApp Us</p>
-                  <p className="font-bold text-gray-900 text-[12px] sm:text-[13px]">9842344323</p>
-                  <p className="text-[10px] text-gray-500 font-semibold whitespace-nowrap">Chat on WhatsApp</p>
                 </div>
               </div>
               </a>

@@ -252,7 +252,14 @@ useEffect(() => {
           throw new Error("Failed to fetch categories");
         }
         const categoriesData = await categoriesResponse.json();
-        setCategories(categoriesData);
+        const categoriesList = Array.isArray(categoriesData)
+          ? categoriesData
+          : Array.isArray(categoriesData?.data)
+            ? categoriesData.data
+            : Array.isArray(categoriesData?.categories)
+              ? categoriesData.categories
+              : [];
+        setCategories(categoriesList);
 
         // Fetch offers
         const offersResponse = await fetch("/api/offers/get");

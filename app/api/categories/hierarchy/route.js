@@ -7,12 +7,14 @@ export async function GET() {
     await dbConnect();
 
     const categories = await Category.find({ status: "Active" })
-      .select("_id category_name category_slug parentid")
-      .sort({ category_name: 1 })
+      .select("_id category_name category_slug parentid position")
+      .sort({ position: 1, category_name: 1 })
       .lean();
 
     // Separate parent categories (parentid === "none") from children
-    const parents = categories.filter(c => !c.parentid || c.parentid === "none");
+    const parents = categories
+      .filter(c => !c.parentid || c.parentid === "none")
+      .sort((a, b) => (Number(a.position) || 0) - (Number(b.position) || 0));
     const children = categories.filter(c => c.parentid && c.parentid !== "none");
 
     // Build map: parentId → [active child categories]
@@ -24,8 +26,15 @@ export async function GET() {
         _id: child._id,
         category_name: child.category_name,
         category_slug: child.category_slug,
+        position: child.position,
       });
     }
+
+    Object.keys(childrenMap).forEach((pid) => {
+      childrenMap[pid].sort(
+        (a, b) => (Number(a.position) || 0) - (Number(b.position) || 0)
+      );
+    });
 
     // Attach children to each parent
     const hierarchy = parents.map(p => ({
