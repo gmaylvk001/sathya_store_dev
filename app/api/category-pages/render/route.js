@@ -15,6 +15,12 @@ export async function GET(req) {
     const brandSlug = searchParams.get("brandSlug");
     const brandId = searchParams.get("brandId");
     const pageType = searchParams.get("pageType");
+    const region = (
+      searchParams.get("region") ||
+      searchParams.get("state") ||
+      req.cookies?.get("sathya_selected_region")?.value ||
+      "all"
+    ).toLowerCase();
 
     const result = await resolveCategoryPageComponents({
       categoryId,
@@ -23,6 +29,7 @@ export async function GET(req) {
       brandSlug,
       brandId,
       pageType,
+      region,
     });
 
     return NextResponse.json(result);

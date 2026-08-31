@@ -336,8 +336,8 @@ export default function ProductDetailsSection({ product, reviews=[], avgRating=0
     try {
       const response = await fetch("/api/brand");
       const result = await response.json();
-      if (result.error) {
-        console.error(result.error);
+      if (result.error || !Array.isArray(result?.data)) {
+        if (result.error) console.warn("Brand fetch:", result.error);
       } else {
         const data = result.data;
 
@@ -358,7 +358,7 @@ export default function ProductDetailsSection({ product, reviews=[], avgRating=0
         }
       }
     } catch (error) {
-      console.error(error.message);
+      console.warn("Could not fetch brand:", error.message);
     }
   };
   // Removed premature initialActiveName calculation; it will be defined after tabsForUI.

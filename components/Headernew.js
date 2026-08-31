@@ -1105,11 +1105,12 @@ const Header = () => {
                 const result = await response.json();
 
                 // Process and format dates before setting state
-                const activeOffers = result.data
-                    .filter((offer) => offer.fest_offer_status === "active")
+                const activeOffers = (Array.isArray(result?.data) ? result.data : [])
+                    .filter((offer) => offer && offer.fest_offer_status === "active");
                 setOffers(activeOffers);
             } catch (err) {
                 console.error("Failed to fetch offers", err);
+                setOffers([]);
             }
         };
         fetchOffers();

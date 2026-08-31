@@ -377,19 +377,21 @@ export default function CategoryBrandComponent({ categorySlug, brandSlug }) {
     try {
       const response = await fetch("/api/brand");
       const result = await response.json();
-      if (result.error) {
-        console.error(result.error);
+      if (result.error || (!Array.isArray(result?.data) && !Array.isArray(result))) {
+        if (result.error) console.warn("Brand fetch:", result.error);
       } else {
-        const data = result.data || result;
+        const data = Array.isArray(result.data) ? result.data : (Array.isArray(result) ? result : []);
         // Store as map for quick access
         const map = {};
         data.forEach((b) => {
-          map[b._id] = b.brand_name;
+          if (b?._id) {
+            map[b._id] = b.brand_name;
+          }
         });
         setBrandMap(map);
       }
     } catch (error) {
-      console.error(error.message);
+      console.warn("Could not fetch brand:", error.message);
     }
   };
 

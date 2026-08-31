@@ -160,15 +160,17 @@ export default function CategoryMainPage({ categorySlug = "large-appliance" }) {
       const response = await fetch("/api/brand");
       const result = await response.json();
 
-      if (!result.error) {
+      if (!result.error && Array.isArray(result?.data)) {
         const map = {};
         result.data.forEach((b) => {
-          map[b._id] = b.brand_name;
+          if (b?._id) {
+            map[b._id] = b.brand_name;
+          }
         });
         setBrandMap(map);
       }
     } catch (err) {
-      console.error(err.message);
+      console.warn("Could not fetch brand:", err.message);
     }
   };
 

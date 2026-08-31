@@ -3,7 +3,7 @@
 import React, { useState, useMemo, useEffect, useRef } from "react";
 import { useRegion } from "@/context/RegionContext";
 import { FiSearch, FiX } from "react-icons/fi";
-import { isValidPincode } from "@/lib/regionHelper";
+import { isValidPincode, getCityPincode } from "@/lib/regionHelper";
 
 // Bespoke Line-Art Icons for the 5 South Indian States
 const StateLineArt = ({
@@ -133,6 +133,7 @@ export default function RegionSelectorModal() {
     setPincode,
     detectLocation,
     setDetectionError,
+    userLocation,
   } = useRegion();
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -210,9 +211,11 @@ export default function RegionSelectorModal() {
     return matches;
   }, [allRegions, searchQuery]);
 
-  // Handle city selection
+  // Handle city selection with exact city pincode
   const handleSelectCity = (region, city) => {
-    selectRegion(region, city);
+    const targetRegion = region || selectedRegion || allRegions[0];
+    const pin = getCityPincode(city, targetRegion?.id || targetRegion);
+    selectRegion(targetRegion, city, pin);
     closeRegionModal();
   };
 
@@ -468,37 +471,43 @@ export default function RegionSelectorModal() {
               })}
             </div>
 
-            {/* Bottom Slot: Sub-cities Gray Banner on Hover OR "View All Cities" Button */}
-            <div className="mt-4 min-h-[36px] flex items-center justify-center">
-              {activeHoveredRegion ? (
-                <div
-                  className="w-full bg-[#f4f4f4] rounded-md px-3.5 py-2 flex items-center justify-center gap-3 sm:gap-4 text-[11px] sm:text-xs text-gray-700 overflow-x-hidden whitespace-nowrap animate-fadeIn"
-                  onMouseEnter={() => setHoveredRegionId(activeHoveredRegion.id)}
-                >
-                  {activeHoveredRegion.popularCities
-                    .slice(0, 6)
-                    .map((city, idx) => (
-                      <button
-                        key={`${activeHoveredRegion.id}-${city}-${idx}`}
-                        onClick={() =>
-                          handleSelectCity(activeHoveredRegion, city)
-                        }
-                        className="text-gray-700 hover:text-[#dc2626] hover:font-semibold transition-colors cursor-pointer text-left whitespace-nowrap flex-shrink-0"
-                      >
-                        {city}
-                      </button>
-                    ))}
+            {/* Bottom Slot: Sub-cities Gray Banner for Hovered or Selected State */}
+            {(() => {
+              const currentDisplayRegion = activeHoveredRegion || selectedRegion || allRegions[0];
+              return (
+                <div className="mt-4 min-h-[36px] flex flex-col items-center justify-center gap-2">
+                  {currentDisplayRegion && (
+                    <div
+                      className="w-full bg-[#f4f4f4] rounded-md px-3.5 py-2 flex items-center justify-center gap-3 sm:gap-4 text-[11px] sm:text-xs text-gray-700 overflow-x-hidden whitespace-nowrap animate-fadeIn"
+                      onMouseEnter={() => setHoveredRegionId(currentDisplayRegion.id)}
+                    >
+                      {currentDisplayRegion.popularCities
+                        .slice(0, 6)
+                        .map((city, idx) => {
+                          const isSelectedCity =
+                            userLocation?.city?.toLowerCase() === city.toLowerCase() &&
+                            selectedRegion?.id === currentDisplayRegion.id;
+                          return (
+                            <button
+                              key={`${currentDisplayRegion.id}-${city}-${idx}`}
+                              onClick={() =>
+                                handleSelectCity(currentDisplayRegion, city)
+                              }
+                              className={`transition-colors cursor-pointer text-left whitespace-nowrap flex-shrink-0 ${
+                                isSelectedCity
+                                  ? "text-[#dc2626] font-bold underline"
+                                  : "text-gray-700 hover:text-[#dc2626] hover:font-semibold"
+                              }`}
+                            >
+                              {city}
+                            </button>
+                          );
+                        })}
+                    </div>
+                  )}
                 </div>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => setShowAllCities(true)}
-                  className="text-xs text-[#dc2626] hover:text-[#b91c1c] font-normal transition-all cursor-pointer"
-                >
-                  View All Cities
-                </button>
-              )}
-            </div>
+              );
+            })()}
           </div>
         )}
       </div>

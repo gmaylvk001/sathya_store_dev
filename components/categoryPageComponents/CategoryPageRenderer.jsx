@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useRegion } from "@/context/RegionContext";
 import { COMPONENT_TYPES } from "@/lib/categoryPageComponents/registry";
 import CategoryTopBanner from "./categoryTopbanner";
 import CategoryImageCarousel from "./categoryImageCarousel";
@@ -28,6 +29,7 @@ export default function CategoryPageRenderer({
   brandSlug,
   onHasDesign,
 }) {
+  const { region } = useRegion();
   const [components, setComponents] = useState([]);
   const [loaded, setLoaded] = useState(false);
   const onHasDesignRef = useRef(onHasDesign);
@@ -51,6 +53,7 @@ export default function CategoryPageRenderer({
         if (parentSlug) params.set("parent", String(parentSlug));
         if (brandSlug) params.set("brandSlug", String(brandSlug));
         if (categoryId) params.set("categoryId", String(categoryId));
+        if (region) params.set("region", String(region));
 
         const res = await fetch(`/api/category-pages/render?${params}`);
         const data = await res.json();
@@ -74,7 +77,7 @@ export default function CategoryPageRenderer({
     return () => {
       cancelled = true;
     };
-  }, [pageType, categoryId, slug, parentSlug, brandSlug]);
+  }, [pageType, categoryId, slug, parentSlug, brandSlug, region]);
 
   if (!loaded || !components.length) return null;
 

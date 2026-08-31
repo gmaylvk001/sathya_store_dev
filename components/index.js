@@ -113,20 +113,22 @@ export default function HomeComponent() {
       try {
         const response = await fetch("/api/brand");
         const result = await response.json();
-        if (result.error) {
-          console.error(result.error);
+        if (result.error || !Array.isArray(result?.data)) {
+          if (result.error) console.warn("Brand fetch:", result.error);
         } else {
           const data = result.data;
     
           // Store as map for quick access
           const map = {};
           data.forEach((b) => {
-            map[b._id] = b.brand_name;
+            if (b?._id) {
+              map[b._id] = b.brand_name;
+            }
           });
           setBrandMap(map);
         }
       } catch (error) {
-        console.error(error.message);
+        console.error("Error in fetchBrand:", error.message);
       }
     };
     useEffect(() => {
@@ -271,15 +273,18 @@ export default function HomeComponent() {
             setIsBrandsLoading(true);
             try {
                 const response = await fetch('/api/brand/get');
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                const data = await response.json();
-                if (data.success) {
-                    setBrands(data.brands || []);
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data?.success && Array.isArray(data.brands)) {
+                        setBrands(data.brands);
+                    } else {
+                        setBrands([]);
+                    }
+                } else {
+                    setBrands([]);
                 }
             } catch (error) {
-                console.error("Error fetching brands:", error);
+                console.warn("Could not fetch brands:", error.message);
                 setBrands([]);
             } finally {
                 setIsBrandsLoading(false);

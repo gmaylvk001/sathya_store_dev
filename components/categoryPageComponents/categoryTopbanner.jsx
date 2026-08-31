@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRegion } from "@/context/RegionContext";
 
 /**
  * Storefront Top Banner UI.
@@ -13,6 +14,7 @@ export default function CategoryTopBanner({
   categoryId,
   slug,
 }) {
+  const { region } = useRegion();
   const [banners, setBanners] = useState(bannersProp || []);
   const [index, setIndex] = useState(0);
 
@@ -34,6 +36,7 @@ export default function CategoryTopBanner({
         const params = new URLSearchParams({ activeOnly: "1" });
         if (categoryId) params.set("categoryId", String(categoryId));
         else params.set("slug", String(slug));
+        if (region) params.set("region", String(region));
 
         const res = await fetch(`/api/category-topbanner?${params}`);
         const data = await res.json();
@@ -50,7 +53,7 @@ export default function CategoryTopBanner({
     return () => {
       cancelled = true;
     };
-  }, [bannersProp, categoryId, slug]);
+  }, [bannersProp, categoryId, slug, region]);
 
   useEffect(() => {
     if (banners.length <= 1) return undefined;

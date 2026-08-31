@@ -23,7 +23,7 @@
     "bcryptjs": "^3.0.2",
     "chart.js": "^4.4.9",
     "cloudinary": "^2.5.1",
-    "date-fns": "^4.1.0",
+    "date-fns": "^4.4.0",
     "formidable": "^3.5.2",
     "framer-motion": "^12.6.2",
     "fs": "^0.0.1-security",
@@ -40,7 +40,7 @@
     "md5": "^2.3.0",
     "mongoose": "^8.10.1",
     "multer": "^1.4.5-lts.1",
-    "next": "^15.5.9",
+    "next": "^15.1.7",
     "next-auth": "^4.24.11",
     "nodemailer": "^6.10.1",
     "pdfkit": "^0.16.0",
@@ -81,4 +81,3 @@
     "vite": "^7.1.12"
   }
 }
-

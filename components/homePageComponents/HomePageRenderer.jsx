@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useRegion } from "@/context/RegionContext";
 import { COMPONENT_TYPES } from "@/lib/categoryPageComponents/registry";
 import CategoryTopBanner from "@/components/categoryPageComponents/categoryTopbanner";
 import CategoryImageCarousel from "@/components/categoryPageComponents/categoryImageCarousel";
@@ -20,6 +21,7 @@ import CategorySplitBanner from "@/components/categoryPageComponents/categorySpl
  * Reuses the same storefront section UI as category overview pages.
  */
 export default function HomePageRenderer({ onHasDesign }) {
+  const { region } = useRegion();
   const [components, setComponents] = useState([]);
   const [loaded, setLoaded] = useState(false);
   const onHasDesignRef = useRef(onHasDesign);
@@ -31,7 +33,10 @@ export default function HomePageRenderer({ onHasDesign }) {
 
     const load = async () => {
       try {
-        const res = await fetch("/api/home-pages/render");
+        const targetRegion = region || "all";
+        const res = await fetch(
+          `/api/home-pages/render?region=${encodeURIComponent(targetRegion)}`
+        );
         const data = await res.json();
         if (cancelled) return;
 
@@ -53,7 +58,7 @@ export default function HomePageRenderer({ onHasDesign }) {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [region]);
 
   if (!loaded) {
     return (

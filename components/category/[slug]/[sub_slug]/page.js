@@ -456,20 +456,22 @@ const scroll = (direction) => {
     try {
       const response = await fetch("/api/brand");
       const result = await response.json();
-      if (result.error) {
-        console.error(result.error);
+      if (result.error || !Array.isArray(result?.data)) {
+        if (result.error) console.warn("Brand fetch:", result.error);
       } else {
         const data = result.data;
   
         // Store as map for quick access
         const map = {};
         data.forEach((b) => {
-          map[b._id] = b.brand_name;
+          if (b?._id) {
+            map[b._id] = b.brand_name;
+          }
         });
         setBrandMap(map);
       }
     } catch (error) {
-      console.error(error.message);
+      console.warn("Could not fetch brands:", error.message);
     }
   };
   

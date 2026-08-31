@@ -6,6 +6,7 @@ import {
   DEFAULT_LOCATION,
   normalizeRegion,
   isValidPincode,
+  getCityPincode,
 } from '@/lib/regionHelper';
 
 const STORAGE_KEY = 'sathya_selected_region';
@@ -254,9 +255,12 @@ export const RegionProvider = ({ children }) => {
       targetRegion = SOUTH_INDIAN_STATES[0];
     }
 
+    const resolvedCity = customCity ? customCity.toLowerCase().trim() : targetRegion.defaultCity.toLowerCase();
+    const resolvedPincode = customPincode || (customCity ? getCityPincode(customCity, targetRegion.id) : targetRegion.defaultPincode);
+
     const locData = {
-      pincode: customPincode || targetRegion.defaultPincode,
-      city: (customCity || targetRegion.defaultCity).toLowerCase(),
+      pincode: resolvedPincode,
+      city: resolvedCity,
       region: targetRegion.id,
       stateName: targetRegion.name,
       code: targetRegion.code,
