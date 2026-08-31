@@ -3,7 +3,7 @@ import dbConnect from "@/lib/db";
 import ProductAll from "@/models/Product_all";
 import Category from "@/models/ecom_category_info";
 import Brand from "@/models/ecom_brand_info";
-import { generateProductAiContent } from "@/lib/productContent/aiContentService";
+import { generateProductAiContent, formatGeneratedProductName } from "@/lib/productContent/aiContentService";
 import { slugifyProductName, uniqueProductSlug } from "@/lib/productSlug";
 
 function normalizeName(value = "") {
@@ -120,7 +120,10 @@ export async function POST(req) {
         category: categoryName,
         brand: brandName,
         product_code: productCode,
-        product_name: productName,
+        product_name: formatGeneratedProductName(productName, {
+          brand: brandName,
+          productCode,
+        }),
         description: "",
         highlights: [],
         key_features: [],
