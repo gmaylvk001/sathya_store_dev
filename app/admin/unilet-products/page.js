@@ -665,16 +665,19 @@ export default function UniletProductsPage() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-semibold text-gray-700 mb-1">
-                    Stock Quantity <span className="text-red-500">*</span>
+                    Quantity <span className="text-red-500">*</span>
                   </label>
-                  <input
-                    type="number"
-                    required
-                    min="0"
+                  <select
                     value={editForm.stock}
-                    onChange={(e) => setEditForm({ ...editForm, stock: e.target.value })}
-                    className="w-full text-sm border border-gray-300 rounded-md px-3 py-1.5 focus:ring-1 focus:ring-blue-500 focus:outline-none"
-                  />
+                    onChange={(e) => setEditForm({ ...editForm, stock: Number(e.target.value) })}
+                    className="w-full text-sm border border-gray-300 rounded-md px-3 py-1.5 focus:ring-1 focus:ring-blue-500 focus:outline-none bg-white font-medium"
+                  >
+                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 15, 20, 25, 30, 40, 50, 75, 100, 150, 200, 250, 500].map((qty) => (
+                      <option key={qty} value={qty}>
+                        {qty}
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-gray-700 mb-1">Stock Status</label>
@@ -835,93 +838,117 @@ export default function UniletProductsPage() {
                 )}
               </div>
 
-              {selectedCatalogProduct && (
-                <>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-xs font-semibold text-gray-700 mb-1">
-                        Unilet Price (₹) <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="number"
-                        required
-                        min="0"
-                        step="0.01"
-                        value={addForm.price}
-                        onChange={(e) => setAddForm({ ...addForm, price: e.target.value })}
-                        className="w-full text-sm border border-gray-300 rounded px-3 py-1.5"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-semibold text-gray-700 mb-1">
-                        Unilet Offer Price (₹)
-                      </label>
-                      <input
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        value={addForm.offer_price}
-                        onChange={(e) => setAddForm({ ...addForm, offer_price: e.target.value })}
-                        className="w-full text-sm border border-gray-300 rounded px-3 py-1.5"
-                      />
-                    </div>
-                  </div>
+              {/* Vendor Item Code Input Box */}
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">
+                  Vendor Item Code <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={addForm.vendor_item_code}
+                  onChange={(e) => setAddForm({ ...addForm, vendor_item_code: e.target.value })}
+                  className="w-full text-sm border border-gray-300 rounded-md px-3 py-1.5 focus:ring-1 focus:ring-blue-500 focus:outline-none font-mono"
+                  placeholder="e.g. IP17E512SOFPINKMHU34_U"
+                />
+              </div>
 
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-xs font-semibold text-gray-700 mb-1">
-                        Stock Quantity <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="number"
-                        required
-                        min="0"
-                        value={addForm.stock}
-                        onChange={(e) => setAddForm({ ...addForm, stock: e.target.value })}
-                        className="w-full text-sm border border-gray-300 rounded px-3 py-1.5"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-semibold text-gray-700 mb-1">Stock Status</label>
-                      <select
-                        value={addForm.stock_status}
-                        onChange={(e) => setAddForm({ ...addForm, stock_status: e.target.value })}
-                        className="w-full text-sm border border-gray-300 rounded px-3 py-1.5 bg-white"
-                      >
-                        <option value="In Stock">In Stock</option>
-                        <option value="Out of Stock">Out of Stock</option>
-                      </select>
-                    </div>
-                  </div>
+              {/* Pricing row */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">
+                    Unilet Price (₹) <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    required
+                    min="0"
+                    step="0.01"
+                    value={addForm.price}
+                    onChange={(e) => setAddForm({ ...addForm, price: e.target.value })}
+                    className="w-full text-sm border border-gray-300 rounded-md px-3 py-1.5 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                    placeholder="e.g. 50000"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">
+                    Unilet Offer Price (₹)
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={addForm.offer_price}
+                    onChange={(e) => setAddForm({ ...addForm, offer_price: e.target.value })}
+                    className="w-full text-sm border border-gray-300 rounded-md px-3 py-1.5 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                    placeholder="e.g. 45000"
+                  />
+                </div>
+              </div>
 
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">Vendor Item Code</label>
-                      <input
-                        type="text"
-                        value={addForm.vendor_item_code}
-                        onChange={(e) => setAddForm({ ...addForm, vendor_item_code: e.target.value })}
-                        className="w-full text-xs border border-gray-300 rounded px-2.5 py-1.5"
-                        placeholder="e.g. CODE_U"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-semibold text-gray-700 mb-1">Location</label>
-                      <select
-                        value={addForm.region}
-                        onChange={(e) => setAddForm({ ...addForm, region: e.target.value })}
-                        className="w-full text-sm border border-gray-300 rounded px-3 py-1.5 bg-white capitalize"
-                      >
-                        <option value="karnataka">Karnataka</option>
-                        <option value="tamilnadu">Tamil Nadu</option>
-                        <option value="andhra">Andhra Pradesh</option>
-                        <option value="telangana">Telangana</option>
-                        <option value="kerala">Kerala</option>
-                      </select>
-                    </div>
+              {/* Quantity Select Dropdown & Stock Status */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">
+                    Quantity <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={addForm.stock}
+                    onChange={(e) => setAddForm({ ...addForm, stock: Number(e.target.value) })}
+                    className="w-full text-sm border border-gray-300 rounded-md px-3 py-1.5 focus:ring-1 focus:ring-blue-500 focus:outline-none bg-white font-medium"
+                  >
+                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 15, 20, 25, 30, 40, 50, 75, 100, 150, 200, 250, 500].map((qty) => (
+                      <option key={qty} value={qty}>
+                        {qty}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Stock Status</label>
+                  <select
+                    value={addForm.stock_status}
+                    onChange={(e) => setAddForm({ ...addForm, stock_status: e.target.value })}
+                    className="w-full text-sm border border-gray-300 rounded-md px-3 py-1.5 bg-white focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                  >
+                    <option value="In Stock">In Stock</option>
+                    <option value="Out of Stock">Out of Stock</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Location & Active Status */}
+              <div className="grid grid-cols-2 gap-3 items-center">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Delivery Location</label>
+                  <select
+                    value={addForm.region}
+                    onChange={(e) => setAddForm({ ...addForm, region: e.target.value })}
+                    className="w-full text-sm border border-gray-300 rounded-md px-3 py-1.5 bg-white capitalize focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                  >
+                    <option value="karnataka">Karnataka</option>
+                    <option value="tamilnadu">Tamil Nadu</option>
+                    <option value="andhra">Andhra Pradesh</option>
+                    <option value="telangana">Telangana</option>
+                    <option value="kerala">Kerala</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Status</label>
+                  <div className="flex items-center space-x-2 mt-1">
+                    <input
+                      type="checkbox"
+                      id="add_is_active"
+                      checked={addForm.is_active}
+                      onChange={(e) => setAddForm({ ...addForm, is_active: e.target.checked })}
+                      className="w-4 h-4 text-blue-600 rounded"
+                    />
+                    <label htmlFor="add_is_active" className="text-xs text-gray-700 font-medium">
+                      Active (Visible to Karnataka)
+                    </label>
                   </div>
-                </>
-              )}
+                </div>
+              </div>
 
               <div className="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200">
                 <button
