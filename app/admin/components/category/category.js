@@ -6,6 +6,7 @@ import { Icon } from "@iconify/react";
 import DateRangePicker from "@/components/DateRangePicker";
 import dynamic from "next/dynamic";
 import Link from "next/link";
+import AdminLoader from "@/app/admin/components/AdminLoader";
 import { components } from "react-select";
 import { Check } from "react-feather";
 const Select = dynamic(() => import("react-select"), { ssr: false });
@@ -1022,9 +1023,7 @@ export default function CategoryComponent() {
       </div>
 
       {isLoading ? (
-        <div className="bg-white rounded-xl border border-gray-200 p-10 text-center text-sm text-gray-500">
-          Loading categories…
-        </div>
+        <AdminLoader label="Loading categories..." />
       ) : (
         <div className="bg-white shadow-sm rounded-xl border border-gray-200 p-5 mb-5 overflow-x-auto">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">

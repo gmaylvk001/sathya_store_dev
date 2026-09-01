@@ -1,30 +1,42 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { useState } from "react";
 import AdminHeader from "@/app/admin/components/AdminHeader";
 import AdminSider from "@/app/admin/components/AdminSider";
 import AuthProvider from "@/app/admin/components/AuthProvider";
+import AdminPageShell from "@/app/admin/components/AdminPageShell";
+import { AdminNavLoadingProvider } from "@/app/admin/components/AdminNavLoading";
+
+const SIDEBAR_WIDTH = "70px";
+const HEADER_HEIGHT = "68px";
 
 export default function AdminLayout({ children }) {
   const pathname = usePathname();
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false); // 🆕 Add sidebar state
+  const isLoginPage = pathname === "/admin/login";
 
-  if (pathname === "/admin/login") {
+  if (isLoginPage) {
     return <>{children}</>;
   }
 
   return (
     <AuthProvider>
-      <div className="flex min-h-screen bg-gray-100">
-        <AdminSider collapsed={sidebarCollapsed} />
-        <div className={`flex-1 min-w-0 ${sidebarCollapsed ? "ms-[4rem]" : "ms-[13.25rem]"}`}>
-          <AdminHeader toggleSidebar={() => setSidebarCollapsed(!sidebarCollapsed)} />
-          <main className="flex-1 mt-0 px-6 h-[calc(100vh-3.5rem)] min-w-0 overflow-y-auto overflow-x-hidden">
-            {children}
+      <AdminNavLoadingProvider>
+        <div
+          className="admin-layout grid h-screen overflow-hidden bg-gray-100 text-[15px]"
+          style={{
+            gridTemplateRows: `${HEADER_HEIGHT} minmax(0, 1fr)`,
+            gridTemplateColumns: `${SIDEBAR_WIDTH} minmax(0, 1fr)`,
+            "--admin-sidebar-width": SIDEBAR_WIDTH,
+            "--admin-header-height": HEADER_HEIGHT,
+          }}
+        >
+          <AdminHeader />
+          <AdminSider collapsed />
+          <main className="admin-main col-start-2 row-start-2 min-h-0 min-w-0 overflow-x-hidden overflow-y-auto bg-[#f5f6f8] px-3 py-3 sm:px-4 sm:py-4">
+            <AdminPageShell>{children}</AdminPageShell>
           </main>
         </div>
-      </div>
+      </AdminNavLoadingProvider>
     </AuthProvider>
   );
 }

@@ -2,6 +2,7 @@
 
 import { useParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
+import AdminLoader from '@/app/admin/components/AdminLoader';
 
 export default function ProductAdminPage() {
   const params = useParams();
@@ -195,7 +196,7 @@ export default function ProductAdminPage() {
   };
 
   if (isLoading) {
-    return <div className="p-8 text-center text-gray-600 font-medium">Loading product management details...</div>;
+    return <AdminLoader label="Loading product management details..." />;
   }
 
   if (!product) {

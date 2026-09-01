@@ -1,117 +1,74 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { Icon } from '@iconify/react';
 
-export default function AdminSider({ collapsed }) {
-  const pathname = usePathname();
-  const [activeMenu, setActiveMenu] = useState('Dashboard');
-  const [hoveredSubmenu, setHoveredSubmenu] = useState(null);
-  const [isHoveringSubmenu, setIsHoveringSubmenu] = useState(false);
-  const [openMenus, setOpenMenus] = useState([]); // track expanded menus
-  const router = useRouter();
-  const submenuRef = useRef(null);
-  const [userPermissions, setUserPermissions] = useState([]);
-
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      setUserPermissions([]);
-      return;
-    }
-
-    fetch('/api/auth/permissions', {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        setUserPermissions(Array.isArray(data.permissions) ? data.permissions : []);
-      })
-      .catch(() => {
-        setUserPermissions([]);
-      });
-  }, []);
-
-  const menuItems = [
-    { icon: 'material-symbols:dashboard', label: 'Dashboard', link: 'dashboard' },
-    { icon: 'material-symbols:category', label: 'Category', link: 'category' },
-    {
-      icon: 'mdi:package-variant-closed',
-      label: 'Product',
-      submenu: [
-        { icon: 'mdi:format-list-bulleted', label: 'Product List', link: 'product', dotColor: 'bg-green-500' },
-        { icon: 'mdi:tag-outline', label: 'Brand', link: 'brand', dotColor: 'bg-red-500' },
-        { icon: 'mdi:upload', label: 'Bulk Upload', link: 'product/bulk_upload', dotColor: 'bg-yellow-500' },
-        { icon: 'mdi:filter-variant', label: 'Filter Group', link: 'filter_group', dotColor: 'bg-yellow-500' },
-        { icon: 'mdi:filter-outline', label: 'Filter', link: 'filter', dotColor: 'bg-yellow-500' },
-        { icon: 'mdi:plus-box-outline', label: 'New Product', link: 'newproduct', dotColor: 'bg-green-500' }
-      ]
-    },
-    { icon: 'mdi:storefront-outline', label: 'Unilet Products', link: 'unilet-products', permission: 'unilet-permission' },
-    // { icon: 'mdi:image-outline', label: 'Banner', link: 'design' },
-    {
-      icon: 'material-symbols:receipt-long',
-          label: 'Sales',
+const menuItems = [
+  { icon: 'material-symbols:dashboard', label: 'Dashboard', link: 'dashboard' },
+  { icon: 'material-symbols:category', label: 'Category', link: 'category' },
+  {
+    icon: 'mdi:package-variant-closed',
+    label: 'Product',
     submenu: [
-      { icon: 'mdi:truck-delivery', label: 'All Orders', link: 'Allorder', dotColor: 'bg-yellow-500' },
+      { icon: 'mdi:format-list-bulleted', label: 'Product List', link: 'product', dotColor: 'bg-green-500' },
+      { icon: 'mdi:trademark', label: 'Brand', link: 'brand', dotColor: 'bg-red-500' },
+      { icon: 'mdi:upload', label: 'Bulk Upload', link: 'product/bulk_upload', dotColor: 'bg-yellow-500' },
+      { icon: 'mdi:filter-variant', label: 'Filter Group', link: 'filter_group', dotColor: 'bg-yellow-500' },
+      { icon: 'mdi:filter-outline', label: 'Filter', link: 'filter', dotColor: 'bg-yellow-500' },
+      { icon: 'mdi:plus-box-outline', label: 'New Product', link: 'newproduct', dotColor: 'bg-green-500' }
+    ]
+  },
+  { icon: 'mdi:storefront-outline', label: 'Unilet Products', link: 'unilet-products' },
+  {
+    icon: 'mdi:cart-outline',
+    label: 'Sales',
+    submenu: [
+      { icon: 'mdi:clipboard-list-outline', label: 'All Orders', link: 'Allorder', dotColor: 'bg-yellow-500' },
       { icon: 'mdi:home-import-outline', label: 'Home Delivery', link: 'homedelivery', dotColor: 'bg-yellow-500' },
-      // { icon: 'mdi:cart-off', label: 'Abandant Order', link: 'abandantorder', dotColor: 'bg-yellow-500' },
       { icon: 'mdi:cart-off', label: 'Abandoned Order', link: 'abandonedorder', dotColor: 'bg-yellow-500' },
-      // { icon: 'mdi:clock-outline', label: 'Home Delivery', link: 'order/home-delivery', dotColor: 'bg-yellow-500' },
-      // { icon: 'mdi:clock-outline', label: 'Pending Order', link: 'order/pending-order', dotColor: 'bg-yellow-500' },
       { icon: 'mdi:cancel', label: 'Cancel Order', link: 'order/cancel-order', dotColor: 'bg-[#d72828]' },
       { icon: 'mdi:truck-delivery-outline', label: 'Shipped Order', link: 'shippedorder', dotColor: 'bg-green-500' }
     ]
   },
-
-   {
-      icon: 'material-symbols:receipt-long',
-          label: 'Main Settings',
+  {
+    icon: 'mdi:tune-variant',
+    label: 'Main Settings',
     submenu: [
-      { icon: 'mdi:truck-delivery', label: 'Banner', link: 'main-cat', dotColor: 'bg-yellow-500' },
-      { icon: 'mdi:truck-delivery', label: 'Category Flash', link: 'main-cat-flash', dotColor: 'bg-yellow-500' },
-      { icon: 'mdi:truck-delivery', label: 'Category banner', link: 'main_cat_prod', dotColor: 'bg-yellow-500' },
-      { icon: 'mdi:truck-delivery', label: 'Category Image', link: 'category-image-section', dotColor: 'bg-yellow-500' },
-       { icon: 'mdi:truck-delivery', label: 'open box banner', link: 'openboxbanner', dotColor: 'bg-yellow-500' },
+      { icon: 'mdi:image-outline', label: 'Banner', link: 'main-cat', dotColor: 'bg-yellow-500' },
+      { icon: 'mdi:flash-outline', label: 'Category Flash', link: 'main-cat-flash', dotColor: 'bg-yellow-500' },
+      { icon: 'mdi:image-area', label: 'Category banner', link: 'main_cat_prod', dotColor: 'bg-yellow-500' },
+      { icon: 'mdi:image-multiple-outline', label: 'Category Image', link: 'category-image-section', dotColor: 'bg-yellow-500' },
+      { icon: 'mdi:cube-outline', label: 'open box banner', link: 'openboxbanner', dotColor: 'bg-yellow-500' },
     ]
   },
-    { icon: 'mdi:tag-outline', label: 'Offer', link: 'offer' },
-    {
-      icon: 'mdi:bullhorn-outline',
-      label: 'Marketing',
-      submenu: [
-        {
-          icon: 'mdi:gift-outline',
-          label: 'Combo Offers',
-          link: 'combo-offers',
-          dotColor: 'bg-green-500',
-        },
-      ],
-    },
-    // { icon: 'mdi:heart-flash', label: 'Wishlist Mail Alerts', link: 'wishlist-mail' },
-    { icon: "mdi:briefcase-account-outline", label: "Job Positions", link: "careers" },
-    { icon: 'mdi:note-text-outline', label: 'Blog', link: 'blog' },
-    // { icon: 'mdi:account-outline', label: 'User', link: 'user' },
-    { icon: 'mdi:phone-outline', label: 'Contact Us', link: 'contact' },
-    { icon: "mdi:briefcase-account-outline", label: "Feedback", link: "feedback_page" },
-    { icon: 'material-symbols:reviews-rounded', label: 'Reviews', link: 'reviews' },
-    {
-  icon: 'mdi:file-chart-outline', // changed to reports icon
-  label: 'Reports',
-  submenu: [
-    { icon: 'mdi:plus-box-outline', label: 'New Product', link: 'newproduct', dotColor: 'bg-green-500' },
-
-  ]
-},
-
-    // ✅ Updated Settings with new icon + submenu
+  { icon: 'mdi:percent-outline', label: 'Offer', link: 'offer' },
   {
-    icon: 'mdi:cog-outline',  // changed from phone to settings cog
+    icon: 'mdi:bullhorn-outline',
+    label: 'Marketing',
+    submenu: [
+      {
+        icon: 'mdi:gift-outline',
+        label: 'Combo Offers',
+        link: 'combo-offers',
+        dotColor: 'bg-green-500',
+      },
+    ],
+  },
+  { icon: 'mdi:briefcase-outline', label: 'Job Positions', link: 'careers' },
+  { icon: 'mdi:note-text-outline', label: 'Blog', link: 'blog' },
+  { icon: 'mdi:phone-outline', label: 'Contact Us', link: 'contact' },
+  { icon: 'mdi:message-text-outline', label: 'Feedback', link: 'feedback_page' },
+  { icon: 'material-symbols:reviews-rounded', label: 'Reviews', link: 'reviews' },
+  {
+    icon: 'mdi:file-chart-outline',
+    label: 'Reports',
+    submenu: [
+      { icon: 'mdi:chart-plus', label: 'New Product', link: 'newproduct', dotColor: 'bg-green-500' },
+    ]
+  },
+  {
+    icon: 'mdi:cog-outline',
     label: 'Settings',
     submenu: [
       { icon: 'mdi:home-outline', label: 'Home Settings', link: 'homesettings', dotColor: 'bg-green-500' },
@@ -122,35 +79,43 @@ export default function AdminSider({ collapsed }) {
     ]
   },
   {
-        icon: 'material-symbols:receipt-long',
-            label: 'Users Settings',
-      submenu: [
-        { icon: 'mdi:account-outline', label: 'Users', link: 'user', dotColor: 'bg-yellow-500' },
-        { icon: 'mdi:account-outline', label: 'System_Users',link: 'system_users', dotColor: 'bg-yellow-500' },
-        {icon: 'mdi:shield-key-outline',label: 'Permissions',link: 'permissions',dotColor: 'bg-purple-500'},
-        { icon: 'mdi:account-group-outline',label: 'Roles',link: 'roles',dotColor: 'bg-blue-500'}
-      ]
+    icon: 'mdi:account-cog-outline',
+    label: 'Users Settings',
+    submenu: [
+      { icon: 'mdi:account-outline', label: 'Users', link: 'user', dotColor: 'bg-yellow-500' },
+      { icon: 'mdi:account-tie-outline', label: 'System_Users', link: 'system_users', dotColor: 'bg-yellow-500' },
+      { icon: 'mdi:shield-key-outline', label: 'Permissions', link: 'permissions', dotColor: 'bg-purple-500' },
+      { icon: 'mdi:account-group-outline', label: 'Roles', link: 'roles', dotColor: 'bg-blue-500' }
+    ]
   },
-  // { icon: 'material-symbols:fact-check-outline', label: 'Audit', link: 'audit' },
-    //     {
-    //   icon: 'mdi:map-marker-outline',
-    //   label: 'Store Location',
-    //   submenu: [
-       
-    //     { icon: 'mdi:map-marker-radius-outline', label: 'Zone', link: 'zone', dotColor: 'bg-[#d72828]' },
-    //   ]
-    // }
+];
 
-  ];
-  const handleCloseSubmenu = () => {
-    setTimeout(() => {
-      if (!isHoveringSubmenu) {
-        setHoveredSubmenu(null);
-      }
-    }, 150);
-  };
+function setSidebarFlyoutTop(event) {
+  const rect = event.currentTarget.getBoundingClientRect();
+  event.currentTarget.style.setProperty('--sidebar-flyout-top', `${rect.top}px`);
+}
 
-  // Sync activeMenu with route pathname
+function SidebarHoverBadge({ label }) {
+  return (
+    <span
+      role="tooltip"
+      className="pointer-events-none fixed z-[80] whitespace-nowrap rounded-lg bg-red-50 px-3 py-1.5 text-sm font-medium text-brandRed shadow-lg opacity-0 invisible transition-opacity duration-200 group-hover:visible group-hover:opacity-100"
+      style={{
+        left: '60px',
+        top: 'var(--sidebar-flyout-top, 0px)',
+      }}
+    >
+      {label}
+    </span>
+  );
+}
+
+export default function AdminSider({ collapsed }) {
+  const pathname = usePathname();
+  const [activeMenu, setActiveMenu] = useState('Dashboard');
+  const [openMenus, setOpenMenus] = useState([]);
+  const router = useRouter();
+
   useEffect(() => {
     if (!pathname) return;
     if (pathname.includes('/admin/unilet-products')) {
@@ -173,130 +138,70 @@ export default function AdminSider({ collapsed }) {
     }
   }, [pathname]);
 
-  // Close all submenus when clicking a main category without submenu
   useEffect(() => {
     const clickedMain = menuItems.find(item => item.label === activeMenu);
     if (clickedMain && !clickedMain.submenu) {
-      setOpenMenus([]); // close all open submenus
+      setOpenMenus([]);
     }
   }, [activeMenu]);
 
   return (
-    <>
-      <aside
-        className={`h-screen bg-white border-r border-gray-200 fixed top-0 left-0 shadow z-50 overflow-y-scroll scrollbar-hide transition-all duration-300 ${
-          collapsed ? 'w-16' : 'w-52'
-        }`}
-      >
-        {/* Logo */}
-        <div
-          className={`flex items-center px-4 py-4 border-b border-gray-200 ${
-            collapsed ? 'justify-center' : 'justify-between'
-          }`}
-        >
-          {!collapsed ? (
-            <a href="/" className="flex items-center space-x-2">
-              <img src="/uploads/sathyalogo.webp" alt="Site Logo" className="h-9" />
-              <span className="text-sm font-bold text-gray-700">Sathya Stores</span>
-            </a>
-          ) : (
-            <img src="/uploads/sathyalogo.webp" alt="Site Logo" className="h-9" />
+    <aside
+      id="admin-sidebar"
+      className="col-start-1 row-start-2 z-30 flex h-full min-h-0 w-full flex-col overflow-y-auto border-r border-gray-200 bg-white scrollbar-hide"
+    >
+      <nav className="py-3">
+        <ul className="space-y-1 px-3">
+          {menuItems.map((item) =>
+            item.submenu ? (
+              <SidebarItemWithDropdown
+                key={item.label}
+                item={item}
+                activeMenu={activeMenu}
+                setActiveMenu={setActiveMenu}
+                collapsed={collapsed}
+                openMenus={openMenus}
+                setOpenMenus={setOpenMenus}
+                router={router}
+              />
+            ) : (
+              <SidebarItem
+                key={item.label}
+                icon={item.icon}
+                label={item.label}
+                link={item.link}
+                activeMenu={activeMenu}
+                setActiveMenu={setActiveMenu}
+                collapsed={collapsed}
+                router={router}
+              />
+            )
           )}
-        </div>
-
-        {/* Menu */}
-        <nav className="mt-4">
-          <ul className="px-2 space-y-1">
-            {menuItems.filter((item) => !item.permission || userPermissions.includes(item.permission)).map((item) =>
-              item.submenu ? (
-                <SidebarItemWithDropdown
-                  key={item.label}
-                  item={item}
-                  activeMenu={activeMenu}
-                  setActiveMenu={setActiveMenu}
-                  collapsed={collapsed}
-                  hoveredSubmenu={hoveredSubmenu}
-                  setHoveredSubmenu={setHoveredSubmenu}
-                  handleCloseSubmenu={handleCloseSubmenu}
-                  openMenus={openMenus}
-                  setOpenMenus={setOpenMenus}
-                  router={router}
-                />
-              ) : (
-                <SidebarItem
-                  key={item.label}
-                  icon={item.icon}
-                  label={item.label}
-                  link={item.link}
-                  activeMenu={activeMenu}
-                  setActiveMenu={setActiveMenu}
-                  collapsed={collapsed}
-                  router={router}
-                />
-              )
-            )}
-          </ul>
-        </nav>
-      </aside>
-
-      {/* Hover Submenu Box for collapsed mode */}
-      {hoveredSubmenu && collapsed && (
-        <div
-          ref={submenuRef}
-          className="absolute bg-white border border-gray-200 shadow-lg rounded-md p-2 z-50"
-          style={{
-            top: hoveredSubmenu.position.top,
-            left: hoveredSubmenu.position.left
-          }}
-          onMouseEnter={() => setIsHoveringSubmenu(true)}
-          onMouseLeave={() => {
-            setIsHoveringSubmenu(false);
-            setHoveredSubmenu(null);
-          }}
-        >
-          <ul className="space-y-1">
-            {hoveredSubmenu.items.map((sub) => (
-              <li key={sub.label}>
-                <button
-                  onClick={() => {
-                    setActiveMenu(sub.label);
-                    setHoveredSubmenu(null);
-                    router.push(`/admin/${sub.link}`);
-                  }}
-                  className={`w-full flex items-center px-3 py-2 rounded text-sm space-x-3 ${
-                    activeMenu === sub.label
-                      ? 'bg-brandRed text-white'
-                      : 'text-gray-700 hover:text-brandRed'
-                  }`}
-                >
-                  <Icon icon={sub.icon} className="text-lg" />
-                  <span>{sub.label}</span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-    </>
+        </ul>
+      </nav>
+    </aside>
   );
 }
 
 function SidebarItem({ icon, label, link, activeMenu, setActiveMenu, collapsed, router }) {
   const active = activeMenu === label;
+
   return (
-    <li>
+    <li className="group relative" onMouseEnter={setSidebarFlyoutTop}>
       <button
         onClick={() => {
           setActiveMenu(label);
           router.push(`/admin/${link}`);
         }}
-        className={`w-full flex items-center px-3 py-3 rounded-lg text-md font-medium transition-colors duration-200 ${
+        className={`w-full flex items-center px-1 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
           active ? 'bg-brandRed text-white' : 'text-gray-700 hover:text-brandRed'
         } ${collapsed ? 'justify-center' : 'space-x-3'}`}
+        aria-label={label}
       >
-        <Icon icon={icon} className={collapsed ? 'text-2xl' : 'text-xl'} />
+        <Icon icon={icon} className="text-xl" />
         {!collapsed && <span>{label}</span>}
       </button>
+      {collapsed && <SidebarHoverBadge label={label} />}
     </li>
   );
 }
@@ -306,27 +211,25 @@ function SidebarItemWithDropdown({
   activeMenu,
   setActiveMenu,
   collapsed,
-  setHoveredSubmenu,
-  handleCloseSubmenu,
   openMenus,
   setOpenMenus,
   router
 }) {
-  const ref = useRef(null);
   const isOpen = openMenus.includes(item.label);
+  const [openUp, setOpenUp] = useState(false);
 
-  const handleMouseEnter = () => {
-    if (collapsed && ref.current) {
-      const rect = ref.current.getBoundingClientRect();
-      setHoveredSubmenu({
-        label: item.label,
-        items: item.submenu,
-        position: {
-          top: rect.top + 'px',
-          left: rect.right + 'px'
-        }
-      });
-    }
+  const setFlyoutTop = (event) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    const estimatedHeight = 44 + item.submenu.length * 42 + 8;
+    const spaceBelow = window.innerHeight - rect.top;
+    const shouldOpenUp = spaceBelow < estimatedHeight + 12;
+
+    event.currentTarget.style.setProperty('--sidebar-flyout-top', `${rect.top}px`);
+    event.currentTarget.style.setProperty(
+      '--sidebar-flyout-bottom',
+      `${Math.max(8, window.innerHeight - rect.bottom)}px`
+    );
+    setOpenUp(shouldOpenUp);
   };
 
   const toggleMenu = () => {
@@ -338,22 +241,19 @@ function SidebarItemWithDropdown({
   };
 
   return (
-    <li
-      ref={ref}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={collapsed ? handleCloseSubmenu : undefined}
-    >
-      {/* Parent button */}
+    <li className="group relative" onMouseEnter={collapsed ? setFlyoutTop : undefined}>
       <button
         onClick={() => {
-          if (collapsed) return; // collapsed uses hover
+          if (collapsed) return;
           toggleMenu();
         }}
-        className={`w-full flex items-center px-3 py-3 rounded-lg text-md font-medium transition-colors duration-200 ${
+        className={`w-full flex items-center px-3 py-3 rounded-lg text-sm font-medium transition-colors duration-200 ${
           item.submenu.some((sub) => sub.label === activeMenu)
             ? 'bg-red-100 text-brandRed'
             : 'text-gray-700 hover:text-brandRed'
         } ${collapsed ? 'justify-center' : 'space-x-3'}`}
+        aria-label={item.label}
+        aria-haspopup="true"
       >
         <Icon icon={item.icon} className={collapsed ? 'text-2xl' : 'text-xl'} />
         {!collapsed && <span className="flex-1 text-left">{item.label}</span>}
@@ -365,7 +265,45 @@ function SidebarItemWithDropdown({
         )}
       </button>
 
-      {/* Expanded mode submenu only if open */}
+      {collapsed && (
+        <div
+          className="invisible pointer-events-none fixed z-[90] group-hover:visible group-hover:pointer-events-auto"
+          style={
+            openUp
+              ? { left: '50px', bottom: 'var(--sidebar-flyout-bottom, 8px)', top: 'auto' }
+              : { left: '50px', top: 'var(--sidebar-flyout-top, 0px)', bottom: 'auto' }
+          }
+        >
+          <div className="pl-2">
+            <div className="min-w-[200px] max-h-[min(24rem,calc(100vh-16px))] overflow-hidden overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-lg">
+              <div className="bg-red-50 px-4 pb-2 pt-3 text-xs font-semibold uppercase tracking-wide text-brandRed">
+                {item.label}
+              </div>
+              <ul>
+                {item.submenu.map((sub) => (
+                  <li key={sub.label}>
+                    <button
+                      onClick={() => {
+                        setActiveMenu(sub.label);
+                        router.push(`/admin/${sub.link}`);
+                      }}
+                      className={`flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm transition-colors ${
+                        activeMenu === sub.label
+                          ? 'bg-brandRed text-white'
+                          : 'text-gray-700 hover:bg-red-50 hover:text-brandRed'
+                      }`}
+                    >
+                      <Icon icon={sub.icon} className="h-4 w-4 shrink-0 text-[16px]" />
+                      <span>{sub.label}</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+      )}
+
       {!collapsed && isOpen && (
         <ul className="ml-2 mt-1 space-y-1">
           {item.submenu.map((sub) => (

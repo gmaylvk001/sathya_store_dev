@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Icon } from "@iconify/react";
+import AdminLoader from "@/app/admin/components/AdminLoader";
 import {
   COMPONENT_TYPES,
   getAvailableComponents,
@@ -136,11 +137,7 @@ export default function HomePageBuilder() {
   };
 
   if (loading) {
-    return (
-      <div className="flex justify-center py-20">
-        <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-[#ED1C24]" />
-      </div>
-    );
+    return <AdminLoader />;
   }
 
   if (error || !page) {
@@ -407,7 +404,7 @@ export default function HomePageBuilder() {
   };
 
   return (
-    <div className="flex flex-col w-full py-4 box-border lg:h-[calc(100vh-3.5rem)] lg:overflow-hidden">
+    <div className="flex flex-col w-full py-4 box-border lg:h-[calc(100vh-var(--admin-header-height))] lg:overflow-hidden">
       <div className="shrink-0 flex flex-wrap items-start justify-between gap-4 mb-4">
         <div>
           <h1 className="text-2xl font-semibold">Home Page Builder</h1>

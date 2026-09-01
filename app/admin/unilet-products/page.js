@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useTransition } from 'react';
 import { Icon } from '@iconify/react';
 import Link from 'next/link';
+import AdminLoader from '@/app/admin/components/AdminLoader';
 
 export default function UniletProductsPage() {
   const [products, setProducts] = useState([]);
@@ -427,10 +428,7 @@ export default function UniletProductsPage() {
               {isLoading ? (
                 <tr>
                   <td colSpan="12" className="py-12 text-center text-gray-500">
-                    <div className="flex flex-col items-center justify-center space-y-2">
-                      <Icon icon="eos-icons:loading" className="text-3xl text-blue-600 animate-spin" />
-                      <span>Loading Unilet products...</span>
-                    </div>
+                    <AdminLoader label="Loading Unilet products..." />
                   </td>
                 </tr>
               ) : products.length === 0 ? (

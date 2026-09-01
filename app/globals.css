@@ -432,3 +432,35 @@ body::-webkit-scrollbar {
   animation: scaleUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+.admin-layout {
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.admin-layout .text-2xl {
+  font-size: 1.35rem;
+  line-height: 1.45;
+}
+
+.admin-layout .text-xl {
+  font-size: 1.2rem;
+  line-height: 1.45;
+}
+
+.admin-layout .text-lg {
+  font-size: 1.05rem;
+}
+
+.admin-layout .text-base {
+  font-size: 0.9375rem;
+}
+
+.admin-layout .text-sm {
+  font-size: 0.8125rem;
+}
+
+.admin-layout .text-xs {
+  font-size: 0.75rem;
+}
+
+

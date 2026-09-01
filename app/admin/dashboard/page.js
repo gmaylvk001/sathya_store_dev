@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Line, Pie } from "react-chartjs-2";
 import RevenueChart from '@/components/RevenueChart';
+import AdminLoader from "@/app/admin/components/AdminLoader";
 
 import {
   Chart as ChartJS,
@@ -38,10 +39,11 @@ export default function DashboardPage() {
   // New states for order status pie chart data and options
   const [orderStatusPieData, setOrderStatusPieData] = useState(null);
   const [orderStatusPieOptions, setOrderStatusPieOptions] = useState(null);
+  const [pageLoading, setPageLoading] = useState(true);
 
   useEffect(() => {
     // Fetch orders
-    fetch("/api/orders/getorder", {
+    const ordersReq = fetch("/api/orders/getorder", {
       headers: {
         Authorization: `Bearer ${localStorage.getItem("token")}`,
       },
@@ -186,7 +188,7 @@ export default function DashboardPage() {
     //       setProductCount(data.totalProductCount);
     //     }
     //   });
-    fetch("/api/dashboard/category-product-count")
+    const categoryReq = fetch("/api/dashboard/category-product-count")
   .then((res) => res.json())
   .then((data) => {
     if (data.success) {
@@ -255,13 +257,17 @@ export default function DashboardPage() {
   });
 
     // Fetch customer count
-    fetch("/api/users/getcount")
+    const usersReq = fetch("/api/users/getcount")
       .then((res) => res.json())
       .then((data) => {
         if (data.success) {
           setCustomerCount(data.customerCount);
         }
       });
+
+    Promise.allSettled([ordersReq, categoryReq, usersReq]).finally(() => {
+      setPageLoading(false);
+    });
   }, []);
 
   // Prepare line chart data for orders by date
@@ -395,9 +401,13 @@ export default function DashboardPage() {
     }
   };
 
+  if (pageLoading) {
+    return <AdminLoader />;
+  }
+
   return (
-    <div className="">
-      <h2 className="text-2xl font-bold mb-4">Dashboard</h2>
+    <div className="space-y-6">
+      <h2 className="text-2xl font-bold">Dashboard</h2>
 {/* Summary Cards */}
 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 3xl:grid-cols-5 gap-6">
   {/* Total Orders */}
@@ -589,7 +599,7 @@ export default function DashboardPage() {
   </div>
 </div>
   {/* Line Chart */}
-     <div className="mt-5 bg-white p-5 rounded-lg shadow-sm border border-gray-200 dark:border-neutral-600 dark:bg-neutral-700">
+     <div>
       <h3 className="mb-6 text-xl font-semibold">Order Analytics</h3>
       <div className="p-6">
         <Line data={lineData} height={200} width={600} />
@@ -601,9 +611,9 @@ export default function DashboardPage() {
       
 
       {/* Pie charts row */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 ">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Category wise product count pie chart */}
-        <div className="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
+        <div>
           <h3 className="mb-6 text-xl font-semibold">Category Wise Products</h3>
           <div
             className="card p-6 border border-gray-200 dark:border-neutral-600 dark:bg-neutral-700 rounded-lg shadow-none"
@@ -614,7 +624,7 @@ export default function DashboardPage() {
         </div>
 
         {/* New Order Status pie chart */}
-        <div className="bg-white p-3 rounded-lg shadow-sm border border-gray-200">
+        <div>
           <h3 className="mb-6 text-xl font-semibold">Order Status Distribution</h3>
           <div
             className="card p-6 border border-gray-200 dark:border-neutral-600 dark:bg-neutral-700 rounded-lg shadow-none"
@@ -625,7 +635,7 @@ export default function DashboardPage() {
         </div>
       </div>
          {/* Recent Orders Table */}
-      <div className="mt-8 bg-white p-4 rounded-lg shadow mb-5">
+      <div>
         <h3 className="font-semibold mb-2">Recent Orders</h3>
         <table className="w-full text-sm">
           <thead>
