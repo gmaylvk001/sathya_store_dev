@@ -69,13 +69,9 @@ const AddToCartButton = ({ productId, quantity = 1, warranty, additionalProducts
             selectedWarranty: warranty,
             selectedExtendedWarranty: extendedWarranty,
             warrantyData: warrantyData || null,
-            ...(!token && guestCartId && { guestCartId }),
+            guestCartId: guestCartId || undefined,
           }),
         });
-
-        if(cartResponse.ok) {
-          toast.success("Product added!");
-        }
 
         if(cartResponse.status == 409) {
           toast.error("Stock limit exceeded!");
@@ -83,8 +79,13 @@ const AddToCartButton = ({ productId, quantity = 1, warranty, additionalProducts
         }
     
         if (!cartResponse.ok) {
-          throw new Error('Failed to add to cart');
+          const errData = await cartResponse.json().catch(() => ({}));
+          const errMsg = errData.error || 'Failed to add to cart';
+          toast.error(errMsg);
+          throw new Error(errMsg);
         }
+
+        toast.success("Product added!");
         
         // console.log(cartResponse);
         // Add additional products if any

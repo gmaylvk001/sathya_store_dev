@@ -7,72 +7,84 @@ import jwt from "jsonwebtoken";
 import { normalizeRegion, isKarnatakaPincode } from "@/lib/regionHelper";
 import { resolveProductPrice } from "@/lib/priceResolver";
 
-/** Utils **/
+/** Extract token from Authorization header **/
 const extractToken = (req) => {
   const authHeader = req.headers.get("authorization");
-  return authHeader?.split(" ")[1];
+  return authHeader?.split(" ")[1] || null;
 };
 
-const verifyToken = (token) => {
-  if (!token) throw new Error("Authorization token required");
-   try {
-    return jwt.verify(token, process.env.JWT_SECRET);
-  } catch (err) {
-    if (err.name === "TokenExpiredError") {
-      throw new Error("Token has expired");
-    } else {
-      throw new Error("Invalid token");
-    }
+/** Verify token safely without throwing uncaught errors **/
+const verifyTokenSafe = (token) => {
+  if (!token) return null;
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    return decoded?.userId || null;
+  } catch {
+    return null;
   }
 };
 
-const calculateCartTotals = (items) => {
+/** Get Cart Owner (userId or guestId) safely **/
+const getCartIdentifier = (req, body = {}) => {
+  const token = extractToken(req);
+  const userId = verifyTokenSafe(token);
+
+  if (userId) {
+    return { userId, guestId: null };
+  }
+
+  const guestId =
+    body.guestCartId ||
+    body.guestId ||
+    req.headers.get("guestcartid") ||
+    req.headers.get("guestCartId") ||
+    req.headers.get("GuestCartId") ||
+    req.headers.get("x-guest-cart-id") ||
+    req.cookies.get("guestCartId")?.value ||
+    null;
+
+  return { userId: null, guestId };
+};
+
+const calculateCartTotals = (items = []) => {
   let totalItems = 0;
   let totalPrice = 0;
 
   for (const item of items) {
-    const base = item.price * item.quantity;
+    const base = (item.price || 0) * (item.quantity || 1);
     const warranty = item.warranty || 0;
     const extended = item.extendedWarranty || 0;
     const upsells = item.upsells?.reduce((uSum, u) => uSum + (u.price || 0), 0) || 0;
 
-    totalItems += item.quantity;
+    totalItems += item.quantity || 1;
     totalPrice += base + warranty + extended + upsells;
   }
 
   return { totalItems, totalPrice };
 };
 
+async function getQuantity(item_code) {
+  if (!item_code) return null;
+  const product = await Product.findOne({ item_code }).lean();
+  return product?.quantity ?? null;
+}
+
 /** POST - Add to Cart **/
 export async function POST(req) {
   try {
     await connectDB();
 
-    let userId = null;
-    let guestId = null;
-
-    const authHeader = req.headers.get("authorization");
-    if (authHeader) {
-      try {
-        const decoded = jwt.verify(authHeader.split(" ")[1], process.env.JWT_SECRET);
-        userId = decoded.userId;
-      } catch {
-        // ignore if invalid/expired, fallback to guest
-      }
-    }
-
+    const body = await req.json().catch(() => ({}));
     const {
       productId,
-      original_prod_quantity,
       quantity = 1,
       selectedWarranty = 0,
       selectedExtendedWarranty = 0,
       upsellProducts = [],
-      guestCartId,
       warrantyData = null,
       region: reqRegion,
       pincode: reqPincode,
-    } = await req.json();
+    } = body;
 
     if (!productId) {
       return NextResponse.json({ error: "Product ID is required" }, { status: 400 });
@@ -82,6 +94,9 @@ export async function POST(req) {
     if (!product) {
       return NextResponse.json({ error: "Product not found" }, { status: 404 });
     }
+
+    const { userId, guestId: rawGuestId } = getCartIdentifier(req, body);
+    const guestId = rawGuestId || `guest_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
 
     // Determine user region
     const cookieLoc = req.cookies.get("sathya_location")?.value;
@@ -115,18 +130,20 @@ export async function POST(req) {
     const priceInfo = resolveProductPrice(product, ownerProduct, userRegion);
     const itemEffectivePrice = priceInfo.effectivePrice;
 
-    // choose key
-    const query = userId ? { userId } : { guestId: guestCartId };
+    const query = userId ? { userId } : { guestId };
     let cart = await Cart.findOne(query);
 
     if (!cart) {
-      cart = new Cart({ ...(userId ? { userId } : { guestId: guestCartId }), items: [] });
+      cart = new Cart({ ...(userId ? { userId } : { guestId }), items: [] });
     }
 
     // add/update item
-    const existingItemIndex = cart.items.findIndex(
-      (item) => item.productId.toString() === productId
-    );
+    const existingItemIndex = cart.items.findIndex((item) => {
+      const itemProdId = item.productId?._id
+        ? item.productId._id.toString()
+        : item.productId?.toString();
+      return itemProdId === productId.toString();
+    });
 
     const availableStock = priceInfo.stock;
 
@@ -145,13 +162,20 @@ export async function POST(req) {
       cart.items[existingItemIndex].extendedWarranty = selectedExtendedWarranty;
       cart.items[existingItemIndex].warrantyData = warrantyData;
     } else {
+      const productImage =
+        Array.isArray(product.images) && product.images.length > 0
+          ? product.images[0]
+          : typeof product.images === "string"
+          ? product.images
+          : "";
+
       cart.items.push({
-        item_code: product.item_code,
-        productId,
+        item_code: product.item_code || "",
+        productId: product._id,
         quantity,
         price: itemEffectivePrice,
         name: product.name,
-        image: product.images[0],
+        image: productImage,
         warranty: selectedWarranty,
         extendedWarranty: selectedExtendedWarranty,
         warrantyData: warrantyData,
@@ -167,144 +191,130 @@ export async function POST(req) {
     await cart.save();
 
     return NextResponse.json(
-      { message: "Product added", cart: { id: cart._id, ...totals, items: cart.items } },
+      {
+        message: "Product added",
+        guestCartId: userId ? null : guestId,
+        cart: { id: cart._id, ...totals, items: cart.items },
+      },
       { status: 200 }
     );
   } catch (error) {
     console.error("POST cart error:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: error.message || "Failed to add to cart" }, { status: 500 });
   }
 }
-
 
 /** GET - Fetch Cart **/
 export async function GET(req) {
   try {
-    
-    
-    let guestId = null;
-    let cart = null;
-    //let guestCartId = null;
     await connectDB();
-    const token = extractToken(req);
-    const productdata = [];
-    if(token)
-    {
-    const decoded = verifyToken(token);
-    const userId = decoded.userId;
-    
+    const { userId, guestId } = getCartIdentifier(req);
 
-    cart = await Cart.findOne({ userId }).populate(
-      "items.productId",
-      "name price images item_code quantity key_specifications"
-    );
-
-    }
-    else
-    {
-
-      const guestId_use = req.headers.get("GuestCartId");
-      guestId = guestId_use;
-      cart = await Cart.findOne({  guestId }).populate(
-      "items.productId",
-      "name price images item_code quantity"
-     );
-
-    }
-
-    if (!cart) {
+    if (!userId && !guestId) {
       return NextResponse.json(
         { message: "Cart is empty", cart: { items: [], totalItems: 0, totalPrice: 0 } },
         { status: 200 }
       );
     }
-     
-      const items = await Promise.all(
+
+    const query = userId ? { userId } : { guestId };
+    const cart = await Cart.findOne(query).populate(
+      "items.productId",
+      "name price images item_code quantity key_specifications"
+    );
+
+    if (!cart || !cart.items || cart.items.length === 0) {
+      return NextResponse.json(
+        { message: "Cart is empty", cart: { items: [], totalItems: 0, totalPrice: 0 } },
+        { status: 200 }
+      );
+    }
+
+    const items = await Promise.all(
       cart.items.map(async (item) => {
-       // console.log(item);
-        const original_quantity = await getQuantity(item.productId.item_code);
+        const prodDoc =
+          item.productId && typeof item.productId === "object" && item.productId._id
+            ? item.productId
+            : null;
+
+        const prodId = prodDoc ? prodDoc._id.toString() : item.productId?.toString();
+        const itemCode = prodDoc?.item_code || item.item_code || "";
+        const original_quantity = await getQuantity(itemCode);
+
+        const prodImg = Array.isArray(prodDoc?.images) && prodDoc.images.length > 0
+          ? prodDoc.images[0]
+          : item.image || "";
+
         return {
           original_quantity,
-          item_code: item.productId.item_code,
-          productId: item.productId._id,
-          name: item.productId.name,
+          item_code: itemCode,
+          productId: prodId,
+          name: prodDoc?.name || item.name,
           price: item.price,
-          image: item.productId.images[0],
+          image: prodImg,
           quantity: item.quantity,
           warranty: item.warranty || 0,
           extendedWarranty: item.extendedWarranty || 0,
           warrantyData: item.warrantyData || null,
-          actual_price: item.productId.price,
-          specs: item.productId.key_specifications?.slice(0, 3) || [], 
+          actual_price: item.actual_price || prodDoc?.price || item.price,
+          specs: prodDoc?.key_specifications?.slice(0, 3) || [],
         };
       })
     );
-    console.log(items);
 
-
+    const totals = calculateCartTotals(cart.items);
 
     return NextResponse.json(
       {
         cart: {
           id: cart._id,
-          totalItems: cart.totalItems,
-          totalPrice: cart.totalPrice,
+          totalItems: totals.totalItems,
+          totalPrice: totals.totalPrice,
           items,
         },
-        products:{productdata},
       },
       { status: 200 }
     );
   } catch (error) {
     console.error("GET cart error:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: error.message || "Failed to fetch cart" }, { status: 500 });
   }
 }
-
-
-
-async function getQuantity(item_code) {
-  const product = await Product.findOne({ item_code }).lean();
-  return product?.quantity ?? null;
-}
-
-
-
 
 /** PUT - Update Quantity **/
 export async function PUT(req) {
   try {
-
-    let guestId = null;
-    let cart = null;
-
     await connectDB();
 
-    const { productId, quantity } = await req.json();
+    const body = await req.json().catch(() => ({}));
+    const { productId, quantity } = body;
     if (!productId || quantity < 1) {
       return NextResponse.json({ error: "Invalid data" }, { status: 400 });
     }
 
-    const token = extractToken(req);
-    if(token)
-    {
-      const decoded = verifyToken(token);
-      const userId = decoded.userId;
-      cart = await Cart.findOne({ userId });
+    const { userId, guestId } = getCartIdentifier(req, body);
+    if (!userId && !guestId) {
+      return NextResponse.json({ error: "Cart not found" }, { status: 404 });
     }
-    else
-    {
-      guestId = req.headers.get("guestcartid") || req.headers.get("guestCartId") || req.headers.get("GuestCartId");
-      cart = await Cart.findOne({ guestId });
-    }
+
+    const query = userId ? { userId } : { guestId };
+    const cart = await Cart.findOne(query);
 
     if (!cart) {
       return NextResponse.json({ error: "Cart not found" }, { status: 404 });
     }
 
-    const itemIndex = cart.items.findIndex(
-      (item) => (item.productId?._id ? item.productId._id.toString() : item.productId?.toString()) === productId
-    );
+    const itemIndex = cart.items.findIndex((item) => {
+      const itemProdId = item.productId?._id
+        ? item.productId._id.toString()
+        : item.productId?.toString();
+      const itemId = item._id ? item._id.toString() : null;
+      return (
+        itemProdId === productId.toString() ||
+        itemId === productId.toString() ||
+        item.item_code === productId
+      );
+    });
 
     if (itemIndex === -1) {
       return NextResponse.json({ error: "Product not in cart" }, { status: 404 });
@@ -317,12 +327,16 @@ export async function PUT(req) {
     cart.totalItems = totals.totalItems;
     cart.totalPrice = totals.totalPrice;
     cart.items[itemIndex].original_quantity = original_quantity;
-    
+
     await cart.save();
 
     const items = cart.items.map((item) => {
-      const prodIdStr = item.productId?._id ? item.productId._id.toString() : item.productId?.toString();
-      const img = Array.isArray(item.productId?.images) ? item.productId.images[0] : (item.image || "");
+      const prodIdStr = item.productId?._id
+        ? item.productId._id.toString()
+        : item.productId?.toString();
+      const img = Array.isArray(item.productId?.images)
+        ? item.productId.images[0]
+        : item.image || "";
       const code = item.productId?.item_code || item.item_code;
       return {
         productId: prodIdStr,
@@ -335,87 +349,79 @@ export async function PUT(req) {
       };
     });
 
-
     return NextResponse.json(
       {
         message: "Cart updated",
         cart: {
           id: cart._id,
           ...totals,
-          items: items,
+          items,
         },
       },
       { status: 200 }
     );
   } catch (error) {
     console.error("PUT cart error:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: error.message || "Failed to update cart" }, { status: 500 });
   }
 }
 
-
-
-
+/** DELETE - Remove Item / Clear Cart **/
 export async function DELETE(req) {
   try {
     await connectDB();
-    let guestId = null;
-    let cart = null;
-    
-    /*
-    const authHeader = req.headers.get('authorization');
-    const token = authHeader?.split(' ')[1];
 
-    if (!token) {
+    const body = await req.json().catch(() => ({}));
+    const { productId, clearAll } = body;
+    const { userId, guestId } = getCartIdentifier(req, body);
+
+    if (!userId && !guestId) {
       return NextResponse.json(
-        { error: "Authorization token required" },
-        { status: 401 }
+        {
+          message: "Cart is empty",
+          cart: { id: null, totalItems: 0, totalPrice: 0, items: [] },
+        },
+        { status: 200 }
       );
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const userId = decoded.userId; */
+    const query = userId ? { userId } : { guestId };
+    let cart = await Cart.findOne(query);
 
-    const { productId, clearAll } = await req.json();
-
-    const token = extractToken(req);
-    if(token)
-    {
-    const decoded = verifyToken(token);
-    const userId = decoded.userId;
-    cart = await Cart.findOne({ userId });
-    }
-    else
-    {
-      guestId = req.headers.get("GuestCartId");
-      cart = await Cart.findOne({ guestId });
-    }
-
-    //const cart = await Cart.findOne({ userId });
     if (!cart) {
-      return NextResponse.json({ error: "Cart not found" }, { status: 404 });
+      return NextResponse.json(
+        {
+          message: "Cart is empty",
+          cart: { id: null, totalItems: 0, totalPrice: 0, items: [] },
+        },
+        { status: 200 }
+      );
     }
 
     if (clearAll) {
-      // Clear the entire cart
       cart.items = [];
       cart.totalItems = 0;
       cart.totalPrice = 0;
-    } else {
-      // Remove a specific item
-      const existingItemIndex = cart.items.findIndex(
-        item => item.productId.toString() === productId
-      );
+    } else if (productId) {
+      const existingItemIndex = cart.items.findIndex((item) => {
+        const itemProdId = item.productId?._id
+          ? item.productId._id.toString()
+          : item.productId?.toString();
+        const itemId = item._id ? item._id.toString() : null;
+        return (
+          itemProdId === productId.toString() ||
+          itemId === productId.toString() ||
+          item.item_code === productId
+        );
+      });
 
-      if (existingItemIndex === -1) {
-        return NextResponse.json({ error: "Item not found in cart" }, { status: 404 });
+      if (existingItemIndex !== -1) {
+        cart.items.splice(existingItemIndex, 1);
       }
 
-      cart.items.splice(existingItemIndex, 1);
-
-      // Recalculate totals
-      cart.totalItems = cart.items.reduce((sum, item) => sum + item.quantity, 0);
-      cart.totalPrice = cart.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+      const totals = calculateCartTotals(cart.items);
+      cart.totalItems = totals.totalItems;
+      cart.totalPrice = totals.totalPrice;
     }
 
     await cart.save();
@@ -427,12 +433,11 @@ export async function DELETE(req) {
           id: cart._id,
           totalItems: cart.totalItems,
           totalPrice: cart.totalPrice,
-          items: cart.items
-        }
+          items: cart.items,
+        },
       },
       { status: 200 }
     );
-
   } catch (error) {
     console.error("Remove from cart error:", error);
     return NextResponse.json(
@@ -440,23 +445,4 @@ export async function DELETE(req) {
       { status: 500 }
     );
   }
-}
-
-
-
-function getCartOwner(req) {
-  const authHeader = req.headers.get("authorization");
-  const token = authHeader?.split(" ")[1];
-
-  if (token) {
-    try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      return { userId: decoded.userId, guestCartId: null };
-    } catch {
-      return { userId: null, guestCartId: null }; // invalid token
-    }
-  }
-
-  // Guest cart fallback
-  return { userId: null, guestCartId: req.headers.get("x-guest-cart-id") };
 }

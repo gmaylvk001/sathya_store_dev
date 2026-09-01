@@ -949,33 +949,29 @@ export default function CartComponent() {
   const removeItem = async () => {
     try {
       let response = '';
-      const token = localStorage.getItem('token');
-      if(token)
-      {
-        response = await fetch('/api/cart', {
-          method: 'DELETE',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          body: JSON.stringify({ productId: productToDelete })
-        });
-      }
-      else
-      {
-        const guestCartId = localStorage.getItem("guestCartId") || uuidv4();
-        response = await fetch('/api/cart', {
-          method: 'DELETE',
-          headers: {
-            'Content-Type': 'application/json',
-            'guestCartId': guestCartId
-          },
-          body: JSON.stringify({ productId: productToDelete })
-        });
-      }
+      const token = typeof window !== "undefined" ? localStorage.getItem('token') : null;
+      const guestCartId = typeof window !== "undefined" ? (localStorage.getItem("guestCartId") || uuidv4()) : null;
+      
+      const headers = {
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` }),
+        ...(guestCartId && { 'guestCartId': guestCartId }),
+      };
+
+      response = await fetch('/api/cart', {
+        method: 'DELETE',
+        headers,
+        body: JSON.stringify({
+          productId: productToDelete,
+          guestCartId: guestCartId || undefined,
+        })
+      });
 
       if (!response.ok) {
-        throw new Error('Failed to remove item');
+        const errData = await response.json().catch(() => ({}));
+        const errMsg = errData.error || 'Failed to remove item';
+        toast.error(errMsg);
+        throw new Error(errMsg);
       }
 
       const updatedCart = await response.json();

@@ -1,10 +1,11 @@
-﻿'use client';
+'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { Icon } from '@iconify/react';
 
 export default function AdminSider({ collapsed }) {
+  const pathname = usePathname();
   const [activeMenu, setActiveMenu] = useState('Dashboard');
   const [hoveredSubmenu, setHoveredSubmenu] = useState(null);
   const [isHoveringSubmenu, setIsHoveringSubmenu] = useState(false);
@@ -27,6 +28,7 @@ export default function AdminSider({ collapsed }) {
         { icon: 'mdi:plus-box-outline', label: 'New Product', link: 'newproduct', dotColor: 'bg-green-500' }
       ]
     },
+    { icon: 'mdi:storefront-outline', label: 'Unilet Products', link: 'unilet-products' },
     // { icon: 'mdi:image-outline', label: 'Banner', link: 'design' },
     {
       icon: 'material-symbols:receipt-long',
@@ -123,6 +125,29 @@ export default function AdminSider({ collapsed }) {
       }
     }, 150);
   };
+
+  // Sync activeMenu with route pathname
+  useEffect(() => {
+    if (!pathname) return;
+    if (pathname.includes('/admin/unilet-products')) {
+      setActiveMenu('Unilet Products');
+      return;
+    }
+    for (const item of menuItems) {
+      if (item.link && pathname.includes(`/admin/${item.link}`)) {
+        setActiveMenu(item.label);
+        return;
+      }
+      if (item.submenu) {
+        const sub = item.submenu.find((s) => pathname.includes(`/admin/${s.link}`));
+        if (sub) {
+          setActiveMenu(sub.label);
+          setOpenMenus((prev) => (prev.includes(item.label) ? prev : [...prev, item.label]));
+          return;
+        }
+      }
+    }
+  }, [pathname]);
 
   // Close all submenus when clicking a main category without submenu
   useEffect(() => {

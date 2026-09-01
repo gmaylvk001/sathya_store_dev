@@ -77,11 +77,13 @@ const AddToCartButton = ({
       }
 
       // ✅ Add main product to cart in a single direct API request
+      const effectiveGuestCartId = guestCartId || (typeof window !== "undefined" ? localStorage.getItem("guestCartId") : null);
       const cartResponse = await fetch("/api/cart", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           ...(token && { Authorization: `Bearer ${token}` }),
+          ...(effectiveGuestCartId && { guestCartId: effectiveGuestCartId }),
         },
         body: JSON.stringify({
           productId,
@@ -89,20 +91,23 @@ const AddToCartButton = ({
           quantity,
           selectedWarranty: warranty,
           selectedExtendedWarranty: extendedWarranty,
-          ...(!token && guestCartId && { guestCartId }),
+          guestCartId: effectiveGuestCartId || undefined,
         }),
       });
-
-      if (cartResponse.ok) {
-        toast.success("Product added!");
-      }
 
       if (cartResponse.status == 409) {
         toast.error("Stock limit exceeded!");
         return;
       }
 
-      if (!cartResponse.ok) throw new Error("Failed to add to cart");
+      if (!cartResponse.ok) {
+        const errData = await cartResponse.json().catch(() => ({}));
+        const errMsg = errData.error || "Failed to add to cart";
+        toast.error(errMsg);
+        throw new Error(errMsg);
+      }
+
+      toast.success("Product added!");
 
       // ✅ Add additional products (if any)
       if (additionalProducts.length > 0) {
@@ -112,12 +117,13 @@ const AddToCartButton = ({
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
-                ...(isLoggedIn && { Authorization: `Bearer ${token}` }),
+                ...(token && { Authorization: `Bearer ${token}` }),
+                ...(effectiveGuestCartId && { guestCartId: effectiveGuestCartId }),
               },
               body: JSON.stringify({
                 productId: additionalId,
                 quantity: 1,
-                ...(guestCartId && { guestCartId }),
+                guestCartId: effectiveGuestCartId || undefined,
               }),
             });
             if (!res.ok) throw new Error("Failed to add additional product");
@@ -126,6 +132,9 @@ const AddToCartButton = ({
       }
 
       const responseData = await cartResponse.json();
+      if (responseData.guestCartId && typeof window !== "undefined") {
+        localStorage.setItem("guestCartId", responseData.guestCartId);
+      }
       console.log("📦 responseData:", responseData);
       updateCartCount(responseData.cart.totalItems + additionalProducts.length);
       console.log("🔔 About to call ga4AddToCart");

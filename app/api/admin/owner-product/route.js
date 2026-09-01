@@ -40,7 +40,7 @@ import mongoose from "mongoose";
 
 /**
  * GET /api/admin/owner-product
- * Fetch Unilet pricing & stock record for a given product_id or product_item_code and region
+ * Fetch Unilet pricing & stock records or specific product record
  */
 export async function GET(req) {
   try {
@@ -48,34 +48,58 @@ export async function GET(req) {
     const { searchParams } = new URL(req.url);
     const productId = searchParams.get("productId") || searchParams.get("product_id");
     const itemCode = searchParams.get("itemCode") || searchParams.get("product_item_code");
-    const reqRegion = searchParams.get("region") || searchParams.get("state") || "karnataka";
-    const region = normalizeRegion(reqRegion);
+    const reqRegion = searchParams.get("region") || searchParams.get("state");
+    const searchQuery = (searchParams.get("search") || searchParams.get("q") || "").trim();
 
-    const query = { owner_id: "unilet", region };
-    if (productId) {
-      if (mongoose.Types.ObjectId.isValid(productId)) {
-        query.product_id = productId;
-      } else {
-        return NextResponse.json({ success: false, message: "Invalid product_id format" }, { status: 400 });
+    if (productId || (itemCode && !searchQuery)) {
+      const region = normalizeRegion(reqRegion || "karnataka");
+      const query = { owner_id: "unilet", region };
+      if (productId) {
+        if (mongoose.Types.ObjectId.isValid(productId)) {
+          query.product_id = productId;
+        } else {
+          return NextResponse.json({ success: false, message: "Invalid product_id format" }, { status: 400 });
+        }
+      } else if (itemCode) {
+        query.product_item_code = itemCode;
       }
-    } else if (itemCode) {
-      query.product_item_code = itemCode;
+
+      let doc = await OwnerProduct.findOne(query).populate("product_id", "name slug price special_price quantity item_code images").lean();
+      if (!doc && region === "karnataka" && productId) {
+        doc = await OwnerProduct.findOne({ owner_id: "unilet", product_id: productId }).populate("product_id", "name slug price special_price quantity item_code images").lean();
+      }
+
+      return NextResponse.json({ success: true, data: doc || null, region });
     }
 
-    if (!productId && !itemCode) {
-      const list = await OwnerProduct.find({ owner_id: "unilet" })
-        .populate("product_id", "name slug price special_price quantity")
-        .sort({ updatedAt: -1 })
-        .lean();
-      return NextResponse.json({ success: true, count: list.length, data: list });
+    // List all Unilet products
+    let listQuery = { owner_id: "unilet" };
+    if (reqRegion && reqRegion !== "all") {
+      listQuery.region = normalizeRegion(reqRegion);
     }
 
-    let doc = await OwnerProduct.findOne(query).lean();
-    if (!doc && region === "karnataka") {
-      doc = await OwnerProduct.findOne({ owner_id: "unilet", product_id: productId }).lean();
+    let list = await OwnerProduct.find(listQuery)
+      .populate("product_id", "name slug price special_price quantity item_code images")
+      .sort({ updatedAt: -1 })
+      .lean();
+
+    if (searchQuery) {
+      const s = searchQuery.toLowerCase();
+      list = list.filter((item) => {
+        const pName = (item.product_id?.name || item.vendor_product_name || "").toLowerCase();
+        const pItemCode = (item.product_item_code || item.product_id?.item_code || "").toLowerCase();
+        const vItemCode = (item.vendor_item_code || "").toLowerCase();
+        const prodId = (item.product_id?._id?.toString() || item.product_id?.item_code || "").toLowerCase();
+        return (
+          pName.includes(s) ||
+          pItemCode.includes(s) ||
+          vItemCode.includes(s) ||
+          prodId.includes(s)
+        );
+      });
     }
 
-    return NextResponse.json({ success: true, data: doc || null, region });
+    return NextResponse.json({ success: true, count: list.length, data: list });
   } catch (err) {
     console.error("GET /api/admin/owner-product error:", err);
     return NextResponse.json(
@@ -104,6 +128,8 @@ export async function POST(req) {
     const {
       product_id,
       product_item_code,
+      vendor_item_code,
+      vendor_product_name,
       price,
       offer_price = 0,
       stock = 0,
@@ -170,11 +196,15 @@ export async function POST(req) {
     }
 
     const itemCodeToSave = product_item_code || parentProduct.item_code || "";
+    const vendorCodeToSave = vendor_item_code || (itemCodeToSave ? `${itemCodeToSave}_U` : "");
+    const vendorNameToSave = vendor_product_name || parentProduct.name || "";
 
     const payload = {
       owner_id: "unilet",
       product_id,
       product_item_code: itemCodeToSave,
+      vendor_item_code: vendorCodeToSave,
+      vendor_product_name: vendorNameToSave,
       price: numPrice,
       offer_price: numOfferPrice,
       stock: numStock,
