@@ -41,6 +41,124 @@ export default function CategoryComponent() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
 
+  // Unilet products state
+  const [uniletProductsList, setUniletProductsList] = useState([]);
+  const [uniletModalOpen, setUniletModalOpen] = useState(false);
+  const [selectedUniletProduct, setSelectedUniletProduct] = useState(null);
+  const [uniletForm, setUniletForm] = useState({
+    price: '',
+    offer_price: '',
+    stock: 10,
+    stock_status: 'In Stock',
+    vendor_item_code: '',
+    region: 'karnataka',
+    is_active: true,
+    delivery_days: 1,
+  });
+  const [isSavingUnilet, setIsSavingUnilet] = useState(false);
+
+  const fetchUniletList = async () => {
+    try {
+      const res = await fetch('/api/admin/owner-product');
+      const data = await res.json();
+      if (data.success && Array.isArray(data.data)) {
+        setUniletProductsList(data.data);
+      }
+    } catch (err) {
+      console.error('Error fetching unilet records:', err);
+    }
+  };
+
+  const isProductInUnilet = (product) => {
+    if (!product || !Array.isArray(uniletProductsList)) return false;
+    const prodId = product._id ? product._id.toString() : '';
+    const itemCode = product.item_code || '';
+    return uniletProductsList.some((u) => {
+      const uProdId = u.product_id?._id
+        ? u.product_id._id.toString()
+        : u.product_id
+        ? u.product_id.toString()
+        : '';
+      const uItemCode = u.product_item_code || u.product_id?.item_code || '';
+      return (prodId && uProdId && prodId === uProdId) || (itemCode && uItemCode && itemCode === uItemCode);
+    });
+  };
+
+  const handleOpenUniletModal = (product) => {
+    setSelectedUniletProduct(product);
+    const defaultVendorCode = product.item_code ? `${product.item_code}_U` : '';
+    setUniletForm({
+      price: product.price || '',
+      offer_price: product.special_price || 0,
+      stock: product.quantity || 10,
+      stock_status: (product.quantity || 0) > 0 ? 'In Stock' : 'Out of Stock',
+      vendor_item_code: defaultVendorCode,
+      region: 'karnataka',
+      is_active: true,
+      delivery_days: 1,
+    });
+    setUniletModalOpen(true);
+  };
+
+  const handleSaveUniletFromProductList = async (e) => {
+    e.preventDefault();
+    if (!selectedUniletProduct) return;
+
+    const priceNum = Number(uniletForm.price);
+    const offerPriceNum = Number(uniletForm.offer_price);
+    const stockNum = Number(uniletForm.stock);
+
+    if (isNaN(priceNum) || priceNum < 0) {
+      toast.error('Price must be a valid non-negative number');
+      return;
+    }
+    if (isNaN(offerPriceNum) || offerPriceNum < 0) {
+      toast.error('Offer price must be a valid non-negative number');
+      return;
+    }
+    if (offerPriceNum > 0 && offerPriceNum > priceNum) {
+      toast.error('Offer price cannot exceed standard price');
+      return;
+    }
+
+    try {
+      setIsSavingUnilet(true);
+      const res = await fetch('/api/admin/owner-product', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-auth': 'true',
+        },
+        body: JSON.stringify({
+          product_id: selectedUniletProduct._id,
+          product_item_code: selectedUniletProduct.item_code || '',
+          vendor_item_code: uniletForm.vendor_item_code,
+          vendor_product_name: selectedUniletProduct.name || '',
+          price: priceNum,
+          offer_price: offerPriceNum,
+          stock: stockNum,
+          stock_status: stockNum > 0 ? uniletForm.stock_status : 'Out of Stock',
+          is_active: uniletForm.is_active,
+          delivery_days: Number(uniletForm.delivery_days) || 1,
+          region: uniletForm.region || 'karnataka',
+        }),
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        toast.success('Product successfully added to Unilet!');
+        setUniletModalOpen(false);
+        fetchUniletList();
+      } else {
+        toast.error(data.message || 'Failed to save to Unilet');
+      }
+    } catch (err) {
+      toast.error(err.message || 'Error saving to Unilet');
+    } finally {
+      setIsSavingUnilet(false);
+    }
+  };
+
   // Pagination state
   const [currentPage, setCurrentPage] = useState(0);
   const itemsPerPage = 20;
@@ -174,8 +292,8 @@ const fetchProducts = async () => {
     fetchProducts();
     fetchCategories();
     fetchBrands();
-    // fetchSubcategories
     fetchSubcategories();
+    fetchUniletList();
   }, []);
 
   // Debounce search input
@@ -1805,6 +1923,7 @@ if (categoryFilter) {
                 <th className="p-2">Item Code</th>
                 <th className="p-2">Image</th>
                 <th className="p-2">Name</th>
+                <th className="p-2 whitespace-nowrap">Unilet</th>
                 <th className="p-2">Price</th>
                 <th className="p-2 whitespace-nowrap">Spl Price</th>
                 <th className="p-2">Quantity</th>
@@ -1815,7 +1934,7 @@ if (categoryFilter) {
            <tbody>
   {isLoading ? (
     <tr>
-      <td colSpan="8" className="text-center p-6">
+      <td colSpan="9" className="text-center p-6">
         <div className="flex justify-center items-center gap-2">
           <svg
             className="animate-spin h-5 w-5 text-[#d72828]"
@@ -1880,6 +1999,20 @@ if (categoryFilter) {
                         {product.name}
                       </a>
                     </td>
+
+                    {/* Unilet Column */}
+                    <td className="p-2 text-center align-middle whitespace-nowrap">
+                      {!isProductInUnilet(product) ? (
+                        <button
+                          onClick={() => handleOpenUniletModal(product)}
+                          className="inline-flex items-center space-x-1 bg-[#d72828] hover:bg-red-700 text-white text-xs font-medium px-2.5 py-1 rounded shadow-sm transition-colors cursor-pointer"
+                          title="Add to Unilet"
+                        >
+                          <Icon icon="mdi:plus" className="text-sm" />
+                          <span>Add to Unilet</span>
+                        </button>
+                      ) : null}
+                    </td>
                     
                     {/* Price Column */}
                     <td className="p-2">{product.price}</td>
@@ -1925,7 +2058,7 @@ if (categoryFilter) {
     ))
   ) : (
     <tr>
-      <td colSpan="8" className="text-center p-4 text-gray-500">
+      <td colSpan="9" className="text-center p-4 text-gray-500">
         No Products found
       </td>
     </tr>
@@ -2237,6 +2370,173 @@ if (categoryFilter) {
         </div>
       )}
 
+
+      {/* ADD PRODUCT TO UNILET MODAL */}
+      {uniletModalOpen && selectedUniletProduct && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full overflow-hidden text-left animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-gray-50">
+              <div>
+                <h3 className="text-lg font-bold text-gray-900">Add Product to Unilet</h3>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  Link this product and set Karnataka / Unilet pricing &amp; stock.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setUniletModalOpen(false)}
+                className="text-gray-400 hover:text-gray-600 p-1 rounded-md text-xl"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveUniletFromProductList} className="p-6 space-y-4">
+              {/* Product Info (Read-only) */}
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">Product</label>
+                <div className="text-xs bg-gray-100 p-2.5 rounded-md text-gray-800 font-medium">
+                  {selectedUniletProduct.name}
+                </div>
+                <div className="text-[11px] text-gray-500 font-mono mt-1">
+                  Item Code: {selectedUniletProduct.item_code || 'N/A'} | Default Sathya MRP: ₹{selectedUniletProduct.price}
+                </div>
+              </div>
+
+              {/* Vendor Item Code Input Box */}
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">
+                  Vendor Item Code <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={uniletForm.vendor_item_code}
+                  onChange={(e) => setUniletForm({ ...uniletForm, vendor_item_code: e.target.value })}
+                  className="w-full text-sm border border-gray-300 rounded-md px-3 py-1.5 focus:ring-1 focus:ring-blue-500 focus:outline-none font-mono"
+                  placeholder="e.g. IP17E512SOFPINKMHU34_U"
+                />
+              </div>
+
+              {/* Pricing row */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">
+                    Unilet Price (₹) <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    required
+                    min="0"
+                    step="0.01"
+                    value={uniletForm.price}
+                    onChange={(e) => setUniletForm({ ...uniletForm, price: e.target.value })}
+                    className="w-full text-sm border border-gray-300 rounded-md px-3 py-1.5 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                    placeholder="e.g. 50000"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">
+                    Unilet Offer Price (₹)
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={uniletForm.offer_price}
+                    onChange={(e) => setUniletForm({ ...uniletForm, offer_price: e.target.value })}
+                    className="w-full text-sm border border-gray-300 rounded-md px-3 py-1.5 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                    placeholder="e.g. 45000"
+                  />
+                </div>
+              </div>
+
+              {/* Quantity Select Dropdown & Stock Status */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">
+                    Quantity <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={uniletForm.stock}
+                    onChange={(e) => setUniletForm({ ...uniletForm, stock: Number(e.target.value) })}
+                    className="w-full text-sm border border-gray-300 rounded-md px-3 py-1.5 focus:ring-1 focus:ring-blue-500 focus:outline-none bg-white font-medium"
+                  >
+                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 15, 20, 25, 30, 40, 50, 75, 100, 150, 200, 250, 500].map((qty) => (
+                      <option key={qty} value={qty}>
+                        {qty}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Stock Status</label>
+                  <select
+                    value={uniletForm.stock_status}
+                    onChange={(e) => setUniletForm({ ...uniletForm, stock_status: e.target.value })}
+                    className="w-full text-sm border border-gray-300 rounded-md px-3 py-1.5 bg-white focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                  >
+                    <option value="In Stock">In Stock</option>
+                    <option value="Out of Stock">Out of Stock</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Location & Active Status */}
+              <div className="grid grid-cols-2 gap-3 items-center">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Delivery Location</label>
+                  <select
+                    value={uniletForm.region}
+                    onChange={(e) => setUniletForm({ ...uniletForm, region: e.target.value })}
+                    className="w-full text-sm border border-gray-300 rounded-md px-3 py-1.5 bg-white capitalize focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                  >
+                    <option value="karnataka">Karnataka</option>
+                    <option value="tamilnadu">Tamil Nadu</option>
+                    <option value="andhra">Andhra Pradesh</option>
+                    <option value="telangana">Telangana</option>
+                    <option value="kerala">Kerala</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Status</label>
+                  <div className="flex items-center space-x-2 mt-1">
+                    <input
+                      type="checkbox"
+                      id="unilet_prod_active_flag"
+                      checked={uniletForm.is_active}
+                      onChange={(e) => setUniletForm({ ...uniletForm, is_active: e.target.checked })}
+                      className="w-4 h-4 text-blue-600 rounded"
+                    />
+                    <label htmlFor="unilet_prod_active_flag" className="text-xs text-gray-700 font-medium">
+                      Active (Visible to Karnataka)
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              {/* Modal Footer */}
+              <div className="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200">
+                <button
+                  type="button"
+                  onClick={() => setUniletModalOpen(false)}
+                  className="px-4 py-2 border border-gray-300 text-gray-700 text-xs font-medium rounded-md hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSavingUnilet}
+                  className="px-5 py-2 bg-[#d72828] hover:bg-red-700 text-white text-xs font-medium rounded-md shadow-sm disabled:opacity-50 flex items-center space-x-1.5"
+                >
+                  {isSavingUnilet && <Icon icon="eos-icons:loading" className="text-sm animate-spin" />}
+                  <span>{isSavingUnilet ? 'Adding...' : 'Add to Unilet'}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       <ToastContainer position="top-right" autoClose={5000} />
     </div>
