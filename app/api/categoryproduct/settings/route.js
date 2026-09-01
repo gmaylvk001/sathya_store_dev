@@ -121,27 +121,68 @@ export async function GET() {
     });
 
     // 4️⃣ Get all valid products (single query)
-    /* const allProducts = await Product.find({
-      _id: { $in: allProductIds },
-      quantity: { $gt: 0 },
-      special_price: { $gt: 2 },
-      $or: [
-        { model_number: { $exists: false } },
-        { model_number: { $exists: true, $ne: "" } }
-      ]
-    }) */
     const allProducts = await Product.find({
-    _id: { $in: allProductIds },
-    quantity: { $gt: 0 },
-    stock_status: "In Stock", // ✅ ADD THIS
-    special_price: { $gt: 2 },
-    $or: [
-      { model_number: { $exists: false } },
-      { model_number: { $exists: true, $ne: "" } }
-    ]
-  })
-      .select("name slug images price special_price quantity stock_status brand")
+      _id: { $in: allProductIds },
+      status: "Active",
+      $or: [
+        { quantity: { $gt: 0 } },
+        { stock_status: "In Stock" },
+      ],
+      $and: [
+        {
+          $or: [
+            { special_price: { $gt: 2 } },
+            { price: { $gt: 2 } }
+          ]
+        }
+      ]
+    })
+      .select("name slug images price special_price quantity stock_status brand category sub_category")
       .lean();
+
+    // 4️⃣b Fetch fallback products for each subcategoryId in bulk
+    const subcatObjectIds = subcategoryIds
+      .map(id => id ? id.toString() : null)
+      .filter(Boolean);
+
+    const fallbackProducts = await Product.find({
+      status: "Active",
+      $or: [
+        { sub_category: { $in: subcatObjectIds } },
+        { category: { $in: subcatObjectIds } },
+      ],
+      $and: [
+        {
+          $or: [
+            { quantity: { $gt: 0 } },
+            { stock_status: "In Stock" },
+          ]
+        },
+        {
+          $or: [
+            { special_price: { $gt: 2 } },
+            { price: { $gt: 2 } }
+          ]
+        }
+      ]
+    })
+      .select("name slug images price special_price quantity stock_status brand category sub_category")
+      .sort({ quantity: -1, createdAt: -1 })
+      .lean();
+
+    const categoryFallbackProducts = {};
+    fallbackProducts.forEach((p) => {
+      const subKey = p.sub_category?.toString();
+      const catKey = p.category?.toString();
+      if (subKey) {
+        if (!categoryFallbackProducts[subKey]) categoryFallbackProducts[subKey] = [];
+        categoryFallbackProducts[subKey].push(p);
+      }
+      if (catKey && catKey !== subKey) {
+        if (!categoryFallbackProducts[catKey]) categoryFallbackProducts[catKey] = [];
+        categoryFallbackProducts[catKey].push(p);
+      }
+    });
 
     // 5️⃣ Product Map
     const productMap = {};
@@ -154,9 +195,15 @@ export async function GET() {
       const subcategory = subcategoryMap[cp.subcategoryId.toString()];
 
       // Get products for this category
-      const cpProducts = (cp.products || [])
+      let cpProducts = (cp.products || [])
         .map(id => productMap[id.toString()])
         .filter(Boolean);
+
+      // If explicit configured product IDs yielded 0 items, fallback to category's active products
+      if (cpProducts.length === 0 && cp.subcategoryId) {
+        const subIdStr = cp.subcategoryId.toString();
+        cpProducts = categoryFallbackProducts[subIdStr] || [];
+      }
 
       // 🔥 GROUP BY BRAND (pick highest quantity product)
       /* const brandMap = {};

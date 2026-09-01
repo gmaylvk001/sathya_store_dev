@@ -36,6 +36,29 @@ export async function GET(req) {
       categoryClauses.push({ category: { $in: objectIdCategoryIds } });
     }
 
+    const priceCondition = {
+      $or: [
+        {
+          $and: [
+            { special_price: { $ne: null, $gt: 0 } },
+            { special_price: { $gte: minPrice, $lte: maxPrice } }
+          ]
+        },
+        {
+          $and: [
+            {
+              $or: [
+                { special_price: null },
+                { special_price: { $exists: false } },
+                { special_price: 0 }
+              ]
+            },
+            { price: { $gte: minPrice, $lte: maxPrice } }
+          ]
+        }
+      ]
+    };
+
     let query = {
       status: "Active",
       $and: [
@@ -45,28 +68,13 @@ export async function GET(req) {
         ...(categoryClauses.length
           ? [{ $or: categoryClauses }]
           : [{ _id: null }]), // no category ids → match nothing
+        priceCondition,
       ],
     };
     // Add brand filters if any
     if (brandIds.length > 0) {
       query.brand = { $in: brandIds };
     }
-    
-    // Price range filter (considers both price and special_price)
-    query.$or = [
-      { 
-        $and: [
-          { special_price: { $ne: null } },
-          { special_price: { $gte: minPrice, $lte: maxPrice } }
-        ]
-      },
-      { 
-        $and: [
-          { special_price: null },
-          { special_price: { $gte: minPrice, $lte: maxPrice } }
-        ]
-      }
-    ];
     
     // First fetch products matching brand and price filters
     // let products = await Product.find(query)
@@ -163,9 +171,9 @@ if (sort === 'price-low-high' || sort === 'price-high-low') {
       const sortDir = sort === 'price-low-high' ? 1 : -1;
 
        const aggregateMatch = {
-        sub_category: { $in: [...objectIdCategoryIds, ...categoryIds] },
         status: "Active",
         quantity: { $gt: 0 },
+        ...(categoryClauses.length ? { $or: categoryClauses } : {}),
       };
 
       if (brandIds.length > 0) {
@@ -236,9 +244,9 @@ if (sort === 'price-low-high' || sort === 'price-high-low') {
 const brandAgg = await Product.aggregate([
       {
         $match: {
-          sub_category: { $in: objectIdCategoryIds },
           status: "Active",
           quantity: { $gt: 0 },
+          ...(categoryClauses.length ? { $or: categoryClauses } : {}),
         },
       },
       { $group: { _id: "$brand", count: { $sum: 1 } } },
@@ -273,12 +281,12 @@ const brandAgg = await Product.aggregate([
     if (filterIds.length > 0) {
       for (const [groupId, groupFilterIds] of Object.entries(selectedFiltersByGroup)) {
         let baseIds = await Product.distinct('_id', {
-          sub_category: { $in: objectIdCategoryIds },
           status: "Active",
           $and: [
             { quantity: { $exists: true } },
             { quantity: { $ne: null } },
-            { quantity: { $gt: 0 } }
+            { quantity: { $gt: 0 } },
+            ...(categoryClauses.length ? [{ $or: categoryClauses }] : []),
           ],
           ...(brandIds.length > 0 ? { brand: { $in: brandIds } } : {}),
         });
