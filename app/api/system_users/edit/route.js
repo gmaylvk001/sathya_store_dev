@@ -1,12 +1,14 @@
 import { NextResponse } from "next/server";
+import mongoose from "mongoose";
 import dbConnect from "@/lib/db";
 import User from "@/models/User";
+import Role from "@/models/Role";
 
 export async function PUT(req) {
   await dbConnect();
 
   try {
-    const { userId, name, mobile, email, status } = await req.json();
+    const { userId, name, mobile, email, status, role } = await req.json();
 
     if (!userId) {
       return NextResponse.json({ error: "User ID is required" }, { status: 400 });
@@ -41,9 +43,21 @@ export async function PUT(req) {
       );
     }
 
+    let roleId = null;
+    if (role) {
+      if (!mongoose.Types.ObjectId.isValid(role)) {
+        return NextResponse.json({ error: "Invalid role selected" }, { status: 400 });
+      }
+      const existingRole = await Role.findById(role);
+      if (!existingRole) {
+        return NextResponse.json({ error: "Selected role not found" }, { status: 400 });
+      }
+      roleId = role;
+    }
+
     const updatedUser = await User.findByIdAndUpdate(
       userId,
-      { name, mobile, email, status },
+      { name, mobile, email, status, role: roleId },
       { new: true , runValidators: true}
     );
 

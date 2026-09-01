@@ -1,13 +1,15 @@
 import { NextResponse } from "next/server";
+import mongoose from "mongoose";
 import dbConnect from "@/lib/db";
 import User from "@/models/User";
+import Role from "@/models/Role";
 import bcrypt from "bcryptjs";
 
 export async function POST(req) {
   try {
     await dbConnect();
     
-    const { name, mobile, email, password, status } = await req.json();
+    const { name, mobile, email, password, status, role } = await req.json();
     
     if (!name || !mobile || !email || !password || !status) {
       return NextResponse.json({ error: "All fields are required" }, { status: 400 });
@@ -40,6 +42,18 @@ export async function POST(req) {
       );
     }
 
+    let roleId = null;
+    if (role) {
+      if (!mongoose.Types.ObjectId.isValid(role)) {
+        return NextResponse.json({ error: "Invalid role selected" }, { status: 400 });
+      }
+      const existingRole = await Role.findById(role);
+      if (!existingRole) {
+        return NextResponse.json({ error: "Selected role not found" }, { status: 400 });
+      }
+      roleId = role;
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const newUser = new User({
@@ -49,6 +63,7 @@ export async function POST(req) {
       password: hashedPassword,
       user_type: "admin",
       status,
+      role: roleId,
     });
 
     await newUser.save();

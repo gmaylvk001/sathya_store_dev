@@ -23,6 +23,12 @@ const UserSchema = new mongoose.Schema({
     enum: ["admin", "user"], // ✅ Define allowed values
     default: "user" // ✅ Set default value
   },
+  role: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "ecom_roles_info",
+    required: false,
+    default: null,
+  },
   status: { type: String, enum: ["Active", "Inactive"], default: "Active" },
 }, { timestamps: true });
 

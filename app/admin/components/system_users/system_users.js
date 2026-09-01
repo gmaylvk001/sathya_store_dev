@@ -25,12 +25,15 @@ export default function SystemUsersComponent() {
     confirmPassword: "",
     user_type: "admin",
     status: "Active",
+    role: "",
   });
+  const [roles, setRoles] = useState([]);
   const [isEditMode, setIsEditMode] = useState(false);
   const [currentUserId, setCurrentUserId] = useState(null);
 
   useEffect(() => {
     fetchUsers();
+    fetchRoles();
   }, []);
 
   const fetchUsers = async () => {
@@ -48,6 +51,27 @@ export default function SystemUsersComponent() {
     }
   };
 
+  const fetchRoles = async () => {
+    try {
+      const response = await axios.get("/api/roles/get");
+      setRoles(Array.isArray(response.data) ? response.data : []);
+    } catch (error) {
+      console.error("Error fetching roles:", error);
+    }
+  };
+
+  const getRoleId = (role) => {
+    if (!role) return "";
+    if (typeof role === "string") return role;
+    return role._id ? String(role._id) : "";
+  };
+
+  const getRoleName = (role) => {
+    if (!role) return "-";
+    if (typeof role === "string") return "-";
+    return role.name || "-";
+  };
+
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -61,6 +85,7 @@ export default function SystemUsersComponent() {
       confirmPassword: "",
       user_type: "admin",
       status: user.status,
+      role: getRoleId(user.role),
     });
     setCurrentUserId(user._id);
     setIsEditMode(true);
@@ -108,6 +133,7 @@ export default function SystemUsersComponent() {
           mobile: formData.mobile,
           email: formData.email,
           status: formData.status,
+          role: formData.role || null,
         });
         setAlertMessage("✅ User updated successfully!");
       } else {
@@ -115,6 +141,7 @@ export default function SystemUsersComponent() {
           ...formData,
           user_type: "admin",
           status: formData.status,
+          role: formData.role || null,
         });
         setAlertMessage("✅ User added successfully!");
       }
@@ -146,6 +173,7 @@ export default function SystemUsersComponent() {
       confirmPassword: "",
       user_type: "admin",
       status: "Active",
+      role: "",
     });
     setIsEditMode(false);
     setCurrentUserId(null);
@@ -157,7 +185,8 @@ export default function SystemUsersComponent() {
     const matchesSearch = searchQuery === "" ||
       (user.name && user.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
       (user.email && user.email.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (user.mobile && user.mobile.toLowerCase().includes(searchQuery.toLowerCase()));
+      (user.mobile && user.mobile.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (getRoleName(user.role) && getRoleName(user.role).toLowerCase().includes(searchQuery.toLowerCase()));
 
     const matchesStatus = statusFilter === "All" || user.status === statusFilter;
 
@@ -326,6 +355,7 @@ export default function SystemUsersComponent() {
                   <th className="p-2">Display Name</th>
                   <th className="p-2">Mobile Number</th>
                   <th className="p-2">User Type</th>
+                  <th className="p-2">Role</th>
                   <th className="p-2">Status</th>
                   <th className="p-2">Created At</th>
                   <th className="p-2">Action</th>
@@ -339,6 +369,7 @@ export default function SystemUsersComponent() {
                       <td className="p-2">{user.name || '-'}</td>
                       <td className="p-2">{user.mobile || '-'}</td>
                       <td className="p-2 font-semibold">{user.user_type || '-'}</td>
+                      <td className="p-2">{getRoleName(user.role)}</td>
                       <td className="p-2">
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${user.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                           }`}>
@@ -370,7 +401,7 @@ export default function SystemUsersComponent() {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="7" className="p-2 text-center text-gray-500">No users found.</td>
+                    <td colSpan="8" className="p-2 text-center text-gray-500">No users found.</td>
                   </tr>
                 )}
               </tbody>
@@ -398,7 +429,17 @@ export default function SystemUsersComponent() {
               <input type="text" name="name" placeholder="Name" value={formData.name} onChange={handleChange} className="w-full border p-2 mb-2 rounded" required />
               <input type="tel" name="mobile" placeholder="Mobile Number" value={formData.mobile} onChange={handleChange} onInput={(e) => e.target.value = e.target.value.replace(/[^0-9]/g, '')}
                 className="w-full border p-2 mb-2 rounded" required />
-              <input type="email" name="email" placeholder="Email" value={formData.email} onChange={handleChange} className="w-full border p-2 mb-2 rounded" required />
+              <input
+                type="email"
+                name="email"
+                placeholder="Email"
+                value={formData.email}
+                onChange={handleChange}
+                className={`w-full border p-2 mb-2 rounded ${isEditMode ? "bg-gray-100 text-gray-500 cursor-not-allowed" : ""}`}
+                required
+                disabled={isEditMode}
+                readOnly={isEditMode}
+              />
 
               {!isEditMode && (
                 <>
@@ -410,6 +451,14 @@ export default function SystemUsersComponent() {
               <select name="status" value={formData.status} onChange={handleChange} className="w-full border p-2 mb-2 rounded" required>
                 <option value="Active">Active</option>
                 <option value="Inactive">Inactive</option>
+              </select>
+              <select name="role" value={formData.role} onChange={handleChange} className="w-full border p-2 mb-2 rounded">
+                <option value="">Select Role (optional)</option>
+                {roles.map((roleItem) => (
+                  <option key={roleItem._id} value={roleItem._id}>
+                    {roleItem.name}
+                  </option>
+                ))}
               </select>
               <button type="submit" className="bg-red-500 text-white px-4 py-2 rounded w-full mt-2">
                 {submitButtonText}
