@@ -12,6 +12,30 @@ export default function AdminSider({ collapsed }) {
   const [openMenus, setOpenMenus] = useState([]); // track expanded menus
   const router = useRouter();
   const submenuRef = useRef(null);
+  const [userPermissions, setUserPermissions] = useState([]);
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setUserPermissions([]);
+      return;
+    }
+
+    fetch('/api/auth/permissions', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        setUserPermissions(Array.isArray(data.permissions) ? data.permissions : []);
+      })
+      .catch(() => {
+        setUserPermissions([]);
+      });
+  }, []);
 
   const menuItems = [
     { icon: 'material-symbols:dashboard', label: 'Dashboard', link: 'dashboard' },
@@ -28,7 +52,7 @@ export default function AdminSider({ collapsed }) {
         { icon: 'mdi:plus-box-outline', label: 'New Product', link: 'newproduct', dotColor: 'bg-green-500' }
       ]
     },
-    { icon: 'mdi:storefront-outline', label: 'Unilet Products', link: 'unilet-products' },
+    { icon: 'mdi:storefront-outline', label: 'Unilet Products', link: 'unilet-products', permission: 'unilet-permission' },
     // { icon: 'mdi:image-outline', label: 'Banner', link: 'design' },
     {
       icon: 'material-symbols:receipt-long',
@@ -183,7 +207,7 @@ export default function AdminSider({ collapsed }) {
         {/* Menu */}
         <nav className="mt-4">
           <ul className="px-2 space-y-1">
-            {menuItems.map((item) =>
+            {menuItems.filter((item) => !item.permission || userPermissions.includes(item.permission)).map((item) =>
               item.submenu ? (
                 <SidebarItemWithDropdown
                   key={item.label}
