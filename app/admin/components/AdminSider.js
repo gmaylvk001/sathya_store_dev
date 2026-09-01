@@ -70,7 +70,7 @@ export default function AdminSider({ collapsed }) {
     // { icon: 'mdi:heart-flash', label: 'Wishlist Mail Alerts', link: 'wishlist-mail' },
     { icon: "mdi:briefcase-account-outline", label: "Job Positions", link: "careers" },
     { icon: 'mdi:note-text-outline', label: 'Blog', link: 'blog' },
-    { icon: 'mdi:account-outline', label: 'User', link: 'user' },
+    // { icon: 'mdi:account-outline', label: 'User', link: 'user' },
     { icon: 'mdi:phone-outline', label: 'Contact Us', link: 'contact' },
     { icon: "mdi:briefcase-account-outline", label: "Feedback", link: "feedback_page" },
     { icon: 'material-symbols:reviews-rounded', label: 'Reviews', link: 'reviews' },
@@ -94,6 +94,16 @@ export default function AdminSider({ collapsed }) {
       { icon: 'mdi:store-outline', label: 'Store Settings', link: 'store', dotColor: 'bg-yellow-500' },
       { icon: 'mdi:map', label: 'Mapbox Settings', link: 'mapbox', dotColor: 'bg-yellow-500' },
     ]
+  },
+  {
+        icon: 'material-symbols:receipt-long',
+            label: 'Users Settings',
+      submenu: [
+        { icon: 'mdi:account-outline', label: 'Users', link: 'user', dotColor: 'bg-yellow-500' },
+        { icon: 'mdi:account-outline', label: 'System_Users',link: 'system_users', dotColor: 'bg-yellow-500' },
+        {icon: 'mdi:shield-key-outline',label: 'Permissions',link: 'permissions',dotColor: 'bg-purple-500'},
+        { icon: 'mdi:account-group-outline',label: 'Roles',link: 'roles',dotColor: 'bg-blue-500'}
+      ]
   },
   // { icon: 'material-symbols:fact-check-outline', label: 'Audit', link: 'audit' },
     //     {
