@@ -1,10 +1,10 @@
 "use client";
 import { useState, useEffect } from "react";
 
-import RolesComponent from "../../../app/admin/components/roles/roles";
+import PermissionsComponent from "../../../app/admin/components/permissions/permissions";
 
 
-export default function RolesPage() {
+export default function PermissionsPage() {
   const [time, setTime] = useState(null);
 
   useEffect(() => {
@@ -14,7 +14,7 @@ export default function RolesPage() {
   return (
     <div>
       
-      <RolesComponent />
+      <PermissionsComponent />
     </div>
   );
 }

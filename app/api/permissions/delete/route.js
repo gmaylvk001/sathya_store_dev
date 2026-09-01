@@ -1,0 +1,27 @@
+import { NextResponse } from "next/server";
+import dbConnect from "@/lib/db";
+import Permission from "@/models/Permission";
+
+export async function DELETE(req) {
+  await dbConnect();
+
+  try {
+    const { permissionId } = await req.json();
+
+    if (!permissionId) {
+      return NextResponse.json({ error: "Permission ID is required" }, { status: 400 });
+    }
+
+    const permission = await Permission.findById(permissionId);
+    if (!permission) {
+      return NextResponse.json({ error: "Permission not found" }, { status: 404 });
+    }
+
+    await Permission.findByIdAndDelete(permissionId);
+
+    return NextResponse.json({ success: true, message: "Permission deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting permission:", error);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+  }
+}
