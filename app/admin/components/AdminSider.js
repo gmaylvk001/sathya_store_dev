@@ -110,40 +110,11 @@ function SidebarHoverBadge({ label }) {
   );
 }
 
-const karnatakaUniletMenuItems = [
-  { icon: 'material-symbols:dashboard', label: 'Dashboard', link: 'unilet-dashboard' },
-  { icon: 'mdi:account-group-outline', label: 'Users', link: 'unilet-users' },
-  { icon: 'mdi:storefront-outline', label: 'Unilet Products', link: 'unilet-products' },
-  { icon: 'mdi:currency-inr', label: 'Pricing', link: 'unilet-products' },
-  { icon: 'mdi:package-variant-closed', label: 'Stock / Inventory', link: 'unilet-products' },
-  { icon: 'mdi:clipboard-list-outline', label: 'Orders', link: 'unilet-orders' },
-];
-
 export default function AdminSider({ collapsed }) {
   const pathname = usePathname();
   const [activeMenu, setActiveMenu] = useState('Dashboard');
   const [openMenus, setOpenMenus] = useState([]);
-  const [isKarnatakaAdmin, setIsKarnatakaAdmin] = useState(false);
   const router = useRouter();
-
-  useEffect(() => {
-    try {
-      const userStr = localStorage.getItem("user") || localStorage.getItem("adminUser");
-      if (userStr) {
-        const userObj = JSON.parse(userStr);
-        const userRole = (userObj.role || userObj.user_type || "").toLowerCase();
-        if (userRole === "karnataka_unilet_admin" || userRole === "karnataka_unilet") {
-          setIsKarnatakaAdmin(true);
-        }
-      }
-      const roleStr = (localStorage.getItem("user_role") || "").toLowerCase();
-      if (roleStr === "karnataka_unilet_admin" || roleStr === "karnataka_unilet") {
-        setIsKarnatakaAdmin(true);
-      }
-    } catch (e) {}
-  }, []);
-
-  const activeMenuItems = isKarnatakaAdmin ? karnatakaUniletMenuItems : menuItems;
 
   useEffect(() => {
     if (!pathname) return;
@@ -151,7 +122,7 @@ export default function AdminSider({ collapsed }) {
       setActiveMenu('Unilet Products');
       return;
     }
-    for (const item of activeMenuItems) {
+    for (const item of menuItems) {
       if (item.link && pathname.includes(`/admin/${item.link}`)) {
         setActiveMenu(item.label);
         return;
@@ -165,14 +136,14 @@ export default function AdminSider({ collapsed }) {
         }
       }
     }
-  }, [pathname, isKarnatakaAdmin]);
+  }, [pathname]);
 
   useEffect(() => {
-    const clickedMain = activeMenuItems.find(item => item.label === activeMenu);
+    const clickedMain = menuItems.find(item => item.label === activeMenu);
     if (clickedMain && !clickedMain.submenu) {
       setOpenMenus([]);
     }
-  }, [activeMenu, isKarnatakaAdmin]);
+  }, [activeMenu]);
 
   return (
     <aside
@@ -181,7 +152,7 @@ export default function AdminSider({ collapsed }) {
     >
       <nav className="py-3">
         <ul className="space-y-1 px-3">
-          {activeMenuItems.map((item) =>
+          {menuItems.map((item) =>
             item.submenu ? (
               <SidebarItemWithDropdown
                 key={item.label}

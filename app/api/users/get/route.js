@@ -1,27 +1,11 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import User from "@/models/User";
-import { verifyAdminRole } from "@/lib/adminAuth";
 
-export async function GET(req) {
+export async function GET() {
   try {
     await dbConnect();
-    const roleCheck = await verifyAdminRole(req);
-
-    let query = { user_type: "user" };
-    if (roleCheck.isKarnatakaAdmin) {
-      query = {
-        user_type: "user",
-        $or: [
-          { region: "karnataka" },
-          { store: "unilet" },
-          { address: /karnataka/i },
-          { email: /unilet/i }
-        ]
-      };
-    }
-
-    const users = await User.find(query);
+    const users = await User.find({ user_type: "user" }); // Fetch only required fields
     return NextResponse.json(users, { status: 200 });
   } catch (error) {
     console.error("Error fetching users:", error);
