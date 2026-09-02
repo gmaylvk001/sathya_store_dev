@@ -20,9 +20,11 @@ const UserSchema = new mongoose.Schema({
   password: { type: String, required: true },
   user_type: { 
     type: String, 
-    enum: ["admin", "user"], // ✅ Define allowed values
+    enum: ["admin", "user", "karnataka_unilet_admin"], // ✅ Define allowed values
     default: "user" // ✅ Set default value
   },
+  region: { type: String, default: null },
+  store: { type: String, default: null },
   role: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "ecom_roles_info",

@@ -2,17 +2,32 @@ import Order from '@/models/ecom_order_info';
 import Product from "@/models/product";
 import { NextResponse } from "next/server";
 import dbConnect from '@/lib/db';
+import { verifyAdminRole } from '@/lib/adminAuth';
+
+function isKarnatakaScopeOrder(order) {
+  if (!order) return false;
+  if (order.store_id === "unilet" || order.region === "karnataka") return true;
+  if (order.order_deliveryaddress && /karnataka/i.test(order.order_deliveryaddress)) return true;
+  if (Array.isArray(order.order_item) && order.order_item.some(i => i.store_id === "unilet")) return true;
+  return false;
+}
 
 export async function GET(req, { params }) {
-  await dbConnect();
-  const { orderId } = params;
+  await dbConnect();
+  const awaitedParams = await params;
+  const orderId = awaitedParams.orderId;
+  const roleCheck = await verifyAdminRole(req);
 
-  try {
-    const order = await Order.findById(orderId).lean();
+  try {
+    const order = await Order.findById(orderId).lean();
 
-    if (!order) {
-      return NextResponse.json({ error: "Order not found" }, { status: 404 });
-    }
+    if (!order) {
+      return NextResponse.json({ error: "Order not found" }, { status: 404 });
+    }
+
+    if (roleCheck.isKarnatakaAdmin && !isKarnatakaScopeOrder(order)) {
+      return NextResponse.json({ error: "Access denied: Unauthorized to view orders outside Karnataka Unilet" }, { status: 403 });
+    }
 
     const productItemCodes = order.order_details.map(item => {
       // Check if the item_code starts with 'ITEM' and remove it
@@ -51,10 +66,22 @@ export async function GET(req, { params }) {
 
 export async function PATCH(req, { params }) {
   await dbConnect();
-  const { orderId } = params;
-  const { status, comment, customer_notified } = await req.json();
+  const awaitedParams = await params;
+  const orderId = awaitedParams.orderId;
+  const roleCheck = await verifyAdminRole(req);
 
   try {
+    const existing = await Order.findById(orderId).lean();
+    if (!existing) {
+      return NextResponse.json({ error: "Order not found" }, { status: 404 });
+    }
+
+    if (roleCheck.isKarnatakaAdmin && !isKarnatakaScopeOrder(existing)) {
+      return NextResponse.json({ error: "Access denied: Unauthorized to update orders outside Karnataka Unilet" }, { status: 403 });
+    }
+
+    const { status, comment, customer_notified } = await req.json();
+
     const updatedOrder = await Order.findByIdAndUpdate(
       orderId,
       {

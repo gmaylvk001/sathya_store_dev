@@ -52,7 +52,8 @@ export default function AuthProvider({ children }) {
 
         if (response.ok) {
           const data = await response.json();
-          if (data.role !== 'admin') {
+          const roleVal = (data.role || "").toLowerCase();
+          if (roleVal !== 'admin' && roleVal !== 'karnataka_unilet_admin') {
             router.replace('/admin/unauthorized');
             setAuthStatus('unauthenticated');
             return;

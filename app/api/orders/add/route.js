@@ -44,6 +44,14 @@ export async function POST(req) {
       return Response.json({ success: false, message: "Missing required fields" }, { status: 400 });
     }
 
+    const isKarnatakaOrder =
+      /karnataka/i.test(order_deliveryaddress || "") ||
+      (order_item && order_item.some((item) => item.store_id === "unilet" || item.isUnilet)) ||
+      store_id === "unilet";
+
+    const resolvedRegion = isKarnatakaOrder ? "karnataka" : (body.region || "tamilnadu");
+    const resolvedStoreId = isKarnatakaOrder ? "unilet" : (store_id || null);
+
     const orderFields = {
       user_id,
       order_username,
@@ -63,12 +71,13 @@ export async function POST(req) {
       order_status: order_status || "pending",
       payment_status: payment_status || "unpaid",
       loyalty_points_redeemed: loyalty_points_redeemed || 0,
-          loyalty_discount: loyalty_discount || 0,
+      loyalty_discount: loyalty_discount || 0,
       loyalty_redemption_token: loyalty_redemption_token || null,
       promotion_code_applied: promotion_code_applied || null,
-     promotion_discount_applied: promotion_discount_applied || 0,
+      promotion_discount_applied: promotion_discount_applied || 0,
       pickup_store: pickup_store || null,
-      store_id: store_id || null,
+      store_id: resolvedStoreId,
+      region: resolvedRegion,
       gst_number: gst_number || null,
     };
 

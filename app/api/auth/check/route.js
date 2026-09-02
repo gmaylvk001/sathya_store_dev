@@ -11,12 +11,17 @@ export async function GET(req) {
   try {
     // Implement your token verification logic
     const decoded = verifyToken(token);
-    const userRole = await User.findOne({ _id: decoded.userId }, {name: 1, email: 1, mobile: 1, user_type: 1});
+    const userRole = await User.findOne({ _id: decoded.userId }, { name: 1, email: 1, mobile: 1, user_type: 1, role: 1 }).populate("role");
+    const roleVal = userRole?.user_type === "karnataka_unilet_admin" 
+      ? "karnataka_unilet_admin" 
+      : (userRole?.role?.slug || userRole?.user_type || "user");
+
     return Response.json({
       loggedIn: true,
       user: decoded, // optional
-      role:userRole.user_type,
-      phone:userRole.mobile
+      role: roleVal,
+      user_type: userRole?.user_type,
+      phone: userRole?.mobile
     }, { status: 200 });
   } catch (error) {
     return Response.json({ loggedIn: false }, { status: 200 });

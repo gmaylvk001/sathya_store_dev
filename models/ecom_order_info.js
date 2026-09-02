@@ -76,6 +76,7 @@ const OrderSchema = new mongoose.Schema(
     },
     pickup_store: { type: String },  // Store name for pickup
     store_id: { type: String },   
+    region: { type: String, default: "tamilnadu" },
   //delivery_type:{ type: String},
   payment_id:{ type: String},
   order_number:{ type: String, required: true},
