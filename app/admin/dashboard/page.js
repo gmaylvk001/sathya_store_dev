@@ -29,7 +29,10 @@ ChartJS.register(
   ArcElement
 );
 
+import { useRouter } from "next/navigation";
+
 export default function DashboardPage() {
+  const router = useRouter();
   const [orders, setOrders] = useState([]);
   const [pieData, setPieData] = useState(null);
   const [pieOptions, setPieOptions] = useState(null);
@@ -42,6 +45,22 @@ export default function DashboardPage() {
   const [pageLoading, setPageLoading] = useState(true);
 
   useEffect(() => {
+    try {
+      const userStr = localStorage.getItem("user");
+      if (userStr) {
+        const u = JSON.parse(userStr);
+        if ((u.role || u.user_type || "").toLowerCase() === "karnataka_unilet_admin") {
+          router.replace("/admin/unilet-dashboard");
+          return;
+        }
+      }
+      const roleStr = (localStorage.getItem("user_role") || "").toLowerCase();
+      if (roleStr === "karnataka_unilet_admin") {
+        router.replace("/admin/unilet-dashboard");
+        return;
+      }
+    } catch (e) {}
+
     // Fetch orders
     const ordersReq = fetch("/api/orders/getorder", {
       headers: {
