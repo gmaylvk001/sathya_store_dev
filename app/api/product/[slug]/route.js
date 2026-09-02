@@ -36,10 +36,14 @@ export async function GET(request, context) {
       }
     }
 
-    const product = await Product.findOne({ 
+    let product = await Product.findOne({ 
       slug, 
       status: "Active" // ✅ Only return active products
     }).lean();
+
+    if (!product) {
+      product = await Product.findOne({ slug }).lean();
+    }
 
     if (!product) {
       return new Response(JSON.stringify({ message: "Product not found" }), {
@@ -65,6 +69,7 @@ export async function GET(request, context) {
       stock_status: priceInfo.inStock ? "In Stock" : "Out of Stock",
       isUnilet: priceInfo.isUnilet,
       resolvedRegion: region,
+      status: "Active",
     };
 
     return new Response(JSON.stringify(responseProduct), {
