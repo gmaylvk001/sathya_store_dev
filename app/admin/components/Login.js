@@ -48,15 +48,7 @@ export default function Login() {
 
       setMessage("Login successful! ✅");
       localStorage.setItem('token', result.token);
-      if (result.user) {
-        localStorage.setItem('user', JSON.stringify(result.user));
-        localStorage.setItem('user_role', result.role || result.user_type || '');
-      }
-
-      const isKarnatakaAdmin = (result.role || result.user_type || result.user?.role || '').toLowerCase() === 'karnataka_unilet_admin';
-      const targetPath = isKarnatakaAdmin ? "/admin/unilet-dashboard" : "/admin/dashboard";
-
-      setTimeout(() => router.push(targetPath), 1000);
+      setTimeout(() => router.push("/admin/dashboard"), 2000);
     } catch (error) {
       setMessage(error.message);
     } finally {

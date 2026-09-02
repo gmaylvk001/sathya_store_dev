@@ -27,22 +27,10 @@ export async function POST(req) {
 
     // Create a JWT token
     // const token = jwt.sign({ userId: existingUser._id, email: existingUser.email }, process.env.JWT_SECRET, { expiresIn: "1h" });
-    // Send the token and user details back to the client
-    return NextResponse.json({
-      message: "User Login",
-      token,
-      role: existingUser.user_type,
-      user_type: existingUser.user_type,
-      user: {
-        id: existingUser._id,
-        name: existingUser.name,
-        email: existingUser.email,
-        role: existingUser.user_type,
-        user_type: existingUser.user_type,
-        region: existingUser.region || "karnataka",
-        store: existingUser.store || "unilet"
-      }
-    }, { status: 200 });
+    const token = jwt.sign({ userId: existingUser._id, email: existingUser.email }, process.env.JWT_SECRET);
+
+    // Send the token back to the client
+    return NextResponse.json({ message: "User Login", token }, { status: 200 });
 
   } catch (error) {
     console.error("API Error:", error);
