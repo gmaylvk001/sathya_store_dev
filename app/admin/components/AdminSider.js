@@ -35,14 +35,7 @@ const menuItems = [
   },
   { icon: 'mdi:percent-outline', label: 'Offer', link: 'offer' },
   { icon: 'mdi:note-text-outline', label: 'Blog', link: 'blog' },
-  {
-    icon: 'mdi:forum-outline',
-    label: 'Communication',
-    submenu: [
-      { icon: 'mdi:phone-outline', label: 'Contact Us', link: 'contact', dotColor: 'bg-blue-500' },
-      { icon: 'mdi:message-text-outline', label: 'Feedback', link: 'feedback_page', dotColor: 'bg-purple-500' },
-    ]
-  },
+
 
   {
     icon: 'mdi:cog-outline',

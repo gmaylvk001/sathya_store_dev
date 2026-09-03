@@ -10,12 +10,12 @@ import { AdminNavLoadingProvider } from "@/app/admin/components/AdminNavLoading"
 
 const SIDEBAR_COLLAPSED = "70px";
 const SIDEBAR_EXPANDED = "240px";
-const HEADER_HEIGHT = "68px";
 
 export default function AdminLayout({ children }) {
   const pathname = usePathname();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(true);
   const isLoginPage = pathname === "/admin/login";
 
   const handleToggleSidebar = () => {
@@ -34,8 +34,10 @@ export default function AdminLayout({ children }) {
   useEffect(() => {
     if (isLoginPage) return;
     const mq = window.matchMedia("(min-width: 1024px)");
-    const onChange = () => {
-      if (mq.matches) setMobileOpen(false);
+    setIsDesktop(mq.matches);
+    const onChange = (e) => {
+      setIsDesktop(e.matches);
+      if (e.matches) setMobileOpen(false);
     };
     mq.addEventListener("change", onChange);
     return () => mq.removeEventListener("change", onChange);
@@ -63,6 +65,7 @@ export default function AdminLayout({ children }) {
   }
 
   const sidebarWidth = sidebarCollapsed ? SIDEBAR_COLLAPSED : SIDEBAR_EXPANDED;
+  const headerHeight = isDesktop ? "80px" : "68px";
 
   return (
     <AuthProvider>
@@ -70,11 +73,11 @@ export default function AdminLayout({ children }) {
         <div
           className="admin-layout grid h-screen overflow-hidden bg-gray-100 text-[13px]"
           style={{
-            gridTemplateRows: `${HEADER_HEIGHT} minmax(0, 1fr)`,
+            gridTemplateRows: `${headerHeight} minmax(0, 1fr)`,
             gridTemplateColumns: `${sidebarWidth} minmax(0, 1fr)`,
             transition: "grid-template-columns 300ms ease",
             "--admin-sidebar-width": sidebarWidth,
-            "--admin-header-height": HEADER_HEIGHT,
+            "--admin-header-height": headerHeight,
           }}
         >
           <AdminHeader
