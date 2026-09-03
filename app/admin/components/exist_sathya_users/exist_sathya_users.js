@@ -40,6 +40,7 @@ export default function ExistSathyaUsersComponent() {
   const [importResult, setImportResult] = useState(null);
   const [selectedIds, setSelectedIds] = useState([]);
   const [isBulkDeleting, setIsBulkDeleting] = useState(false);
+  const [roleFilter, setRoleFilter] = useState("");
 
   useEffect(() => {
     fetchUsers();
@@ -218,6 +219,13 @@ export default function ExistSathyaUsersComponent() {
       (user.email && user.email.toLowerCase().includes(searchQuery.toLowerCase())) ||
       (user.phone && user.phone.toLowerCase().includes(searchQuery.toLowerCase()));
 
+    let matchesRole = true;
+    if (roleFilter === "__empty__") {
+      matchesRole = !user.role_id || String(user.role_id).trim() === "";
+    } else if (roleFilter !== "") {
+      matchesRole = String(user.role_id ?? "") === roleFilter;
+    }
+
     let matchesDate = true;
     if (dateFilter.startDate && dateFilter.endDate && user.created_at) {
       const userDate = new Date(user.created_at);
@@ -228,8 +236,14 @@ export default function ExistSathyaUsersComponent() {
       matchesDate = userDate >= startDate && userDate <= endDate;
     }
 
-    return matchesSearch && matchesDate;
+    return matchesSearch && matchesRole && matchesDate;
   });
+
+  const roleOptions = [...new Set(
+    users
+      .map((user) => (user.role_id === null || user.role_id === undefined ? "" : String(user.role_id).trim()))
+      .filter(Boolean)
+  )].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
 
   const totalEntries = filteredUsers.length;
   const indexOfLastItem = currentPage * itemsPerPage;
@@ -351,7 +365,7 @@ export default function ExistSathyaUsersComponent() {
       ) : (
         <>
           <div className="bg-white shadow-md rounded-lg p-5 mb-5 overflow-x-auto">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end mb-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end mb-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
                 <input
@@ -364,6 +378,23 @@ export default function ExistSathyaUsersComponent() {
                   }}
                   className="w-full p-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500"
                 />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Role ID</label>
+                <select
+                  value={roleFilter}
+                  onChange={(e) => {
+                    setRoleFilter(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500"
+                >
+                  <option value="">All roles</option>
+                  <option value="__empty__">No role</option>
+                  {roleOptions.map((roleId) => (
+                    <option key={roleId} value={roleId}>{roleId}</option>
+                  ))}
+                </select>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Date Range</label>
@@ -425,6 +456,10 @@ export default function ExistSathyaUsersComponent() {
                   Clear
                 </button>
               )}
+              <span className="ml-auto text-xs text-gray-500 inline-flex items-center gap-1">
+                <span className="inline-block w-3 h-3 rounded-sm" style={{ backgroundColor: "#fff9c4" }} />
+                Light yellow = password is empty
+              </span>
             </div>
             <hr className="border-t border-gray-200 mb-4" />
             <table className="w-full border border-gray-300">
@@ -453,7 +488,11 @@ export default function ExistSathyaUsersComponent() {
               <tbody>
                 {currentUsers.length > 0 ? (
                   currentUsers.map((user, index) => (
-                    <tr key={user._id || index} className="text-center border-b">
+                    <tr
+                      key={user._id || index}
+                      className="text-center border-b"
+                      style={!user.has_password ? { backgroundColor: "#fff9c4" } : undefined}
+                    >
                       <td className="p-2">
                         <input
                           type="checkbox"
