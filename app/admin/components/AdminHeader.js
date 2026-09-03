@@ -3,8 +3,9 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 
-const AdminHeader = () => {
+const AdminHeader = ({ toggleSidebar, sidebarCollapsed = true, mobileOpen = false }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const sidebarIsOpen = mobileOpen || !sidebarCollapsed;
   const [notifications, setNotifications] = useState([]);
   const [notifOpen, setNotifOpen] = useState(false);
   const unreadCount = notifications.filter(n => !n.read).length;
@@ -69,7 +70,31 @@ const AdminHeader = () => {
   return (
     <header className="navbar-header col-span-2 col-start-1 row-start-1 z-50 flex h-full w-full items-center border-b border-gray-200 bg-white">
       <div className="flex h-full w-full items-center justify-between gap-3 px-4 sm:px-5 lg:px-6">
-        <div className="flex min-w-0 items-center">
+        <div className="flex min-w-0 items-center gap-2">
+          {toggleSidebar && (
+            <button
+              type="button"
+              onClick={() => {
+                setDropdownOpen(false);
+                setNotifOpen(false);
+                toggleSidebar();
+              }}
+              className="inline-flex h-[40px] w-[40px] shrink-0 items-center justify-center rounded-lg text-gray-600 transition hover:bg-gray-100 hover:text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-200"
+              aria-label={sidebarIsOpen ? "Close sidebar" : "Open sidebar"}
+              aria-expanded={sidebarIsOpen}
+              aria-controls="admin-sidebar"
+            >
+              {sidebarIsOpen ? (
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              ) : (
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              )}
+            </button>
+          )}
           <a href="/" className="flex h-full min-w-0 items-center gap-3">
             <img
               src="/uploads/sathya-header-logo.webp"

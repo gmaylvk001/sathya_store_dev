@@ -17,7 +17,8 @@ const menuItems = [
       { icon: 'mdi:upload', label: 'Bulk Upload', link: 'product/bulk_upload', dotColor: 'bg-yellow-500' },
       { icon: 'mdi:filter-variant', label: 'Filter Group', link: 'filter_group', dotColor: 'bg-yellow-500' },
       { icon: 'mdi:filter-outline', label: 'Filter', link: 'filter', dotColor: 'bg-yellow-500' },
-      { icon: 'mdi:plus-box-outline', label: 'New Product', link: 'newproduct', dotColor: 'bg-green-500' }
+      { icon: 'mdi:plus-box-outline', label: 'New Product', link: 'newproduct', dotColor: 'bg-green-500' },
+      { icon: 'material-symbols:reviews-rounded', label: 'Product Review', link: 'reviews', dotColor: 'bg-orange-500' }
     ]
   },
   { icon: 'mdi:storefront-outline', label: 'Unilet Products', link: 'unilet-products' },
@@ -32,42 +33,17 @@ const menuItems = [
       { icon: 'mdi:truck-delivery-outline', label: 'Shipped Order', link: 'shippedorder', dotColor: 'bg-green-500' }
     ]
   },
-  {
-    icon: 'mdi:tune-variant',
-    label: 'Main Settings',
-    submenu: [
-      { icon: 'mdi:image-outline', label: 'Banner', link: 'main-cat', dotColor: 'bg-yellow-500' },
-      { icon: 'mdi:flash-outline', label: 'Category Flash', link: 'main-cat-flash', dotColor: 'bg-yellow-500' },
-      { icon: 'mdi:image-area', label: 'Category banner', link: 'main_cat_prod', dotColor: 'bg-yellow-500' },
-      { icon: 'mdi:image-multiple-outline', label: 'Category Image', link: 'category-image-section', dotColor: 'bg-yellow-500' },
-      { icon: 'mdi:cube-outline', label: 'open box banner', link: 'openboxbanner', dotColor: 'bg-yellow-500' },
-    ]
-  },
   { icon: 'mdi:percent-outline', label: 'Offer', link: 'offer' },
-  {
-    icon: 'mdi:bullhorn-outline',
-    label: 'Marketing',
-    submenu: [
-      {
-        icon: 'mdi:gift-outline',
-        label: 'Combo Offers',
-        link: 'combo-offers',
-        dotColor: 'bg-green-500',
-      },
-    ],
-  },
-  { icon: 'mdi:briefcase-outline', label: 'Job Positions', link: 'careers' },
   { icon: 'mdi:note-text-outline', label: 'Blog', link: 'blog' },
-  { icon: 'mdi:phone-outline', label: 'Contact Us', link: 'contact' },
-  { icon: 'mdi:message-text-outline', label: 'Feedback', link: 'feedback_page' },
-  { icon: 'material-symbols:reviews-rounded', label: 'Reviews', link: 'reviews' },
   {
-    icon: 'mdi:file-chart-outline',
-    label: 'Reports',
+    icon: 'mdi:forum-outline',
+    label: 'Communication',
     submenu: [
-      { icon: 'mdi:chart-plus', label: 'New Product', link: 'newproduct', dotColor: 'bg-green-500' },
+      { icon: 'mdi:phone-outline', label: 'Contact Us', link: 'contact', dotColor: 'bg-blue-500' },
+      { icon: 'mdi:message-text-outline', label: 'Feedback', link: 'feedback_page', dotColor: 'bg-purple-500' },
     ]
   },
+
   {
     icon: 'mdi:cog-outline',
     label: 'Settings',
@@ -194,9 +170,8 @@ function SidebarItem({ icon, label, link, activeMenu, setActiveMenu, collapsed, 
           setActiveMenu(label);
           router.push(`/admin/${link}`);
         }}
-        className={`w-full flex items-center px-1 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
-          active ? 'bg-brandRed text-white' : 'text-gray-700 hover:text-brandRed'
-        } ${collapsed ? 'justify-center' : 'space-x-3'}`}
+        className={`w-full flex items-center px-1 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${active ? 'bg-brandRed text-white' : 'text-gray-700 hover:text-brandRed'
+          } ${collapsed ? 'justify-center' : 'space-x-3'}`}
         aria-label={label}
       >
         <Icon icon={icon} className="text-xl" />
@@ -248,11 +223,10 @@ function SidebarItemWithDropdown({
           if (collapsed) return;
           toggleMenu();
         }}
-        className={`w-full flex items-center px-3 py-3 rounded-lg text-sm font-medium transition-colors duration-200 ${
-          item.submenu.some((sub) => sub.label === activeMenu)
-            ? 'bg-red-100 text-brandRed'
-            : 'text-gray-700 hover:text-brandRed'
-        } ${collapsed ? 'justify-center' : 'space-x-3'}`}
+        className={`w-full flex items-center px-3 py-3 rounded-lg text-sm font-medium transition-colors duration-200 ${item.submenu.some((sub) => sub.label === activeMenu)
+          ? 'bg-red-100 text-brandRed'
+          : 'text-gray-700 hover:text-brandRed'
+          } ${collapsed ? 'justify-center' : 'space-x-3'}`}
         aria-label={item.label}
         aria-haspopup="true"
       >
@@ -288,11 +262,10 @@ function SidebarItemWithDropdown({
                         setActiveMenu(sub.label);
                         router.push(`/admin/${sub.link}`);
                       }}
-                      className={`flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm transition-colors ${
-                        activeMenu === sub.label
-                          ? 'bg-brandRed text-white'
-                          : 'text-gray-700 hover:bg-red-50 hover:text-brandRed'
-                      }`}
+                      className={`flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm transition-colors ${activeMenu === sub.label
+                        ? 'bg-brandRed text-white'
+                        : 'text-gray-700 hover:bg-red-50 hover:text-brandRed'
+                        }`}
                     >
                       <Icon icon={sub.icon} className="h-4 w-4 shrink-0 text-[16px]" />
                       <span>{sub.label}</span>
@@ -314,11 +287,10 @@ function SidebarItemWithDropdown({
                   setActiveMenu(sub.label);
                   router.push(`/admin/${sub.link}`);
                 }}
-                className={`w-full flex items-center px-3 py-2 rounded text-sm space-x-3 ${
-                  activeMenu === sub.label
-                    ? 'bg-brandRed text-white'
-                    : 'text-gray-700 hover:text-brandRed'
-                }`}
+                className={`w-full flex items-center px-3 py-2 rounded text-sm space-x-3 ${activeMenu === sub.label
+                  ? 'bg-brandRed text-white'
+                  : 'text-gray-700 hover:text-brandRed'
+                  }`}
               >
                 <Icon icon={sub.icon} className="text-lg" />
                 <span>{sub.label}</span>

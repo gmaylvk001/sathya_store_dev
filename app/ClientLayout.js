@@ -24,7 +24,7 @@ export default function ClientLayout({ children }) {
                 {!pathname?.startsWith("/admin") && <CustomHeader />}
                 <main className="relative">{children}</main>
                 {!pathname?.startsWith("/admin") && <CustomFooter />}
-                <GlobalModals />
+                {!pathname?.startsWith("/admin") && <GlobalModals />}
               </AuthProvider>
             </CartProvider>
           </WishlistProvider>
