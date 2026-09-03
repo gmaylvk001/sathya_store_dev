@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
-import ExistSathyaUser from "@/models/ExistSathyaUser";
+import ExistSathyaUser, { ensureExistSathyaUserIndexes } from "@/models/ExistSathyaUser";
 
 export async function GET() {
   try {
     await dbConnect();
+    await ensureExistSathyaUserIndexes();
     const users = await ExistSathyaUser.find()
       .select("-password -remember_token -confirmation_code")
       .sort({ created_at: -1 });

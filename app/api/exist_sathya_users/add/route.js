@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
-import ExistSathyaUser from "@/models/ExistSathyaUser";
+import ExistSathyaUser, { ensureExistSathyaUserIndexes } from "@/models/ExistSathyaUser";
 import bcrypt from "bcryptjs";
 
 function emptyToNull(value) {
@@ -13,6 +13,7 @@ function emptyToNull(value) {
 export async function POST(req) {
   try {
     await dbConnect();
+    await ensureExistSathyaUserIndexes();
 
     const body = await req.json();
     const {
@@ -37,28 +38,33 @@ export async function POST(req) {
       logged_in,
     } = body;
 
-    if (!first_name || !first_name.trim() || !email || !phone || !password) {
+    if (!phone || !String(phone).trim()) {
       return NextResponse.json(
-        { error: "First name, email, phone and password are required" },
+        { error: "Phone is required" },
         { status: 400 }
       );
     }
 
-    const existingUser = await ExistSathyaUser.findOne({ email: email.trim().toLowerCase() });
-    if (existingUser) {
-      return NextResponse.json({ error: "Email already exists" }, { status: 400 });
+    const emailValue = emptyToNull(email) === null ? null : String(email).trim().toLowerCase();
+    if (emailValue) {
+      const existingUser = await ExistSathyaUser.findOne({ email: emailValue });
+      if (existingUser) {
+        return NextResponse.json({ error: "Email already exists" }, { status: 400 });
+      }
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = password
+      ? await bcrypt.hash(password, 10)
+      : null;
 
     const newUser = new ExistSathyaUser({
       exist_id: emptyToNull(exist_id) === null ? null : String(exist_id).trim(),
-      first_name: first_name.trim(),
+      first_name: emptyToNull(first_name)?.trim?.() || emptyToNull(first_name),
       last_name: emptyToNull(last_name)?.trim?.() || emptyToNull(last_name),
       store_id: emptyToNull(store_id),
       role_id: emptyToNull(role_id),
       zone_id: emptyToNull(zone_id),
-      email: email.trim().toLowerCase(),
+      email: emailValue,
       phone: phone.trim(),
       password: hashedPassword,
       remember_token: emptyToNull(remember_token),

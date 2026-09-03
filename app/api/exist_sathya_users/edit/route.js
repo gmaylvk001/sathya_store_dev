@@ -42,9 +42,9 @@ export async function PUT(req) {
       return NextResponse.json({ error: "User ID is required" }, { status: 400 });
     }
 
-    if (!first_name || !first_name.trim() || !email || !phone) {
+    if (!phone || !String(phone).trim()) {
       return NextResponse.json(
-        { error: "First name, email and phone are required" },
+        { error: "Phone is required" },
         { status: 400 }
       );
     }
@@ -54,23 +54,26 @@ export async function PUT(req) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    const existingUser = await ExistSathyaUser.findOne({
-      email: email.trim().toLowerCase(),
-      _id: { $ne: user._id },
-    });
+    const emailValue = emptyToNull(email) === null ? null : String(email).trim().toLowerCase();
+    if (emailValue) {
+      const existingUser = await ExistSathyaUser.findOne({
+        email: emailValue,
+        _id: { $ne: user._id },
+      });
 
-    if (existingUser) {
-      return NextResponse.json({ error: "Email already exists" }, { status: 400 });
+      if (existingUser) {
+        return NextResponse.json({ error: "Email already exists" }, { status: 400 });
+      }
     }
 
     const updateData = {
       exist_id: emptyToNull(exist_id) === null ? null : String(exist_id).trim(),
-      first_name: first_name.trim(),
+      first_name: emptyToNull(first_name)?.trim?.() || emptyToNull(first_name),
       last_name: emptyToNull(last_name)?.trim?.() || emptyToNull(last_name),
       store_id: emptyToNull(store_id),
       role_id: emptyToNull(role_id),
       zone_id: emptyToNull(zone_id),
-      email: email.trim().toLowerCase(),
+      email: emailValue,
       phone: phone.trim(),
       remember_token: emptyToNull(remember_token),
       confirmed: confirmed === "" || confirmed === undefined ? null : Number(confirmed),

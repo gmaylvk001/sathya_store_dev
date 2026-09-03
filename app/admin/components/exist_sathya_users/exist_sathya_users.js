@@ -38,6 +38,8 @@ export default function ExistSathyaUsersComponent() {
   const [importFile, setImportFile] = useState(null);
   const [isImporting, setIsImporting] = useState(false);
   const [importResult, setImportResult] = useState(null);
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
 
   useEffect(() => {
     fetchUsers();
@@ -79,11 +81,19 @@ export default function ExistSathyaUsersComponent() {
     setIsModalOpen(true);
   };
 
+  const handleToggleSelect = (userId) => {
+    const id = String(userId);
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  };
+
   const handleDelete = async (userId) => {
     try {
       const response = await axios.delete("/api/exist_sathya_users/delete", {
         data: { userId },
       });
+      setSelectedIds((prev) => prev.filter((id) => id !== String(userId)));
 
       if (response.data.success) {
         setAlertMessage("✅ User deleted successfully!");
@@ -108,12 +118,12 @@ export default function ExistSathyaUsersComponent() {
     try {
       const payload = {
         exist_id: formData.exist_id || null,
-        first_name: formData.first_name,
+        first_name: formData.first_name || null,
         last_name: formData.last_name || null,
         store_id: formData.store_id || null,
         role_id: formData.role_id || null,
         zone_id: formData.zone_id || null,
-        email: formData.email,
+        email: formData.email || null,
         phone: formData.phone,
         notify_pincode: formData.notify_pincode || null,
         notify_status: formData.notify_status === "" ? 0 : Number(formData.notify_status),
@@ -130,7 +140,9 @@ export default function ExistSathyaUsersComponent() {
         });
         setAlertMessage("✅ User updated successfully!");
       } else {
-        payload.password = formData.password;
+        if (formData.password) {
+          payload.password = formData.password;
+        }
         await axios.post("/api/exist_sathya_users/add", payload);
         setAlertMessage("✅ User added successfully!");
       }
@@ -225,6 +237,54 @@ export default function ExistSathyaUsersComponent() {
   const currentUsers = filteredUsers.slice(indexOfFirstItem, indexOfLastItem);
   const startEntry = indexOfFirstItem + 1;
   const endEntry = Math.min(indexOfLastItem, totalEntries);
+  const currentPageIds = currentUsers.map((user) => String(user._id));
+  const allCurrentSelected =
+    currentPageIds.length > 0 && currentPageIds.every((id) => selectedIds.includes(id));
+
+  const toggleSelectCurrentPage = () => {
+    if (allCurrentSelected) {
+      setSelectedIds((prev) => prev.filter((id) => !currentPageIds.includes(id)));
+      return;
+    }
+    setSelectedIds((prev) => [...new Set([...prev, ...currentPageIds])]);
+  };
+
+  const selectAllFiltered = () => {
+    setSelectedIds(filteredUsers.map((user) => String(user._id)));
+  };
+
+  const handleBulkDelete = async () => {
+    if (!selectedIds.length) {
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Delete ${selectedIds.length} selected user(s)? This cannot be undone.`
+    );
+    if (!confirmed) {
+      return;
+    }
+
+    setIsBulkDeleting(true);
+    try {
+      const response = await axios.delete("/api/exist_sathya_users/delete", {
+        data: { userIds: selectedIds },
+      });
+
+      setAlertMessage(`✅ ${response.data.message || "Users deleted successfully!"}`);
+      setShowAlert(true);
+      setTimeout(() => setShowAlert(false), 3000);
+      setSelectedIds([]);
+      setCurrentPage(1);
+      fetchUsers();
+    } catch (error) {
+      setAlertMessage(error.response?.data?.error || "❌ Error deleting users");
+      setShowAlert(true);
+      setTimeout(() => setShowAlert(false), 3000);
+    } finally {
+      setIsBulkDeleting(false);
+    }
+  };
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
@@ -331,10 +391,53 @@ export default function ExistSathyaUsersComponent() {
                 </button>
               </div>
             </div>
+            {showAlert && !isModalOpen && !isImportOpen && (
+              <div className="bg-green-500 text-white px-4 py-2 rounded-md mb-4 text-center">{alertMessage}</div>
+            )}
+            <div className="flex flex-wrap items-center gap-2 mb-3">
+              {selectedIds.length > 0 && (
+                <>
+                  <span className="text-sm text-gray-700">{selectedIds.length} selected</span>
+                  <button
+                    onClick={handleBulkDelete}
+                    disabled={isBulkDeleting}
+                    className="p-2 bg-red-500 hover:bg-red-600 text-white rounded-md transition disabled:opacity-50"
+                  >
+                    {isBulkDeleting ? "Deleting..." : "Delete selected"}
+                  </button>
+                </>
+              )}
+              {filteredUsers.length > 0 && selectedIds.length !== filteredUsers.length && (
+                <button
+                  type="button"
+                  onClick={selectAllFiltered}
+                  className="p-2 border border-gray-300 hover:bg-gray-50 rounded-md transition text-sm"
+                >
+                  Select all {filteredUsers.length}
+                </button>
+              )}
+              {selectedIds.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setSelectedIds([])}
+                  className="p-2 border border-gray-300 hover:bg-gray-50 rounded-md transition text-sm"
+                >
+                  Clear
+                </button>
+              )}
+            </div>
             <hr className="border-t border-gray-200 mb-4" />
             <table className="w-full border border-gray-300">
               <thead>
                 <tr className="bg-gray-200">
+                  <th className="p-2 w-10">
+                    <input
+                      type="checkbox"
+                      checked={allCurrentSelected}
+                      onChange={toggleSelectCurrentPage}
+                      disabled={currentUsers.length === 0}
+                    />
+                  </th>
                   <th className="p-2">Exist ID</th>
                   <th className="p-2">First Name</th>
                   <th className="p-2">Last Name</th>
@@ -351,6 +454,13 @@ export default function ExistSathyaUsersComponent() {
                 {currentUsers.length > 0 ? (
                   currentUsers.map((user, index) => (
                     <tr key={user._id || index} className="text-center border-b">
+                      <td className="p-2">
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.includes(String(user._id))}
+                          onChange={() => handleToggleSelect(user._id)}
+                        />
+                      </td>
                       <td className="p-2">{user.exist_id || "-"}</td>
                       <td className="p-2 font-bold">{user.first_name || "-"}</td>
                       <td className="p-2">{user.last_name || "-"}</td>
@@ -384,7 +494,7 @@ export default function ExistSathyaUsersComponent() {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="10" className="p-2 text-center text-gray-500">No users found.</td>
+                    <td colSpan="11" className="p-2 text-center text-gray-500">No users found.</td>
                   </tr>
                 )}
               </tbody>
@@ -412,18 +522,17 @@ export default function ExistSathyaUsersComponent() {
             )}
             <form onSubmit={handleSubmit} className="mt-4">
               <input type="text" name="exist_id" placeholder="Exist ID (optional)" value={formData.exist_id} onChange={handleChange} className="w-full border p-2 mb-2 rounded" />
-              <input type="text" name="first_name" placeholder="First Name" value={formData.first_name} onChange={handleChange} className="w-full border p-2 mb-2 rounded" required />
+              <input type="text" name="first_name" placeholder="First Name (optional)" value={formData.first_name} onChange={handleChange} className="w-full border p-2 mb-2 rounded" />
               <input type="text" name="last_name" placeholder="Last Name (optional)" value={formData.last_name} onChange={handleChange} className="w-full border p-2 mb-2 rounded" />
-              <input type="email" name="email" placeholder="Email" value={formData.email} onChange={handleChange} className="w-full border p-2 mb-2 rounded" required />
+              <input type="email" name="email" placeholder="Email (optional)" value={formData.email} onChange={handleChange} className="w-full border p-2 mb-2 rounded" />
               <input type="tel" name="phone" placeholder="Phone" value={formData.phone} onChange={handleChange} className="w-full border p-2 mb-2 rounded" required />
               <input
                 type="password"
                 name="password"
-                placeholder={isEditMode ? "Password (leave blank to keep)" : "Password"}
+                placeholder={isEditMode ? "Password (leave blank to keep)" : "Password (optional)"}
                 value={formData.password}
                 onChange={handleChange}
                 className="w-full border p-2 mb-2 rounded"
-                required={!isEditMode}
               />
               <input type="text" name="store_id" placeholder="Store ID (optional)" value={formData.store_id} onChange={handleChange} className="w-full border p-2 mb-2 rounded" />
               <input type="text" name="role_id" placeholder="Role ID (optional)" value={formData.role_id} onChange={handleChange} className="w-full border p-2 mb-2 rounded" />
@@ -457,8 +566,8 @@ export default function ExistSathyaUsersComponent() {
               <div className="bg-green-500 text-white px-4 py-2 rounded-md mb-4 text-center">{alertMessage}</div>
             )}
             <p className="text-sm text-gray-600 mt-4 mb-2">
-              Required columns: <b>first_name</b>, <b>email</b>, <b>phone</b>, <b>password</b>.
-              Optional: <b>exist_id</b> (or <b>id</b>) is saved into exist_id. Other columns can be empty.
+              Required column: <b>phone</b>.
+              Optional: <b>exist_id</b> (or <b>id</b>), <b>first_name</b>, <b>email</b>, <b>password</b> and other columns can be empty.
             </p>
             <a
               href="/api/exist_sathya_users/import/sample"

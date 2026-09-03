@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import * as XLSX from "xlsx";
 import bcrypt from "bcryptjs";
 import dbConnect from "@/lib/db";
-import ExistSathyaUser from "@/models/ExistSathyaUser";
+import ExistSathyaUser, { ensureExistSathyaUserIndexes } from "@/models/ExistSathyaUser";
 
 function emptyToNull(value) {
   if (value === undefined || value === null || String(value).trim() === "") {
@@ -83,6 +83,7 @@ async function resolvePassword(rawPassword) {
 export async function POST(req) {
   try {
     await dbConnect();
+    await ensureExistSathyaUserIndexes();
 
     const formData = await req.formData();
     const file = formData.get("excel") || formData.get("file");
@@ -128,39 +129,33 @@ export async function POST(req) {
       const row = rows[index];
       const excelRow = index + 2;
 
-      const first_name = String(getCell(row, ["first_name"])).trim();
-      const email = String(getCell(row, ["email"])).trim().toLowerCase();
+      const first_name = emptyToNull(getCell(row, ["first_name"]));
+      const emailRaw = emptyToNull(getCell(row, ["email"]));
+      const email = emailRaw ? String(emailRaw).trim().toLowerCase() : null;
       const phone = String(getCell(row, ["phone"])).trim();
       const rawPassword = getCell(row, ["password"]);
 
-      if (!first_name || !email || !phone) {
+      if (!phone) {
         skippedCount += 1;
         errors.push({
           row: excelRow,
-          error: "first_name, email and phone are required",
+          error: "phone is required",
         });
         continue;
       }
 
-      if (existingEmails.has(email) || emailsInFile.has(email)) {
+      if (email && (existingEmails.has(email) || emailsInFile.has(email))) {
         skippedCount += 1;
         skippedExistingCount += 1;
         skippedEmails.push({ row: excelRow, email });
         continue;
       }
 
-      emailsInFile.add(email);
+      if (email) {
+        emailsInFile.add(email);
+      }
 
       const hashedPassword = await resolvePassword(rawPassword);
-      if (!hashedPassword) {
-        skippedCount += 1;
-        emailsInFile.delete(email);
-        errors.push({
-          row: excelRow,
-          error: "password is required",
-        });
-        continue;
-      }
 
       const confirmedValue = emptyToNull(getCell(row, ["confirmed"]));
       const notifyStatusValue = emptyToNull(getCell(row, ["notify_status"]));
@@ -188,10 +183,14 @@ export async function POST(req) {
           logged_in: parseLoggedInDate(getCell(row, ["logged_in"])),
         });
         addedCount += 1;
-        existingEmails.add(email);
+        if (email) {
+          existingEmails.add(email);
+        }
       } catch (error) {
         skippedCount += 1;
-        emailsInFile.delete(email);
+        if (email) {
+          emailsInFile.delete(email);
+        }
         if (error.code === 11000) {
           skippedExistingCount += 1;
           skippedEmails.push({ row: excelRow, email });

@@ -9,7 +9,8 @@ const ExistSathyaUserSchema = new mongoose.Schema({
   },
   first_name: {
     type: String,
-    required: true,
+    required: false,
+    default: null,
     trim: true,
   },
   last_name: {
@@ -35,8 +36,8 @@ const ExistSathyaUserSchema = new mongoose.Schema({
   },
   email: {
     type: String,
-    required: true,
-    unique: true,
+    required: false,
+    default: null,
     trim: true,
     lowercase: true,
   },
@@ -47,7 +48,8 @@ const ExistSathyaUserSchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    required: true,
+    required: false,
+    default: null,
   },
   remember_token: {
     type: String,
@@ -103,8 +105,32 @@ const ExistSathyaUserSchema = new mongoose.Schema({
   timestamps: { createdAt: "created_at", updatedAt: "updated_at" },
 });
 
+ExistSathyaUserSchema.index(
+  { email: 1 },
+  {
+    unique: true,
+    partialFilterExpression: { email: { $type: "string" } },
+    name: "email_unique_nonempty",
+  }
+);
+
 if (mongoose.models.ecom_exist_sathya_users) {
   delete mongoose.models.ecom_exist_sathya_users;
 }
 
-export default mongoose.model("ecom_exist_sathya_users", ExistSathyaUserSchema);
+const ExistSathyaUser = mongoose.model("ecom_exist_sathya_users", ExistSathyaUserSchema);
+
+export async function ensureExistSathyaUserIndexes() {
+  try {
+    await ExistSathyaUser.collection.dropIndex("email_1");
+  } catch (error) {
+    // Old unique email index may already be gone.
+  }
+  try {
+    await ExistSathyaUser.syncIndexes();
+  } catch (error) {
+    console.error("Exist sathya users index sync:", error.message);
+  }
+}
+
+export default ExistSathyaUser;
