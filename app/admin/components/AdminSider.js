@@ -62,7 +62,8 @@ const menuItems = [
       { icon: 'mdi:account-outline', label: 'Users', link: 'user', dotColor: 'bg-yellow-500' },
       { icon: 'mdi:account-tie-outline', label: 'System_Users', link: 'system_users', dotColor: 'bg-yellow-500' },
       { icon: 'mdi:shield-key-outline', label: 'Permissions', link: 'permissions', dotColor: 'bg-purple-500' },
-      { icon: 'mdi:account-group-outline', label: 'Roles', link: 'roles', dotColor: 'bg-blue-500' }
+      { icon: 'mdi:account-group-outline', label: 'Roles', link: 'roles', dotColor: 'bg-blue-500' },
+      { icon: 'mdi:account-group-outline', label: 'Sathya Exist Users', link: 'exist_sathya_users', dotColor: 'bg-blue-500' }
     ]
   },
 ];
