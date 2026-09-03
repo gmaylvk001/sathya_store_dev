@@ -6,6 +6,7 @@ import HotspotEditor from "./HotspotEditor";
 import {
   CATEGORY_PAGE_IMAGE_ACCEPT,
   CATEGORY_PAGE_IMAGE_ACCEPT_HINT,
+  consumeAllowedCategoryPageImage,
 } from "@/lib/categoryPageComponents/registry";
 
 function createHotspotId() {
@@ -336,10 +337,18 @@ export default function ImageHotspotBannerConfigForm({
           type="file"
           accept={CATEGORY_PAGE_IMAGE_ACCEPT}
           onChange={(e) => {
-            const f = e.target.files?.[0] || null;
-            setBannerFile(f);
-            if (f) {
-              setBannerPreview(URL.createObjectURL(f));
+            const { file, error } = consumeAllowedCategoryPageImage(
+              e.target.files?.[0],
+              e.target
+            );
+            if (error) {
+              setError(error);
+              return;
+            }
+            setError("");
+            setBannerFile(file);
+            if (file) {
+              setBannerPreview(URL.createObjectURL(file));
               setHotspots([]);
               setSelectedId(null);
             }

@@ -5,6 +5,7 @@ import { Icon } from "@iconify/react";
 import {
   CATEGORY_PAGE_IMAGE_ACCEPT,
   CATEGORY_PAGE_IMAGE_ACCEPT_HINT,
+  consumeAllowedCategoryPageImage,
 } from "@/lib/categoryPageComponents/registry";
 
 const emptyItem = () => ({
@@ -406,7 +407,14 @@ export default function ImageCarouselConfigForm({
               type="file"
               accept={CATEGORY_PAGE_IMAGE_ACCEPT}
               onChange={(e) => {
-                const file = e.target.files?.[0];
+                const { file, error } = consumeAllowedCategoryPageImage(
+                  e.target.files?.[0],
+                  e.target
+                );
+                if (error) {
+                  setError(error);
+                  return;
+                }
                 if (!file) return;
                 setError("");
                 updateItem(index, {

@@ -5,6 +5,7 @@ import { Icon } from "@iconify/react";
 import {
   CATEGORY_PAGE_IMAGE_ACCEPT,
   CATEGORY_PAGE_IMAGE_ACCEPT_HINT,
+  consumeAllowedCategoryPageImage,
 } from "@/lib/categoryPageComponents/registry";
 
 const LAYOUTS = [
@@ -243,11 +244,20 @@ export default function ImageColumnsConfigForm({
     );
   };
 
-  const handleFile = (slotKey, file) => {
-    if (!file) return;
-    const preview = URL.createObjectURL(file);
+  const handleFile = (slotKey, file, inputEl) => {
+    const { file: allowed, error } = consumeAllowedCategoryPageImage(
+      file,
+      inputEl
+    );
+    if (error) {
+      setError(error);
+      return;
+    }
+    if (!allowed) return;
+    setError("");
+    const preview = URL.createObjectURL(allowed);
     updateSlot(slotKey, {
-      imageFile: file,
+      imageFile: allowed,
       imagePreview: preview,
     });
   };
@@ -539,7 +549,7 @@ export default function ImageColumnsConfigForm({
                   type="file"
                   accept={CATEGORY_PAGE_IMAGE_ACCEPT}
                   onChange={(e) =>
-                    handleFile(s.slot, e.target.files?.[0] || null)
+                    handleFile(s.slot, e.target.files?.[0] || null, e.target)
                   }
                   className="block w-full text-xs text-gray-600"
                 />

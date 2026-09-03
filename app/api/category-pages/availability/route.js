@@ -13,7 +13,7 @@ export async function POST(req) {
     const body = await req.json().catch(() => ({}));
     const pages = Array.isArray(body?.pages) ? body.pages : [];
 
-    if (pages.length > 500) {
+    if (pages.length > 2000) {
       return NextResponse.json(
         { success: false, message: "Too many pages requested" },
         { status: 400 }

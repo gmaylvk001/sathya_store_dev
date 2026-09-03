@@ -12,6 +12,7 @@ const menuItems = [
     label: 'Product',
     submenu: [
       { icon: 'mdi:format-list-bulleted', label: 'Product List', link: 'product', dotColor: 'bg-green-500' },
+      { icon: 'mdi:shape-outline', label: 'Variants', link: 'variants', dotColor: 'bg-blue-500' },
       { icon: 'mdi:trademark', label: 'Brand', link: 'brand', dotColor: 'bg-red-500' },
       { icon: 'mdi:upload', label: 'Bulk Upload', link: 'product/bulk_upload', dotColor: 'bg-yellow-500' },
       { icon: 'mdi:filter-variant', label: 'Filter Group', link: 'filter_group', dotColor: 'bg-yellow-500' },

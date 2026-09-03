@@ -3,6 +3,10 @@ import Product from "@/models/product";
 import OwnerProduct from "@/models/OwnerProduct";
 import { normalizeRegion } from "@/lib/regionHelper";
 import { resolveProductPrice } from "@/lib/priceResolver";
+import {
+  attachVariantGroupToProduct,
+  applyRegionPricingToVariantGroup,
+} from "@/lib/variantGroup";
 
 export async function GET(request, context) {
   const { params } = await context;
@@ -71,6 +75,9 @@ export async function GET(request, context) {
       resolvedRegion: region,
       status: "Active",
     };
+
+    await attachVariantGroupToProduct(responseProduct);
+    await applyRegionPricingToVariantGroup(responseProduct, region);
 
     return new Response(JSON.stringify(responseProduct), {
       status: 200,

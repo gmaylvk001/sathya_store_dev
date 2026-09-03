@@ -6,6 +6,7 @@ import { buildProductSearchQuery } from "@/lib/categoryPageComponents/productSea
 import {
   CATEGORY_PAGE_IMAGE_ACCEPT,
   CATEGORY_PAGE_IMAGE_ACCEPT_HINT,
+  consumeAllowedCategoryPageImage,
 } from "@/lib/categoryPageComponents/registry";
 
 function productImageSrc(product) {
@@ -14,7 +15,7 @@ function productImageSrc(product) {
   return img.startsWith("http") ? img : `/uploads/products/${img}`;
 }
 
-function ImageUploadField({ label, preview, onPick, hint }) {
+function ImageUploadField({ label, preview, onPick, hint, onInvalid }) {
   return (
     <div>
       <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -26,7 +27,17 @@ function ImageUploadField({ label, preview, onPick, hint }) {
       <input
         type="file"
         accept={CATEGORY_PAGE_IMAGE_ACCEPT}
-        onChange={(e) => onPick(e.target.files?.[0] || null)}
+        onChange={(e) => {
+          const { file, error } = consumeAllowedCategoryPageImage(
+            e.target.files?.[0],
+            e.target
+          );
+          if (error) {
+            onInvalid?.(error);
+            return;
+          }
+          onPick(file);
+        }}
         className="block w-full text-sm text-gray-600 file:mr-3 file:rounded-lg file:border-0 file:bg-gray-100 file:px-3 file:py-2 file:text-sm file:font-medium hover:file:bg-gray-200"
       />
       <p className="mt-1 text-[11px] text-gray-400">
@@ -189,14 +200,17 @@ export default function BannerSideProductsConfigForm({
   }, [query, categoryId, selected, ownerType, brandId]);
 
   const pickMainDesktop = (file) => {
+    setError("");
     setMainDesktopFile(file);
     if (file) setMainDesktopPreview(URL.createObjectURL(file));
   };
   const pickMainMobile = (file) => {
+    setError("");
     setMainMobileFile(file);
     if (file) setMainMobilePreview(URL.createObjectURL(file));
   };
   const pickSide = (file) => {
+    setError("");
     setSideImageFile(file);
     if (file) setSidePreview(URL.createObjectURL(file));
   };
@@ -445,12 +459,14 @@ export default function BannerSideProductsConfigForm({
             preview={mainDesktopPreview}
             hint="Wide banner (recommended 1200×400+)"
             onPick={pickMainDesktop}
+            onInvalid={setError}
           />
           <ImageUploadField
             label="Mobile image (optional)"
             preview={mainMobilePreview}
             hint="Falls back to desktop if empty"
             onPick={pickMainMobile}
+            onInvalid={setError}
           />
         </div>
       </div>
@@ -499,6 +515,7 @@ export default function BannerSideProductsConfigForm({
           preview={sidePreview}
           hint="Vertical promo image beside products"
           onPick={pickSide}
+          onInvalid={setError}
         />
       </div>
 

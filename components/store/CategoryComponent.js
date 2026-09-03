@@ -1053,7 +1053,7 @@ export default function StoreDetail() {
           SECTION 9 — BUSINESS HOURS + PAYMENT & SERVICES + APP
       ═══════════════════════════════════════════════════════ */}
       <section className="bg-white px-4 sm:px-8 py-8 mt-3">
-        <div className="grid grid-cols-1 md:grid-cols-[1fr_2fr_1fr] gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-[1fr_2fr] gap-6">
 
           {/* Business Hours — dynamic */}
           <div className="bea-card">
@@ -1099,18 +1099,6 @@ export default function StoreDetail() {
   </div>
 </div>
 
-          {/* App Download — static */}
-        <div className="bea-card">
-  <h3 className="text-[14px] font-bold text-gray-900 mb-3">Download Sathya Store App</h3>
-  <a href={"https://truco.avaniko.com/api/api/download.html?tid=019acf86-5371-447f-a6f7-eeca624972ad&source=web&medium=web&campaign=truco"} target="_blank" rel="noopener noreferrer">
-    <img
-      src="/Store/storeTruco.png"
-      alt="Download Sathya Store App"
-      className="w-full rounded-lg object-cover cursor-pointer"
-    />
-    <h2 className="cursor-pointer text-bold text-[#d72828] text-center pt-3">Click here</h2>
-  </a>
-</div>
         </div>
       </section>
 

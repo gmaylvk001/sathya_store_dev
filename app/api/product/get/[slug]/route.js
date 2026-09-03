@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import Product from '@/models/product';
 import Filter from '@/models/ecom_filter_infos';
 import dbConnect from '@/lib/db';
+import { attachVariantGroupToProduct } from '@/lib/variantGroup';
 
 export const dynamic = 'force-dynamic'; // Important for dynamic fetching
 
@@ -35,6 +36,7 @@ export async function GET(request, { params }) {
       filters = await Filter.findOne({
       proudct_id: product._id
     });
+      await attachVariantGroupToProduct(product);
     }
 
     // 5. Return product data

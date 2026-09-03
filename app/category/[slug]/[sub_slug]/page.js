@@ -1,5 +1,8 @@
 
 import CategoryClient from "@/components/category/[slug]/[sub_slug]/page";
+import CategoryOverviewPage from "@/components/categoryPageComponents/CategoryOverviewPage";
+import RedirectToOverviewIfDesigned from "@/components/categoryPageComponents/RedirectToOverviewIfDesigned";
+import { PAGE_TYPES } from "@/lib/categoryPageComponents/registry";
 
 export async function generateMetadata({ params }) {
  // const { sub_slug } = params;
@@ -68,6 +71,22 @@ export async function generateMetadata({ params }) {
   }
 }
 
-export default function Page() {
-  return <CategoryClient />;
+export default async function Page({ params }) {
+  const { slug, sub_slug } = await params;
+  if (sub_slug === "overview") {
+    return (
+      <CategoryOverviewPage
+        pageType={PAGE_TYPES.CATEGORY}
+        slug={slug}
+        listingSlugs={[slug]}
+      />
+    );
+  }
+
+  return (
+    <>
+      <RedirectToOverviewIfDesigned pageType={PAGE_TYPES.SUB_CATEGORY} />
+      <CategoryClient />
+    </>
+  );
 }

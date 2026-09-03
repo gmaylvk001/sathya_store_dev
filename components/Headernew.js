@@ -509,15 +509,6 @@ const Header = () => {
             categoryId: String(node._id),
             pageType: pageTypeFromLevel(level),
           });
-          const brands = Array.isArray(node.brands) ? node.brands : [];
-          for (const brand of brands) {
-            if (!brand?._id) continue;
-            out.push({
-              categoryId: String(node._id),
-              pageType: PAGE_TYPES.CATEGORY_BRAND,
-              brandId: String(brand._id),
-            });
-          }
         }
         if (Array.isArray(node?.subcategories) && node.subcategories.length > 0) {
           collectAvailabilityRequests(node.subcategories, level + 1, out);
@@ -556,6 +547,8 @@ const Header = () => {
         localStorage.removeItem('category_overview_availability_v1');
         localStorage.removeItem('category_overview_availability_v2');
         localStorage.removeItem('category_overview_availability_v3');
+        localStorage.removeItem('category_overview_availability_v4');
+        localStorage.removeItem('category_overview_availability_v5');
       } catch {
         /* ignore */
       }
@@ -566,7 +559,7 @@ const Header = () => {
 
       let cancelled = false;
       // Bump key to drop stale v1 caches that kept /overview links off.
-      const AVAIL_CACHE_KEY = 'category_overview_availability_v4';
+      const AVAIL_CACHE_KEY = 'category_overview_availability_v6';
       const AVAIL_TTL_MS = 2 * 60 * 1000;
 
       const loadAvailability = async () => {
@@ -588,16 +581,21 @@ const Header = () => {
             if (!cancelled) setOverviewAvailability(cached.data);
           }
 
-          const res = await fetch('/api/category-pages/availability', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ pages }),
-            cache: 'no-store',
-          });
-          const data = await res.json();
-          if (cancelled) return;
-
-          const map = data?.success && data.availability ? data.availability : {};
+          const BATCH = 400;
+          const map = {};
+          for (let i = 0; i < pages.length; i += BATCH) {
+            const res = await fetch('/api/category-pages/availability', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ pages: pages.slice(i, i + BATCH) }),
+              cache: 'no-store',
+            });
+            const data = await res.json();
+            if (cancelled) return;
+            if (data?.success && data.availability) {
+              Object.assign(map, data.availability);
+            }
+          }
           setOverviewAvailability(map);
           saveCache(AVAIL_CACHE_KEY, map);
         } catch (err) {

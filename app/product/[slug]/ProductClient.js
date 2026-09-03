@@ -2,6 +2,8 @@
 
 
 import ProductDetailsSection from "@/components/ProductDetailsSection";
+import FlixMediaLoader from "@/components/FlixMediaLoader";
+import ProductVariantSelector from "@/components/ProductVariantSelector";
 // import RelatedProducts from "@/components/RelatedProducts";
 import {  useEffect, useState, useRef,useMemo, useCallback } from "react";
 
@@ -66,6 +68,8 @@ export default function ProductClient() {
   const [showHighlights, setShowHighlights] = useState(false);
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
+  const variantCacheRef = useRef({});
+  const applyingVariantRef = useRef(false);
   const [error, setError] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [showEMIModal, setShowEMIModal] = useState(false);
@@ -76,6 +80,9 @@ export default function ProductClient() {
   const [faqs, setFaqs] = useState([]);
   const [recentlyViewedProducts, setRecentlyViewedProducts] = useState([]);
   const [isDesktop, setIsDesktop] = useState(false);
+  const [flixInpageAvailable, setFlixInpageAvailable] = useState(null);
+  const handleFlixInpage = useCallback(() => setFlixInpageAvailable(true), []);
+  const handleFlixNoshow = useCallback(() => setFlixInpageAvailable(false), []);
   const [addOnProducts, setAddOnProducts] = useState([]);
   const [warranties, setWarranties] = useState([]);
   const [selectedWarrantyData, setSelectedWarrantyData] = useState(null);
@@ -665,63 +672,68 @@ const resolveImagePath = (image) => {
   const [reviewCount, setReviewCount] = useState(0);
 
   useEffect(() => {
+    setFlixInpageAvailable(null);
+  }, [product?._id]);
+
+  useEffect(() => {
+    const applyProductData = (data) => {
+      setProduct(data);
+      setSelectedImageIndex(0);
+      setQuantity(1);
+      if (data?.images?.[0]) setSelectedImage(`/uploads/products/${data.images[0]}`);
+      if (data?.variantGroup?.products?.length) {
+        const group = data.variantGroup;
+        group.products.forEach((sibling) => {
+          const cachedSibling = {
+            ...sibling,
+            variantGroup: group,
+          };
+          if (sibling?.slug) variantCacheRef.current[sibling.slug] = cachedSibling;
+          if (sibling?._id) variantCacheRef.current[String(sibling._id)] = cachedSibling;
+        });
+        if (data.slug) {
+          variantCacheRef.current[data.slug] = { ...data, variantGroup: group };
+        }
+      }
+    };
+
     const fetchProduct = async () => {
+      if (!slug) return;
+
+      const cached = variantCacheRef.current[slug];
+      if (cached) {
+        applyingVariantRef.current = false;
+        applyProductData(cached);
+        setLoading(false);
+        return;
+      }
+
       try {
-        setLoading(true);
+        setLoading((currentLoading) => (product ? currentLoading : true));
         const response = await fetch(`/api/product/${slug}`);
-        
-        // if (!response.ok) {
-        //   throw new Error(`HTTP error! status: ${response.status}`);
-        // }
 
         if (!response.ok) {
-    // Instead of throwing an error, handle it gracefully
-    setErrorMessage("Content not loading. Please try again later.");
-    setShowGoHome(true);
-    return;
-  }
-        
+          setErrorMessage("Content not loading. Please try again later.");
+          setShowGoHome(true);
+          return;
+        }
+
         const data = await response.json();
-         // ✅ Final client-side check
         if (data.status !== "Active") {
           router.push("/404");
           return;
         }
-        // console.log(data);
-        
-        // If API returns an array, find the product with matching slug
+
         if (Array.isArray(data)) {
-          const foundProduct = data.find(p => p.slug === slug);
+          const foundProduct = data.find((p) => p.slug === slug);
           if (!foundProduct) {
             throw new Error("Product not found");
           }
-          setProduct(foundProduct);
-        } 
-        // If API returns a single product object
-        else if (data && data.slug) {
-          setProduct(data);
-          // ###### Fetch Customer Reviews ###### //
-          try {
-            // fetch reviews
-            const reviewsRes = await fetch(`/api/reviews/${data._id}`);
-            const reviewsData = await reviewsRes.json();
- 
-            if (reviewsData.success) {
-              setReviews(reviewsData.reviews);
-              setAvgRating(reviewsData.avgRating);
-              setReviewCount(reviewsData.count);
-            }
-          } catch (error) {
-            console.error("Error fetching product or reviews:", error);
-          }
- 
-        }
-        else {
+          applyProductData(foundProduct);
+        } else if (data && data.slug) {
+          applyProductData(data);
+        } else {
           throw new Error("Invalid product data");
-        }
-  
-        if (product?.images?.length > 0) {
-          setSelectedImage(`/uploads/products/${product.images[0]}`);
         }
       } catch (err) {
         console.error("Fetch error:", err);
@@ -731,11 +743,68 @@ const resolveImagePath = (image) => {
         setLoading(false);
       }
     };
-  
-    if (slug) {
-      fetchProduct();
-    }
+
+    fetchProduct();
   }, [slug]);
+
+  useEffect(() => {
+    if (!product?._id) return;
+    let cancelled = false;
+    fetch(`/api/reviews/${product._id}`)
+      .then((res) => res.json())
+      .then((reviewsData) => {
+        if (cancelled || !reviewsData.success) return;
+        setReviews(reviewsData.reviews);
+        setAvgRating(reviewsData.avgRating);
+        setReviewCount(reviewsData.count);
+      })
+      .catch((error) => {
+        console.error("Error fetching reviews:", error);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [product?._id]);
+
+  const handleVariantSelect = (match) => {
+    if (!match) return;
+    const targetSlug = match.slug || String(match._id || "");
+    if (!targetSlug) return;
+    if (String(match._id) === String(product?._id) && targetSlug === String(slug)) return;
+
+    const group = product?.variantGroup;
+    const cached = {
+      ...(variantCacheRef.current[targetSlug] || match),
+      variantGroup: group,
+    };
+    variantCacheRef.current[targetSlug] = cached;
+    applyingVariantRef.current = true;
+    setProduct(cached);
+    setSelectedImageIndex(0);
+    setQuantity(1);
+    setSelectedWarrantyAmount(0);
+    setSelectedWarrantyData(null);
+    if (cached?.images?.[0]) setSelectedImage(`/uploads/products/${cached.images[0]}`);
+
+    const nextUrl = `/product/${targetSlug}`;
+    if (typeof window !== "undefined" && window.location.pathname !== nextUrl) {
+      window.history.pushState(null, "", nextUrl);
+    }
+  };
+
+  useEffect(() => {
+    const onPopState = () => {
+      const currentSlug = window.location.pathname.split("/").filter(Boolean).pop();
+      const cached = currentSlug ? variantCacheRef.current[currentSlug] : null;
+      if (cached) {
+        setProduct(cached);
+        setSelectedImageIndex(0);
+        if (cached?.images?.[0]) setSelectedImage(`/uploads/products/${cached.images[0]}`);
+      }
+    };
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, []);
 
 
 
@@ -906,6 +975,13 @@ const fetchBrand = async () => {
 
   return (
     <div className="bg-white min-h-screen">
+      <FlixMediaLoader
+        product={product}
+        brandName={matchedBrandForManufacturer?.label || brand.find((b) => String(b.value) === String(product?.brand))?.label || ""}
+        enabled={Boolean(product?._id) && brand.length > 0}
+        onInpage={handleFlixInpage}
+        onNoshow={handleFlixNoshow}
+      />
       {errorMessage && (
   <div className="text-center mt-10">
     <p className="text-red-600 text-lg mb-3">{errorMessage}</p>
@@ -1056,6 +1132,9 @@ const fetchBrand = async () => {
 
     {/* FlixMedia minisite target */}
     <div className="key-fea"></div>
+    {!isDesktop ? (
+      <div id="flix-minisite" className="flix-minisite-container w-full" />
+    ) : null}
 
    {/* Share / Wishlist */}
     <div className="flex items-center gap-2 mt-3">
@@ -1075,8 +1154,13 @@ const fetchBrand = async () => {
       />
     </div>
 
-    {/* Quantity + Buy Now + Add to Cart */}
+    {/* Variants + Quantity + Buy Now + Add to Cart */}
     <div className="mt-3">
+      <ProductVariantSelector
+        variantGroup={product.variantGroup}
+        currentProductId={product._id}
+        onSelect={handleVariantSelect}
+      />
       <div className="flex items-center gap-3 mb-3">
         <span className="text-sm font-medium text-gray-700">Quantity:</span>
         <div className="flex items-center border border-gray-300 rounded px-2 py-1 gap-3">
@@ -1217,12 +1301,15 @@ const fetchBrand = async () => {
   {/* 4. ProductDetailsSection (Highlights, Overview, Specs, Reviews, FAQ) */}
   <div className="mt-4">
  <ProductDetailsSection
+      key={product._id}
       product={product}
       reviews={reviews}
       avgRating={avgRating}
       reviewCount={reviewCount}
       manufacturerName={matchedBrandForManufacturer?.manufacturer_name}
       manufacturerAddress={matchedBrandForManufacturer?.manufacturer_address}
+      flixInstanceActive={!isDesktop}
+      flixInpageAvailable={flixInpageAvailable}
     />
   </div> 
    
@@ -1519,6 +1606,17 @@ const fetchBrand = async () => {
         </span>
       )}
     </div>
+
+    <ProductVariantSelector
+      variantGroup={product.variantGroup}
+      currentProductId={product._id}
+      onSelect={handleVariantSelect}
+    />
+
+    <div className="key-fea"></div>
+    {isDesktop ? (
+      <div id="flix-minisite" className="flix-minisite-container w-full" />
+    ) : null}
 
     {/* Rating & Reviews */}
     {avgRating > 0 && (
@@ -1839,12 +1937,15 @@ const fetchBrand = async () => {
 {/* DESKTOP FULL-WIDTH PRODUCT DETAILS & SPECIFICATIONS SECTION */}
 <div className="hidden lg:block w-full mt-8">
   <ProductDetailsSection
+    key={`desktop-${product._id}`}
     product={product}
     reviews={reviews}
     avgRating={avgRating}
     reviewCount={reviewCount}
     manufacturerName={matchedBrandForManufacturer?.manufacturer_name}
     manufacturerAddress={matchedBrandForManufacturer?.manufacturer_address}
+    flixInstanceActive={isDesktop}
+    flixInpageAvailable={flixInpageAvailable}
   />
 </div>
 

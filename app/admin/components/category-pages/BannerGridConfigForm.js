@@ -6,6 +6,7 @@ import { buildProductSearchQuery } from "@/lib/categoryPageComponents/productSea
 import {
   CATEGORY_PAGE_IMAGE_ACCEPT,
   CATEGORY_PAGE_IMAGE_ACCEPT_HINT,
+  consumeAllowedCategoryPageImage,
 } from "@/lib/categoryPageComponents/registry";
 
 const MIN_W = 1;
@@ -620,7 +621,17 @@ export default function BannerGridConfigForm({
               <input
                 type="file"
                 accept={CATEGORY_PAGE_IMAGE_ACCEPT}
-                onChange={(e) => pickBannerImage(index, e.target.files?.[0])}
+                onChange={(e) => {
+                  const { file, error } = consumeAllowedCategoryPageImage(
+                    e.target.files?.[0],
+                    e.target
+                  );
+                  if (error) {
+                    setError(error);
+                    return;
+                  }
+                  pickBannerImage(index, file);
+                }}
                 className="block w-full text-sm"
               />
               <p className="text-[10px] text-gray-400">

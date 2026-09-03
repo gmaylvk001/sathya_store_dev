@@ -59,14 +59,20 @@ export default function CategoryPageRenderer({
         const data = await res.json();
         if (cancelled) return;
 
-        const list = data.success ? data.components || [] : [];
+        if (!data?.success) {
+          setComponents([]);
+          // Keep /overview open when render fails; bouncing hid designed pages.
+          onHasDesignRef.current?.(true);
+          return;
+        }
+        const list = data.components || [];
         setComponents(list);
-        onHasDesignRef.current?.(list.length > 0);
+        onHasDesignRef.current?.(Boolean(data.hasPage || list.length > 0));
       } catch (err) {
         console.error("CategoryPageRenderer:", err);
         if (!cancelled) {
           setComponents([]);
-          onHasDesignRef.current?.(false);
+          onHasDesignRef.current?.(true);
         }
       } finally {
         if (!cancelled) setLoaded(true);

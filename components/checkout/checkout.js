@@ -349,15 +349,6 @@ export default function CheckoutPage() {
   const [loading, setLoading] = useState(true);
   const [orderSummary, setOrderSummary] = useState({ discount: 0, subtotal: 0, total: 0 });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [userPhone, setUserPhone] = useState('');
-  const [loyaltyBalance, setLoyaltyBalance] = useState(0);
-  const [loyaltyDiscount, setLoyaltyDiscount] = useState(0);
-  const [loyaltyToken, setLoyaltyToken] = useState('');
-  const [pointsApplied, setPointsApplied] = useState(false);
-  const [loyaltyLoading, setLoyaltyLoading] = useState(false);
-  const [showPointsInput, setShowPointsInput] = useState(false);
-  const [customPoints, setCustomPoints] = useState(0);
-  const [maxUsablePoints, setMaxUsablePoints] = useState(0);
   const [touched, setTouched] = useState({});
   const [shippingMethod, setShippingMethod] = useState('standard');
 
@@ -448,17 +439,6 @@ export default function CheckoutPage() {
       console.error('fetchData error:', err);
       toast.error('Failed to load checkout data');
     } finally {
-      try {
-        const token = localStorage.getItem('token');
-        const authRes = await fetch('/api/auth/check', { headers: { Authorization: `Bearer ${token}` } });
-        const authData = await authRes.json();
-        if (authData.phone) {
-          setUserPhone(authData.phone);
-          const loyaltyRes = await fetch(`/api/award-points?phone=${authData.phone}`);
-          const loyaltyData = await loyaltyRes.json();
-          if (loyaltyData.success) setLoyaltyBalance(loyaltyData.points);
-        }
-      } catch (e) { console.error('Loyalty fetch failed:', e); }
       setLoading(false);
     }
   };
@@ -478,7 +458,6 @@ export default function CheckoutPage() {
     if (name === 'deliveryType') {
       if (value === 'store') {
         setPaymentMethod('pay_at_store');
-        if (pointsApplied) handleRemovePoints();
       } else if (value === 'home' && paymentMethod === 'pay_at_store') {
         setPaymentMethod('online');
       }
@@ -487,65 +466,6 @@ export default function CheckoutPage() {
 
   const handlePaymentChange = (method) => {
     setPaymentMethod(method);
-    if (method !== 'online' && method !== 'emi' && pointsApplied) handleRemovePoints();
-  };
-
-  const handleUseAllPoints = async () => {
-    if (!userPhone || loyaltyBalance <= 0) { toast.error('No loyalty points available!'); return; }
-    const maxByBill = Math.floor(orderSummary.total * 0.05);
-    const max = Math.min(loyaltyBalance, maxByBill);
-    setMaxUsablePoints(max);
-    setCustomPoints(max);
-    setShowPointsInput(true);
-    setLoyaltyLoading(true);
-    try {
-      const res = await fetch('/api/validate-points?action=validate', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mobileNumber: userPhone, pointsToRedeem: loyaltyBalance, billTotal: orderSummary.total }),
-      });
-      const data = await res.json();
-      if (data.isValid) {
-        const discount = Math.min(data.redemptionAmount, orderSummary.total);
-        setLoyaltyToken(data.token); setLoyaltyDiscount(discount); setPointsApplied(true);
-        setOrderSummary(prev => ({ ...prev, total: Math.max(0, prev.total - discount) }));
-        toast.success(`₹${discount} discount applied!`);
-      } else {
-        if (data.token) await fetch('/api/validate-points?action=cancel', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: data.token }) });
-        toast.error(data.errorMessage || 'Points redemption failed!');
-      }
-    } catch (e) { toast.error('Failed to apply points!'); } finally { setLoyaltyLoading(false); }
-  };
-
-  const handleApplyPoints = async () => {
-    if (customPoints <= 0 || customPoints > maxUsablePoints) { toast.error(`Enter points between 1 and ${maxUsablePoints}`); return; }
-    setLoyaltyLoading(true);
-    try {
-      const res = await fetch('/api/validate-points?action=validate', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mobileNumber: userPhone, pointsToRedeem: customPoints, billTotal: orderSummary.total }),
-      });
-      const data = await res.json();
-      if (data.isValid) {
-        const discount = Math.min(data.redemptionAmount, orderSummary.total);
-        setLoyaltyToken(data.token); setLoyaltyDiscount(discount); setPointsApplied(true);
-        setShowPointsInput(false);
-        setOrderSummary(prev => ({ ...prev, total: Math.max(0, prev.total - discount) }));
-        toast.success(`₹${discount} discount applied!`);
-      } else {
-        if (data.token) await fetch('/api/validate-points?action=cancel', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: data.token }) });
-        toast.error(data.errorMessage || 'Points redemption failed!');
-      }
-    } catch (e) { toast.error('Failed to apply points!'); } finally { setLoyaltyLoading(false); }
-  };
-
-  const handleRemovePoints = async () => {
-    if (loyaltyToken) {
-      try {
-        await fetch('/api/validate-points?action=cancel', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: loyaltyToken }) });
-      } catch (e) { console.error('Token cancel failed:', e); }
-    }
-    setOrderSummary(prev => ({ ...prev, total: prev.total + loyaltyDiscount }));
-    setLoyaltyDiscount(0); setLoyaltyToken(''); setPointsApplied(false);
   };
 
   const handleBlur = (e) => setTouched(prev => ({ ...prev, [e.target.name]: true }));
@@ -765,9 +685,6 @@ const sellingPrice = mrpTotal - itemDiscountTotal;
     order_phonenumber: addressData.phonenumber, email_address: addressData.email,
     order_item: cartItems.map(item => ({ ...item, warrantyData: item.warrantyData || null, store_id: formData.deliveryType === 'store' ? formData.selectedStore : null, coupondetails: Array.isArray(item.coupondetails) && item.coupondetails.length > 0 ? item.coupondetails.map(c => c.offer_code || String(c)) : [] })),
     order_amount: totalAmount, order_deliveryaddress: deliveryAddress,
-      loyalty_points_redeemed: pointsApplied ? customPoints : 0,
-       loyalty_discount: loyaltyDiscount || 0,
-       loyalty_redemption_token: loyaltyToken || '',
       promotion_code_applied: appliedCoupon?.offer_code || null,
       promotion_discount_applied: appliedCoupon ? (orderSummary.discount || 0) : 0,
     
@@ -789,15 +706,6 @@ const sellingPrice = mrpTotal - itemDiscountTotal;
         } catch (error) { toast.error(`Payment failed: ${error.message}`); setIsSubmitting(false); return; }
       }
 
-      if (loyaltyToken && pointsApplied) {
-        try {
-          await fetch('/api/validate-points?action=redeem', {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ token: loyaltyToken, orderNumber: order_number }),
-          });
-        } catch (e) { console.error('Points redeem failed:', e); }
-      }
-
       const paymentRes = await fetch('/api/payment', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ user_id: userId, payment_mode: paymentMode, status: paymentStatus, modevalue: totalAmount, payment_id: paymentId, payment_Date: new Date() }),
@@ -814,9 +722,6 @@ const sellingPrice = mrpTotal - itemDiscountTotal;
           order_phonenumber: addressData.phonenumber, email_address: addressData.email,
           order_item: cartItems.map(item => ({ ...item, warrantyData: item.warrantyData || null, store_id: formData.deliveryType === 'store' ? formData.selectedStore : null, coupondetails: Array.isArray(item.coupondetails) && item.coupondetails.length > 0 ? item.coupondetails.map(c => c.offer_code || String(c)) : [] })),
           order_amount: totalAmount, order_deliveryaddress: deliveryAddress,
-              loyalty_points_redeemed: pointsApplied ? customPoints : 0,
-          loyalty_discount: loyaltyDiscount || 0,
-           loyalty_redemption_token: loyaltyToken || '',
          promotion_code_applied: appliedCoupon?.offer_code || null,
           promotion_discount_applied: appliedCoupon ? (orderSummary.discount || 0) : 0,
 
@@ -844,21 +749,6 @@ const sellingPrice = mrpTotal - itemDiscountTotal;
         localStorage.removeItem('checkoutData'); localStorage.removeItem('appliedCoupon');
         const orderData = await orderRes.json();
         ga4Purchase({ orderId: orderData.order.order_number, value: orderSummary.total, items: cartItems });
-
-        // Earn loyalty points (online only) — not COD / Pay at Store / EMI
-        if (paymentMode === 'online') {
-          try {
-            const loyaltyRes = await fetch('/api/award-points', {
-              method: 'POST', headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ phoneNumber: userPhone, orderNumber: order_number, orderAmount: totalAmount, firstName: addressData.firstName, lastName: addressData.lastName, email: addressData.email, cartItems, loyaltyPointsRedeemedAmount: loyaltyDiscount || 0, loyaltyPointsRedeemedCode: loyaltyToken || '', paymentMode, promotionCode: appliedCoupon?.offer_code || '', promotionDiscount: appliedCoupon ? (orderSummary.discount || 0) : 0, }),
-            });
-            const loyaltyData = await loyaltyRes.json();
-            if (loyaltyData.success && loyaltyData.points_awarded > 0) {
-              toast.success(`You earned ${loyaltyData.points_awarded} loyalty points!`, { autoClose: 5000 });
-              window.dispatchEvent(new CustomEvent('loyaltyPointsUpdated'));
-            }
-          } catch (e) { console.error('Loyalty award failed:', e); }
-        }
 
         // SAP sync disabled for live — uncomment to send order data to SAP
         await fetch('/api/send-order-detail-to-sap', {
@@ -1486,75 +1376,6 @@ const sellingPrice = mrpTotal - itemDiscountTotal;
                   }
                 </div>
 
-                {/* Loyalty points — online & EMI (earn only on non-EMI payments) */}
-                {loyaltyBalance > 0 && (paymentMethod === 'online' || paymentMethod === 'emi') && (
-                  <div className="border border-indigo-200 rounded-xl p-3 bg-indigo-50 mt-2">
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <p className="text-xs font-semibold text-indigo-700 flex items-center gap-1">
-                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 17l3 3 3-3m-3-9v12M4 4h16v4a4 4 0 01-4 4H8a4 4 0 01-4-4V4z" />
-                          </svg>
-                          Loyalty points
-                        </p>
-                        <p className="text-[10px] text-gray-500">{loyaltyBalance} pts ≈ ₹{loyaltyBalance.toFixed(2)}</p>
-                      </div>
-                      {orderSummary.total >= 10000 ? (
-                        <>
-                          {!pointsApplied && !showPointsInput && (
-                            <button onClick={handleUseAllPoints}
-                              className="bg-indigo-600 text-white text-xs px-3 py-1.5 rounded-lg hover:bg-indigo-700 transition">
-                              Use points
-                            </button>
-                          )}
-                          {pointsApplied && (
-                            <button onClick={handleRemovePoints}
-                              className="bg-red-500 text-white text-xs px-3 py-1.5 rounded-lg hover:bg-red-600 transition">
-                              Remove
-                            </button>
-                          )}
-                        </>
-                      ) : (
-                        <span className="text-xs text-orange-500 font-medium">Min ₹10,000 order required</span>
-                      )}
-                    </div>
-                    {orderSummary.total >= 10000 && showPointsInput && !pointsApplied && (
-                      <div className="mt-3 bg-white rounded-lg p-3 border border-indigo-200">
-                        <p className="text-[10px] text-gray-500 mb-2">Max <span className="font-semibold text-indigo-700">{maxUsablePoints} pts</span> (₹{maxUsablePoints})</p>
-                        <div className="flex gap-2">
-                          <input type="number" min={1} max={maxUsablePoints} value={customPoints}
-                            onChange={(e) => setCustomPoints(Math.min(Number(e.target.value), maxUsablePoints))}
-                            className="flex-1 border border-gray-300 rounded-lg px-3 py-1.5 text-sm outline-none focus:border-indigo-400" />
-                          <button onClick={handleApplyPoints} disabled={loyaltyLoading}
-                            className="bg-indigo-600 text-white text-xs px-3 py-1.5 rounded-lg hover:bg-indigo-700 disabled:bg-gray-400 transition">
-                            {loyaltyLoading ? '…' : 'Apply'}
-                          </button>
-                          <button onClick={() => setShowPointsInput(false)}
-                            className="bg-gray-100 text-gray-600 text-xs px-3 py-1.5 rounded-lg hover:bg-gray-200 transition">
-                            Cancel
-                          </button>
-                        </div>
-                        <input type="range" min={1} max={maxUsablePoints} value={customPoints} step={1}
-                          onChange={(e) => setCustomPoints(Number(e.target.value))}
-                          className="w-full mt-2 accent-indigo-600" />
-                        <p className="text-[10px] text-gray-400 mt-1">Discount: ₹{customPoints} off</p>
-                      </div>
-                    )}
-                    {pointsApplied && (
-                      <p className="text-green-600 text-xs mt-2 font-semibold flex items-center gap-1">
-                        <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
-                        ₹{loyaltyDiscount.toFixed(2)} discount applied!
-                      </p>
-                    )}
-                    {loyaltyDiscount > 0 && (
-                      <div className="flex justify-between text-sm text-indigo-700 mt-1 font-medium">
-                        <span>Loyalty discount</span>
-                        <span>−₹{loyaltyDiscount.toFixed(2)}</span>
-                      </div>
-                    )}
-                  </div>
-                )}
-
                 {/* Total */}
                 <div className="flex justify-between items-center pt-3 border-t border-gray-200">
                   <div>
@@ -1590,55 +1411,6 @@ const sellingPrice = mrpTotal - itemDiscountTotal;
                     <span className="text-[10px] text-gray-500">{b.label}</span>
                   </div>
                 ))}
-              </div>
-
-              {/* Truco box */}
-              <div className="mx-5 my-4 rounded-2xl bg-[#FFF9F2] overflow-hidden flex items-stretch min-h-[180px]">
-                {/* Left — content */}
-                <div className="flex-1 p-4 sm:p-5 flex flex-col justify-between">
-                  <div>
-                    <p className="text-sm sm:text-base font-bold text-gray-900 mb-1">
-                      Sathya Store Rewards 🎁
-                    </p>
-                    <p className="text-xs sm:text-sm font-bold text-gray-900 mb-3">
-                      Earn points on every purchase
-                    </p>
-                    <ul className="space-y-1.5 mb-4">
-                      {[
-                        'Earn reward points',
-                        'Exclusive member offers',
-                        'Track orders easily',
-                        'Priority service support',
-                      ].map(item => (
-                        <li key={item} className="flex items-center gap-2 text-[11px] sm:text-xs font-medium text-gray-900">
-                          <span className="text-[10px] leading-none flex-shrink-0">▶</span>
-                          {item}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                  <a
-                    href="https://truco.avaniko.com/api/api/download.html?tid=019acf86-5371-447f-a6f7-eeca624972ad&source=web&medium=web&campaign=truco"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-white bg-red-600 hover:bg-red-700 px-4 py-2.5 rounded-xl transition w-fit"
-                  >
-                    Download TRUCO App
-                    <span aria-hidden="true">→</span>
-                  </a>
-                </div>
-                {/* Right — phone image */}
-                <div className="w-24 sm:w-32 flex-shrink-0 flex items-center justify-center pr-2 sm:pr-3">
-                  <img
-                    src="/uploads/truco_app_phone.png"
-                    alt="Sathya Stores Truco App"
-                    className="w-full h-auto max-h-[170px] object-contain -rotate-6"
-                    onError={(e) => {
-                      e.target.style.display = 'none';
-                      e.target.parentElement.innerHTML = `<div class="flex flex-col items-center justify-center h-full p-3 text-center"><div class="bg-white rounded-xl px-3 py-2"><p class="text-indigo-700 text-xs font-bold leading-tight">Sathya Stores</p><p class="text-indigo-500 text-[9px] font-semibold">TRUCO</p></div></div>`;
-                    }}
-                  />
-                </div>
               </div>
 
               {/* Help box */}

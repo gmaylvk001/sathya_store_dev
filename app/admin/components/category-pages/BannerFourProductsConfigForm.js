@@ -6,6 +6,7 @@ import { buildProductSearchQuery } from "@/lib/categoryPageComponents/productSea
 import {
   CATEGORY_PAGE_IMAGE_ACCEPT,
   CATEGORY_PAGE_IMAGE_ACCEPT_HINT,
+  consumeAllowedCategoryPageImage,
 } from "@/lib/categoryPageComponents/registry";
 
 const MIN_TILE_COUNT = 3;
@@ -447,9 +448,17 @@ export default function BannerFourProductsConfigForm({
               type="file"
               accept={CATEGORY_PAGE_IMAGE_ACCEPT}
               onChange={(e) => {
-                const f = e.target.files?.[0] || null;
-                setBannerDesktopFile(f);
-                if (f) setBannerDesktopPreview(URL.createObjectURL(f));
+                const { file, error } = consumeAllowedCategoryPageImage(
+                  e.target.files?.[0],
+                  e.target
+                );
+                if (error) {
+                  setError(error);
+                  return;
+                }
+                setError("");
+                setBannerDesktopFile(file);
+                if (file) setBannerDesktopPreview(URL.createObjectURL(file));
               }}
               className="block w-full text-sm"
             />
@@ -473,9 +482,17 @@ export default function BannerFourProductsConfigForm({
               type="file"
               accept={CATEGORY_PAGE_IMAGE_ACCEPT}
               onChange={(e) => {
-                const f = e.target.files?.[0] || null;
-                setBannerMobileFile(f);
-                if (f) setBannerMobilePreview(URL.createObjectURL(f));
+                const { file, error } = consumeAllowedCategoryPageImage(
+                  e.target.files?.[0],
+                  e.target
+                );
+                if (error) {
+                  setError(error);
+                  return;
+                }
+                setError("");
+                setBannerMobileFile(file);
+                if (file) setBannerMobilePreview(URL.createObjectURL(file));
               }}
               className="block w-full text-sm"
             />
@@ -606,7 +623,17 @@ export default function BannerFourProductsConfigForm({
               <input
                 type="file"
                 accept={CATEGORY_PAGE_IMAGE_ACCEPT}
-                onChange={(e) => pickTileImage(index, e.target.files?.[0])}
+                onChange={(e) => {
+                  const { file, error } = consumeAllowedCategoryPageImage(
+                    e.target.files?.[0],
+                    e.target
+                  );
+                  if (error) {
+                    setError(error);
+                    return;
+                  }
+                  pickTileImage(index, file);
+                }}
                 className="block w-full text-sm"
               />
               {tile.imagePreview ? (

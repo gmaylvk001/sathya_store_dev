@@ -5,6 +5,7 @@ import { Icon } from "@iconify/react";
 import {
   CATEGORY_PAGE_IMAGE_ACCEPT,
   CATEGORY_PAGE_IMAGE_ACCEPT_HINT,
+  consumeAllowedCategoryPageImage,
 } from "@/lib/categoryPageComponents/registry";
 
 function emptyBanner() {
@@ -116,11 +117,20 @@ export default function SplitBannerConfigForm({
     );
   };
 
-  const onPickImage = (index, file) => {
-    if (!file) return;
+  const onPickImage = (index, file, inputEl) => {
+    const { file: allowed, error } = consumeAllowedCategoryPageImage(
+      file,
+      inputEl
+    );
+    if (error) {
+      setError(error);
+      return;
+    }
+    if (!allowed) return;
+    setError("");
     updateBanner(index, {
-      imageFile: file,
-      imagePreview: URL.createObjectURL(file),
+      imageFile: allowed,
+      imagePreview: URL.createObjectURL(allowed),
     });
   };
 
@@ -367,7 +377,9 @@ export default function SplitBannerConfigForm({
                 <input
                   type="file"
                   accept={CATEGORY_PAGE_IMAGE_ACCEPT}
-                  onChange={(e) => onPickImage(index, e.target.files?.[0])}
+                  onChange={(e) =>
+                    onPickImage(index, e.target.files?.[0], e.target)
+                  }
                   className="block w-full text-xs text-gray-600"
                 />
                 <p className="mt-1 text-[10px] text-gray-400">

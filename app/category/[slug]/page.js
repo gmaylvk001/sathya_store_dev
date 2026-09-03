@@ -1,5 +1,7 @@
 
 import CategoryPrimaryPage from "@/components/category/sample_cat";
+import RedirectToOverviewIfDesigned from "@/components/categoryPageComponents/RedirectToOverviewIfDesigned";
+import { PAGE_TYPES } from "@/lib/categoryPageComponents/registry";
 
 export async function generateMetadata({ params }) {
   //const { slug } = params;
@@ -67,5 +69,10 @@ export async function generateMetadata({ params }) {
 }
 
 export default function Page() {
-  return <CategoryPrimaryPage />;
+  return (
+    <>
+      <RedirectToOverviewIfDesigned pageType={PAGE_TYPES.CATEGORY} />
+      <CategoryPrimaryPage />
+    </>
+  );
 }
