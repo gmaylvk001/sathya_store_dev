@@ -66,6 +66,7 @@ const menuItems = [
       { icon: "mdi:percent-outline", label: "Offer", link: "offer", dotColor: "bg-yellow-500" },
       { icon: "mdi:percent-outline", label: "Offers", link: "offers", permission: "offer", dotColor: "bg-yellow-500" },
       { icon: "mdi:tag-outline", label: "Offer Product", link: "offer-product", permission: "offer-product", dotColor: "bg-green-500" },
+      { icon: "mdi:star-circle-outline", label: "Highlighted Products", link: "highlighted-products", permission: "offer", dotColor: "bg-blue-500" },
     ],
   },
 ];
