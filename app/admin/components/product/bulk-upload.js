@@ -48,22 +48,22 @@ export default function BulkUploadPage() {
   const [dynamic_filter_upload, setDynamic_filter_upload] = useState(null);
   const [warrantyFile, setWarrantyFile] = useState(null);
   const [isWarrantyUploadLoading, setIsWarrantyUploadLoading] = useState(false);
-const [warrantyMapFile, setWarrantyMapFile] = useState(null);
-const [isWarrantyMapLoading, setIsWarrantyMapLoading] = useState(false);
-const warrantyMapFileRef = useRef(null);
-const [pincodeFile, setPincodeFile] = useState(null);
-const [isPincodeUploadLoading, setIsPincodeUploadLoading] = useState(false);
-const pincodeFileRef = useRef(null);
-const [brandManufacturerFile, setBrandManufacturerFile] = useState(null);
-const [isBrandManufacturerUploadLoading, setIsBrandManufacturerUploadLoading] = useState(false);
-const brandManufacturerFileRef = useRef(null);
+  const [warrantyMapFile, setWarrantyMapFile] = useState(null);
+  const [isWarrantyMapLoading, setIsWarrantyMapLoading] = useState(false);
+  const warrantyMapFileRef = useRef(null);
+  const [pincodeFile, setPincodeFile] = useState(null);
+  const [isPincodeUploadLoading, setIsPincodeUploadLoading] = useState(false);
+  const pincodeFileRef = useRef(null);
+  const [brandManufacturerFile, setBrandManufacturerFile] = useState(null);
+  const [isBrandManufacturerUploadLoading, setIsBrandManufacturerUploadLoading] = useState(false);
+  const brandManufacturerFileRef = useRef(null);
   const notifiedRef = useRef(false);
-const fileInputRef = useRef(null);
-const fileBulkParticularInputRef = useRef(null);
-const fileBulkUploadAddonsInputRef = useRef(null);
-const fileImageBulkParticularInputRef = useRef(null);
+  const fileInputRef = useRef(null);
+  const fileBulkParticularInputRef = useRef(null);
+  const fileBulkUploadAddonsInputRef = useRef(null);
+  const fileImageBulkParticularInputRef = useRef(null);
 
-const router = useRouter();
+  const router = useRouter();
   const showToast = (type, message) => {
     if (notifiedRef.current) return;
     notifiedRef.current = true;
@@ -212,35 +212,35 @@ const router = useRouter();
   };
 
 
-    //BULK UPDATION...
+  //BULK UPDATION...
   const handleBulkCategorySubcatSubmit = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  if (!excelFile) {
-    showToast("error", "Please upload a file");
-    return;
-  }
+    if (!excelFile) {
+      showToast("error", "Please upload a file");
+      return;
+    }
 
-  const formData = new FormData();
-  formData.append("file", excelFile); // ✅ MUST BE "file"
+    const formData = new FormData();
+    formData.append("file", excelFile); // ✅ MUST BE "file"
 
-  setIsBulkUploadLoading(true);
+    setIsBulkUploadLoading(true);
 
-  try {
-    const res = await fetch("/api/categories/bulkuploadcatsub", {
-      method: "POST",
-      body: formData,
-    });
+    try {
+      const res = await fetch("/api/categories/bulkuploadcatsub", {
+        method: "POST",
+        body: formData,
+      });
 
-    const data = await res.json();
+      const data = await res.json();
 
-    if (res.ok) {
-      showToast(
-        "success",
-        `Updated: ${data.updated}, Skipped: ${data.skipped}`
-      );
+      if (res.ok) {
+        showToast(
+          "success",
+          `Updated: ${data.updated}, Skipped: ${data.skipped}`
+        );
 
-      // ✅ RESET STATE
+        // ✅ RESET STATE
         setExcelFile(null);
 
         // ✅ RESET INPUT UI (VERY IMPORTANT)
@@ -248,67 +248,67 @@ const router = useRouter();
           fileInputRef.current.value = "";
         }
 
-    } else {
-      showToast("error", data.message || "Upload failed");
+      } else {
+        showToast("error", data.message || "Upload failed");
+      }
+
+      setExcelFile(null);
+    } catch (err) {
+      console.error(err);
+      showToast("error", "Upload failed");
+    } finally {
+      setIsBulkUploadLoading(false);
     }
-
-    setExcelFile(null);
-  } catch (err) {
-    console.error(err);
-    showToast("error", "Upload failed");
-  } finally {
-    setIsBulkUploadLoading(false);
-  }
-};
+  };
 
 
-    //BULK UPDATION WITHOUT IMAGE...
+  //BULK UPDATION WITHOUT IMAGE...
   const handleBulkParticularDetailsSubcatSubmit = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  if (!excelFile) {
-    showToast("error", "Please upload a file");
-    return;
-  }
-
-  const formData = new FormData();
-  formData.append("file", excelFile); // ✅ MUST BE "file"
-
-  setIsParticularDataBulkUploadLoading(true);
-
-  try {
-    console.log("[Particular Bulk Upload One] Uploading file:", excelFile?.name);
-
-    const res = await fetch("/api/categories/particularDataBulkupload", {
-      method: "POST",
-      body: formData,
-    });
-
-    const data = await res.json();
-    console.log("[Particular Bulk Upload One] API response:", data);
-
-    if (data.detectedHeaders) {
-      console.log(
-        "[Particular Bulk Upload One] Detected Excel headers:",
-        data.detectedHeaders
-      );
+    if (!excelFile) {
+      showToast("error", "Please upload a file");
+      return;
     }
 
-    if (data.skipDetails?.length) {
-      console.table(data.skipDetails);
-      console.warn(
-        "[Particular Bulk Upload One] Skip reasons:",
-        data.skipDetails
-      );
-    }
+    const formData = new FormData();
+    formData.append("file", excelFile); // ✅ MUST BE "file"
 
-    if (res.ok) {
-      showToast(
-        "success",
-        `Updated: ${data.updated}, Skipped: ${data.skipped}`
-      );
+    setIsParticularDataBulkUploadLoading(true);
 
-      // ✅ RESET STATE
+    try {
+      console.log("[Particular Bulk Upload One] Uploading file:", excelFile?.name);
+
+      const res = await fetch("/api/categories/particularDataBulkupload", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+      console.log("[Particular Bulk Upload One] API response:", data);
+
+      if (data.detectedHeaders) {
+        console.log(
+          "[Particular Bulk Upload One] Detected Excel headers:",
+          data.detectedHeaders
+        );
+      }
+
+      if (data.skipDetails?.length) {
+        console.table(data.skipDetails);
+        console.warn(
+          "[Particular Bulk Upload One] Skip reasons:",
+          data.skipDetails
+        );
+      }
+
+      if (res.ok) {
+        showToast(
+          "success",
+          `Updated: ${data.updated}, Skipped: ${data.skipped}`
+        );
+
+        // ✅ RESET STATE
         setExcelFile(null);
 
         // ✅ RESET INPUT UI (VERY IMPORTANT)
@@ -316,49 +316,49 @@ const router = useRouter();
           fileBulkParticularInputRef.current.value = "";
         }
 
-    } else {
-      showToast("error", data.message || "Upload failed");
+      } else {
+        showToast("error", data.message || "Upload failed");
+      }
+
+      setExcelFile(null);
+    } catch (err) {
+      console.error(err);
+      showToast("error", "Upload failed");
+    } finally {
+      setIsParticularDataBulkUploadLoading(false);
+    }
+  };
+
+
+  //BULK UPDATION ..
+  const handleBulkUploadForAddOnsFrequentRelatedSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!excelFile) {
+      showToast("error", "Please upload a file");
+      return;
     }
 
-    setExcelFile(null);
-  } catch (err) {
-    console.error(err);
-    showToast("error", "Upload failed");
-  } finally {
-    setIsParticularDataBulkUploadLoading(false);
-  }
-};
+    const formData = new FormData();
+    formData.append("file", excelFile); // ✅ MUST BE "file"
 
+    setIsProductDetailsDataBulkUploadLoading(true);
 
-    //BULK UPDATION ..
-  const handleBulkUploadForAddOnsFrequentRelatedSubmit = async (e) => {
-  e.preventDefault();
+    try {
+      const res = await fetch("/api/categories/productBulkUploaddetailsaddons", {
+        method: "POST",
+        body: formData,
+      });
 
-  if (!excelFile) {
-    showToast("error", "Please upload a file");
-    return;
-  }
+      const data = await res.json();
 
-  const formData = new FormData();
-  formData.append("file", excelFile); // ✅ MUST BE "file"
+      if (res.ok) {
+        showToast(
+          "success",
+          `Updated: ${data.updated}, Skipped: ${data.skipped}`
+        );
 
-  setIsProductDetailsDataBulkUploadLoading(true);
-
-  try {
-    const res = await fetch("/api/categories/productBulkUploaddetailsaddons", {
-      method: "POST",
-      body: formData,
-    });
-
-    const data = await res.json();
-
-    if (res.ok) {
-      showToast(
-        "success",
-        `Updated: ${data.updated}, Skipped: ${data.skipped}`
-      );
-
-      // ✅ RESET STATE
+        // ✅ RESET STATE
         setExcelFile(null);
 
         // ✅ RESET INPUT UI (VERY IMPORTANT)
@@ -366,117 +366,117 @@ const router = useRouter();
           fileBulkUploadAddonsInputRef.current.value = "";
         }
 
-    } else {
-      showToast("error", data.message || "Upload failed");
+      } else {
+        showToast("error", data.message || "Upload failed");
+      }
+
+      setExcelFile(null);
+    } catch (err) {
+      console.error(err);
+      showToast("error", "Upload failed");
+    } finally {
+      setIsProductDetailsDataBulkUploadLoading(false);
+    }
+  };
+
+  //BULK UPDATION WITH IMAGE...
+  /*   const handlewithImageBulkParticularDetailsSubcatSubmit = async (e) => {
+    e.preventDefault();
+  
+    if (!excelFile) {
+      showToast("error", "Please upload a file");
+      return;
+    }
+  
+    const formData = new FormData();
+    formData.append("file", excelFile); // ✅ MUST BE "file"
+  
+    setIsParticularImageWithDataBulkUploadLoading(true);
+  
+    try {
+      const res = await fetch("/api/categories/particularDataWithImageBulkupload", {
+        method: "POST",
+        body: formData,
+      });
+  
+      const data = await res.json();
+  
+      if (res.ok) {
+        showToast(
+          "success",
+          `Updated: ${data.updated}, Skipped: ${data.skipped}`
+        );
+  
+        // ✅ RESET STATE
+          setExcelFile(null);
+  
+          // ✅ RESET INPUT UI (VERY IMPORTANT)
+          if (fileImageBulkParticularInputRef.current) {
+            fileImageBulkParticularInputRef.current.value = "";
+          }
+  
+      } else {
+        showToast("error", data.message || "Upload failed");
+      }
+  
+      setExcelFile(null);
+    } catch (err) {
+      console.error(err);
+      showToast("error", "Upload failed");
+    } finally {
+      setIsParticularImageWithDataBulkUploadLoading(false);
+    }
+  }; */
+
+
+
+  const handlewithImageBulkParticularDetailsSubcatSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!excelFiles) {
+      showToast("error", "Please upload Excel file");
+      return;
     }
 
-    setExcelFile(null);
-  } catch (err) {
-    console.error(err);
-    showToast("error", "Upload failed");
-  } finally {
-    setIsProductDetailsDataBulkUploadLoading(false);
-  }
-};
+    const formData = new FormData();
+    formData.append("file", excelFiles);
+    formData.append("zip", imageZips); // ✅ ADD THIS
 
-    //BULK UPDATION WITH IMAGE...
-/*   const handlewithImageBulkParticularDetailsSubcatSubmit = async (e) => {
-  e.preventDefault();
+    setIsParticularImageWithDataBulkUploadLoading(true);
 
-  if (!excelFile) {
-    showToast("error", "Please upload a file");
-    return;
-  }
-
-  const formData = new FormData();
-  formData.append("file", excelFile); // ✅ MUST BE "file"
-
-  setIsParticularImageWithDataBulkUploadLoading(true);
-
-  try {
-    const res = await fetch("/api/categories/particularDataWithImageBulkupload", {
-      method: "POST",
-      body: formData,
-    });
-
-    const data = await res.json();
-
-    if (res.ok) {
-      showToast(
-        "success",
-        `Updated: ${data.updated}, Skipped: ${data.skipped}`
+    try {
+      const res = await fetch(
+        "/api/categories/particularDataWithImageBulkupload",
+        {
+          method: "POST",
+          body: formData,
+        }
       );
 
-      // ✅ RESET STATE
-        setExcelFile(null);
+      const data = await res.json();
 
-        // ✅ RESET INPUT UI (VERY IMPORTANT)
+      if (res.ok) {
+        showToast(
+          "success",
+          `Updated: ${data.updated}, Skipped: ${data.skipped}`
+        );
+
+        setExcelFiles(null);
+        setImageZips(null);
+
         if (fileImageBulkParticularInputRef.current) {
           fileImageBulkParticularInputRef.current.value = "";
         }
-
-    } else {
-      showToast("error", data.message || "Upload failed");
-    }
-
-    setExcelFile(null);
-  } catch (err) {
-    console.error(err);
-    showToast("error", "Upload failed");
-  } finally {
-    setIsParticularImageWithDataBulkUploadLoading(false);
-  }
-}; */
-
-
-
-const handlewithImageBulkParticularDetailsSubcatSubmit = async (e) => {
-  e.preventDefault();
-
-  if (!excelFiles) {
-    showToast("error", "Please upload Excel file");
-    return;
-  }
-
-  const formData = new FormData();
-  formData.append("file", excelFiles);
-  formData.append("zip", imageZips); // ✅ ADD THIS
-
-  setIsParticularImageWithDataBulkUploadLoading(true);
-
-  try {
-    const res = await fetch(
-      "/api/categories/particularDataWithImageBulkupload",
-      {
-        method: "POST",
-        body: formData,
+      } else {
+        showToast("error", data.message || "Upload failed");
       }
-    );
-
-    const data = await res.json();
-
-    if (res.ok) {
-      showToast(
-        "success",
-        `Updated: ${data.updated}, Skipped: ${data.skipped}`
-      );
-
-      setExcelFiles(null);
-      setImageZips(null);
-
-      if (fileImageBulkParticularInputRef.current) {
-        fileImageBulkParticularInputRef.current.value = "";
-      }
-    } else {
-      showToast("error", data.message || "Upload failed");
+    } catch (err) {
+      console.error(err);
+      showToast("error", "Upload failed");
+    } finally {
+      setIsParticularImageWithDataBulkUploadLoading(false);
     }
-  } catch (err) {
-    console.error(err);
-    showToast("error", "Upload failed");
-  } finally {
-    setIsParticularImageWithDataBulkUploadLoading(false);
-  }
-};
+  };
   const validateFile = (file, allowedExtensions) => {
     if (!file) return false;
     const fileName = file.name.toLowerCase();
@@ -609,7 +609,7 @@ const handlewithImageBulkParticularDetailsSubcatSubmit = async (e) => {
     link.click();
     document.body.removeChild(link);
   };
-  
+
   const handleProductAddOnsForDataBulkUploadDownload = () => {
     const link = document.createElement("a");
     link.href = `/uploads/files/data_for_frequently_addons_and_related_products.xlsx?t=${Date.now()}`;
@@ -1429,202 +1429,202 @@ const handlewithImageBulkParticularDetailsSubcatSubmit = async (e) => {
     document.body.removeChild(link);
   };
 
-const handleWarrantyBulkUpload = async (e) => {
-  e.preventDefault();
+  const handleWarrantyBulkUpload = async (e) => {
+    e.preventDefault();
 
-  if (!warrantyFile) {
-    showToast("error", "Please upload a valid Excel (.xlsx) or CSV (.csv) file.");
-    return;
-  }
-
-  if (!validateFilterFile(warrantyFile)) {
-    showToast("error", "Please upload a valid Excel (.xlsx) or CSV (.csv) file.");
-    return;
-  }
-
-  const formData = new FormData();
-  formData.append("file", warrantyFile);
-
-  setIsWarrantyUploadLoading(true);
-
-  try {
-    const res = await fetch("/api/warranties/bulk-upload", {
-      method: "POST",
-      body: formData,
-    });
-
-    const data = await res.json();
-
-    if (res.ok && data.success) {
-      showToast(
-        "success",
-        `Warranty Upload Done! Inserted: ${data.inserted}, Updated: ${data.updated}, Total: ${data.total}`
-      );
-
-       setTimeout(() => {
-    window.location.reload();
-     }, 1500);
-    } else {
-      showToast("error", data.error || "Upload failed");
+    if (!warrantyFile) {
+      showToast("error", "Please upload a valid Excel (.xlsx) or CSV (.csv) file.");
+      return;
     }
 
-  } catch (err) {
-    console.error("Warranty upload error:", err);
-    showToast("error", "Upload failed. Please try again.");
-  } finally {
-    setIsWarrantyUploadLoading(false);
-   
-    setWarrantyFile(null);
-    if (warrantyFileRef.current) {
-      warrantyFileRef.current.value = "";
-      
+    if (!validateFilterFile(warrantyFile)) {
+      showToast("error", "Please upload a valid Excel (.xlsx) or CSV (.csv) file.");
+      return;
     }
-  }
-};
 
-const handleWarrantyMapUpload = async (e) => {
-  e.preventDefault();
+    const formData = new FormData();
+    formData.append("file", warrantyFile);
 
-  if (!warrantyMapFile) {
-    showToast("error", "Please upload a valid Excel (.xlsx) file.");
-    return;
-  }
+    setIsWarrantyUploadLoading(true);
 
-  if (!validateFilterFile(warrantyMapFile)) {
-    showToast("error", "Please upload a valid Excel (.xlsx) or CSV (.csv) file.");
-    return;
-  }
+    try {
+      const res = await fetch("/api/warranties/bulk-upload", {
+        method: "POST",
+        body: formData,
+      });
 
-  const formData = new FormData();
-  formData.append("file", warrantyMapFile);
+      const data = await res.json();
 
-  setIsWarrantyMapLoading(true);
+      if (res.ok && data.success) {
+        showToast(
+          "success",
+          `Warranty Upload Done! Inserted: ${data.inserted}, Updated: ${data.updated}, Total: ${data.total}`
+        );
 
-  try {
-    const res = await fetch("/api/warranties/bulk-warranty-map", {
-      method: "POST",
-      body: formData,
-    });
+        setTimeout(() => {
+          window.location.reload();
+        }, 1500);
+      } else {
+        showToast("error", data.error || "Upload failed");
+      }
 
-    const data = await res.json();
+    } catch (err) {
+      console.error("Warranty upload error:", err);
+      showToast("error", "Upload failed. Please try again.");
+    } finally {
+      setIsWarrantyUploadLoading(false);
 
-    if (res.ok && data.success) {
-      showToast(
-        "success",
-        `Warranty Mapping Done! Updated: ${data.updated}${data.notFound?.length ? `, Not Found: ${data.notFound.length}` : ""}`
-      );
-    } else {
-      showToast("error", data.error || "Upload failed");
+      setWarrantyFile(null);
+      if (warrantyFileRef.current) {
+        warrantyFileRef.current.value = "";
+
+      }
     }
-  } catch (err) {
-    console.error("Warranty map upload error:", err);
-    showToast("error", "Upload failed. Please try again.");
-  } finally {
-    setIsWarrantyMapLoading(false);
-    setWarrantyMapFile(null);
-    if (warrantyMapFileRef.current) warrantyMapFileRef.current.value = "";
-  }
-};
-    
-const handlePincodeUpload = async (e) => {
-  e.preventDefault();
+  };
 
-  if (!pincodeFile) {
-    showToast("error", "Please upload a valid Excel (.xlsx) file.");
-    return;
-  }
-  if (!validateFilterFile(pincodeFile)) {
-    showToast("error", "Please upload a valid Excel (.xlsx) or CSV (.csv) file.");
-    return;
-  }
+  const handleWarrantyMapUpload = async (e) => {
+    e.preventDefault();
 
-  const formData = new FormData();
-  formData.append("file", pincodeFile);
-
-  setIsPincodeUploadLoading(true);
-
-  try {
-    const res = await fetch("/api/pincode/bulk-upload", {
-      method: "POST",
-      body: formData,
-    });
-
-    const data = await res.json();
-
-    if (res.ok && data.success) {
-      showToast("success", `Pincode Upload Done! Updated: ${data.updated}, Skipped: ${data.skipped}`);
-    } else {
-      showToast("error", data.error || "Upload failed");
+    if (!warrantyMapFile) {
+      showToast("error", "Please upload a valid Excel (.xlsx) file.");
+      return;
     }
-  } catch (err) {
-    console.error("Pincode upload error:", err);
-    showToast("error", "Upload failed. Please try again.");
-  } finally {
-    setIsPincodeUploadLoading(false);
-    setPincodeFile(null);
-    if (pincodeFileRef.current) pincodeFileRef.current.value = "";
-  }
-};
- const handlePincodeSampleDownload = () => {
-  const link = document.createElement("a");
-  link.href = `/uploads/files/BEA_Pincode_Sample.xlsx?t=${Date.now()}`;
-  link.download = "BEA_Pincode_Sample.xlsx";
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-};
-const handleBrandManufacturerSampleDownload = () => {
-  const link = document.createElement("a");
-  link.href = `/uploads/files/brand_manufacturer_sample.xlsx?t=${Date.now()}`;
-  link.download = "brand_manufacturer_sample.xlsx";
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-};
 
-const handleBrandManufacturerUpload = async (e) => {
-  e.preventDefault();
-
-  if (!brandManufacturerFile) {
-    showToast("error", "Please upload a valid Excel (.xlsx) or CSV (.csv) file.");
-    return;
-  }
-  if (!validateFilterFile(brandManufacturerFile)) {
-    showToast("error", "Please upload a valid Excel (.xlsx) or CSV (.csv) file.");
-    return;
-  }
-
-  const formData = new FormData();
-  formData.append("file", brandManufacturerFile);
-
-  setIsBrandManufacturerUploadLoading(true);
-
-  try {
-    const res = await fetch("/api/brand/bulk-upload-manufacturer", {
-      method: "POST",
-      body: formData,
-    });
-
-    const data = await res.json();
-
-    if (res.ok && data.success) {
-      console.log("Not Found Brands:", data.notFound);
-     showToast(
-  "success",
-  `Brand Manufacturer Upload Done! Updated: ${data.updated}${data.notFound?.length ? `, Not Found: ${data.notFound.length}` : ""}`
-);
-    } else {
-      showToast("error", data.error || "Upload failed");
+    if (!validateFilterFile(warrantyMapFile)) {
+      showToast("error", "Please upload a valid Excel (.xlsx) or CSV (.csv) file.");
+      return;
     }
-  } catch (err) {
-    console.error("Brand manufacturer upload error:", err);
-    showToast("error", "Upload failed. Please try again.");
-  } finally {
-    setIsBrandManufacturerUploadLoading(false);
-    setBrandManufacturerFile(null);
-    if (brandManufacturerFileRef.current) brandManufacturerFileRef.current.value = "";
-  }
-};
+
+    const formData = new FormData();
+    formData.append("file", warrantyMapFile);
+
+    setIsWarrantyMapLoading(true);
+
+    try {
+      const res = await fetch("/api/warranties/bulk-warranty-map", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        showToast(
+          "success",
+          `Warranty Mapping Done! Updated: ${data.updated}${data.notFound?.length ? `, Not Found: ${data.notFound.length}` : ""}`
+        );
+      } else {
+        showToast("error", data.error || "Upload failed");
+      }
+    } catch (err) {
+      console.error("Warranty map upload error:", err);
+      showToast("error", "Upload failed. Please try again.");
+    } finally {
+      setIsWarrantyMapLoading(false);
+      setWarrantyMapFile(null);
+      if (warrantyMapFileRef.current) warrantyMapFileRef.current.value = "";
+    }
+  };
+
+  const handlePincodeUpload = async (e) => {
+    e.preventDefault();
+
+    if (!pincodeFile) {
+      showToast("error", "Please upload a valid Excel (.xlsx) file.");
+      return;
+    }
+    if (!validateFilterFile(pincodeFile)) {
+      showToast("error", "Please upload a valid Excel (.xlsx) or CSV (.csv) file.");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("file", pincodeFile);
+
+    setIsPincodeUploadLoading(true);
+
+    try {
+      const res = await fetch("/api/pincode/bulk-upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        showToast("success", `Pincode Upload Done! Updated: ${data.updated}, Skipped: ${data.skipped}`);
+      } else {
+        showToast("error", data.error || "Upload failed");
+      }
+    } catch (err) {
+      console.error("Pincode upload error:", err);
+      showToast("error", "Upload failed. Please try again.");
+    } finally {
+      setIsPincodeUploadLoading(false);
+      setPincodeFile(null);
+      if (pincodeFileRef.current) pincodeFileRef.current.value = "";
+    }
+  };
+  const handlePincodeSampleDownload = () => {
+    const link = document.createElement("a");
+    link.href = `/uploads/files/BEA_Pincode_Sample.xlsx?t=${Date.now()}`;
+    link.download = "BEA_Pincode_Sample.xlsx";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+  const handleBrandManufacturerSampleDownload = () => {
+    const link = document.createElement("a");
+    link.href = `/uploads/files/brand_manufacturer_sample.xlsx?t=${Date.now()}`;
+    link.download = "brand_manufacturer_sample.xlsx";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleBrandManufacturerUpload = async (e) => {
+    e.preventDefault();
+
+    if (!brandManufacturerFile) {
+      showToast("error", "Please upload a valid Excel (.xlsx) or CSV (.csv) file.");
+      return;
+    }
+    if (!validateFilterFile(brandManufacturerFile)) {
+      showToast("error", "Please upload a valid Excel (.xlsx) or CSV (.csv) file.");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("file", brandManufacturerFile);
+
+    setIsBrandManufacturerUploadLoading(true);
+
+    try {
+      const res = await fetch("/api/brand/bulk-upload-manufacturer", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        console.log("Not Found Brands:", data.notFound);
+        showToast(
+          "success",
+          `Brand Manufacturer Upload Done! Updated: ${data.updated}${data.notFound?.length ? `, Not Found: ${data.notFound.length}` : ""}`
+        );
+      } else {
+        showToast("error", data.error || "Upload failed");
+      }
+    } catch (err) {
+      console.error("Brand manufacturer upload error:", err);
+      showToast("error", "Upload failed. Please try again.");
+    } finally {
+      setIsBrandManufacturerUploadLoading(false);
+      setBrandManufacturerFile(null);
+      if (brandManufacturerFileRef.current) brandManufacturerFileRef.current.value = "";
+    }
+  };
   const sections = [
     { id: "section-product-overview", label: "Product - All Details Upload", image: "/uploads/files/Product_all_upload_first_box.png" },
     { id: "section-filter-upload", label: "Filter Values Upload", image: "/uploads/files/Filter_Bulk_Upload_second_box.png" },
@@ -1644,7 +1644,7 @@ const handleBrandManufacturerUpload = async (e) => {
     // { id: "section-product-categories-upload", label: "Update Product Categories",     image: "/uploads/files/Product_updating_category_eighth_image.png" },
     { id: "section-product-brands-upload", label: "Update Product Brands", image: "/uploads/files/Product_Brand_update_nineth_image.png" },
     { id: "section-status-bulk", label: "Status Bulk Upload", image: "/uploads/files/Status_bulk_upload_tenth_box_image.png" },
-     { id: "section-stock-status-bulk-upload", label: "Stock Status Upload", image: "/uploads/files/Stock_status_bulk_upload.png" },
+    { id: "section-stock-status-bulk-upload", label: "Stock Status Upload", image: "/uploads/files/Stock_status_bulk_upload.png" },
     //  { id: "section-delete-product-itemcode-upload", label: "Item Code Delete Bulk Upload", image: "/uploads/files/item_code_delete_bulk_upload.png" },
     // { id: "extended-warrenty-upload", label: "Extended Warrenty Upload", image: "/uploads/files/Extended_warrenty_upload_eleventh_box_image.png" },
     { id: "Key-Features", label: "Key Features", image: "/uploads/files/Key features.jpg" },
@@ -1653,34 +1653,35 @@ const handleBrandManufacturerUpload = async (e) => {
     { id: "dynamic_filter_upload", label: "Dynamic Filter Upload", image: "/uploads/files/dynamic_filter.png" },
     { id: "product-added-bulk-addons-frequentlybought-relatedproducts", label: "Add Frequently Addons and Related Products", image: "/uploads/files/bulk_upload_for_product_rightside_datas.png" },
     { id: "itemcode-product-bulk-upload-delete-filters", label: "Delete Filters For Product", image: "/uploads/files/delete_filters_for_product_bulk_upload.png" },
-     {id:"warranty-bulk-upload", label: "Warranty Bulk Upload", image: "/uploads/files/warranty-bulk-upload.png" },
-     { id: "warranty-map-bulk-upload", label: "Product Warranty Mapping Upload", image: "/uploads/files/warranty-map-bulk-upload.png" },
-     { id: "pincode-serviceability-bulk-upload", label: "Pincode Serviceability Upload", image: "/uploads/files/pincode-serviceability-bulk-upload.png" },
-     { id: "brand-manufacturer-bulk-upload", label: "Brand Manufacturer Details Upload", image: "/uploads/files/brand-manufacturer-bulk-upload.png" },
+    { id: "warranty-bulk-upload", label: "Warranty Bulk Upload", image: "/uploads/files/warranty-bulk-upload.png" },
+    { id: "warranty-map-bulk-upload", label: "Product Warranty Mapping Upload", image: "/uploads/files/warranty-map-bulk-upload.png" },
+    { id: "pincode-serviceability-bulk-upload", label: "Pincode Serviceability Upload", image: "/uploads/files/pincode-serviceability-bulk-upload.png" },
+    { id: "brand-manufacturer-bulk-upload", label: "Brand Manufacturer Details Upload", image: "/uploads/files/brand-manufacturer-bulk-upload.png" },
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen">
       <div className="max-w-7xl mx-auto">
 
-        {/* Header */}
-        <div className="mb-6 text-center">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Bulk Product Upload</h1>
-          <p className="text-gray-600">Upload products in bulk using Excel/CSV and ZIP files</p>
-        </div>
+        {/* Header & Dropdown Row */}
+        <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Bulk Product Upload</h1>
+            <p className="text-gray-600">Upload products in bulk using Excel/CSV and ZIP files</p>
+          </div>
 
-        {/* Dropdown Selector */}
-        <div className="mb-6 max-w-sm mx-auto">
-          <label className="block text-sm font-medium text-gray-700 mb-2">Select Upload Type</label>
-          <select
-            value={selectedSection}
-            onChange={(e) => setSelectedSection(e.target.value)}
-            className="block w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-700 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-[#d72828]"
-          >
-            {sections.map((s) => (
-              <option key={s.id} value={s.id}>{s.label}</option>
-            ))}
-          </select>
+          <div className="w-full max-w-sm">
+            <label className="block text-sm font-medium text-gray-700 mb-2">Select Upload Type</label>
+            <select
+              value={selectedSection}
+              onChange={(e) => setSelectedSection(e.target.value)}
+              className="block w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-700 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-[#d72828]"
+            >
+              {sections.map((s) => (
+                <option key={s.id} value={s.id}>{s.label}</option>
+              ))}
+            </select>
+          </div>
         </div>
 
         {/* Two-column layout */}
@@ -1691,7 +1692,7 @@ const handleBrandManufacturerUpload = async (e) => {
 
             {/* Section 1: Product Overview Upload */}
             {selectedSection === "section-product-overview" && (
-              <form id="section-product-overview" ref={overviewFormRef} onSubmit={(e) => handleSubmit(e, "overview")} className="bg-white rounded-xl shadow-lg overflow-hidden p-6 space-y-8">
+              <form id="section-product-overview" ref={overviewFormRef} onSubmit={(e) => handleSubmit(e, "overview")} className="bg-white rounded-xl shadow-lg overflow-hidden p-6 space-y-8 border border-gray-200">
 
                 {/* Excel File Section */}
                 <div className="border border-gray-200 rounded-lg p-6 hover:border-[#d72828] transition-colors">
@@ -1799,7 +1800,7 @@ const handleBrandManufacturerUpload = async (e) => {
 
             {/* Section 2: Filter Upload */}
             {selectedSection === "section-filter-upload" && (
-              <form id="section-filter-upload" onSubmit={handleSubmit} className="bg-white rounded-xl shadow-lg overflow-hidden p-6 space-y-8">
+              <form id="section-filter-upload" onSubmit={handleSubmit} className="bg-white rounded-xl shadow-lg overflow-hidden p-6 space-y-8 border border-gray-200">
                 <div className="border border-gray-200 rounded-lg p-6 hover:border-[#d72828] transition-colors">
                   <div className="mb-4">
                     <h2 className="text-md font-semibold text-[#d72828] mb-6 border-b pb-2">
@@ -2080,7 +2081,7 @@ const handleBrandManufacturerUpload = async (e) => {
                     <p className="text-sm text-gray-500 mt-1">Upload your category filter mapping file</p>
                   </div>
                   <div className="space-y-4">
-                   <input
+                    <input
                       type="file"
                       accept=".xlsx,.csv"
                       ref={fileInputRef}
@@ -2102,7 +2103,7 @@ const handleBrandManufacturerUpload = async (e) => {
                   <div className="flex mt-5 justify-between">
                     <button
                       onClick={handleBulkCategorySubcatSubmit}
-                        disabled={isBulkUploadLoading}
+                      disabled={isBulkUploadLoading}
                       className="px-6 py-2.5 bg-[#d72828] text-white font-medium rounded-lg hover:bg-[#d72828] focus:outline-none disabled:opacity-50 transition-colors flex items-center"
                     >
                       {isBulkUploadLoading ? (
@@ -2139,7 +2140,7 @@ const handleBrandManufacturerUpload = async (e) => {
                     <p className="text-sm text-gray-500 mt-1">Upload your Particular Bulk Upload Part One Data</p>
                   </div>
                   <div className="space-y-4">
-                   <input
+                    <input
                       type="file"
                       accept=".xlsx,.csv"
                       ref={fileBulkParticularInputRef}
@@ -2161,7 +2162,7 @@ const handleBrandManufacturerUpload = async (e) => {
                   <div className="flex mt-5 justify-between">
                     <button
                       onClick={handleBulkParticularDetailsSubcatSubmit}
-                        disabled={isParticularDataBulkUploadLoading}
+                      disabled={isParticularDataBulkUploadLoading}
                       className="px-6 py-2.5 bg-[#d72828] text-white font-medium rounded-lg hover:bg-[#d72828] focus:outline-none disabled:opacity-50 transition-colors flex items-center"
                     >
                       {isParticularDataBulkUploadLoading ? (
@@ -2198,7 +2199,7 @@ const handleBrandManufacturerUpload = async (e) => {
                     <p className="text-sm text-gray-500 mt-1">Upload your Products Details for Addons , Frequently Bought and Related Products</p>
                   </div>
                   <div className="space-y-4">
-                   <input
+                    <input
                       type="file"
                       accept=".xlsx,.csv"
                       ref={fileBulkUploadAddonsInputRef}
@@ -2220,7 +2221,7 @@ const handleBrandManufacturerUpload = async (e) => {
                   <div className="flex mt-5 justify-between">
                     <button
                       onClick={handleBulkUploadForAddOnsFrequentRelatedSubmit}
-                        disabled={isProductDetailsDataBulkUploadLoading}
+                      disabled={isProductDetailsDataBulkUploadLoading}
                       className="px-6 py-2.5 bg-[#d72828] text-white font-medium rounded-lg hover:bg-[#d72828] focus:outline-none disabled:opacity-50 transition-colors flex items-center"
                     >
                       {isProductDetailsDataBulkUploadLoading ? (
@@ -2242,154 +2243,154 @@ const handleBrandManufacturerUpload = async (e) => {
 
             {/* Section 20: Bulk Upload for Product Filters Delete Filters */}
             {selectedSection === "itemcode-product-bulk-upload-delete-filters" && (
-                <form id="itemcode-product-bulk-upload-delete-filters" ref={filterValueFormRef} onSubmit={(e) => handleSubmit(e, "filter_values_delete")} className="bg-white rounded-xl shadow-lg overflow-hidden p-6 space-y-8">
-                  <div className="border border-gray-200 rounded-lg p-6 hover:border-[#d72828] transition-colors">
-                    <div className="mb-4">
-                      <h2 className="text-md font-semibold text-[#d72828] mb-6 border-b pb-2">Delete Product's Filter Values Bulk Upload</h2>
-                      <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                        <svg className="w-5 h-5 text-[#d72828]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                        Excel/CSV File
-                      </h3>
-                      <p className="text-sm text-gray-500 mt-1">Upload your product filter values file to delete</p>
-                    </div>
-                    <div className="space-y-4">
-                      <input id="filter-values-delete-file-input" type="file" accept=".xlsx,.csv" onChange={(e) => setProductFilterValue(e.target.files?.[0] || null)} className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-[#d72828] hover:file:bg-red-100" required />
-                    </div>
-                    <button type="button" onClick={handleDownloadFilterValuesDelete} className="inline-flex items-center pt-5 text-sm text-[#d72828] hover:text-[#d72828] transition-colors">
-                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              <form id="itemcode-product-bulk-upload-delete-filters" ref={filterValueFormRef} onSubmit={(e) => handleSubmit(e, "filter_values_delete")} className="bg-white rounded-xl shadow-lg overflow-hidden p-6 space-y-8">
+                <div className="border border-gray-200 rounded-lg p-6 hover:border-[#d72828] transition-colors">
+                  <div className="mb-4">
+                    <h2 className="text-md font-semibold text-[#d72828] mb-6 border-b pb-2">Delete Product's Filter Values Bulk Upload</h2>
+                    <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                      <svg className="w-5 h-5 text-[#d72828]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                       </svg>
-                      Download Sample Format
-                    </button>
+                      Excel/CSV File
+                    </h3>
+                    <p className="text-sm text-gray-500 mt-1">Upload your product filter values file to delete</p>
                   </div>
-                  <div className="flex mt-5 justify-between">
-                    <button
-                      type="submit"
-                      disabled={isLoading}
-                      className="bg-[#d72828] hover:bg-[#d72828] text-white px-3 py-2 rounded-md flex items-center gap-2"
-                    >
-                      {isLoading && activeUploadType == "filter_values_delete" ? (
-                        <span className="flex items-center">
-                          <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                          </svg>
-                          Uploading...
-                        </span>
-                      ) : (
-                        'Upload Product Filter Values'
-                      )}
-                    </button>
+                  <div className="space-y-4">
+                    <input id="filter-values-delete-file-input" type="file" accept=".xlsx,.csv" onChange={(e) => setProductFilterValue(e.target.files?.[0] || null)} className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-[#d72828] hover:file:bg-red-100" required />
                   </div>
-                </form>
-              )}
+                  <button type="button" onClick={handleDownloadFilterValuesDelete} className="inline-flex items-center pt-5 text-sm text-[#d72828] hover:text-[#d72828] transition-colors">
+                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    Download Sample Format
+                  </button>
+                </div>
+                <div className="flex mt-5 justify-between">
+                  <button
+                    type="submit"
+                    disabled={isLoading}
+                    className="bg-[#d72828] hover:bg-[#d72828] text-white px-3 py-2 rounded-md flex items-center gap-2"
+                  >
+                    {isLoading && activeUploadType == "filter_values_delete" ? (
+                      <span className="flex items-center">
+                        <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Uploading...
+                      </span>
+                    ) : (
+                      'Upload Product Filter Values'
+                    )}
+                  </button>
+                </div>
+              </form>
+            )}
 
             {/* Section 15: Category Filter Upload Item code With Particular Details */}
             {selectedSection === "item-category-particular-product-bulk-upload-image" && (
               <form
-  id="item-category-particular-product-bulk-upload-image" ref={itemparticularwithimageref} 
-  onSubmit={handlewithImageBulkParticularDetailsSubcatSubmit}
-  className="bg-white rounded-xl shadow-lg overflow-hidden p-6 space-y-8"
->
-  {/* ---------- EXCEL SECTION ---------- */}
-  <div className="border border-gray-200 rounded-lg p-6 hover:border-[#d72828] transition-colors">
-    
-    <h2 className="text-md font-semibold text-[#d72828] mb-6 border-b pb-2">
-      Item Particular Bulk Upload part two (with image)
-    </h2>
+                id="item-category-particular-product-bulk-upload-image" ref={itemparticularwithimageref}
+                onSubmit={handlewithImageBulkParticularDetailsSubcatSubmit}
+                className="bg-white rounded-xl shadow-lg overflow-hidden p-6 space-y-8"
+              >
+                {/* ---------- EXCEL SECTION ---------- */}
+                <div className="border border-gray-200 rounded-lg p-6 hover:border-[#d72828] transition-colors">
 
-    <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-      Excel/CSV File
-    </h3>
+                  <h2 className="text-md font-semibold text-[#d72828] mb-6 border-b pb-2">
+                    Item Particular Bulk Upload part two (with image)
+                  </h2>
 
-    <p className="text-sm text-gray-500 mt-1">
-      Upload your Particular Bulk Upload Part two Data
-    </p>
+                  <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                    Excel/CSV File
+                  </h3>
 
-    <div className="space-y-4 mt-4">
-      <input
-        type="file"
-        accept=".xlsx,.csv"
-        ref={fileImageBulkParticularInputRef}
-        onChange={(e) => setExcelFiles(e.target.files?.[0] || null)}
-        className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:font-semibold file:bg-red-50 file:text-[#d72828]"
-        required
-      />
+                  <p className="text-sm text-gray-500 mt-1">
+                    Upload your Particular Bulk Upload Part two Data
+                  </p>
 
-      <button
-        type="button"
-        onClick={handleImageDataBulkUploadDownload}
-        className="text-sm text-[#d72828] hover:text-[#d72828]"
-      >
-        Download Sample Format
-      </button>
-    </div>
-  </div>
+                  <div className="space-y-4 mt-4">
+                    <input
+                      type="file"
+                      accept=".xlsx,.csv"
+                      ref={fileImageBulkParticularInputRef}
+                      onChange={(e) => setExcelFiles(e.target.files?.[0] || null)}
+                      className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:font-semibold file:bg-red-50 file:text-[#d72828]"
+                      required
+                    />
 
-  {/* ---------- ZIP SECTION (REQUIRED) ---------- */}
-  <div className="border border-gray-200 rounded-lg p-6 hover:border-[#d72828] transition-colors">
-    
-    <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-      Product Images (ZIP) <span className="text-red-500">*</span>
-    </h3>
+                    <button
+                      type="button"
+                      onClick={handleImageDataBulkUploadDownload}
+                      className="text-sm text-[#d72828] hover:text-[#d72828]"
+                    >
+                      Download Sample Format
+                    </button>
+                  </div>
+                </div>
 
-    <p className="text-sm text-gray-500 mt-1">
-      Upload ZIP file. Image names must match Excel columns.
-    </p>
+                {/* ---------- ZIP SECTION (REQUIRED) ---------- */}
+                <div className="border border-gray-200 rounded-lg p-6 hover:border-[#d72828] transition-colors">
 
-    <div className="space-y-4 mt-4">
-      <input
-        type="file"
-        accept=".zip"
-        onChange={(e) => setImageZips(e.target.files?.[0] || null)}
-        className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:font-semibold file:bg-red-50 file:text-[#d72828]"
-        required   // ✅ IMPORTANT (NOW REQUIRED)
-      />
+                  <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                    Product Images (ZIP) <span className="text-red-500">*</span>
+                  </h3>
 
-      <button
-        type="button"
-        onClick={handleZipDownload}
-        className="text-sm text-[#d72828] hover:text-[#d72828]"
-      >
-        Download Sample ZIP
-      </button>
-    </div>
-  </div>
+                  <p className="text-sm text-gray-500 mt-1">
+                    Upload ZIP file. Image names must match Excel columns.
+                  </p>
 
-  {/* ---------- SUBMIT BUTTON ---------- */}
-  <div className="flex mt-5">
-    <button
-      type="submit"
-      disabled={isParticularImageWithDataBulkUploadLoading}
-      className="px-6 py-2.5 bg-[#d72828] text-white font-medium rounded-lg hover:bg-[#d72828] disabled:opacity-50 flex items-center"
-    >
-      {isParticularImageWithDataBulkUploadLoading ? (
-        <>
-          <svg
-            className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-          >
-            <circle
-              className="opacity-25"
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="currentColor"
-              strokeWidth="4"
-            ></circle>
-          </svg>
-          Uploading...
-        </>
-      ) : (
-        "Upload Excel + Images"
-      )}
-    </button>
-  </div>
-</form>
+                  <div className="space-y-4 mt-4">
+                    <input
+                      type="file"
+                      accept=".zip"
+                      onChange={(e) => setImageZips(e.target.files?.[0] || null)}
+                      className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:font-semibold file:bg-red-50 file:text-[#d72828]"
+                      required   // ✅ IMPORTANT (NOW REQUIRED)
+                    />
+
+                    <button
+                      type="button"
+                      onClick={handleZipDownload}
+                      className="text-sm text-[#d72828] hover:text-[#d72828]"
+                    >
+                      Download Sample ZIP
+                    </button>
+                  </div>
+                </div>
+
+                {/* ---------- SUBMIT BUTTON ---------- */}
+                <div className="flex mt-5">
+                  <button
+                    type="submit"
+                    disabled={isParticularImageWithDataBulkUploadLoading}
+                    className="px-6 py-2.5 bg-[#d72828] text-white font-medium rounded-lg hover:bg-[#d72828] disabled:opacity-50 flex items-center"
+                  >
+                    {isParticularImageWithDataBulkUploadLoading ? (
+                      <>
+                        <svg
+                          className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                          ></circle>
+                        </svg>
+                        Uploading...
+                      </>
+                    ) : (
+                      "Upload Excel + Images"
+                    )}
+                  </button>
+                </div>
+              </form>
             )}
 
 
@@ -2596,307 +2597,307 @@ const handleBrandManufacturerUpload = async (e) => {
 
 
             {/* Warranty Bulk Upload */}
-{selectedSection === "warranty-bulk-upload" && (
-  <form
-    id="warranty-bulk-upload"
-    onSubmit={handleWarrantyBulkUpload}
-    className="bg-white rounded-xl shadow-lg overflow-hidden p-6 space-y-8"
-  >
-    <div className="border border-gray-200 rounded-lg p-6 hover:border-[#d72828] transition-colors">
-      
-      <div className="mb-4">
-        <h2 className="text-md font-semibold text-[#d72828] mb-6 border-b pb-2">
-          Warranty Bulk Upload
-        </h2>
-        <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-          <svg className="w-5 h-5 text-[#d72828]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-          </svg>
-          Excel / CSV File
-        </h3>
-        <p className="text-sm text-gray-500 mt-1">
-          Upload warranty data. Existing entries (by QBC Code) will be updated; new entries will be inserted.
-        </p>
-      </div>
+            {selectedSection === "warranty-bulk-upload" && (
+              <form
+                id="warranty-bulk-upload"
+                onSubmit={handleWarrantyBulkUpload}
+                className="bg-white rounded-xl shadow-lg overflow-hidden p-6 space-y-8"
+              >
+                <div className="border border-gray-200 rounded-lg p-6 hover:border-[#d72828] transition-colors">
 
-      <div className="space-y-4">
-       <input
-  type="file"
-  accept=".xlsx,.csv"
-  ref={warrantyFileRef}
-  onClick={(e) => {
-    e.target.value = "";
-    setWarrantyFile(null);
+                  <div className="mb-4">
+                    <h2 className="text-md font-semibold text-[#d72828] mb-6 border-b pb-2">
+                      Warranty Bulk Upload
+                    </h2>
+                    <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                      <svg className="w-5 h-5 text-[#d72828]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      Excel / CSV File
+                    </h3>
+                    <p className="text-sm text-gray-500 mt-1">
+                      Upload warranty data. Existing entries (by QBC Code) will be updated; new entries will be inserted.
+                    </p>
+                  </div>
 
-  }}
-  onChange={(e) => setWarrantyFile(e.target.files?.[0] || null)}
-  className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-[#d72828] hover:file:bg-red-100"
-  required
-/>
+                  <div className="space-y-4">
+                    <input
+                      type="file"
+                      accept=".xlsx,.csv"
+                      ref={warrantyFileRef}
+                      onClick={(e) => {
+                        e.target.value = "";
+                        setWarrantyFile(null);
 
-      
-        <button
-          type="button"
-          onClick={() => {
-            const link = document.createElement("a");
-           
-            link.href = `/uploads/files/warranty_sample.xlsx?t=${Date.now()}`;
-            link.download = "warranty_sample.xlsx";
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-          }}
-          className="inline-flex items-center text-sm text-[#d72828] hover:text-[#d72828] transition-colors"
-        >
-          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-          </svg>
-          Download Sample Format
-        </button>
-      </div>
-    </div>
+                      }}
+                      onChange={(e) => setWarrantyFile(e.target.files?.[0] || null)}
+                      className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-[#d72828] hover:file:bg-red-100"
+                      required
+                    />
 
-    <div className="flex mt-5">
-      <button
-        type="submit"
-        disabled={isWarrantyUploadLoading}
-        className="px-6 py-2.5 bg-[#d72828] text-white font-medium rounded-lg hover:bg-[#d72828] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center"
-      >
-        {isWarrantyUploadLoading ? (
-          <>
-            <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-            </svg>
-            Uploading...
-          </>
-        ) : (
-          "Upload Warranties"
-        )}
-      </button>
-    </div>
-  </form>
-)}
 
-{/* Warranty Map Bulk Upload */}
-{selectedSection === "warranty-map-bulk-upload" && (
-  <form
-    id="warranty-map-bulk-upload"
-    onSubmit={handleWarrantyMapUpload}
-    className="bg-white rounded-xl shadow-lg overflow-hidden p-6 space-y-8"
-  >
-    <div className="border border-gray-200 rounded-lg p-6 hover:border-[#d72828] transition-colors">
-      <div className="mb-4">
-        <h2 className="text-md font-semibold text-[#d72828] mb-6 border-b pb-2">
-          Product Warranty Mapping Upload
-        </h2>
-        <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-          <svg className="w-5 h-5 text-[#d72828]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-          </svg>
-          Excel / CSV File
-        </h3>
-        <p className="text-sm text-gray-500 mt-1">
-          Columns: <code className="bg-gray-100 px-1 rounded">product_item_code</code> and{" "}
-          <code className="bg-gray-100 px-1 rounded">warranty_item_codes</code> (comma separated)
-        </p>
-      </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const link = document.createElement("a");
 
-      <div className="space-y-4">
-        <input
-          type="file"
-          accept=".xlsx,.csv"
-          ref={warrantyMapFileRef}
-          onClick={(e) => {
-            e.target.value = "";
-            setWarrantyMapFile(null);
-          }}
-          onChange={(e) => setWarrantyMapFile(e.target.files?.[0] || null)}
-          className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-[#d72828] hover:file:bg-red-100"
-          required
-        />
+                        link.href = `/uploads/files/warranty_sample.xlsx?t=${Date.now()}`;
+                        link.download = "warranty_sample.xlsx";
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                      }}
+                      className="inline-flex items-center text-sm text-[#d72828] hover:text-[#d72828] transition-colors"
+                    >
+                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                      </svg>
+                      Download Sample Format
+                    </button>
+                  </div>
+                </div>
 
-        {/* Download Template */}
-        <button
-          type="button"
-          onClick={() => {
-            const XLSX = require("xlsx");
-            const ws = XLSX.utils.aoa_to_sheet([
-              ["product_item_code", "warranty_item_codes"],
-              ["TV001", "PRAC1NXSS17,PRAC2NXSS17"],
-              ["AC002", "PRAC3NXSS17"],
-            ]);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Warranty Mapping");
-            XLSX.writeFile(wb, "warranty_mapping_template.xlsx");
-          }}
-          className="inline-flex items-center text-sm text-[#d72828] hover:text-[#d72828] transition-colors"
-        >
-          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-          </svg>
-          Download Template
-        </button>
-      </div>
-    </div>
+                <div className="flex mt-5">
+                  <button
+                    type="submit"
+                    disabled={isWarrantyUploadLoading}
+                    className="px-6 py-2.5 bg-[#d72828] text-white font-medium rounded-lg hover:bg-[#d72828] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center"
+                  >
+                    {isWarrantyUploadLoading ? (
+                      <>
+                        <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                        </svg>
+                        Uploading...
+                      </>
+                    ) : (
+                      "Upload Warranties"
+                    )}
+                  </button>
+                </div>
+              </form>
+            )}
 
-    <div className="flex mt-5">
-      <button
-        type="submit"
-        disabled={isWarrantyMapLoading}
-        className="px-6 py-2.5 bg-[#d72828] text-white font-medium rounded-lg hover:bg-[#d72828] focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center"
-      >
-        {isWarrantyMapLoading ? (
-          <>
-            <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-            </svg>
-            Uploading...
-          </>
-        ) : (
-          "Upload Warranty Mapping"
-        )}
-      </button>
-    </div>
-  </form>
-)}
+            {/* Warranty Map Bulk Upload */}
+            {selectedSection === "warranty-map-bulk-upload" && (
+              <form
+                id="warranty-map-bulk-upload"
+                onSubmit={handleWarrantyMapUpload}
+                className="bg-white rounded-xl shadow-lg overflow-hidden p-6 space-y-8"
+              >
+                <div className="border border-gray-200 rounded-lg p-6 hover:border-[#d72828] transition-colors">
+                  <div className="mb-4">
+                    <h2 className="text-md font-semibold text-[#d72828] mb-6 border-b pb-2">
+                      Product Warranty Mapping Upload
+                    </h2>
+                    <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                      <svg className="w-5 h-5 text-[#d72828]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      Excel / CSV File
+                    </h3>
+                    <p className="text-sm text-gray-500 mt-1">
+                      Columns: <code className="bg-gray-100 px-1 rounded">product_item_code</code> and{" "}
+                      <code className="bg-gray-100 px-1 rounded">warranty_item_codes</code> (comma separated)
+                    </p>
+                  </div>
 
-{selectedSection === "pincode-serviceability-bulk-upload" && (
-  <form
-    id="pincode-serviceability-bulk-upload"
-    onSubmit={handlePincodeUpload}
-    className="bg-white rounded-xl shadow-lg overflow-hidden p-6 space-y-8"
-  >
-    <div className="border border-gray-200 rounded-lg p-6 hover:border-[#d72828] transition-colors">
-      <div className="mb-4">
-        <h2 className="text-md font-semibold text-[#d72828] mb-6 border-b pb-2">
-          Pincode Serviceability Bulk Upload
-        </h2>
-        <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-          <svg className="w-5 h-5 text-[#d72828]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-          </svg>
-          Excel / CSV File
-        </h3>
-        <p className="text-sm text-gray-500 mt-1">
-          Upload Sathya Stores pincode serviceability data. Columns: SAP Code, Branch Name, Branch Pincode, Serviceable Pincode, Distance (km), Nearest Branch Rank, Branch Address.
-        </p>
-      </div>
+                  <div className="space-y-4">
+                    <input
+                      type="file"
+                      accept=".xlsx,.csv"
+                      ref={warrantyMapFileRef}
+                      onClick={(e) => {
+                        e.target.value = "";
+                        setWarrantyMapFile(null);
+                      }}
+                      onChange={(e) => setWarrantyMapFile(e.target.files?.[0] || null)}
+                      className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-[#d72828] hover:file:bg-red-100"
+                      required
+                    />
 
-      <div className="space-y-4">
-        <input
-          type="file"
-          accept=".xlsx,.csv"
-          ref={pincodeFileRef}
-          onClick={(e) => { e.target.value = ""; setPincodeFile(null); }}
-          onChange={(e) => setPincodeFile(e.target.files?.[0] || null)}
-          className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-[#d72828] hover:file:bg-red-100"
-          required
-        />
-      </div>
-      <button
-  type="button"
-  onClick={handlePincodeSampleDownload}
-  className="inline-flex items-center text-sm text-[#d72828] hover:text-[#d72828] transition-colors"
->
-  <svg className="w-4 h-4 mt-3 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-  </svg>
-  Download Sample Format
-</button>
-    </div>
+                    {/* Download Template */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const XLSX = require("xlsx");
+                        const ws = XLSX.utils.aoa_to_sheet([
+                          ["product_item_code", "warranty_item_codes"],
+                          ["TV001", "PRAC1NXSS17,PRAC2NXSS17"],
+                          ["AC002", "PRAC3NXSS17"],
+                        ]);
+                        const wb = XLSX.utils.book_new();
+                        XLSX.utils.book_append_sheet(wb, ws, "Warranty Mapping");
+                        XLSX.writeFile(wb, "warranty_mapping_template.xlsx");
+                      }}
+                      className="inline-flex items-center text-sm text-[#d72828] hover:text-[#d72828] transition-colors"
+                    >
+                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                      </svg>
+                      Download Template
+                    </button>
+                  </div>
+                </div>
 
-    <div className="flex mt-5">
-      <button
-        type="submit"
-        disabled={isPincodeUploadLoading}
-        className="px-6 py-2.5 bg-[#d72828] text-white font-medium rounded-lg hover:bg-[#d72828] focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center"
-      >
-        {isPincodeUploadLoading ? (
-          <>
-            <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-            </svg>
-            Uploading...
-          </>
-        ) : (
-          "Upload Pincodes"
-        )}
-      </button>
-    </div>
-  </form>
-)}
+                <div className="flex mt-5">
+                  <button
+                    type="submit"
+                    disabled={isWarrantyMapLoading}
+                    className="px-6 py-2.5 bg-[#d72828] text-white font-medium rounded-lg hover:bg-[#d72828] focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center"
+                  >
+                    {isWarrantyMapLoading ? (
+                      <>
+                        <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                        </svg>
+                        Uploading...
+                      </>
+                    ) : (
+                      "Upload Warranty Mapping"
+                    )}
+                  </button>
+                </div>
+              </form>
+            )}
 
-{selectedSection === "brand-manufacturer-bulk-upload" && (
-  <form
-    id="brand-manufacturer-bulk-upload"
-    onSubmit={handleBrandManufacturerUpload}
-    className="bg-white rounded-xl shadow-lg overflow-hidden p-6 space-y-8"
-  >
-    <div className="border border-gray-200 rounded-lg p-6 hover:border-[#d72828] transition-colors">
-      <div className="mb-4">
-        <h2 className="text-md font-semibold text-[#d72828] mb-6 border-b pb-2">
-          Brand Manufacturer Details Bulk Upload
-        </h2>
-        <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-          <svg className="w-5 h-5 text-[#d72828]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-          </svg>
-          Excel / CSV File
-        </h3>
-        <p className="text-sm text-gray-500 mt-1">
-          Columns: <code className="bg-gray-100 px-1 rounded">Brand</code>,{" "}
-          <code className="bg-gray-100 px-1 rounded">Manufacturer Details</code>,{" "}
-          <code className="bg-gray-100 px-1 rounded">Address</code>. Existing brands (matched by name) will be updated, new brands will be inserted.
-        </p>
-      </div>
+            {selectedSection === "pincode-serviceability-bulk-upload" && (
+              <form
+                id="pincode-serviceability-bulk-upload"
+                onSubmit={handlePincodeUpload}
+                className="bg-white rounded-xl shadow-lg overflow-hidden p-6 space-y-8"
+              >
+                <div className="border border-gray-200 rounded-lg p-6 hover:border-[#d72828] transition-colors">
+                  <div className="mb-4">
+                    <h2 className="text-md font-semibold text-[#d72828] mb-6 border-b pb-2">
+                      Pincode Serviceability Bulk Upload
+                    </h2>
+                    <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                      <svg className="w-5 h-5 text-[#d72828]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      Excel / CSV File
+                    </h3>
+                    <p className="text-sm text-gray-500 mt-1">
+                      Upload Sathya Stores pincode serviceability data. Columns: SAP Code, Branch Name, Branch Pincode, Serviceable Pincode, Distance (km), Nearest Branch Rank, Branch Address.
+                    </p>
+                  </div>
 
-     <div className="space-y-4">
-        <input
-          type="file"
-          accept=".xlsx,.csv"
-          ref={brandManufacturerFileRef}
-          onClick={(e) => { e.target.value = ""; setBrandManufacturerFile(null); }}
-          onChange={(e) => setBrandManufacturerFile(e.target.files?.[0] || null)}
-          className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-[#d72828] hover:file:bg-red-100"
-          required
-        />
-        <button
-          type="button"
-          onClick={handleBrandManufacturerSampleDownload}
-          className="inline-flex items-center text-sm text-[#d72828] hover:text-[#d72828] transition-colors"
-        >
-          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-          </svg>
-          Download Sample Format
-        </button>
-      </div>
-    </div>
+                  <div className="space-y-4">
+                    <input
+                      type="file"
+                      accept=".xlsx,.csv"
+                      ref={pincodeFileRef}
+                      onClick={(e) => { e.target.value = ""; setPincodeFile(null); }}
+                      onChange={(e) => setPincodeFile(e.target.files?.[0] || null)}
+                      className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-[#d72828] hover:file:bg-red-100"
+                      required
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handlePincodeSampleDownload}
+                    className="inline-flex items-center text-sm text-[#d72828] hover:text-[#d72828] transition-colors"
+                  >
+                    <svg className="w-4 h-4 mt-3 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    Download Sample Format
+                  </button>
+                </div>
 
-    <div className="flex mt-5">
-      <button
-        type="submit"
-        disabled={isBrandManufacturerUploadLoading}
-        className="px-6 py-2.5 bg-[#d72828] text-white font-medium rounded-lg hover:bg-[#d72828] focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center"
-      >
-        {isBrandManufacturerUploadLoading ? (
-          <>
-            <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-            </svg>
-            Uploading...
-          </>
-        ) : (
-          "Upload Brand Manufacturer Details"
-        )}
-      </button>
-    </div>
-  </form>
-)}
+                <div className="flex mt-5">
+                  <button
+                    type="submit"
+                    disabled={isPincodeUploadLoading}
+                    className="px-6 py-2.5 bg-[#d72828] text-white font-medium rounded-lg hover:bg-[#d72828] focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center"
+                  >
+                    {isPincodeUploadLoading ? (
+                      <>
+                        <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                        </svg>
+                        Uploading...
+                      </>
+                    ) : (
+                      "Upload Pincodes"
+                    )}
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {selectedSection === "brand-manufacturer-bulk-upload" && (
+              <form
+                id="brand-manufacturer-bulk-upload"
+                onSubmit={handleBrandManufacturerUpload}
+                className="bg-white rounded-xl shadow-lg overflow-hidden p-6 space-y-8"
+              >
+                <div className="border border-gray-200 rounded-lg p-6 hover:border-[#d72828] transition-colors">
+                  <div className="mb-4">
+                    <h2 className="text-md font-semibold text-[#d72828] mb-6 border-b pb-2">
+                      Brand Manufacturer Details Bulk Upload
+                    </h2>
+                    <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                      <svg className="w-5 h-5 text-[#d72828]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      Excel / CSV File
+                    </h3>
+                    <p className="text-sm text-gray-500 mt-1">
+                      Columns: <code className="bg-gray-100 px-1 rounded">Brand</code>,{" "}
+                      <code className="bg-gray-100 px-1 rounded">Manufacturer Details</code>,{" "}
+                      <code className="bg-gray-100 px-1 rounded">Address</code>. Existing brands (matched by name) will be updated, new brands will be inserted.
+                    </p>
+                  </div>
+
+                  <div className="space-y-4">
+                    <input
+                      type="file"
+                      accept=".xlsx,.csv"
+                      ref={brandManufacturerFileRef}
+                      onClick={(e) => { e.target.value = ""; setBrandManufacturerFile(null); }}
+                      onChange={(e) => setBrandManufacturerFile(e.target.files?.[0] || null)}
+                      className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-[#d72828] hover:file:bg-red-100"
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={handleBrandManufacturerSampleDownload}
+                      className="inline-flex items-center text-sm text-[#d72828] hover:text-[#d72828] transition-colors"
+                    >
+                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                      </svg>
+                      Download Sample Format
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex mt-5">
+                  <button
+                    type="submit"
+                    disabled={isBrandManufacturerUploadLoading}
+                    className="px-6 py-2.5 bg-[#d72828] text-white font-medium rounded-lg hover:bg-[#d72828] focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center"
+                  >
+                    {isBrandManufacturerUploadLoading ? (
+                      <>
+                        <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                        </svg>
+                        Uploading...
+                      </>
+                    ) : (
+                      "Upload Brand Manufacturer Details"
+                    )}
+                  </button>
+                </div>
+              </form>
+            )}
             {/* Section 10: Delete Item Code in Product Upload */}
             {/* {selectedSection === "section-delete-product-itemcode-upload" && (
               <form id="section-delete-product-itemcode-upload" ref={filterValueFormRef} onSubmit={(e) => handleSubmit(e, "map_product_brands")} className="bg-white rounded-xl shadow-lg overflow-hidden p-6 space-y-8">
@@ -3171,7 +3172,7 @@ const handleBrandManufacturerUpload = async (e) => {
 
           {/* Right: Illustration */}
           <div className="w-full lg:w-1/2 flex-shrink-0">
-            <div className="bg-white rounded-xl shadow-lg p-2 sticky top-8 text-center">
+            <div className="bg-white rounded-xl shadow-lg p-2 sticky top-8 text-center border border-gray-200">
               {(() => {
                 const activeSection = sections.find(s => s.id === selectedSection);
                 return activeSection?.image ? (

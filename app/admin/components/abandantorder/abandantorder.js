@@ -486,7 +486,7 @@ const updateOrderStatusWithDeliveryDate = async () => {
       {isLoading ? (
         <p>Loading order...</p>
       ) : (
-        <div className="bg-white shadow-md rounded-lg p-5 h-auto overflow-x-auto">
+        <div className="bg-white shadow-md rounded-lg p-5 h-auto overflow-x-auto border border-gray-200">
           {/* 🔍 Filters */}
           <div className="grid grid-cols-1 md:grid-cols-5 gap-6 items-end mb-4">
             {/* Search */}

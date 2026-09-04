@@ -1013,12 +1013,46 @@ export default function CategoryComponent() {
         </div>
       )}
 
-      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
         <div>
           <h2 className="text-2xl font-semibold text-gray-900">Categories</h2>
           <p className="text-sm text-gray-500 mt-0.5">
             Manage category hierarchy, SEO, images, and filters.
           </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-3">
+          <Link
+            href="/admin/category/navcat"
+            className="inline-flex items-center justify-center gap-1.5 bg-slate-800 hover:bg-slate-900 text-white px-4 py-2.5 rounded-lg text-sm font-medium transition"
+          >
+            <Icon icon="mdi:menu" className="text-base" />
+            Nav Menu
+          </Link>
+
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="inline-flex items-center gap-1.5 bg-[#ED1C24] hover:bg-[#C4161D] text-white px-4 py-2.5 rounded-lg text-sm font-medium shadow-sm transition"
+          >
+            <Icon icon="mdi:plus" className="text-lg" />
+            Add Category
+          </button>
+
+          <button
+            onClick={() => {
+              const params = new URLSearchParams({
+                search: searchQuery,
+                status: statusFilter,
+                startDate: dateFilter.startDate || "",
+                endDate: dateFilter.endDate || "",
+              });
+
+              window.location.href = `/api/categories/export?${params.toString()}`;
+            }}
+            className="inline-flex items-center gap-1.5 bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 px-4 py-2.5 rounded-lg text-sm font-medium transition"
+          >
+            <Icon icon="mdi:microsoft-excel" className="text-base text-emerald-600" />
+            Export Excel
+          </button>
         </div>
       </div>
 
@@ -1026,45 +1060,8 @@ export default function CategoryComponent() {
         <AdminLoader label="Loading categories..." />
       ) : (
         <div className="bg-white shadow-sm rounded-xl border border-gray-200 p-5 mb-5 overflow-x-auto">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
-            <Link
-              href="/admin/category/navcat"
-              className="inline-flex items-center justify-center gap-1.5 bg-slate-800 hover:bg-slate-900 text-white px-4 py-2.5 rounded-lg text-sm font-medium transition"
-            >
-              <Icon icon="mdi:menu" className="text-base" />
-              Nav Menu
-            </Link>
-
-            <div className="flex flex-wrap items-center gap-2">
-              <button
-                onClick={() => setIsModalOpen(true)}
-                className="inline-flex items-center gap-1.5 bg-[#ED1C24] hover:bg-[#C4161D] text-white px-4 py-2.5 rounded-lg text-sm font-medium shadow-sm transition"
-              >
-                <Icon icon="mdi:plus" className="text-lg" />
-                Add Category
-              </button>
-
-              <button
-                onClick={() => {
-                  const params = new URLSearchParams({
-                    search: searchQuery,
-                    status: statusFilter,
-                    startDate: dateFilter.startDate || "",
-                    endDate: dateFilter.endDate || "",
-                  });
-
-                  window.location.href = `/api/categories/export?${params.toString()}`;
-                }}
-                className="inline-flex items-center gap-1.5 bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 px-4 py-2.5 rounded-lg text-sm font-medium transition"
-              >
-                <Icon icon="mdi:microsoft-excel" className="text-base text-emerald-600" />
-                Export Excel
-              </button>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end mb-5 p-4 rounded-xl bg-gray-50 border border-gray-100">
-            <div className="w-full">
+          <div className="flex flex-wrap items-end gap-4 mb-5">
+            <div className="w-full sm:w-64">
               <label className={labelClass}>Search</label>
               <div className="relative">
                 <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
@@ -1080,7 +1077,7 @@ export default function CategoryComponent() {
               </div>
             </div>
 
-            <div className="w-full">
+            <div className="w-full sm:w-48">
               <label className={labelClass}>Status</label>
               <select
                 value={statusFilter}
@@ -1093,7 +1090,7 @@ export default function CategoryComponent() {
               </select>
             </div>
 
-            <div className="w-full">
+            <div className="w-full sm:w-72">
               <label className={labelClass}>Date Range</label>
               <div className="relative w-full">
                 <DateRangePicker onDateChange={handleDateChange} />

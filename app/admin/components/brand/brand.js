@@ -93,24 +93,24 @@ export default function BrandComponent() {
       setImagePreview(URL.createObjectURL(file));
     }
   }; */
-  
-  const handleImageChange = async (e) => {
-  const file = e.target.files[0];
-  if (file) {
-    const isValid = await validateImageDimensions(file);
-    if (!isValid) {
-      setImageError("Image must be exactly 140px width and 60px height");
-      e.target.value = "";
-      return;
-    }
-    setImageError("");
-    setNewBrand((prev) => ({ ...prev, image: file }));
 
-    // ✅ Use FileReader instead of createObjectURL
-    const reader = new FileReader();
-    reader.onloadend = () => setImagePreview(reader.result);
-    reader.readAsDataURL(file);
-  }
+  const handleImageChange = async (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const isValid = await validateImageDimensions(file);
+      if (!isValid) {
+        setImageError("Image must be exactly 140px width and 60px height");
+        e.target.value = "";
+        return;
+      }
+      setImageError("");
+      setNewBrand((prev) => ({ ...prev, image: file }));
+
+      // ✅ Use FileReader instead of createObjectURL
+      const reader = new FileReader();
+      reader.onloadend = () => setImagePreview(reader.result);
+      reader.readAsDataURL(file);
+    }
   };
 
   // Handle edit image upload
@@ -128,25 +128,25 @@ export default function BrandComponent() {
       setEditImagePreview(URL.createObjectURL(file));
     }
   }; */
-  
-  const handleEditImageChange = async (e) => {
-  const file = e.target.files[0];
-  if (file) {
-    const isValid = await validateImageDimensions(file);
-    if (!isValid) {
-      setImageError("Image must be exactly 140px width and 60px height");
-      e.target.value = "";
-      return;
-    }
-    setImageError("");
-    setEditingBrand((prev) => ({ ...prev, image: file, existingImage: prev.image }));
 
-    // ✅ Use FileReader instead of createObjectURL
-    const reader = new FileReader();
-    reader.onloadend = () => setEditImagePreview(reader.result);
-    reader.readAsDataURL(file);
-  }
-};
+  const handleEditImageChange = async (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const isValid = await validateImageDimensions(file);
+      if (!isValid) {
+        setImageError("Image must be exactly 140px width and 60px height");
+        e.target.value = "";
+        return;
+      }
+      setImageError("");
+      setEditingBrand((prev) => ({ ...prev, image: file, existingImage: prev.image }));
+
+      // ✅ Use FileReader instead of createObjectURL
+      const reader = new FileReader();
+      reader.onloadend = () => setEditImagePreview(reader.result);
+      reader.readAsDataURL(file);
+    }
+  };
 
   // Handle category submission
   // const handleAddBrand = async (e) => {
@@ -192,55 +192,55 @@ export default function BrandComponent() {
   //     console.error("Error:", error);
   //   }
   // };
-const handleAddBrand = async (e) => {
+  const handleAddBrand = async (e) => {
     e.preventDefault();
 
     if (newBrand.image) {
-        const isValid = await validateImageDimensions(newBrand.image);
-        if (!isValid) {
-            setImageError("Image must be exactly 140px width and 60px height");
-            return;
-        }
+      const isValid = await validateImageDimensions(newBrand.image);
+      if (!isValid) {
+        setImageError("Image must be exactly 140px width and 60px height");
+        return;
+      }
     }
 
     const formData = new FormData();
     formData.append("brand_name", newBrand.brand_name);
     formData.append("status", newBrand.status);
     if (newBrand.image) {
-        formData.append("image", newBrand.image);
+      formData.append("image", newBrand.image);
     }
 
     try {
-        const response = await fetch("/api/brand/add", {
-            method: "POST",
-            body: formData,
+      const response = await fetch("/api/brand/add", {
+        method: "POST",
+        body: formData,
+      });
+
+      const result = await response.json();
+      if (response.ok) {
+        setIsModalOpen(false);
+        fetchBrand();
+        setNewBrand({
+          brand_name: "",
+          status: "Active",
+          image: null,
         });
+        setImagePreview(null);
+        setSuccessMessage("Brand Added Successfully");
+        setShowSuccessModal(true);
 
-        const result = await response.json();
-        if (response.ok) {
-            setIsModalOpen(false);
-            fetchBrand();
-            setNewBrand({
-                brand_name: "",
-                status: "Active",
-                image: null,
-            });
-            setImagePreview(null);
-            setSuccessMessage("Brand Added Successfully");
-            setShowSuccessModal(true);
-
-            // Auto-hide the success modal after 2 seconds
-            setTimeout(() => {
-                setShowSuccessModal(false);
-                setSuccessMessage(""); // Optional: clear the message
-            }, 2000);
-        } else {
-            console.error("Error adding brand:", result.error);
-        }
+        // Auto-hide the success modal after 2 seconds
+        setTimeout(() => {
+          setShowSuccessModal(false);
+          setSuccessMessage(""); // Optional: clear the message
+        }, 2000);
+      } else {
+        console.error("Error adding brand:", result.error);
+      }
     } catch (error) {
-        console.error("Error:", error);
+      console.error("Error:", error);
     }
-};
+  };
 
   // Handle brand edit
   /*
@@ -253,19 +253,19 @@ const handleAddBrand = async (e) => {
     setEditImagePreview(brand.image ? `/uploads/Brands/${brand.image}` : null);
     setIsEditModalOpen(true);
   }; */
-  
+
   const handleEditBrand = (brand) => {
-  setEditingBrand({
-    ...brand,
-    image: brand.image,
-    existingImage: brand.image
-  });
-  // ✅ Add cache-busting param for production
-  setEditImagePreview(
-    brand.image ? `/uploads/Brands/${brand.image}?t=${Date.now()}` : null
-  );
-  setIsEditModalOpen(true);
-};
+    setEditingBrand({
+      ...brand,
+      image: brand.image,
+      existingImage: brand.image
+    });
+    // ✅ Add cache-busting param for production
+    setEditImagePreview(
+      brand.image ? `/uploads/Brands/${brand.image}?t=${Date.now()}` : null
+    );
+    setIsEditModalOpen(true);
+  };
 
   // Handle brand update
   // const handleUpdateBrand = async (e) => {
@@ -313,11 +313,11 @@ const handleAddBrand = async (e) => {
     e.preventDefault();
 
     if (editingBrand.image instanceof File) {
-        const isValid = await validateImageDimensions(editingBrand.image);
-        if (!isValid) {
-            setImageError("Image must be exactly 140px width and 60px height");
-            return;
-        }
+      const isValid = await validateImageDimensions(editingBrand.image);
+      if (!isValid) {
+        setImageError("Image must be exactly 140px width and 60px height");
+        return;
+      }
     }
 
     const formData = new FormData();
@@ -326,124 +326,124 @@ const handleAddBrand = async (e) => {
     formData.append("status", editingBrand.status);
     formData.append("existingImage", editingBrand.existingImage || "");
     if (editingBrand.image instanceof File) {
-        formData.append("image", editingBrand.image);
+      formData.append("image", editingBrand.image);
     }
 
     try {
-        const response = await fetch("/api/brand/update", {
-            method: "PUT",
-            body: formData,
-        });
+      const response = await fetch("/api/brand/update", {
+        method: "PUT",
+        body: formData,
+      });
 
-        const result = await response.json();
-        if (response.ok) {
-            setIsEditModalOpen(false);
-            fetchBrand();
-            setEditingBrand(null);
-            setEditImagePreview(null);
-            setSuccessMessage("Brand Updated Successfully");
-            setShowSuccessModal(true);
-
-            // Auto-hide the success modal after 2 seconds
-            setTimeout(() => {
-                setShowSuccessModal(false);
-                setSuccessMessage(""); // Optional: clear message
-            }, 2000);
-        } else {
-            console.error("Error updating brand:", result.error);
-        }
-    } catch (error) {
-        console.error("Error:", error);
-    }
-};
-
-  const handleDeleteClick = async (brandId) => {
-    try {
-        // Fetch product count first
-        const response = await fetch(`/api/product/count?brandId=${brandId}`);
-        const result = await response.json();
-        
-        if (response.ok) {
-            setProductCount(result.count);
-            setBrandToDelete(brandId);
-            setShowConfirmationModal(true);
-        } else {
-            console.error("Error fetching product count:", result.error);
-        }
-    } catch (error) {
-        console.error("Error:", error);
-    }
-};
-
-const handleDeleteBrand = async (brandId) => {
-    try {
-        const response = await fetch("/api/brand/delete", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ brandId }),
-        });
-
-        const result = await response.json();
-        if (response.ok) {
-            setSuccessMessage("Brand Deleted Successfully");
-            setShowSuccessModal(true);
-            fetchBrand();
-        } else if (result.hasProducts) {
-            setSuccessMessage(`Cannot delete brand. There are ${result.productCount} products associated with this brand.`);
-            setShowSuccessModal(true);
-        } else {
-            console.error("Error:", result.error);
-            setSuccessMessage(result.error || "Failed to delete brand.");
-            setShowSuccessModal(true);
-        }
-    } catch (error) {
-        console.error("Error:", error);
-        setSuccessMessage("An error occurred while deleting the brand.");
+      const result = await response.json();
+      if (response.ok) {
+        setIsEditModalOpen(false);
+        fetchBrand();
+        setEditingBrand(null);
+        setEditImagePreview(null);
+        setSuccessMessage("Brand Updated Successfully");
         setShowSuccessModal(true);
-    } finally {
-        setShowConfirmationModal(false);
-        setBrandToDelete(null);
 
         // Auto-hide the success modal after 2 seconds
         setTimeout(() => {
-            setShowSuccessModal(false);
-            setSuccessMessage(""); // Optional: clear the message
+          setShowSuccessModal(false);
+          setSuccessMessage(""); // Optional: clear message
         }, 2000);
+      } else {
+        console.error("Error updating brand:", result.error);
+      }
+    } catch (error) {
+      console.error("Error:", error);
     }
-};
+  };
+
+  const handleDeleteClick = async (brandId) => {
+    try {
+      // Fetch product count first
+      const response = await fetch(`/api/product/count?brandId=${brandId}`);
+      const result = await response.json();
+
+      if (response.ok) {
+        setProductCount(result.count);
+        setBrandToDelete(brandId);
+        setShowConfirmationModal(true);
+      } else {
+        console.error("Error fetching product count:", result.error);
+      }
+    } catch (error) {
+      console.error("Error:", error);
+    }
+  };
+
+  const handleDeleteBrand = async (brandId) => {
+    try {
+      const response = await fetch("/api/brand/delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ brandId }),
+      });
+
+      const result = await response.json();
+      if (response.ok) {
+        setSuccessMessage("Brand Deleted Successfully");
+        setShowSuccessModal(true);
+        fetchBrand();
+      } else if (result.hasProducts) {
+        setSuccessMessage(`Cannot delete brand. There are ${result.productCount} products associated with this brand.`);
+        setShowSuccessModal(true);
+      } else {
+        console.error("Error:", result.error);
+        setSuccessMessage(result.error || "Failed to delete brand.");
+        setShowSuccessModal(true);
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      setSuccessMessage("An error occurred while deleting the brand.");
+      setShowSuccessModal(true);
+    } finally {
+      setShowConfirmationModal(false);
+      setBrandToDelete(null);
+
+      // Auto-hide the success modal after 2 seconds
+      setTimeout(() => {
+        setShowSuccessModal(false);
+        setSuccessMessage(""); // Optional: clear the message
+      }, 2000);
+    }
+  };
 
 
-// const handleDeleteBrand = async (brandId) => {
-//     try {
-//         const response = await fetch("/api/brand/delete", {
-//             method: "POST",
-//             headers: { "Content-Type": "application/json" },
-//             body: JSON.stringify({ brandId }),
-//         });
+  // const handleDeleteBrand = async (brandId) => {
+  //     try {
+  //         const response = await fetch("/api/brand/delete", {
+  //             method: "POST",
+  //             headers: { "Content-Type": "application/json" },
+  //             body: JSON.stringify({ brandId }),
+  //         });
 
-//         const result = await response.json();
-//         if (response.ok) {
-//             setSuccessMessage("Brand Deleted Successfully");
-//             setShowSuccessModal(true);
-//             fetchBrand();
-//         } else if (result.hasProducts) {
-//             // Show a different message if brand has products
-//             setSuccessMessage("Cannot delete brand. There are products associated with this brand.");
-//             setShowSuccessModal(true);
-//         } else {
-//             console.error("Error:", result.error);
-//             setSuccessMessage(result.error || "Failed to delete brand.");
-//             setShowSuccessModal(true);
-//         }
-//     } catch (error) {
-//         console.error("Error:", error);
-//         setSuccessMessage("An error occurred while deleting the brand.");
-//         setShowSuccessModal(true);
-//     } finally {
-//         setShowConfirmationModal(false);
-//         setBrandToDelete(null);
-//     }
-// };
+  //         const result = await response.json();
+  //         if (response.ok) {
+  //             setSuccessMessage("Brand Deleted Successfully");
+  //             setShowSuccessModal(true);
+  //             fetchBrand();
+  //         } else if (result.hasProducts) {
+  //             // Show a different message if brand has products
+  //             setSuccessMessage("Cannot delete brand. There are products associated with this brand.");
+  //             setShowSuccessModal(true);
+  //         } else {
+  //             console.error("Error:", result.error);
+  //             setSuccessMessage(result.error || "Failed to delete brand.");
+  //             setShowSuccessModal(true);
+  //         }
+  //     } catch (error) {
+  //         console.error("Error:", error);
+  //         setSuccessMessage("An error occurred while deleting the brand.");
+  //         setShowSuccessModal(true);
+  //     } finally {
+  //         setShowConfirmationModal(false);
+  //         setBrandToDelete(null);
+  //     }
+  // };
   // Handle category deletion
   // const handleDeleteBrand = async (brandId) => {
   //   try {
@@ -494,21 +494,21 @@ const handleDeleteBrand = async (brandId) => {
           <td className="p-2">{brand.brand_slug}</td>
           <td className="p-2">
             {brand.image ? (
-             /* <img 
-                src={`/uploads/Brands/${brand.image}`} 
-                alt="brand" 
-                className="h-7 mx-auto"
-              /> */
-              
+              /* <img 
+                 src={`/uploads/Brands/${brand.image}`} 
+                 alt="brand" 
+                 className="h-7 mx-auto"
+               /> */
+
               <Image
-                  src={`/uploads/Brands/${brand.image}`}
-                  alt="brand"
-                  width={0}
-                  height={0}
-                  sizes="10vw"
-                  className="w-auto h-7 mx-auto"
-                  unoptimized
-               /> 
+                src={`/uploads/Brands/${brand.image}`}
+                alt="brand"
+                width={0}
+                height={0}
+                sizes="10vw"
+                className="w-auto h-7 mx-auto"
+                unoptimized
+              />
             ) : (
               <div className="h-[60px] w-[140px] bg-gray-100 flex items-center justify-center mx-auto">
                 No Image
@@ -529,15 +529,15 @@ const handleDeleteBrand = async (brandId) => {
                 className="w-7 h-7 bg-red-100 text-red-600 rounded-full inline-flex items-center justify-center"
                 title="Edit"
               >
-               <FaEdit className="w-3 h-3" />
+                <FaEdit className="w-3 h-3" />
               </button>
               <button
-    onClick={() => handleDeleteClick(brand._id)}
-    className="w-7 h-7 bg-pink-100 text-pink-600 rounded-full inline-flex items-center justify-center"
-    title="Delete"
->
-    <Icon icon="mingcute:delete-2-line" />
-</button>
+                onClick={() => handleDeleteClick(brand._id)}
+                className="w-7 h-7 bg-pink-100 text-pink-600 rounded-full inline-flex items-center justify-center"
+                title="Delete"
+              >
+                <Icon icon="mingcute:delete-2-line" />
+              </button>
             </div>
           </td>
         </tr>
@@ -563,7 +563,7 @@ const handleDeleteBrand = async (brandId) => {
       {isLoading ? (
         <p>Loading Brands...</p>
       ) : (
-        <div className="bg-white shadow-md rounded-lg p-5 overflow-x-auto">
+        <div className="bg-white shadow-md rounded-lg p-5 overflow-x-auto border rounded border-gray-200">
           {/* Search and Add Brand Row */}
           <div className="flex justify-between items-center mb-5">
             {/* Search Box */}
@@ -588,7 +588,7 @@ const handleDeleteBrand = async (brandId) => {
             </div>
           </div>
           <hr className="border-t border-gray-200 mb-4" />
-          
+
           <table className="w-full border border-gray-300">
             <thead>
               <tr className="bg-gray-200">
@@ -716,16 +716,16 @@ const handleDeleteBrand = async (brandId) => {
                   )}
                   {imagePreview && (
                     <div className="mt-3 flex flex-col items-center">
-                      
-                       <Image
-                  src={imagePreview}
-                  alt="Preview"
-                  width={0}
-                  height={0}
-                  sizes="10vw"
-                  className="h-[60px] w-[140px] object-contain border rounded"
-                  unoptimized
-               /> 
+
+                      <Image
+                        src={imagePreview}
+                        alt="Preview"
+                        width={0}
+                        height={0}
+                        sizes="10vw"
+                        className="h-[60px] w-[140px] object-contain border rounded"
+                        unoptimized
+                      />
                       <p className="text-xs text-gray-500 mt-1">Preview (140×60)</p>
                     </div>
                   )}
@@ -890,40 +890,40 @@ const handleDeleteBrand = async (brandId) => {
           </div>
         </div>
       )} */}
-{showConfirmationModal && (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-        <div className="bg-white p-6 rounded-lg shadow-lg w-96">
+      {showConfirmationModal && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-96">
             <h2 className="text-xl font-bold mb-4">Delete Brand</h2>
             <p className="mb-4">Are you sure you want to delete this Brand?</p>
-            
+
             {/* Add this line to show product count */}
             <p className="text-sm text-red-500 mb-4">
-                Note: This brand has {productCount} associated products. 
-                {productCount > 0 && " Deleting will remove these associations."}
+              Note: This brand has {productCount} associated products.
+              {productCount > 0 && " Deleting will remove these associations."}
             </p>
 
             <div className="flex justify-end space-x-3">
-                <button
-                    onClick={() => setShowConfirmationModal(false)}
-                    className="bg-gray-300 px-4 py-2 rounded-md"
-                >
-                    No, Close
-                </button>
-                <button
-                    onClick={() => handleDeleteBrand(brandToDelete)}
-                    className="bg-red-500 px-4 py-2 rounded-md text-white"
-                >
-                    Yes, Delete
-                </button>
+              <button
+                onClick={() => setShowConfirmationModal(false)}
+                className="bg-gray-300 px-4 py-2 rounded-md"
+              >
+                No, Close
+              </button>
+              <button
+                onClick={() => handleDeleteBrand(brandToDelete)}
+                className="bg-red-500 px-4 py-2 rounded-md text-white"
+              >
+                Yes, Delete
+              </button>
             </div>
+          </div>
         </div>
-    </div>
-)}
+      )}
       {/* Success Modal */}
       {showSuccessModal && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white p-6 rounded-lg shadow-lg w-96">
-          
+
             <p className="mb-4">{successMessage}</p>
 
             <div className="flex justify-end">

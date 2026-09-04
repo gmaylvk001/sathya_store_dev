@@ -320,7 +320,7 @@ export default function OfferComponent() {
       {isLoading ? (
         <p>Loading offers...</p>
       ) : (
-        <div className="bg-white shadow-md rounded-lg p-5 overflow-x-auto">
+        <div className="bg-white shadow-md rounded-lg p-5 overflow-x-auto border border-gray-200">
           <table className="w-full border border-gray-300">
             <thead>
               <tr className="bg-gray-200">

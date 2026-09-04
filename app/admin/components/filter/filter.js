@@ -19,13 +19,13 @@ export default function FilterComponent() {
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const customStyles = {
-  menu: (provided) => ({
-    ...provided,
-    maxHeight: "200px",       // limit height
-    overflowY: "auto",        // add vertical scroll
-    zIndex: 100,              // ensure it's above other elements
-  }),
-};
+    menu: (provided) => ({
+      ...provided,
+      maxHeight: "200px",       // limit height
+      overflowY: "auto",        // add vertical scroll
+      zIndex: 100,              // ensure it's above other elements
+    }),
+  };
   const [newFilter, setNewFilter] = useState({
     filter_name: "",
     filter_slug: "",
@@ -43,16 +43,16 @@ export default function FilterComponent() {
   const itemsPerPage = 20;
 
 
- const slugify = (text) => {
-  return text
-    .toString()
-    .toLowerCase()
-    .trim()
-    .replace(/\s+/g, "-")
-    .replace(/[^a-z0-9.\-]+/g, "")
-    .replace(/\-\-+/g, "-")
-    .replace(/^-+|-+$/g, "");
-};
+  const slugify = (text) => {
+    return text
+      .toString()
+      .toLowerCase()
+      .trim()
+      .replace(/\s+/g, "-")
+      .replace(/[^a-z0-9.\-]+/g, "")
+      .replace(/\-\-+/g, "-")
+      .replace(/^-+|-+$/g, "");
+  };
 
 
   /* const fetchFilters = async () => {
@@ -67,60 +67,60 @@ export default function FilterComponent() {
     }
   }; */
 
-/* const fetchFilters = async () => {
-  try {
-    const response = await fetch("/api/filter");
-    const data = await response.json();
+  /* const fetchFilters = async () => {
+    try {
+      const response = await fetch("/api/filter");
+      const data = await response.json();
+        setFilters(data.data);
+        setIsLoading(false);
+      const updatedFilters = await Promise.all(
+        data.data.map(async (filter) => {
+          const filter_slug = slugify(filter.filter_name);
+          // update DB
+          await fetch(`/api/filter/${filter._id.toString()}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ filter_slug }),
+          });
+  
+  
+          return { ...filter, filter_slug };
+        })
+      );
+  
+      setFilters(updatedFilters);
+      // setIsLoading(false);
+  
+    } catch (error) {
+      console.error("Error fetching filters:", error);
+      setIsLoading(false);
+    }
+  }; */
+
+  const fetchFilters = async () => {
+    try {
+      const res = await fetch("/api/filter");
+      const data = await res.json();
       setFilters(data.data);
       setIsLoading(false);
-    const updatedFilters = await Promise.all(
-      data.data.map(async (filter) => {
+      for (const filter of data.data) {
         const filter_slug = slugify(filter.filter_name);
-        // update DB
-        await fetch(`/api/filter/${filter._id.toString()}`, {
+
+        await fetch(`/api/filter/${filter._id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ filter_slug }),
         });
+      }
 
 
-        return { ...filter, filter_slug };
-      })
-    );
 
-    setFilters(updatedFilters);
-    // setIsLoading(false);
 
-  } catch (error) {
-    console.error("Error fetching filters:", error);
-    setIsLoading(false);
-  }
-}; */
-
-const fetchFilters = async () => {
-  try {
-    const res = await fetch("/api/filter");
-    const data = await res.json();
- setFilters(data.data);
- setIsLoading(false);
-    for (const filter of data.data) {
-      const filter_slug = slugify(filter.filter_name);
-
-      await fetch(`/api/filter/${filter._id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ filter_slug }),
-      });
+    } catch (err) {
+      console.error("Error:", err);
+      setIsLoading(false);
     }
-
-   
-    
-
-  } catch (err) {
-    console.error("Error:", err);
-    setIsLoading(false);
-  }
-};
+  };
 
 
   const fetchFilterGroups = async () => {
@@ -144,32 +144,32 @@ const fetchFilters = async () => {
   }, []);
 
   const handleExportFilters = () => {
-  // Determine if a search is active (non-empty searchQuery)
-  const isSearchActive = searchQuery.trim().length > 0;
-  let exportList = [];
-  if (isSearchActive) {
-    exportList = filteredFilters;
-  } else {
-    exportList = flattenFilters(filters);
-  }
-  if (!exportList.length) {
-    toast.error("No filters to export");
-    return;
-  }
-  const exportData = exportList.map((filter) => ({
-    "Filter Name": filter.filter_name,
-    "Filter Slug": filter.filter_slug,
-    "Filter Group":
-      (filter.filter_group && filter.filter_group.filtergroup_name) ||
-      filter.filter_group_name ||
-      "N/A",
-    "Status": filter.status,
-  }));
-  const worksheet = XLSX.utils.json_to_sheet(exportData);
-  const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, "Filters");
-  XLSX.writeFile(workbook, `filters-${Date.now()}.xlsx`);
-};
+    // Determine if a search is active (non-empty searchQuery)
+    const isSearchActive = searchQuery.trim().length > 0;
+    let exportList = [];
+    if (isSearchActive) {
+      exportList = filteredFilters;
+    } else {
+      exportList = flattenFilters(filters);
+    }
+    if (!exportList.length) {
+      toast.error("No filters to export");
+      return;
+    }
+    const exportData = exportList.map((filter) => ({
+      "Filter Name": filter.filter_name,
+      "Filter Slug": filter.filter_slug,
+      "Filter Group":
+        (filter.filter_group && filter.filter_group.filtergroup_name) ||
+        filter.filter_group_name ||
+        "N/A",
+      "Status": filter.status,
+    }));
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Filters");
+    XLSX.writeFile(workbook, `filters-${Date.now()}.xlsx`);
+  };
 
 
   const handlePageClick = ({ selected }) => {
@@ -188,82 +188,82 @@ const fetchFilters = async () => {
     });
   };
 
- const handleAddFilter = async (e) => {
-  e.preventDefault();
+  const handleAddFilter = async (e) => {
+    e.preventDefault();
 
-  // Create a regular object instead of FormData
-  const requestBody = {
-    filter_name: newFilter.filter_name,
-    filter_slug: newFilter.filter_slug,
-    status: newFilter.status,
-    filter_group: newFilter.filter_group
-  };
+    // Create a regular object instead of FormData
+    const requestBody = {
+      filter_name: newFilter.filter_name,
+      filter_slug: newFilter.filter_slug,
+      status: newFilter.status,
+      filter_group: newFilter.filter_group
+    };
 
-  if (newFilter._id) {
-    requestBody.filterId = newFilter._id;
-  }
-
-  try {
-    const url = newFilter._id 
-      ? "/api/filter/update" 
-      : "/api/filter/add";
-      
-    const response = await fetch(url, {
-      method: "POST",
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(requestBody)
-    });
-
-    // First check if response exists
-    if (!response) {
-      throw new Error('No response from server');
+    if (newFilter._id) {
+      requestBody.filterId = newFilter._id;
     }
 
-    // Check if response is JSON
-    const contentType = response.headers.get('content-type');
-    if (!contentType || !contentType.includes('application/json')) {
-      const text = await response.text();
-      console.error('Expected JSON, got:', text);
-      throw new Error('Response was not JSON');
-    }
+    try {
+      const url = newFilter._id
+        ? "/api/filter/update"
+        : "/api/filter/add";
 
-    const result = await response.json();
-
-    if (response.ok) {
-      setIsModalOpen(false);
-      fetchFilters();
-      setNewFilter({
-        filter_name: "",
-        status: "Active",
-        filter_group: "",
-        _id: null,
-        filterGroupOption: null
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(requestBody)
       });
-      setSuccessMessage(newFilter._id 
-        ? "Filter updated successfully" 
-        : "Filter added successfully");
-      setShowSuccessModal(true);
-    } else {
-      console.error("Error:", result.error);
-      toast.error(result.error || "Unknown error occurred");
-    }
-  } catch (error) {
-    console.error("Network/parsing error:", error);
-    toast.error(`Request failed: ${error.message}`);
-  }
-};
-// Add this useEffect hook near your other hooks
-useEffect(() => {
-  if (showSuccessModal) {
-    const timer = setTimeout(() => {
-      setShowSuccessModal(false);
-    }, 2000); // 2000 milliseconds = 2 seconds
 
-    return () => clearTimeout(timer); // Clean up the timer if the component unmounts
-  }
-}, [showSuccessModal]);
+      // First check if response exists
+      if (!response) {
+        throw new Error('No response from server');
+      }
+
+      // Check if response is JSON
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        const text = await response.text();
+        console.error('Expected JSON, got:', text);
+        throw new Error('Response was not JSON');
+      }
+
+      const result = await response.json();
+
+      if (response.ok) {
+        setIsModalOpen(false);
+        fetchFilters();
+        setNewFilter({
+          filter_name: "",
+          status: "Active",
+          filter_group: "",
+          _id: null,
+          filterGroupOption: null
+        });
+        setSuccessMessage(newFilter._id
+          ? "Filter updated successfully"
+          : "Filter added successfully");
+        setShowSuccessModal(true);
+      } else {
+        console.error("Error:", result.error);
+        toast.error(result.error || "Unknown error occurred");
+      }
+    } catch (error) {
+      console.error("Network/parsing error:", error);
+      toast.error(`Request failed: ${error.message}`);
+    }
+  };
+  // Add this useEffect hook near your other hooks
+  useEffect(() => {
+    if (showSuccessModal) {
+      const timer = setTimeout(() => {
+        setShowSuccessModal(false);
+      }, 2000); // 2000 milliseconds = 2 seconds
+
+      return () => clearTimeout(timer); // Clean up the timer if the component unmounts
+    }
+  }, [showSuccessModal]);
   // const handleAddFilter = async (e) => {
   //   e.preventDefault();
 
@@ -271,7 +271,7 @@ useEffect(() => {
   //   formData.append("filter_name", newFilter.filter_name);
   //   formData.append("status", newFilter.status);
   //   formData.append("filter_group", newFilter.filter_group);
-    
+
   //   if (newFilter._id) {
   //     formData.append("filterId", newFilter._id);
   //   }
@@ -280,7 +280,7 @@ useEffect(() => {
   //     const url = newFilter._id 
   //       ? "/api/filter/update" 
   //       : "/api/filter/add";
-        
+
   //     const response = await fetch(url, {
   //       method: "POST",
   //       body: formData,
@@ -310,15 +310,15 @@ useEffect(() => {
   //   }
   // };
 
-  const Modelopen =(status) => {
-     setIsModalOpen(status);
-     setNewFilter({
-        filter_name: "",
-        status: "Active",
-        filter_group: "",
-        _id: null,
-        filterGroupOption: null
-      });
+  const Modelopen = (status) => {
+    setIsModalOpen(status);
+    setNewFilter({
+      filter_name: "",
+      status: "Active",
+      filter_group: "",
+      _id: null,
+      filterGroupOption: null
+    });
   }
   const handleDeleteFilter = async (filterId) => {
     try {
@@ -346,29 +346,29 @@ useEffect(() => {
     }
   };
 
- const handleEditFilter = (filter) => {
-  let groupId = filter.filter_group?._id || filter.filter_group;
-  
-  // If groupId is still not found, try to match by name
-  if (!groupId && filter.filter_group_name) {
-    const matchedGroup = filterGroups.find(
-      g => g.label.toLowerCase() === filter.filter_group_name.toLowerCase()
-    );
-    groupId = matchedGroup?.value;
-  }
+  const handleEditFilter = (filter) => {
+    let groupId = filter.filter_group?._id || filter.filter_group;
 
-  const selectedGroup = filterGroups.find(g => g.value === groupId);
+    // If groupId is still not found, try to match by name
+    if (!groupId && filter.filter_group_name) {
+      const matchedGroup = filterGroups.find(
+        g => g.label.toLowerCase() === filter.filter_group_name.toLowerCase()
+      );
+      groupId = matchedGroup?.value;
+    }
 
-  setNewFilter({
-    filter_name: filter.filter_name,
-    filter_slug: filter.filter_slug,
-    status: filter.status,
-    filter_group: groupId, // Make sure this is set
-    _id: filter._id,
-    filterGroupOption: selectedGroup
-  });
-  setIsModalOpen(true);
-};
+    const selectedGroup = filterGroups.find(g => g.value === groupId);
+
+    setNewFilter({
+      filter_name: filter.filter_name,
+      filter_slug: filter.filter_slug,
+      status: filter.status,
+      filter_group: groupId, // Make sure this is set
+      _id: filter._id,
+      filterGroupOption: selectedGroup
+    });
+    setIsModalOpen(true);
+  };
 
   const flattenFilters = (filters, parentId = "none", level = 0, result = []) => {
     filters.forEach((filter) => {
@@ -401,7 +401,7 @@ useEffect(() => {
           <td className="p-2">
             {filter.filter_group?.filtergroup_name || filter.filter_group_name || "N/A"}
           </td>
-         
+
           <td className="p-2 font-semibold">
             {filter.status === "Active" ? (
               <span className="bg-green-100 text-green-600 px-6 py-1.5 rounded-full font-medium text-sm">Active</span>
@@ -460,35 +460,35 @@ useEffect(() => {
       {isLoading ? (
         <p>Loading filters...</p>
       ) : (
-        <div className="bg-white shadow-md rounded-lg p-5 overflow-x-auto">
+        <div className="bg-white shadow-md rounded-lg p-5 overflow-x-auto border border-gray-200">
           <div className="flex justify-between mb-5">
-          <input
-  type="text"
-  placeholder="Search filter..."
-  value={searchQuery}
-  onChange={(e) => {
-    setSearchQuery(e.target.value);
-    setCurrentPage(0); // 👈 Reset to first page when searching
-  }}
-  className="border px-3 py-2 rounded-md w-64"
-/>
-<div className="flex gap-3">
-            <button
-              onClick={() => Modelopen(true)}
-              className="bg-red-500 text-white px-4 py-2 rounded-md"
-            >
-              + Add Filter
-            </button>
+            <input
+              type="text"
+              placeholder="Search filter..."
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setCurrentPage(0); // 👈 Reset to first page when searching
+              }}
+              className="border px-3 py-2 rounded-md w-64"
+            />
+            <div className="flex gap-3">
+              <button
+                onClick={() => Modelopen(true)}
+                className="bg-red-500 text-white px-4 py-2 rounded-md"
+              >
+                + Add Filter
+              </button>
 
-            <button
-  onClick={handleExportFilters}
-  className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 flex items-center gap-2"
->
-  <Icon icon="mdi:download" className="w-4 h-4" />
-  Export
-</button>
+              <button
+                onClick={handleExportFilters}
+                className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 flex items-center gap-2"
+              >
+                <Icon icon="mdi:download" className="w-4 h-4" />
+                Export
+              </button>
 
-            {/* <button
+              {/* <button
             onClick={() => setIsFilterModalOpen(true)}
             className="bg-[#d72828] text-white px-4 py-2 rounded-md"
           >
@@ -524,24 +524,22 @@ useEffect(() => {
             <div className="text-sm text-gray-600">
               Showing {startEntry} to {endEntry} of {filteredFilters.length} entries
             </div>
-           <ReactPaginate
-  previousLabel={"«"}
-  nextLabel={"»"}
-  breakLabel={"..."}
-  pageCount={pageCount}
-  onPageChange={handlePageClick}
-  forcePage={currentPage}
-  containerClassName={"flex items-center space-x-1"}
-  pageClassName="page-item border border-gray-300 px-3 py-1.5 rounded-md "
-  pageLinkClassName="  rounded-md  "
-  previousLinkClassName={`px-3 py-1.5 border border-gray-300 rounded-md ${
-    currentPage === 0 ? "text-gray-400 cursor-not-allowed" : "text-black bg-white hover:bg-gray-100"
-  }`}
-  nextLinkClassName={`px-3 py-1.5 border border-gray-300 rounded-md border border-gray-300 ${
-    currentPage === pageCount - 1 ? "text-gray-400 cursor-not-allowed" : "text-black bg-white hover:bg-gray-100"
-  }`}
-  activeClassName="px-1 py-1.5 rounded-md bg-red-500 text-white"
-/>
+            <ReactPaginate
+              previousLabel={"«"}
+              nextLabel={"»"}
+              breakLabel={"..."}
+              pageCount={pageCount}
+              onPageChange={handlePageClick}
+              forcePage={currentPage}
+              containerClassName={"flex items-center space-x-1"}
+              pageClassName="page-item border border-gray-300 px-3 py-1.5 rounded-md "
+              pageLinkClassName="  rounded-md  "
+              previousLinkClassName={`px-3 py-1.5 border border-gray-300 rounded-md ${currentPage === 0 ? "text-gray-400 cursor-not-allowed" : "text-black bg-white hover:bg-gray-100"
+                }`}
+              nextLinkClassName={`px-3 py-1.5 border border-gray-300 rounded-md border border-gray-300 ${currentPage === pageCount - 1 ? "text-gray-400 cursor-not-allowed" : "text-black bg-white hover:bg-gray-100"
+                }`}
+              activeClassName="px-1 py-1.5 rounded-md bg-red-500 text-white"
+            />
 
           </div>
         </div>
@@ -557,7 +555,7 @@ useEffect(() => {
                 {newFilter._id ? "Edit Filter" : "Add Filter"}
               </h2>
               <button
-                onClick={() =>  setIsModalOpen(false)}
+                onClick={() => setIsModalOpen(false)}
                 className="text-gray-400 hover:text-gray-700 focus:outline-none"
                 aria-label="Close modal"
               >
@@ -600,7 +598,7 @@ useEffect(() => {
                   <Select
                     options={filterGroups}
                     onChange={handleFilterGroupChange}
-                   value={newFilter.filterGroupOption || null}
+                    value={newFilter.filterGroupOption || null}
                     placeholder="Select Filter Group..."
                     className="w-full"
                     required
@@ -614,9 +612,9 @@ useEffect(() => {
                   <label htmlFor="filter_slug" className="block mb-1 text-sm font-semibold text-gray-700">
                     Filter Slug
                   </label>
-                  <input name="filter_slug" value={newFilter.filter_slug} onChange={handleInputChange} id="filter_slug" className="w-full rounded-md border p-2 focus:ring-2 focus:ring-red-400" placeholder="Enter Filter Slug" required/>
+                  <input name="filter_slug" value={newFilter.filter_slug} onChange={handleInputChange} id="filter_slug" className="w-full rounded-md border p-2 focus:ring-2 focus:ring-red-400" placeholder="Enter Filter Slug" required />
                 </div>
-                
+
 
                 {/* Status */}
                 <div>
@@ -673,20 +671,20 @@ useEffect(() => {
         </div>
       )}
 
-       {/* Modal for Bulk Upload */}
-            {isFilterModalOpen && (
-              <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-                <div className="bg-white rounded-lg shadow-lg w-full max-w-3xl relative">
-                  <button
-                    onClick={() => setIsFilterModalOpen(false)}
-                    className="absolute top-3 right-3 text-gray-500 hover:text-gray-800 text-xl"
-                  >
-                    ✕
-                  </button>
-                  <BulkFilterGroupUploadPage />
-                </div>
-              </div>
-            )}
+      {/* Modal for Bulk Upload */}
+      {isFilterModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white rounded-lg shadow-lg w-full max-w-3xl relative">
+            <button
+              onClick={() => setIsFilterModalOpen(false)}
+              className="absolute top-3 right-3 text-gray-500 hover:text-gray-800 text-xl"
+            >
+              ✕
+            </button>
+            <BulkFilterGroupUploadPage />
+          </div>
+        </div>
+      )}
 
       {/* Success Modal */}
       {showSuccessModal && (

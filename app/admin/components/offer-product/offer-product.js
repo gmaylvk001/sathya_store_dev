@@ -303,7 +303,7 @@ export default function OfferProductComponent() {
       {isLoading ? (
         <p>Loading Offer Products...</p>
       ) : (
-        <div className="bg-white shadow-sm border rounded-lg p-5 overflow-x-auto">
+        <div className="bg-white shadow-sm border rounded-lg p-5 overflow-x-auto border-gray-200">
           {/* Search and Add Row */}
           <div className="flex justify-between items-center mb-5">
             <div className="relative">

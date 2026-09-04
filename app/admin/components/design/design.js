@@ -619,7 +619,7 @@ if (bannerType === "topbanner" && bgImage) {
       )}
 
       {/* Banners Table */}
-      <div className="bg-white shadow-md rounded-lg p-5 overflow-x-auto">
+      <div className="bg-white shadow-md rounded-lg p-5 overflow-x-auto border border-gray-200">
         {/* Search and Filter Section */}
        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 items-end mb-4">
 

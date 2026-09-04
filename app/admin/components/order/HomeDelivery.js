@@ -175,7 +175,7 @@ export default function PendingOrders() {
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-red-500"></div>
         </div>
       ) : (
-        <div className="bg-white shadow-md rounded-lg p-5 h-[500px] overflow-x-auto">
+        <div className="bg-white shadow-md rounded-lg p-5 h-[500px] overflow-x-auto border border-gray-200">
           {/* Search and Filters */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end mb-4">
             <div>

@@ -377,7 +377,7 @@ export default function VariantGroupForm({ groupId = null }) {
     <div className="py-6 space-y-5 w-full max-w-full min-w-0">
       <button
         onClick={() => router.push("/admin/variants")}
-        className="inline-flex items-center gap-2 text-sm text-blue-700"
+        className="inline-flex items-center gap-2 text-sm text-red-500"
       >
         <FaArrowLeft /> Back to Variants
       </button>
@@ -395,247 +395,248 @@ export default function VariantGroupForm({ groupId = null }) {
         <div className="text-sm bg-red-50 text-red-700 border border-red-200 rounded px-3 py-2">{error}</div>
       )}
 
-      <div className="bg-white border border-gray-200 rounded-lg p-4">
-        <label className="text-sm block">
-          <span className="block text-gray-600 mb-1">Variant Group Name</span>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+        <div className="bg-white border border-gray-200 rounded-lg p-4">
+          <label className="text-sm block">
+            <span className="block text-gray-600 mb-1">Variant Group Name</span>
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="iPhone 17 Pro"
+              className="w-full border border-gray-300 rounded px-3 py-2"
+            />
+          </label>
+        </div>
+
+        <div className="bg-white border border-gray-200 rounded-lg p-4 w-full max-w-full min-w-0">
+          <h2 className="font-semibold text-gray-800 mb-2">Select Products</h2>
           <input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="iPhone 17 Pro"
-            className="w-full border border-gray-300 rounded px-3 py-2"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search by name, item code, brand, category, or slug"
+            className="w-1/4 border border-gray-300 rounded px-3 py-2 text-sm mb-3"
           />
-        </label>
-      </div>
-
-      <div className="bg-white border border-gray-200 rounded-lg p-4 w-full max-w-full min-w-0">
-        <h2 className="font-semibold text-gray-800 mb-2">Select Products</h2>
-        <input
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search by name, item code, brand, category, or slug"
-          className="w-full border border-gray-300 rounded px-3 py-2 text-sm mb-3"
-        />
-        {searching && <p className="text-xs text-gray-500 mb-2">Searching...</p>}
-        {results.length > 0 && (
-          <div className="border border-gray-200 rounded max-h-64 overflow-y-auto mb-4">
-            {results.map((product) => {
-              const selected = selectedIds.has(String(product._id));
-              const disabled = selected || product.inOtherGroup;
-              return (
-                <button
-                  key={product._id}
-                  type="button"
-                  disabled={disabled}
-                  onClick={() => addProduct(product)}
-                  className={`w-full text-left px-3 py-2 text-sm border-b last:border-b-0 flex items-center justify-between ${
-                    disabled ? "bg-gray-50 text-gray-400" : "hover:bg-blue-50"
-                  }`}
-                >
-                  <span>
-                    {product.name}
-                    <span className="text-gray-500 ml-2">{product.item_code}</span>
-                  </span>
-                  {selected ? (
-                    <span>Selected</span>
-                  ) : product.inOtherGroup ? (
-                    <span>In another group</span>
-                  ) : (
-                    <span className="text-blue-700">Add</span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        )}
-
-        {selectedProducts.length === 0 ? (
-          <p className="text-sm text-gray-500">Search and select at least two existing products.</p>
-        ) : (
-          <div className="w-full min-w-0">
-            <div className="flex items-center justify-between gap-2 mb-2">
-              <p className="text-xs text-gray-500">
-                {selectedProducts.length} products in columns (order = add order)
-              </p>
-              {selectedProducts.length > 4 && (
-                <p className="text-xs text-blue-700 font-medium">Scroll right to see all products</p>
-              )}
-            </div>
-            <div
-              className="w-full min-w-0 overflow-x-auto overflow-y-hidden border border-gray-200 rounded bg-white"
-              style={{ WebkitOverflowScrolling: "touch" }}
-            >
-              <div
-                className="grid w-max min-w-full"
-                style={{
-                  gridTemplateColumns: `12rem repeat(${selectedProducts.length}, 13rem)`,
-                }}
-              >
-                {/* Header row */}
-                <div className="sticky left-0 z-20 px-3 py-3 font-medium text-gray-700 border-b border-r border-gray-200 bg-gray-50 flex items-center min-h-[76px]">
-                  Variant
-                </div>
-                {selectedProducts.map((product, index) => (
-                  <div
-                    key={`head-${product._id}`}
-                    className="px-3 py-2 border-b border-r border-gray-200 bg-gray-50 min-h-[76px]"
+          {searching && <p className="text-xs text-gray-500 mb-2">Searching...</p>}
+          {results.length > 0 && (
+            <div className="border border-gray-200 rounded max-h-64 overflow-y-auto mb-4">
+              {results.map((product) => {
+                const selected = selectedIds.has(String(product._id));
+                const disabled = selected || product.inOtherGroup;
+                return (
+                  <button
+                    key={product._id}
+                    type="button"
+                    disabled={disabled}
+                    onClick={() => addProduct(product)}
+                    className={`w-full text-left px-3 py-2 text-sm border-b last:border-b-0 flex items-center justify-between ${disabled ? "bg-gray-50 text-gray-400" : "hover:bg-blue-50"
+                      }`}
                   >
-                    <div className="flex items-start gap-2">
-                      <span className="text-[10px] text-gray-400 font-semibold mt-0.5">{index + 1}</span>
-                      <img
-                        src={productThumb(product)}
-                        alt=""
-                        className="w-9 h-9 flex-shrink-0 object-contain bg-white"
-                      />
-                      <div className="min-w-0 flex-1">
-                        <div className="font-medium text-gray-800 leading-snug text-xs break-words">
-                          {product.name}
-                        </div>
-                        <div className="text-[11px] text-gray-500 break-all">{product.item_code}</div>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => removeProduct(product._id)}
-                        className="flex-shrink-0 text-red-500"
-                        title="Remove from group"
-                      >
-                        <FaTrash />
-                      </button>
-                    </div>
+                    <span>
+                      {product.name}
+                      <span className="text-gray-500 ml-2">{product.item_code}</span>
+                    </span>
+                    {selected ? (
+                      <span>Selected</span>
+                    ) : product.inOtherGroup ? (
+                      <span>In another group</span>
+                    ) : (
+                      <span className="text-blue-700">Add</span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          {selectedProducts.length === 0 ? (
+            <p className="text-sm text-gray-500">Search and select at least two existing products.</p>
+          ) : (
+            <div className="w-full min-w-0">
+              <div className="flex items-center justify-between gap-2 mb-2">
+                <p className="text-xs text-gray-500">
+                  {selectedProducts.length} products in columns (order = add order)
+                </p>
+                {selectedProducts.length > 4 && (
+                  <p className="text-xs text-blue-700 font-medium">Scroll right to see all products</p>
+                )}
+              </div>
+              <div
+                className="w-full min-w-0 overflow-x-auto overflow-y-hidden border border-gray-200 rounded bg-white"
+                style={{ WebkitOverflowScrolling: "touch" }}
+              >
+                <div
+                  className="grid w-max min-w-full"
+                  style={{
+                    gridTemplateColumns: `12rem repeat(${selectedProducts.length}, 13rem)`,
+                  }}
+                >
+                  {/* Header row */}
+                  <div className="sticky left-0 z-20 px-3 py-3 font-medium text-gray-700 border-b border-r border-gray-200 bg-gray-50 flex items-center min-h-[76px]">
+                    Variant
                   </div>
-                ))}
-
-                {/* Attribute rows — left editor + product radios share the same row height */}
-                {attributes.map((attr, attrIndex) => {
-                  const radioOptions = (attr.options || []).map((o) => String(o).trim()).filter(Boolean);
-                  return (
-                    <div key={`row-${attrIndex}`} className="contents">
-                      <div className="sticky left-0 z-20 px-3 py-2 border-b border-r border-gray-200 bg-gray-50 min-w-[12rem] h-full">
-                        <input
-                          value={attr.name}
-                          onChange={(e) => renameAttribute(attrIndex, e.target.value)}
-                          className="w-full border rounded px-2 py-1 mb-2 text-sm"
-                          placeholder="RAM / Storage / Size"
+                  {selectedProducts.map((product, index) => (
+                    <div
+                      key={`head-${product._id}`}
+                      className="px-3 py-2 border-b border-r border-gray-200 bg-gray-50 min-h-[76px]"
+                    >
+                      <div className="flex items-start gap-2">
+                        <span className="text-[10px] text-gray-400 font-semibold mt-0.5">{index + 1}</span>
+                        <img
+                          src={productThumb(product)}
+                          alt=""
+                          className="w-9 h-9 flex-shrink-0 object-contain bg-white"
                         />
-                        <label className="flex items-center gap-2 text-xs text-gray-600 mb-2">
-                          <input
-                            type="checkbox"
-                            checked={attr.type === "color"}
-                            onChange={(e) => setAttributeType(attrIndex, e.target.checked ? "color" : "text")}
-                          />
-                          Color attribute
-                        </label>
-                        <p className="text-[10px] text-gray-500 mb-1">Options (shown as radio on each product)</p>
-                        {(attr.options || []).map((option, optionIndex) => (
-                          <div key={`opt-${attrIndex}-${optionIndex}`} className="flex items-center gap-1 mb-1">
-                            <input
-                              value={option}
-                              onChange={(e) => setOption(attrIndex, optionIndex, e.target.value)}
-                              placeholder="e.g. 8GB RAM"
-                              className="w-full border rounded px-1.5 py-1 text-xs"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => removeOption(attrIndex, optionIndex)}
-                              className="text-red-500 text-xs"
-                              title="Remove option"
-                            >
-                              ×
-                            </button>
+                        <div className="min-w-0 flex-1">
+                          <div className="font-medium text-gray-800 leading-snug text-xs break-words">
+                            {product.name}
                           </div>
-                        ))}
+                          <div className="text-[11px] text-gray-500 break-all">{product.item_code}</div>
+                        </div>
                         <button
                           type="button"
-                          onClick={() => addOption(attrIndex)}
-                          className="text-[11px] text-blue-700 mb-2"
+                          onClick={() => removeProduct(product._id)}
+                          className="flex-shrink-0 text-red-500"
+                          title="Remove from group"
                         >
-                          + Add option
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => removeAttribute(attrIndex)}
-                          className="block text-xs text-red-600"
-                        >
-                          Remove attribute
+                          <FaTrash />
                         </button>
                       </div>
+                    </div>
+                  ))}
 
-                      {selectedProducts.map((product) => {
-                        const current = product.values?.[attr.name] || "";
-                        return (
-                          <div
-                            key={`cell-${attrIndex}-${product._id}`}
-                            className="px-3 py-2 border-b border-r border-gray-200 bg-white h-full"
+                  {/* Attribute rows — left editor + product radios share the same row height */}
+                  {attributes.map((attr, attrIndex) => {
+                    const radioOptions = (attr.options || []).map((o) => String(o).trim()).filter(Boolean);
+                    return (
+                      <div key={`row-${attrIndex}`} className="contents">
+                        <div className="sticky left-0 z-20 px-3 py-2 border-b border-r border-gray-200 bg-gray-50 min-w-[12rem] h-full">
+                          <input
+                            value={attr.name}
+                            onChange={(e) => renameAttribute(attrIndex, e.target.value)}
+                            className="w-full border rounded px-2 py-1 mb-2 text-sm"
+                            placeholder="RAM / Storage / Size"
+                          />
+                          <label className="flex items-center gap-2 text-xs text-gray-600 mb-2">
+                            <input
+                              type="checkbox"
+                              checked={attr.type === "color"}
+                              onChange={(e) => setAttributeType(attrIndex, e.target.checked ? "color" : "text")}
+                            />
+                            Color attribute
+                          </label>
+                          <p className="text-[10px] text-gray-500 mb-1">Options (shown as radio on each product)</p>
+                          {(attr.options || []).map((option, optionIndex) => (
+                            <div key={`opt-${attrIndex}-${optionIndex}`} className="flex items-center gap-1 mb-1">
+                              <input
+                                value={option}
+                                onChange={(e) => setOption(attrIndex, optionIndex, e.target.value)}
+                                placeholder="e.g. 8GB RAM"
+                                className="w-full border rounded px-1.5 py-1 text-xs"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => removeOption(attrIndex, optionIndex)}
+                                className="text-red-500 text-xs"
+                                title="Remove option"
+                              >
+                                ×
+                              </button>
+                            </div>
+                          ))}
+                          <button
+                            type="button"
+                            onClick={() => addOption(attrIndex)}
+                            className="text-[11px] text-blue-700 mb-2"
                           >
-                            {attr.type === "color" ? (
-                              <div className="flex items-center gap-2">
-                                <input
-                                  type="color"
-                                  value={getValueMeta(attr, current).colorHex || "#000000"}
-                                  onChange={(e) => {
-                                    if (current) {
-                                      updateValueMeta(attrIndex, current, { colorHex: e.target.value });
-                                    }
-                                  }}
-                                  className="h-8 w-8 flex-shrink-0 border rounded"
-                                />
+                            + Add option
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => removeAttribute(attrIndex)}
+                            className="block text-xs text-red-600"
+                          >
+                            Remove attribute
+                          </button>
+                        </div>
+
+                        {selectedProducts.map((product) => {
+                          const current = product.values?.[attr.name] || "";
+                          return (
+                            <div
+                              key={`cell-${attrIndex}-${product._id}`}
+                              className="px-3 py-2 border-b border-r border-gray-200 bg-white h-full"
+                            >
+                              {attr.type === "color" ? (
+                                <div className="flex items-center gap-2">
+                                  <input
+                                    type="color"
+                                    value={getValueMeta(attr, current).colorHex || "#000000"}
+                                    onChange={(e) => {
+                                      if (current) {
+                                        updateValueMeta(attrIndex, current, { colorHex: e.target.value });
+                                      }
+                                    }}
+                                    className="h-8 w-8 flex-shrink-0 border rounded"
+                                  />
+                                  <input
+                                    value={current}
+                                    onChange={(e) => setProductValue(product._id, attr.name, e.target.value)}
+                                    placeholder="Color name"
+                                    className="w-full min-w-0 border rounded px-2 py-1 text-sm"
+                                  />
+                                </div>
+                              ) : radioOptions.length > 0 ? (
+                                <div className="space-y-1.5">
+                                  {radioOptions.map((option) => (
+                                    <label key={option} className="flex items-center gap-1.5 text-xs text-gray-700">
+                                      <input
+                                        type="radio"
+                                        name={`attr-${attrIndex}-${product._id}`}
+                                        checked={current === option}
+                                        onChange={() => setProductValue(product._id, attr.name, option)}
+                                      />
+                                      <span>{option}</span>
+                                    </label>
+                                  ))}
+                                </div>
+                              ) : (
                                 <input
                                   value={current}
                                   onChange={(e) => setProductValue(product._id, attr.name, e.target.value)}
-                                  placeholder="Color name"
-                                  className="w-full min-w-0 border rounded px-2 py-1 text-sm"
+                                  placeholder="Value"
+                                  className="w-full border rounded px-2 py-1 text-sm"
                                 />
-                              </div>
-                            ) : radioOptions.length > 0 ? (
-                              <div className="space-y-1.5">
-                                {radioOptions.map((option) => (
-                                  <label key={option} className="flex items-center gap-1.5 text-xs text-gray-700">
-                                    <input
-                                      type="radio"
-                                      name={`attr-${attrIndex}-${product._id}`}
-                                      checked={current === option}
-                                      onChange={() => setProductValue(product._id, attr.name, option)}
-                                    />
-                                    <span>{option}</span>
-                                  </label>
-                                ))}
-                              </div>
-                            ) : (
-                              <input
-                                value={current}
-                                onChange={(e) => setProductValue(product._id, attr.name, e.target.value)}
-                                placeholder="Value"
-                                className="w-full border rounded px-2 py-1 text-sm"
-                              />
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  );
-                })}
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        <div className="mt-3 flex flex-wrap items-center gap-3">
-        <button
-          type="button"
-          onClick={addAttribute}
-          className="inline-flex items-center gap-2 text-sm text-blue-700"
-        >
-          <FaPlus /> Add Variant
-        </button>
-        <button
-          type="button"
-          onClick={fillColorsFromProductNames}
-          className="inline-flex items-center gap-2 text-sm bg-blue-700 text-white px-3 py-1.5 rounded hover:bg-blue-800"
-        >
-          Color
-        </button>
-        <span className="text-xs text-gray-500">
-          Color fills from the last part of the product name, e.g. Glacier Blue)
-        </span>
+          <div className="mt-3 flex flex-wrap items-center gap-3">
+            <button
+              type="button"
+              onClick={addAttribute}
+              className="inline-flex items-center gap-2 text-sm text-red-500"
+            >
+              <FaPlus /> Add Variant
+            </button>
+            <button
+              type="button"
+              onClick={fillColorsFromProductNames}
+              className="inline-flex items-center gap-2 text-sm bg-red-500 text-white px-3 py-1.5 rounded hover:bg-red-500"
+            >
+              Color
+            </button>
+            <span className="text-xs text-gray-500">
+              Color fills from the last part of the product name, e.g. Glacier Blue)
+            </span>
+          </div>
         </div>
       </div>
 
@@ -687,7 +688,7 @@ export default function VariantGroupForm({ groupId = null }) {
           type="button"
           onClick={handleSave}
           disabled={saving}
-          className="bg-blue-700 text-white px-5 py-2 rounded text-sm hover:bg-blue-800 disabled:opacity-60"
+          className="bg-red-500 text-white px-5 py-2 rounded text-sm hover:bg-red-500 disabled:opacity-60"
         >
           {saving ? "Saving..." : "Save Variant Group"}
         </button>

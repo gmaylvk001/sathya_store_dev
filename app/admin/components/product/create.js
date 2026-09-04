@@ -1727,7 +1727,7 @@ const updatedFilter = Filter.map((group) => ({
     </div>
   );
   return (
-    <div className="mx-auto p-6 bg-white shadow-md rounded-lg" >
+    <div className="mx-auto p-6 bg-white shadow-md rounded-lg border border-gray-200" >
       {isGeneratingContent && (
         <div className="mb-4 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
           Generating product content from OpenAI. Please wait…

@@ -21,8 +21,8 @@ export default function CategoryComponent() {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [SelectedProduct, setSelectedProduct] = useState("");
-  
-  
+
+
   // Filters
   const [statusFilter, setStatusFilter] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
@@ -32,7 +32,7 @@ export default function CategoryComponent() {
     startDate: null,
     endDate: null
   });
- const [stockFilter, setStockFilter] = useState("");
+  const [stockFilter, setStockFilter] = useState("");
   const [showAlert, setShowAlert] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
@@ -56,15 +56,15 @@ export default function CategoryComponent() {
 
   const [subcategories, setSubcategories] = useState([]);
 
-const fetchSubcategories = async () => {
-  try {
-    const response = await fetch("/api/categories");
-    const data = await response.json();
-    setSubcategories(data);
-  } catch (error) {
-    console.error("Error fetching subcategories:", error);
-  }
-};
+  const fetchSubcategories = async () => {
+    try {
+      const response = await fetch("/api/categories");
+      const data = await response.json();
+      setSubcategories(data);
+    } catch (error) {
+      console.error("Error fetching subcategories:", error);
+    }
+  };
 
   const fetchCategories = async () => {
     try {
@@ -83,7 +83,7 @@ const fetchSubcategories = async () => {
       if (data.success) {
         setBrands(data.brands);
       }
-      
+
     } catch (error) {
       console.error("Error fetching brands:", error);
     }
@@ -108,90 +108,90 @@ const fetchSubcategories = async () => {
     };
   }, [searchQuery]);
 
-const exportToExcel = () => {
-  // Create mapping objects for faster lookup
-  const categoryMap = {};
-  categories.forEach(cat => {
-    categoryMap[cat._id] = cat.category_name;
-  });
+  const exportToExcel = () => {
+    // Create mapping objects for faster lookup
+    const categoryMap = {};
+    categories.forEach(cat => {
+      categoryMap[cat._id] = cat.category_name;
+    });
 
-  const brandMap = {};
-  brands.forEach(brand => {
-    // Check what ID field your brands actually have
-    const brandId = brand.brand_name || brand.brand_name;
-    if (brandId) {
-      brandMap[brandId] = brand.brand_name || brand.name;
-    }
-  });
-
-  // Prepare data with names instead of IDs
-  const dataForExport = filteredProducts.map(product => {
-    // Resolve category name
-    let categoryName = 'No Category';
-    if (product.category) {
-      if (typeof product.category === 'object') {
-        categoryName = product.category.category_name;
-      } else if (categoryMap[product.category]) {
-        categoryName = categoryMap[product.category];
+    const brandMap = {};
+    brands.forEach(brand => {
+      // Check what ID field your brands actually have
+      const brandId = brand.brand_name || brand.brand_name;
+      if (brandId) {
+        brandMap[brandId] = brand.brand_name || brand.name;
       }
-    }
+    });
 
-    // Resolve subcategory name
-    let subcategoryName = 'No Subcategory';
-    if (product.sub_category) {
-      if (typeof product.sub_category === 'object') {
-        subcategoryName = product.sub_category.category_name;
-      } else if (categoryMap[product.sub_category]) {
-        subcategoryName = categoryMap[product.sub_category];
+    // Prepare data with names instead of IDs
+    const dataForExport = filteredProducts.map(product => {
+      // Resolve category name
+      let categoryName = 'No Category';
+      if (product.category) {
+        if (typeof product.category === 'object') {
+          categoryName = product.category.category_name;
+        } else if (categoryMap[product.category]) {
+          categoryName = categoryMap[product.category];
+        }
       }
-    }
 
-    // Resolve brand name
-    let brandName = 'No Brand';
-    if (product.brand) {
+      // Resolve subcategory name
+      let subcategoryName = 'No Subcategory';
+      if (product.sub_category) {
+        if (typeof product.sub_category === 'object') {
+          subcategoryName = product.sub_category.category_name;
+        } else if (categoryMap[product.sub_category]) {
+          subcategoryName = categoryMap[product.sub_category];
+        }
+      }
+
+      // Resolve brand name
+      let brandName = 'No Brand';
+      if (product.brand) {
         // If brand is stored as ID
         brandName = product.brand || 'Brand not found';
-    }
+      }
 
 
 
-    return {
-      'Item No.': product.item_code,
-    
-      'StockQty': product.quantity,
-      
-      'Brand': brandName,
-      
-      // 'Movement': product.movement,
-      'MRP PRICE': product.price,
-      'Special Price': product.special_price,
-     
-    };
-  });
+      return {
+        'Item No.': product.item_code,
 
-  // Create worksheet with the exact column order
-  const worksheet = XLSX.utils.json_to_sheet(dataForExport, {
-    header: [
-      'Item No.',
-      
-      'StockQty',
-      
-      'Brand',
-     
-      // 'Movement',
-      'MRP PRICE',
-      'Special Price',
-      
-    ]
-  });
-  
-  // Create workbook
-  const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, "Products");
-  
-  // Generate file and trigger download
-  XLSX.writeFile(workbook, `products_export_${new Date().toISOString().slice(0,10)}.xlsx`);
-};
+        'StockQty': product.quantity,
+
+        'Brand': brandName,
+
+        // 'Movement': product.movement,
+        'MRP PRICE': product.price,
+        'Special Price': product.special_price,
+
+      };
+    });
+
+    // Create worksheet with the exact column order
+    const worksheet = XLSX.utils.json_to_sheet(dataForExport, {
+      header: [
+        'Item No.',
+
+        'StockQty',
+
+        'Brand',
+
+        // 'Movement',
+        'MRP PRICE',
+        'Special Price',
+
+      ]
+    });
+
+    // Create workbook
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Products");
+
+    // Generate file and trigger download
+    XLSX.writeFile(workbook, `products_export_${new Date().toISOString().slice(0, 10)}.xlsx`);
+  };
   const handleEditProduct = (product) => {
     setSelectedProduct(product);
     setShowEditModal(true);
@@ -205,10 +205,10 @@ const exportToExcel = () => {
   const handleDateChange = ({ startDate, endDate }) => {
     const normalizedStartDate = startDate ? new Date(startDate) : null;
     const normalizedEndDate = endDate ? new Date(endDate) : null;
-    
-    setDateFilter({ 
+
+    setDateFilter({
       startDate: normalizedStartDate,
-      endDate: normalizedEndDate 
+      endDate: normalizedEndDate
     });
     setCurrentPage(0);
   };
@@ -259,7 +259,7 @@ const exportToExcel = () => {
   const renderCategoryOptions = () => {
     const mainCategories = categories.filter(cat => cat.parentid === "none");
     const options = [];
-    
+
     options.push(
       <option key="all" value="">
         All Categories
@@ -268,8 +268,8 @@ const exportToExcel = () => {
 
     mainCategories.forEach(mainCat => {
       options.push(
-        <option 
-          key={mainCat._id} 
+        <option
+          key={mainCat._id}
           value={mainCat._id.toString()}
         >
           {mainCat.category_name}
@@ -321,61 +321,162 @@ const exportToExcel = () => {
       )),
     ];
   };
-/* const getFilteredProducts = () => {
-    const flattenedProducts = flattenProducts(products);
+  /* const getFilteredProducts = () => {
+      const flattenedProducts = flattenProducts(products);
+     
+      return flattenedProducts.filter((product) => {
+        // Search filter
+        const matchesSearch = debouncedSearchQuery === "" ||
+          product.name?.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
+          product.slug?.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
+          product.item_code?.toLowerCase().includes(debouncedSearchQuery.toLowerCase());
    
-    return flattenedProducts.filter((product) => {
+        // Status filter
+        const matchesStatus = statusFilter === "" ||
+          product.status?.toLowerCase() === statusFilter.toLowerCase();
+   
+        // Date filter
+        let matchesDate = true;
+        if (dateFilter.startDate && dateFilter.endDate && product.createdAt) {
+          const productDate = new Date(product.createdAt);
+          const startDate = new Date(dateFilter.startDate);
+          const endDate = new Date(dateFilter.endDate);
+   
+          startDate.setHours(0, 0, 0, 0);
+          endDate.setHours(23, 59, 59, 999);
+   
+          matchesDate = productDate >= startDate && productDate <= endDate;
+        }
+   
+        // Category filter
+        let matchesCategory = true;
+        if (categoryFilter) {
+          if (product.category && typeof product.category === 'object') {
+            const productCategoryId = product.category._id.toString();
+            const selectedCategory = categories.find(cat => cat._id.toString() === categoryFilter);
+           
+            if (selectedCategory.parentid === "none") {
+              const subCategoryIds = categories
+                .filter(cat => cat.parentid === categoryFilter)
+                .map(cat => cat._id.toString());
+             
+              matchesCategory = productCategoryId === categoryFilter ||
+                              subCategoryIds.includes(productCategoryId);
+            } else {
+              matchesCategory = productCategoryId === categoryFilter;
+            }
+          } else if (product.category) {
+            const productCategoryId = product.category.toString();
+            const selectedCategory = categories.find(cat => cat._id.toString() === categoryFilter);
+           
+            if (selectedCategory.parentid === "none") {
+              const subCategoryIds = categories
+                .filter(cat => cat.parentid === categoryFilter)
+                .map(cat => cat._id.toString());
+             
+              matchesCategory = productCategoryId === categoryFilter ||
+                              subCategoryIds.includes(productCategoryId);
+            } else {
+              matchesCategory = productCategoryId === categoryFilter;
+            }
+          } else {
+            matchesCategory = false;
+          }
+        }
+   
+        // Brand filter
+        let matchesBrand = true;
+        if (brandFilter) {
+          if (product.brand && typeof product.brand === 'object') {
+            matchesBrand = product.brand._id.toString() === brandFilter;
+          } else if (product.brand) {
+            matchesBrand = product.brand.toString() === brandFilter;
+          } else {
+            matchesBrand = false;
+          }
+        }
+   
+   
+       let matchesStock = true;
+  if (stockFilter) {
+    matchesStock = product.stock_status?.toLowerCase() === stockFilter.toLowerCase();
+  }
+   
+   
+        return matchesSearch && matchesStatus && matchesDate && matchesCategory && matchesBrand && matchesStock;
+      });
+    }; */
+
+  const getFilteredProducts = () => {
+    const flattenedProducts = flattenProducts(products);
+
+    let filtered = flattenedProducts.filter((product) => {
       // Search filter
-      const matchesSearch = debouncedSearchQuery === "" ||
+      const matchesSearch =
+        debouncedSearchQuery === "" ||
         product.name?.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
         product.slug?.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
-        product.item_code?.toLowerCase().includes(debouncedSearchQuery.toLowerCase());
- 
+        product.item_code?.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
+        product.group_property?.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
+        product.brand?.toLowerCase().includes(debouncedSearchQuery.toLowerCase());
+
       // Status filter
-      const matchesStatus = statusFilter === "" ||
+      const matchesStatus =
+        statusFilter === "" ||
         product.status?.toLowerCase() === statusFilter.toLowerCase();
- 
+
       // Date filter
       let matchesDate = true;
+
       if (dateFilter.startDate && dateFilter.endDate && product.createdAt) {
         const productDate = new Date(product.createdAt);
         const startDate = new Date(dateFilter.startDate);
         const endDate = new Date(dateFilter.endDate);
- 
+
         startDate.setHours(0, 0, 0, 0);
         endDate.setHours(23, 59, 59, 999);
- 
-        matchesDate = productDate >= startDate && productDate <= endDate;
+
+        matchesDate =
+          productDate >= startDate && productDate <= endDate;
       }
- 
+
       // Category filter
       let matchesCategory = true;
+
       if (categoryFilter) {
-        if (product.category && typeof product.category === 'object') {
+        if (product.category && typeof product.category === "object") {
           const productCategoryId = product.category._id.toString();
-          const selectedCategory = categories.find(cat => cat._id.toString() === categoryFilter);
-         
-          if (selectedCategory.parentid === "none") {
+
+          const selectedCategory = categories.find(
+            (cat) => cat._id.toString() === categoryFilter
+          );
+
+          if (selectedCategory?.parentid === "none") {
             const subCategoryIds = categories
-              .filter(cat => cat.parentid === categoryFilter)
-              .map(cat => cat._id.toString());
-           
-            matchesCategory = productCategoryId === categoryFilter ||
-                            subCategoryIds.includes(productCategoryId);
+              .filter((cat) => cat.parentid === categoryFilter)
+              .map((cat) => cat._id.toString());
+
+            matchesCategory =
+              productCategoryId === categoryFilter ||
+              subCategoryIds.includes(productCategoryId);
           } else {
             matchesCategory = productCategoryId === categoryFilter;
           }
         } else if (product.category) {
           const productCategoryId = product.category.toString();
-          const selectedCategory = categories.find(cat => cat._id.toString() === categoryFilter);
-         
-          if (selectedCategory.parentid === "none") {
+
+          const selectedCategory = categories.find(
+            (cat) => cat._id.toString() === categoryFilter
+          );
+
+          if (selectedCategory?.parentid === "none") {
             const subCategoryIds = categories
-              .filter(cat => cat.parentid === categoryFilter)
-              .map(cat => cat._id.toString());
-           
-            matchesCategory = productCategoryId === categoryFilter ||
-                            subCategoryIds.includes(productCategoryId);
+              .filter((cat) => cat.parentid === categoryFilter)
+              .map((cat) => cat._id.toString());
+
+            matchesCategory =
+              productCategoryId === categoryFilter ||
+              subCategoryIds.includes(productCategoryId);
           } else {
             matchesCategory = productCategoryId === categoryFilter;
           }
@@ -383,159 +484,58 @@ const exportToExcel = () => {
           matchesCategory = false;
         }
       }
- 
-      // Brand filter
+
+      // Brand filter (product_alls stores brand as a name string)
       let matchesBrand = true;
       if (brandFilter) {
-        if (product.brand && typeof product.brand === 'object') {
-          matchesBrand = product.brand._id.toString() === brandFilter;
-        } else if (product.brand) {
-          matchesBrand = product.brand.toString() === brandFilter;
-        } else {
-          matchesBrand = false;
-        }
+        matchesBrand =
+          String(product.brand || "").trim().toLowerCase() ===
+          brandFilter.toLowerCase();
       }
- 
- 
-     let matchesStock = true;
-if (stockFilter) {
-  matchesStock = product.stock_status?.toLowerCase() === stockFilter.toLowerCase();
-}
- 
- 
-      return matchesSearch && matchesStatus && matchesDate && matchesCategory && matchesBrand && matchesStock;
+
+      // Group property filter
+      let matchesGroupProperty = true;
+      if (groupPropertyFilter) {
+        matchesGroupProperty =
+          String(product.group_property || "").trim().toLowerCase() ===
+          groupPropertyFilter.toLowerCase();
+      }
+
+      // Stock filter
+      let matchesStock = true;
+
+      if (stockFilter) {
+        matchesStock =
+          product.stock_status?.toLowerCase() ===
+          stockFilter.toLowerCase();
+      }
+
+      return (
+        matchesSearch &&
+        matchesStatus &&
+        matchesDate &&
+        matchesCategory &&
+        matchesBrand &&
+        matchesGroupProperty &&
+        matchesStock
+      );
     });
-  }; */
- 
-  const getFilteredProducts = () => {
-  const flattenedProducts = flattenProducts(products);
 
-  let filtered = flattenedProducts.filter((product) => {
-    // Search filter
-    const matchesSearch =
-      debouncedSearchQuery === "" ||
-      product.name?.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
-      product.slug?.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
-      product.item_code?.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
-      product.group_property?.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
-      product.brand?.toLowerCase().includes(debouncedSearchQuery.toLowerCase());
-
-    // Status filter
-    const matchesStatus =
-      statusFilter === "" ||
-      product.status?.toLowerCase() === statusFilter.toLowerCase();
-
-    // Date filter
-    let matchesDate = true;
-
-    if (dateFilter.startDate && dateFilter.endDate && product.createdAt) {
-      const productDate = new Date(product.createdAt);
-      const startDate = new Date(dateFilter.startDate);
-      const endDate = new Date(dateFilter.endDate);
-
-      startDate.setHours(0, 0, 0, 0);
-      endDate.setHours(23, 59, 59, 999);
-
-      matchesDate =
-        productDate >= startDate && productDate <= endDate;
+    // QUANTITY SORTING
+    if (quantitySort === "high-to-low") {
+      filtered.sort(
+        (a, b) => Number(b.quantity || 0) - Number(a.quantity || 0)
+      );
     }
 
-    // Category filter
-    let matchesCategory = true;
-
-    if (categoryFilter) {
-      if (product.category && typeof product.category === "object") {
-        const productCategoryId = product.category._id.toString();
-
-        const selectedCategory = categories.find(
-          (cat) => cat._id.toString() === categoryFilter
-        );
-
-        if (selectedCategory?.parentid === "none") {
-          const subCategoryIds = categories
-            .filter((cat) => cat.parentid === categoryFilter)
-            .map((cat) => cat._id.toString());
-
-          matchesCategory =
-            productCategoryId === categoryFilter ||
-            subCategoryIds.includes(productCategoryId);
-        } else {
-          matchesCategory = productCategoryId === categoryFilter;
-        }
-      } else if (product.category) {
-        const productCategoryId = product.category.toString();
-
-        const selectedCategory = categories.find(
-          (cat) => cat._id.toString() === categoryFilter
-        );
-
-        if (selectedCategory?.parentid === "none") {
-          const subCategoryIds = categories
-            .filter((cat) => cat.parentid === categoryFilter)
-            .map((cat) => cat._id.toString());
-
-          matchesCategory =
-            productCategoryId === categoryFilter ||
-            subCategoryIds.includes(productCategoryId);
-        } else {
-          matchesCategory = productCategoryId === categoryFilter;
-        }
-      } else {
-        matchesCategory = false;
-      }
+    if (quantitySort === "low-to-high") {
+      filtered.sort(
+        (a, b) => Number(a.quantity || 0) - Number(b.quantity || 0)
+      );
     }
 
-    // Brand filter (product_alls stores brand as a name string)
-    let matchesBrand = true;
-    if (brandFilter) {
-      matchesBrand =
-        String(product.brand || "").trim().toLowerCase() ===
-        brandFilter.toLowerCase();
-    }
-
-    // Group property filter
-    let matchesGroupProperty = true;
-    if (groupPropertyFilter) {
-      matchesGroupProperty =
-        String(product.group_property || "").trim().toLowerCase() ===
-        groupPropertyFilter.toLowerCase();
-    }
-
-    // Stock filter
-    let matchesStock = true;
-
-    if (stockFilter) {
-      matchesStock =
-        product.stock_status?.toLowerCase() ===
-        stockFilter.toLowerCase();
-    }
-
-    return (
-      matchesSearch &&
-      matchesStatus &&
-      matchesDate &&
-      matchesCategory &&
-      matchesBrand &&
-      matchesGroupProperty &&
-      matchesStock
-    );
-  });
-
-  // QUANTITY SORTING
-  if (quantitySort === "high-to-low") {
-    filtered.sort(
-      (a, b) => Number(b.quantity || 0) - Number(a.quantity || 0)
-    );
-  }
-
-  if (quantitySort === "low-to-high") {
-    filtered.sort(
-      (a, b) => Number(a.quantity || 0) - Number(b.quantity || 0)
-    );
-  }
-
-  return filtered;
-};
+    return filtered;
+  };
 
   const filteredProducts = getFilteredProducts();
   const pageCount = Math.ceil(filteredProducts.length / itemsPerPage);
@@ -545,34 +545,34 @@ if (stockFilter) {
   );
 
   return (
-    <div className="w-full max-w-full min-w-0 p-4">
+    <div className="w-full max-w-full min-w-0">
       {showAlert && (
         <div className="bg-green-500 text-white px-4 py-2 rounded-md mb-4">
           {alertMessage}
         </div>
       )}
 
-  <div className="flex justify-between items-center mb-5 flex-wrap gap-3">
-  <h2 className="text-2xl font-bold">New Product List</h2>
-   <div className="flex items-center gap-4">
-      <button
-        onClick={exportToExcel}
-        className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md flex items-center gap-2"
-      >
-        <Icon icon="mdi:microsoft-excel" className="text-lg" />
-        Export to Excel
-      </button>
-  
-      
-    </div>
- 
-</div>
+      <div className="flex justify-between items-center mb-5 flex-wrap gap-3">
+        <h2 className="text-2xl font-bold">New Product List</h2>
+        <div className="flex items-center gap-4">
+          <button
+            onClick={exportToExcel}
+            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md flex items-center gap-2 border border-gray-200"
+          >
+            <Icon icon="mdi:microsoft-excel" className="text-lg" />
+            Export to Excel
+          </button>
+
+
+        </div>
+
+      </div>
 
 
       {isLoading ? (
         <p>Loading Products...</p>
       ) : (
-        <div className="bg-white shadow-md rounded-lg p-5 mb-5 w-full max-w-full min-w-0">
+        <div className="bg-white shadow-md rounded-lg p-5 mb-5 w-full max-w-full min-w-0 border border-gray-200">
           {/* Search and Filters */}
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4 items-end mb-4">
             {/* Search Filter */}
@@ -635,7 +635,8 @@ if (stockFilter) {
               <label className="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
               <select value={quantitySort} onChange={(e) => {
                 setQuantitySort(e.target.value);
-                setCurrentPage(0);}}
+                setCurrentPage(0);
+              }}
                 className="w-full min-w-0 p-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500"
               >
                 <option value="">All</option>
@@ -719,64 +720,64 @@ if (stockFilter) {
 
           {/* Products Table */}
           <div className="w-full max-w-full overflow-x-auto">
-          <table className="w-full min-w-[1100px] border border-gray-300">
-            <thead>
-              <tr className="bg-gray-200">
-                <th className="p-2">Item Code</th>
-                <th className="p-2 text-left">Name</th>
-                <th className="p-2">Group Property</th>
-                <th className="p-2">Price</th>
-                <th className="p-2 whitespace-nowrap">Spl Price</th>
-                <th className="p-2">Quantity</th>
-                <th className="p-2">Brand</th>
-                <th className="p-2">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {paginatedProducts.length > 0 ? (
-                paginatedProducts.map((product, index) => (
-                  <tr key={product._id} className="text-center border-b">
-                    {/* Item Code Column */}
-                    <td className="p-2 text-center align-middle">
-                      {product.item_code}
-                    </td>
-                    <td className="p-2 text-left align-middle max-w-xs">
-                      <span className="block truncate text-sm" title={product.name || ""}>
-                        {product.name || product.item_description || "-"}
-                      </span>
-                    </td>
-                    <td className="p-2">{product.group_property || "-"}</td>
-                    
-                    {/* Price Column */}
-                    <td className="p-2">{product.price}</td>
-                    
-                    {/* Special Price Column */}
-                    <td className="p-2">{product.special_price}</td>
-                    
-                    {/* Quantity Column */}
-                    <td className="p-2">{product.quantity}</td>
-                    <td className="p-2">{product.brand}</td>
-                    <td className="p-2">
-                      <Link
-                        href={`/admin/product/create?source=newproduct&id=${product._id}`}
-                        className="inline-flex items-center bg-red-600 hover:bg-red-700 text-white text-sm px-3 py-1.5 rounded-md"
-                        title={`Upload ${product.name || product.item_code}`}
-                      >
-                        Upload
-                      </Link>
-                    </td>
-                    
-                    {/* Status Column */}
-                    {/* <td className="p-2 font-semibold">
+            <table className="w-full min-w-[1100px] border border-gray-300">
+              <thead>
+                <tr className="bg-gray-200">
+                  <th className="p-2">Item Code</th>
+                  <th className="p-2 text-left">Name</th>
+                  <th className="p-2">Group Property</th>
+                  <th className="p-2">Price</th>
+                  <th className="p-2 whitespace-nowrap">Spl Price</th>
+                  <th className="p-2">Quantity</th>
+                  <th className="p-2">Brand</th>
+                  <th className="p-2">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {paginatedProducts.length > 0 ? (
+                  paginatedProducts.map((product, index) => (
+                    <tr key={product._id} className="text-center border-b">
+                      {/* Item Code Column */}
+                      <td className="p-2 text-center align-middle">
+                        {product.item_code}
+                      </td>
+                      <td className="p-2 text-left align-middle max-w-xs">
+                        <span className="block truncate text-sm" title={product.name || ""}>
+                          {product.name || product.item_description || "-"}
+                        </span>
+                      </td>
+                      <td className="p-2">{product.group_property || "-"}</td>
+
+                      {/* Price Column */}
+                      <td className="p-2">{product.price}</td>
+
+                      {/* Special Price Column */}
+                      <td className="p-2">{product.special_price}</td>
+
+                      {/* Quantity Column */}
+                      <td className="p-2">{product.quantity}</td>
+                      <td className="p-2">{product.brand}</td>
+                      <td className="p-2">
+                        <Link
+                          href={`/admin/product/create?source=newproduct&id=${product._id}`}
+                          className="inline-flex items-center bg-red-600 hover:bg-red-700 text-white text-sm px-3 py-1.5 rounded-md"
+                          title={`Upload ${product.name || product.item_code}`}
+                        >
+                          Upload
+                        </Link>
+                      </td>
+
+                      {/* Status Column */}
+                      {/* <td className="p-2 font-semibold">
                       {product.status === "Active" ? (
                         <span className="bg-green-100 text-green-600 px-6 py-1.5 rounded-full font-medium text-sm">Active</span>
                       ) : (
                         <span className="bg-red-100 text-red-600 px-6 py-1.5 rounded-full font-medium text-sm">Inactive</span>
                       )}
                     </td> */}
-                    
-                    {/* Action Column */}
-                    {/* <td>
+
+                      {/* Action Column */}
+                      {/* <td>
                       <div className="flex items-center gap-2 justify-center">
                         <button
                           onClick={() => handleEditProduct(product)}
@@ -797,17 +798,17 @@ if (stockFilter) {
                         </button>
                       </div>
                     </td> */}
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="8" className="text-center p-4">
+                      No Products found
+                    </td>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="8" className="text-center p-4">
-                    No Products found
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                )}
+              </tbody>
+            </table>
           </div>
 
           {/* Pagination */}
@@ -822,11 +823,10 @@ if (stockFilter) {
               <button
                 onClick={() => setCurrentPage(prev => Math.max(prev - 1, 0))}
                 disabled={currentPage === 0}
-                className={`px-3 py-1.5 border border-gray-300 rounded-md ${
-                  currentPage === 0
-                    ? "text-gray-400 cursor-not-allowed"
-                    : "text-black bg-white hover:bg-gray-100"
-                }`}
+                className={`px-3 py-1.5 border border-gray-300 rounded-md ${currentPage === 0
+                  ? "text-gray-400 cursor-not-allowed"
+                  : "text-black bg-white hover:bg-gray-100"
+                  }`}
                 aria-label="Previous page"
               >
                 «
@@ -842,11 +842,10 @@ if (stockFilter) {
                     <button
                       key={i}
                       onClick={() => setCurrentPage(i)}
-                      className={`px-3 py-1.5 border border-gray-300 rounded-md ${
-                        currentPage === i
-                          ? "bg-red-500 text-white"
-                          : "text-black bg-white hover:bg-gray-100"
-                      }`}
+                      className={`px-3 py-1.5 border border-gray-300 rounded-md ${currentPage === i
+                        ? "bg-red-500 text-white"
+                        : "text-black bg-white hover:bg-gray-100"
+                        }`}
                       aria-label={`Page ${i + 1}`}
                       aria-current={currentPage === i ? "page" : undefined}
                     >
@@ -872,11 +871,10 @@ if (stockFilter) {
               <button
                 onClick={() => setCurrentPage(prev => Math.min(prev + 1, pageCount - 1))}
                 disabled={currentPage === pageCount - 1}
-                className={`px-3 py-1.5 border border-gray-300 rounded-md ${
-                  currentPage === pageCount - 1
-                    ? "text-gray-400 cursor-not-allowed"
-                    : "text-black bg-white hover:bg-gray-100"
-                }`}
+                className={`px-3 py-1.5 border border-gray-300 rounded-md ${currentPage === pageCount - 1
+                  ? "text-gray-400 cursor-not-allowed"
+                  : "text-black bg-white hover:bg-gray-100"
+                  }`}
                 aria-label="Next page"
               >
                 »

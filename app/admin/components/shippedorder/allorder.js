@@ -148,7 +148,7 @@ useEffect(() => {
       {isLoading ? (
         <p>Loading order...</p>
       ) : (
-        <div className="bg-white shadow-md rounded-lg p-5 h-auto overflow-x-auto">
+        <div className="bg-white shadow-md rounded-lg p-5 h-auto overflow-x-auto border border-gray-200">
           {/* Search and Filter Section */}
         {/* Search and Filter Section */}
 {/* Search and Filter Section */}

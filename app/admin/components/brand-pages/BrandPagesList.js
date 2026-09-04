@@ -43,8 +43,8 @@ export default function BrandPagesList() {
 
   return (
     <div className="py-4 w-full">
-      <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
-        <div>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+        <div className="flex-1 pr-4">
           <h1 className="text-2xl font-semibold text-gray-900">Brand Settings</h1>
           <p className="text-sm text-gray-500 mt-1">
             Create an overview for a brand, or for a category + brand pair.
@@ -54,7 +54,7 @@ export default function BrandPagesList() {
         </div>
         <Link
           href="/admin/brand-pages/create"
-          className="inline-flex items-center gap-2 bg-[#ED1C24] hover:bg-[#C4161D] text-white px-4 py-2.5 rounded-lg text-sm font-medium"
+          className="inline-flex items-center gap-2 bg-[#ED1C24] hover:bg-[#C4161D] text-white px-4 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap"
         >
           <Icon icon="mdi:plus" /> Create Page
         </Link>

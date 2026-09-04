@@ -112,7 +112,7 @@ export default function ZonePage() {
         </select>
       </div>
 
-      <div className="overflow-x-auto bg-white shadow-md rounded-lg">
+      <div className="overflow-x-auto bg-white shadow-md rounded-lg border border-gray-200">
         <table className="w-full border">
           <thead className="bg-gray-100 text-left">
             <tr>

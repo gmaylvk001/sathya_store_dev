@@ -27,7 +27,7 @@ export default function OrderStatsIcons() {
 
   const wrapperStyles = "flex flex-col items-center gap-1";
   const boxStyles = "relative flex h-5 w-5 lg:h-8 lg:w-8 items-center justify-center rounded-xl bg-gray-100 hover:bg-gray-200 transition text-gray-700";
-  const badgeStyles = "absolute -top-2 -right-3 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[11px] font-bold leading-none text-white shadow-sm ring-2 ring-white";
+  const badgeStyles = "absolute -top-2 left-1/2 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-500 px-1.5 text-[11px] font-bold leading-none text-white shadow-sm ring-2 ring-white";
   const labelStyles = "hidden lg:block text-[9px] font-medium text-gray-500";
   const iconStyles = "h-4 w-4 lg:h-4 lg:w-4 text-gray-700";
 

@@ -296,7 +296,7 @@ if (Object.keys(newErrors).length > 0) {
 
 
   return (
-    <div className="mx-auto p-6 bg-white shadow-md rounded-lg">
+    <div className="mx-auto p-6 bg-white shadow-md rounded-lg border border-gray-200">
       <ToastContainer />
       <h2 className="text-2xl font-bold mb-4">Create Store</h2>
       <form onSubmit={handleSubmit}>

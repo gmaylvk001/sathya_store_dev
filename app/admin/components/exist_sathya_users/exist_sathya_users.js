@@ -364,7 +364,7 @@ export default function ExistSathyaUsersComponent() {
         <p>Loading...</p>
       ) : (
         <>
-          <div className="bg-white shadow-md rounded-lg p-5 mb-5 overflow-x-auto">
+          <div className="bg-white shadow-md rounded-lg p-5 mb-5 overflow-x-auto border border-gray-200">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end mb-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>

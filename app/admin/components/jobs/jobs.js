@@ -106,7 +106,7 @@ export default function JobPositionComponent() {
       {isLoading ? (
         <p>Loading careers...</p>
       ) : (
-        <div className="bg-white shadow-md rounded-lg p-5 overflow-x-auto">
+        <div className="bg-white shadow-md rounded-lg p-5 overflow-x-auto border border-gray-200">
           {/* Search + Add */}
           <div className="flex justify-between mb-5">
             <input

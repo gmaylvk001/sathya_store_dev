@@ -163,7 +163,7 @@ const clearDateFilter = () => {
       {loading ? (
         <p>Loading orders...</p>
       ) : (
-        <div className="bg-white shadow-md rounded-lg p-5 h-[500px] ">
+        <div className="bg-white shadow-md rounded-lg p-5 h-[500px] border border-gray-200">
           {/* Search */}
                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end mb-4">
             {/* Search Filter */}

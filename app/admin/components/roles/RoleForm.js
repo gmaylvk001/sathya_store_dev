@@ -173,7 +173,7 @@ export default function RoleForm({ roleId = null }) {
         </button>
       </div>
 
-      <div className="bg-white shadow-md rounded-lg p-5 mb-5">
+      <div className="bg-white shadow-md rounded-lg p-5 mb-5 border border-gray-200">
         {showAlert && (
           <div className="bg-green-500 text-white px-4 py-2 rounded-md mb-4 text-center">
             {alertMessage}

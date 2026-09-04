@@ -22,14 +22,14 @@ export default function FiltergroupComponent() {
   const [filterGroupToDelete, setFilterGroupToDelete] = useState(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
-const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
   const itemsPerPage = 20;
   const [excelFile, setExcelFile] = useState(null);
-    
 
-  
-useEffect(() => {
+
+
+  useEffect(() => {
     import("react-toastify/dist/ReactToastify.css");
   }, []);
 
@@ -40,7 +40,7 @@ useEffect(() => {
   };
 
 
-   const handleSampleDownload = () => {
+  const handleSampleDownload = () => {
     const link = document.createElement("a");
     link.href = `/uploads/files/sample_filter.xlsx?t=${Date.now()}`;
     link.download = "FilterGroupSample.xlsx";
@@ -65,24 +65,24 @@ useEffect(() => {
   }, []);
 
   const handleExport = () => {
-  if (!filterGroups.length) {
-    toast.error("No data to export");
-    return;
-  }
+    if (!filterGroups.length) {
+      toast.error("No data to export");
+      return;
+    }
 
-  const exportData = filterGroups.map((item) => ({
-    "Filter Group Name": item.filtergroup_name,
-    "Filter Group Slug": item.filtergroup_slug,
-    "Status": item.status,
-  
-  }));
+    const exportData = filterGroups.map((item) => ({
+      "Filter Group Name": item.filtergroup_name,
+      "Filter Group Slug": item.filtergroup_slug,
+      "Status": item.status,
 
-  const worksheet = XLSX.utils.json_to_sheet(exportData);
-  const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, "FilterGroups");
+    }));
 
-  XLSX.writeFile(workbook, `filter-groups-${Date.now()}.xlsx`);
-};
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "FilterGroups");
+
+    XLSX.writeFile(workbook, `filter-groups-${Date.now()}.xlsx`);
+  };
 
   const handlePageClick = ({ selected }) => {
     setCurrentPage(selected);
@@ -98,16 +98,16 @@ useEffect(() => {
     const formData = new FormData();
     formData.append("filtergroup_name", newFiltergroup.filtergroup_name);
     formData.append("status", newFiltergroup.status);
-    
+
     if (newFiltergroup._id) {
       formData.append("filtergroupId", newFiltergroup._id);
     }
 
     try {
-      const url = newFiltergroup._id 
-        ? "/api/filter_group/update" 
+      const url = newFiltergroup._id
+        ? "/api/filter_group/update"
         : "/api/filter_group/add";
-        
+
       const response = await fetch(url, {
         method: "POST",
         body: formData,
@@ -122,8 +122,8 @@ useEffect(() => {
           status: "Active",
           _id: null
         });
-        setSuccessMessage(newFiltergroup._id 
-          ? "Filter group updated successfully" 
+        setSuccessMessage(newFiltergroup._id
+          ? "Filter group updated successfully"
           : "Filter group added successfully");
         setShowSuccessModal(true);
       } else {
@@ -167,9 +167,9 @@ useEffect(() => {
             });
           }
         }
-         // Refresh the filter groups data
-      fetchFilterGroups();
-      
+        // Refresh the filter groups data
+        fetchFilterGroups();
+
         // Reset form
         setExcelFile(null);
         const fileInput = document.querySelector('input[type="file"]');
@@ -183,7 +183,7 @@ useEffect(() => {
     } finally {
       setIsLoading(false);
     }
-   
+
   };
   const handleDeleteFiltergroup = async (filtergroupId) => {
     try {
@@ -208,16 +208,16 @@ useEffect(() => {
       setFilterGroupToDelete(null);
     }
   };
-// Add this useEffect hook near your other hooks
-useEffect(() => {
-  if (showSuccessModal) {
-    const timer = setTimeout(() => {
-      setShowSuccessModal(false);
-    }, 2000); // 2000 milliseconds = 2 seconds
+  // Add this useEffect hook near your other hooks
+  useEffect(() => {
+    if (showSuccessModal) {
+      const timer = setTimeout(() => {
+        setShowSuccessModal(false);
+      }, 2000); // 2000 milliseconds = 2 seconds
 
-    return () => clearTimeout(timer); // Clean up the timer if the component unmounts
-  }
-}, [showSuccessModal]);
+      return () => clearTimeout(timer); // Clean up the timer if the component unmounts
+    }
+  }, [showSuccessModal]);
   const handleEditFiltergroup = (filtergroup) => {
     setNewFiltergroup({
       filtergroup_name: filtergroup.filtergroup_name,
@@ -297,38 +297,38 @@ useEffect(() => {
       {isLoading ? (
         <p>Loading filter groups...</p>
       ) : (
-        <div className="bg-white shadow-md rounded-lg p-5 overflow-x-auto">
+        <div className="bg-white shadow-md rounded-lg p-5 overflow-x-auto border border-gray-200">
           <div className="flex justify-between mb-5">
-        <input
-          type="text"
-          placeholder="Search filter group..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="border px-3 py-2 rounded-md w-64"
-        />
-        <div className="flex gap-3">
-          <button
-              onClick={() => setIsModalOpen(true)}
-              className="bg-red-500 text-white px-4 py-2 rounded-md"
-            >
-              + Add Filter Group
-            </button>
-          <button
-            onClick={() => setIsFilterModalOpen(true)}
-            className="bg-[#d72828] text-white px-4 py-2 rounded-md"
-          >
-            ⬆️ Bulk Upload
-          </button>
-          <button
-  onClick={handleExport}
-  className="bg-green-600 text-white px-5 py-2.5 rounded-lg hover:bg-green-700 transition flex items-center gap-2"
->
-  <Icon icon="mdi:download" className="w-4 h-4" />
-  Export
-</button>
+            <input
+              type="text"
+              placeholder="Search filter group..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="border px-3 py-2 rounded-md w-64"
+            />
+            <div className="flex gap-3">
+              <button
+                onClick={() => setIsModalOpen(true)}
+                className="bg-red-500 text-white px-4 py-2 rounded-md"
+              >
+                + Add Filter Group
+              </button>
+              <button
+                onClick={() => setIsFilterModalOpen(true)}
+                className="bg-[#d72828] text-white px-4 py-2 rounded-md"
+              >
+                ⬆️ Bulk Upload
+              </button>
+              <button
+                onClick={handleExport}
+                className="bg-green-600 text-white px-5 py-2.5 rounded-lg hover:bg-green-700 transition flex items-center gap-2"
+              >
+                <Icon icon="mdi:download" className="w-4 h-4" />
+                Export
+              </button>
 
-        </div>
-      </div>
+            </div>
+          </div>
 
           <table className="w-full border border-gray-300">
             <thead>
@@ -356,7 +356,7 @@ useEffect(() => {
             <div className="text-sm text-gray-600">
               Showing {startEntry} to {endEntry} of {filteredGroups.length} entries
             </div>
-                     <ReactPaginate
+            <ReactPaginate
               previousLabel={"«"}
               nextLabel={"»"}
               breakLabel={"..."}
@@ -366,12 +366,10 @@ useEffect(() => {
               containerClassName={"flex items-center space-x-1"}
               pageClassName="page-item border border-gray-300 px-3 py-1.5 rounded-md "
               pageLinkClassName="  rounded-md  "
-              previousLinkClassName={`px-3 py-1.5 border border-gray-300 rounded-md ${
-                currentPage === 0 ? "text-gray-400 cursor-not-allowed" : "text-black bg-white hover:bg-gray-100"
-              }`}
-              nextLinkClassName={`px-3 py-1.5 border border-gray-300 rounded-md border border-gray-300 ${
-                currentPage === pageCount - 1 ? "text-gray-400 cursor-not-allowed" : "text-black bg-white hover:bg-gray-100"
-              }`}
+              previousLinkClassName={`px-3 py-1.5 border border-gray-300 rounded-md ${currentPage === 0 ? "text-gray-400 cursor-not-allowed" : "text-black bg-white hover:bg-gray-100"
+                }`}
+              nextLinkClassName={`px-3 py-1.5 border border-gray-300 rounded-md border border-gray-300 ${currentPage === pageCount - 1 ? "text-gray-400 cursor-not-allowed" : "text-black bg-white hover:bg-gray-100"
+                }`}
               activeClassName="px-1 py-1.5 rounded-md bg-red-500 text-white"
             />
           </div>
@@ -379,88 +377,88 @@ useEffect(() => {
       )}
 
       {/* Add/Edit Modal */}
-     {isModalOpen && (
-  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 overflow-y-auto">
-    <div className="bg-white rounded-2xl shadow-lg w-full max-w-md mx-4 max-h-[90vh] flex flex-col">
-      {/* Header */}
-      <div className="flex justify-between items-center border-b px-6 py-4">
-        <h2 className="text-xl font-semibold text-gray-900">
-          {newFiltergroup._id ? "Edit" : "Add"} Filter Group
-        </h2>
-        <button
-          onClick={() => {
-            setIsModalOpen(false);
-            setNewFiltergroup({
-              filtergroup_name: "",
-              status: "Active",
-              _id: null
-            });
-          }}
-          className="text-gray-400 hover:text-gray-700"
-          aria-label="Close modal"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-6 w-6"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
-      </div>
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 overflow-y-auto">
+          <div className="bg-white rounded-2xl shadow-lg w-full max-w-md mx-4 max-h-[90vh] flex flex-col">
+            {/* Header */}
+            <div className="flex justify-between items-center border-b px-6 py-4">
+              <h2 className="text-xl font-semibold text-gray-900">
+                {newFiltergroup._id ? "Edit" : "Add"} Filter Group
+              </h2>
+              <button
+                onClick={() => {
+                  setIsModalOpen(false);
+                  setNewFiltergroup({
+                    filtergroup_name: "",
+                    status: "Active",
+                    _id: null
+                  });
+                }}
+                className="text-gray-400 hover:text-gray-700"
+                aria-label="Close modal"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
 
-      {/* Body */}
-      <div className="px-6 py-6 overflow-y-auto flex-grow">
-        <form onSubmit={handleAddFiltergroup} className="space-y-5">
-          {/* Filter Group Name */}
-          <div>
-            <label htmlFor="filtergroup_name" className="block mb-1 text-sm font-semibold text-gray-700">
-              Filter Group Name
-            </label>
-            <input
-              type="text"
-              id="filtergroup_name"
-              name="filtergroup_name"
-              value={newFiltergroup.filtergroup_name}
-              onChange={handleInputChange}
-              className="w-full rounded-md border p-2 focus:ring-2 focus:ring-red-400"
-              placeholder="Enter Filter Group Name"
-              required
-            />
+            {/* Body */}
+            <div className="px-6 py-6 overflow-y-auto flex-grow">
+              <form onSubmit={handleAddFiltergroup} className="space-y-5">
+                {/* Filter Group Name */}
+                <div>
+                  <label htmlFor="filtergroup_name" className="block mb-1 text-sm font-semibold text-gray-700">
+                    Filter Group Name
+                  </label>
+                  <input
+                    type="text"
+                    id="filtergroup_name"
+                    name="filtergroup_name"
+                    value={newFiltergroup.filtergroup_name}
+                    onChange={handleInputChange}
+                    className="w-full rounded-md border p-2 focus:ring-2 focus:ring-red-400"
+                    placeholder="Enter Filter Group Name"
+                    required
+                  />
+                </div>
+
+                {/* Status */}
+                <div>
+                  <label htmlFor="status" className="block mb-1 text-sm font-semibold text-gray-700">
+                    Status
+                  </label>
+                  <select
+                    name="status"
+                    id="status"
+                    value={newFiltergroup.status}
+                    onChange={handleInputChange}
+                    className="w-full rounded-md border p-2 focus:ring-2 focus:ring-red-400"
+                    required
+                  >
+                    <option value="Active">Active</option>
+                    <option value="Inactive">Inactive</option>
+                  </select>
+                </div>
+
+                {/* Submit */}
+                <button
+                  type="submit"
+                  className="inline-block bg-red-600 text-white px-5 py-2 rounded-md text-sm font-semibold hover:bg-red-700 transition"
+                >
+                  {newFiltergroup._id ? "Update" : "Add"} Filter Group
+                </button>
+              </form>
+            </div>
           </div>
-
-          {/* Status */}
-          <div>
-            <label htmlFor="status" className="block mb-1 text-sm font-semibold text-gray-700">
-              Status
-            </label>
-            <select
-              name="status"
-              id="status"
-              value={newFiltergroup.status}
-              onChange={handleInputChange}
-              className="w-full rounded-md border p-2 focus:ring-2 focus:ring-red-400"
-              required
-            >
-              <option value="Active">Active</option>
-              <option value="Inactive">Inactive</option>
-            </select>
-          </div>
-
-          {/* Submit */}
-          <button
-            type="submit"
-            className="inline-block bg-red-600 text-white px-5 py-2 rounded-md text-sm font-semibold hover:bg-red-700 transition"
-          >
-            {newFiltergroup._id ? "Update" : "Add"} Filter Group
-          </button>
-        </form>
-      </div>
-    </div>
-  </div>
-)}
+        </div>
+      )}
 
       {/* Confirmation Modal */}
       {showConfirmationModal && (
@@ -488,112 +486,112 @@ useEffect(() => {
 
       {/* Modal for Bulk Upload */}
       {isFilterModalOpen && (
-  <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-    <div className="bg-white p-6 rounded-md shadow-lg w-[70vw] relative">
-      {/* Close Button */}
-      <button
-        onClick={() => setIsFilterModalOpen(false)}
-        className="absolute top-3 right-3 text-gray-500 hover:text-gray-800 text-xl"
-      >
-        ✕
-      </button>
-      
-      <h2 className="text-xl font-semibold mb-4">Bulk Upload</h2>
-      <div className="border border-gray-200 rounded-lg p-6 hover:border-[#d72828] transition-colors">
-        <div className="mb-4">
-          <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-            <svg
-              className="w-5 h-5 text-[#d72828]"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white p-6 rounded-md shadow-lg w-[70vw] relative">
+            {/* Close Button */}
+            <button
+              onClick={() => setIsFilterModalOpen(false)}
+              className="absolute top-3 right-3 text-gray-500 hover:text-gray-800 text-xl"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-              />
-            </svg>
-            Excel/CSV File
-          </h3>
-          <p className="text-sm text-gray-500 mt-1">
-            Upload your product data file
-          </p>
-        </div>
+              ✕
+            </button>
 
-        <div className="space-y-4">
-          <input
-            type="file"
-            accept=".xlsx,.csv"
-            onChange={(e) => setExcelFile(e.target.files?.[0] || null)}
-            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-[#d72828] hover:file:bg-red-100"
-            required
-          />
-        </div>
+            <h2 className="text-xl font-semibold mb-4">Bulk Upload</h2>
+            <div className="border border-gray-200 rounded-lg p-6 hover:border-[#d72828] transition-colors">
+              <div className="mb-4">
+                <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                  <svg
+                    className="w-5 h-5 text-[#d72828]"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                    />
+                  </svg>
+                  Excel/CSV File
+                </h3>
+                <p className="text-sm text-gray-500 mt-1">
+                  Upload your product data file
+                </p>
+              </div>
 
-        <button
-          type="button"
-          onClick={handleSampleDownload}
-          className="inline-flex items-center pt-5 text-sm text-[#d72828] hover:text-[#d72828] transition-colors"
-        >
-          <svg
-            className="w-4 h-4 mr-2"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-            />
-          </svg>
-          Download Sample Format
-        </button>
+              <div className="space-y-4">
+                <input
+                  type="file"
+                  accept=".xlsx,.csv"
+                  onChange={(e) => setExcelFile(e.target.files?.[0] || null)}
+                  className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-[#d72828] hover:file:bg-red-100"
+                  required
+                />
+              </div>
 
-        <div className="flex mt-5 justify-between">
-          <button
-            onClick={handleSubmit}
-            disabled={isLoading}
-            className="px-6 py-2.5 bg-[#d72828] text-white font-medium rounded-lg hover:bg-[#d72828] focus:outline-none disabled:opacity-50 transition-colors flex items-center"
-          >
-            {isLoading ? (
-              <>
+              <button
+                type="button"
+                onClick={handleSampleDownload}
+                className="inline-flex items-center pt-5 text-sm text-[#d72828] hover:text-[#d72828] transition-colors"
+              >
                 <svg
-                  className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                  xmlns="http://www.w3.org/2000/svg"
+                  className="w-4 h-4 mr-2"
                   fill="none"
+                  stroke="currentColor"
                   viewBox="0 0 24 24"
                 >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  ></circle>
                   <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  ></path>
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                  />
                 </svg>
-                Uploading...
-              </>
-            ) : (
-              "Upload Filter Groups"
-            )}
-          </button>
-        </div>
+                Download Sample Format
+              </button>
 
-        <ToastContainer position="top-right" autoClose={5000} />
-      </div>
-    </div>
-  </div>
-)}
+              <div className="flex mt-5 justify-between">
+                <button
+                  onClick={handleSubmit}
+                  disabled={isLoading}
+                  className="px-6 py-2.5 bg-[#d72828] text-white font-medium rounded-lg hover:bg-[#d72828] focus:outline-none disabled:opacity-50 transition-colors flex items-center"
+                >
+                  {isLoading ? (
+                    <>
+                      <svg
+                        className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
+                      </svg>
+                      Uploading...
+                    </>
+                  ) : (
+                    "Upload Filter Groups"
+                  )}
+                </button>
+              </div>
+
+              <ToastContainer position="top-right" autoClose={5000} />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Success Modal */}
       {showSuccessModal && (

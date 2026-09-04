@@ -345,8 +345,8 @@ export default function ExistSathyaOrdersComponent() {
       {isLoading ? (
         <p>Loading...</p>
       ) : (
-        <div className="bg-white shadow-md rounded-lg p-5 mb-5 overflow-x-auto">
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 items-end mb-4">
+        <div className="bg-white shadow-md rounded-lg p-5 mb-5 overflow-x-auto border border-gray-200">
+          <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-7 gap-4 items-end mb-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
               <input
@@ -424,7 +424,7 @@ export default function ExistSathyaOrdersComponent() {
                 ))}
               </select>
             </div>
-            <div>
+            <div className="md:col-span-2 lg:col-span-3 xl:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-1">Date Range</label>
               <DateRangePicker onDateChange={({ startDate, endDate }) => {
                 setDateFilter({ startDate, endDate });

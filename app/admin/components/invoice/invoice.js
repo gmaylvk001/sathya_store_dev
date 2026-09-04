@@ -42,7 +42,7 @@ export default function InvoicePage() {
   if (!order) return <div className="p-6">No order found</div>;
 
   return (
-    <div className="max-w-4xl mx-auto p-6 bg-white shadow rounded-lg">
+    <div className="max-w-4xl mx-auto p-6 bg-white shadow rounded-lg border border-gray-200">
       <h2 className="text-2xl font-bold mb-4">Invoice #{order.order_number}</h2>
       <div className="grid grid-cols-2 gap-4 mb-6">
         <div>

@@ -333,7 +333,7 @@ formData.append("businessHours", JSON.stringify(newStore.businessHours || []));
   const submitButtonText = storeId ? "Update Store" : "Create Store";
 
   return (
-    <div className="max-w-6xl mx-auto p-6 bg-white shadow-md rounded-lg mt-4">
+    <div className="max-w-6xl mx-auto p-6 bg-white shadow-md rounded-lg mt-4 border border-gray-200">
       <ToastContainer />
       <h2 className="text-2xl font-bold mb-6">{formTitle}</h2>
       <form onSubmit={handleSubmit}>
