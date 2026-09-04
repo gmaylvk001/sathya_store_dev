@@ -34,7 +34,6 @@ const menuItems = [
       { icon: 'mdi:clipboard-list-outline', label: 'Sathya Exist Orders', link: 'sathya-exist-orders', dotColor: 'bg-yellow-500' },
     ]
   },
-  { icon: 'mdi:percent-outline', label: 'Offer', link: 'offer' },
   { icon: 'mdi:note-text-outline', label: 'Blog', link: 'blog' },
 
 
@@ -64,6 +63,7 @@ const menuItems = [
     icon: "mdi:percent-outline",
     label: "Offer Module",
     submenu: [
+      { icon: "mdi:percent-outline", label: "Offer", link: "offer", dotColor: "bg-yellow-500" },
       { icon: "mdi:percent-outline", label: "Offers", link: "offers", permission: "offer", dotColor: "bg-yellow-500" },
       { icon: "mdi:tag-outline", label: "Offer Product", link: "offer-product", permission: "offer-product", dotColor: "bg-green-500" },
     ],

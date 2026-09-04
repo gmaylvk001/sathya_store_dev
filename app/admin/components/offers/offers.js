@@ -46,12 +46,31 @@ export default function OffersComponent() {
     setCurrentPage(selected);
   };
 
+  const generateSlug = (name = "") =>
+    name
+      .toLowerCase()
+      .trim()
+      .replace(/[^\w\s-]/g, "")
+      .replace(/\s+/g, "-")
+      .replace(/-+/g, "-")
+      .replace(/^-+|-+$/g, "");
+
   const handleInputChange = (e) => {
-    setNewOffer({ ...newOffer, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    if (name === "offerName") {
+      setNewOffer({ offerName: value, slug: generateSlug(value) });
+      return;
+    }
+    setNewOffer({ ...newOffer, [name]: value });
   };
 
   const handleEditInputChange = (e) => {
-    setEditingOffer({ ...editingOffer, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    if (name === "offerName") {
+      setEditingOffer({ ...editingOffer, offerName: value, slug: generateSlug(value) });
+      return;
+    }
+    setEditingOffer({ ...editingOffer, [name]: value });
   };
 
   const handleAddOffer = async (e) => {
@@ -172,6 +191,7 @@ export default function OffersComponent() {
           <td className="p-2 text-blue-500 text-left cursor-pointer hover:underline" onClick={() => handleEditOffer(offer)}>
             {offer.offerName}
           </td>
+          <td className="p-2 text-left">{offer.slug || "-"}</td>
           <td className="p-2">{formatDate(offer.createdAt)}</td>
           <td className="p-2">{formatDate(offer.updatedAt)}</td>
           <td className="p-2">
@@ -235,6 +255,7 @@ export default function OffersComponent() {
               <tr className="bg-gray-50 border-b border-gray-200 text-gray-700">
                 <th className="p-2 text-left pl-4 font-semibold w-16">ID</th>
                 <th className="p-2 text-left font-semibold">Offer Name</th>
+                <th className="p-2 text-left font-semibold">Slug</th>
                 <th className="p-2 font-semibold w-32">Created</th>
                 <th className="p-2 font-semibold w-32">Edited</th>
                 <th className="p-2 font-semibold w-40"></th>
@@ -245,7 +266,7 @@ export default function OffersComponent() {
                 renderOfferRows()
               ) : (
                 <tr>
-                  <td colSpan="5" className="text-center p-4">
+                    <td colSpan="6" className="text-center p-4">
                     No offers found
                   </td>
                 </tr>
@@ -302,9 +323,9 @@ export default function OffersComponent() {
                   <input
                     name="slug"
                     value={newOffer.slug}
-                    onChange={handleInputChange}
-                    className="w-3/4 border rounded p-2 focus:outline-none focus:border-blue-400"
-                    required
+                    readOnly
+                    tabIndex={-1}
+                    className="w-3/4 border rounded p-2 bg-gray-100 text-gray-600 cursor-not-allowed"
                   />
                 </div>
                 <div className="flex justify-end gap-2 pt-4">
@@ -359,10 +380,10 @@ export default function OffersComponent() {
                   <label className="w-1/4 text-sm font-semibold text-gray-700">Slug</label>
                   <input
                     name="slug"
-                    value={editingOffer.slug}
-                    onChange={handleEditInputChange}
-                    className="w-3/4 border rounded p-2 focus:outline-none focus:border-blue-400"
-                    required
+                    value={editingOffer.slug || ""}
+                    readOnly
+                    tabIndex={-1}
+                    className="w-3/4 border rounded p-2 bg-gray-100 text-gray-600 cursor-not-allowed"
                   />
                 </div>
                 <div className="flex justify-end gap-2 pt-4">

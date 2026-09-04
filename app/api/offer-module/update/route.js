@@ -2,21 +2,44 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import OfferModule from "@/models/OfferModule";
 
+function createSlug(name) {
+  return name
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+async function uniqueSlug(baseSlug, excludeId = null) {
+  let slug = baseSlug;
+  let n = 2;
+  while (true) {
+    const query = excludeId ? { slug, _id: { $ne: excludeId } } : { slug };
+    const existing = await OfferModule.findOne(query);
+    if (!existing) return slug;
+    slug = `${baseSlug}-${n++}`;
+  }
+}
+
 export async function PUT(req) {
   try {
     await dbConnect();
     const data = await req.json();
+    const { id } = data;
+    const offerName = data.offerName?.trim();
 
-    const { id, offerName, slug } = data;
-
-    if (!id || !offerName || !slug) {
-      return NextResponse.json({ success: false, error: "ID, offer name, and slug are required" }, { status: 400 });
+    if (!id || !offerName) {
+      return NextResponse.json({ success: false, error: "ID and offer name are required" }, { status: 400 });
     }
 
-    const existingOffer = await OfferModule.findOne({ slug, _id: { $ne: id } });
-    if (existingOffer) {
-      return NextResponse.json({ success: false, error: "Slug already exists for another offer" }, { status: 400 });
+    const baseSlug = createSlug(offerName);
+    if (!baseSlug) {
+      return NextResponse.json({ success: false, error: "Invalid offer name" }, { status: 400 });
     }
+
+    const slug = await uniqueSlug(baseSlug, id);
 
     const updatedOffer = await OfferModule.findByIdAndUpdate(
       id,
