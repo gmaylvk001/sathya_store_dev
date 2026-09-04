@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
+import { flattenAdminModules, getAdminModuleLabel } from "@/lib/adminModules";
 
 export default function RoleForm({ roleId = null }) {
   const router = useRouter();
@@ -88,6 +89,21 @@ export default function RoleForm({ roleId = null }) {
     }
   };
 
+  const handleSelectModulePermissions = (permissionIds, checked) => {
+    setFormData((prev) => {
+      if (checked) {
+        return {
+          ...prev,
+          permissionIds: [...new Set([...prev.permissionIds, ...permissionIds])],
+        };
+      }
+      return {
+        ...prev,
+        permissionIds: prev.permissionIds.filter((id) => !permissionIds.includes(id)),
+      };
+    });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSaving(true);
@@ -124,6 +140,19 @@ export default function RoleForm({ roleId = null }) {
   };
 
   const allPermissionsSelected = permissions.length > 0 && formData.permissionIds.length === permissions.length;
+  const groupedPermissions = permissions.reduce((groups, permission) => {
+    const moduleKey = permission.module || "other";
+    if (!groups[moduleKey]) {
+      groups[moduleKey] = [];
+    }
+    groups[moduleKey].push(permission);
+    return groups;
+  }, {});
+  const moduleOrder = flattenAdminModules().map((item) => item.key);
+  const groupedModuleKeys = [
+    ...moduleOrder.filter((key) => groupedPermissions[key]),
+    ...Object.keys(groupedPermissions).filter((key) => !moduleOrder.includes(key)),
+  ];
   const pageTitle = isEditMode ? "Edit Role" : "Add Role";
   const submitButtonText = isEditMode ? "Update Role" : "Add Role";
 
@@ -191,18 +220,37 @@ export default function RoleForm({ roleId = null }) {
                 </label>
               )}
             </div>
-            <div className="border rounded p-3 max-h-64 overflow-y-auto space-y-2">
+            <div className="border rounded p-3 max-h-96 overflow-y-auto space-y-4">
               {permissions.length > 0 ? (
-                permissions.map((permission) => (
-                  <label key={permission._id} className="flex items-center gap-2 text-sm">
-                    <input
-                      type="checkbox"
-                      checked={formData.permissionIds.includes(String(permission._id))}
-                      onChange={() => handlePermissionToggle(String(permission._id))}
-                    />
-                    <span>{permission.name}</span>
-                  </label>
-                ))
+                groupedModuleKeys.map((moduleKey) => {
+                  const modulePermissions = groupedPermissions[moduleKey];
+                  const moduleIds = modulePermissions.map((permission) => String(permission._id));
+                  const allModuleSelected = moduleIds.every((id) => formData.permissionIds.includes(id));
+                  return (
+                    <div key={moduleKey} className="border-b last:border-b-0 pb-3 last:pb-0">
+                      <label className="flex items-center gap-2 text-sm font-semibold text-gray-800 mb-2">
+                        <input
+                          type="checkbox"
+                          checked={allModuleSelected}
+                          onChange={(e) => handleSelectModulePermissions(moduleIds, e.target.checked)}
+                        />
+                        {getAdminModuleLabel(moduleKey === "other" ? "" : moduleKey)}
+                      </label>
+                      <div className="ml-6 space-y-2">
+                        {modulePermissions.map((permission) => (
+                          <label key={permission._id} className="flex items-center gap-2 text-sm">
+                            <input
+                              type="checkbox"
+                              checked={formData.permissionIds.includes(String(permission._id))}
+                              onChange={() => handlePermissionToggle(String(permission._id))}
+                            />
+                            <span>{permission.name}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })
               ) : (
                 <p className="text-sm text-gray-500">No permissions found. Add permissions first.</p>
               )}

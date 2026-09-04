@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Icon } from '@iconify/react';
 import DateRangePicker from '@/components/DateRangePicker';
+import { flattenAdminModules, getAdminModuleLabel } from '@/lib/adminModules';
 
 export default function PermissionsComponent() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -16,8 +17,10 @@ export default function PermissionsComponent() {
   const [isLoading, setIsLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(20);
+  const adminModules = flattenAdminModules();
   const [formData, setFormData] = useState({
     name: "",
+    module: "",
     description: "",
   });
   const [isEditMode, setIsEditMode] = useState(false);
@@ -40,12 +43,23 @@ export default function PermissionsComponent() {
   };
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    if (name === "module") {
+      const selected = adminModules.find((moduleItem) => moduleItem.key === value);
+      setFormData((prev) => ({
+        ...prev,
+        module: value,
+        name: prev.name || selected?.name || "",
+      }));
+      return;
+    }
+    setFormData({ ...formData, [name]: value });
   };
 
   const handleEdit = (permission) => {
     setFormData({
       name: permission.name,
+      module: permission.module || "",
       description: permission.description || "",
     });
     setCurrentPermissionId(permission._id);
@@ -84,12 +98,14 @@ export default function PermissionsComponent() {
         await axios.put("/api/permissions/edit", {
           permissionId: currentPermissionId,
           name: formData.name,
+          module: formData.module,
           description: formData.description,
         });
         setAlertMessage("✅ Permission updated successfully!");
       } else {
         await axios.post("/api/permissions/add", {
           name: formData.name,
+          module: formData.module,
           description: formData.description,
         });
         setAlertMessage("✅ Permission added successfully!");
@@ -116,6 +132,7 @@ export default function PermissionsComponent() {
   const resetForm = () => {
     setFormData({
       name: "",
+      module: "",
       description: "",
     });
     setIsEditMode(false);
@@ -126,6 +143,7 @@ export default function PermissionsComponent() {
     const matchesSearch = searchQuery === "" ||
       (permission.name && permission.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
       (permission.slug && permission.slug.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (permission.module && permission.module.toLowerCase().includes(searchQuery.toLowerCase())) ||
       (permission.description && permission.description.toLowerCase().includes(searchQuery.toLowerCase()));
 
     let matchesDate = true;
@@ -269,6 +287,7 @@ export default function PermissionsComponent() {
               <thead>
                 <tr className="bg-gray-200">
                   <th className="p-2">Name</th>
+                  <th className="p-2">Module</th>
                   <th className="p-2">Slug</th>
                   <th className="p-2">Description</th>
                   <th className="p-2">Created At</th>
@@ -280,6 +299,7 @@ export default function PermissionsComponent() {
                   currentPermissions.map((permission, index) => (
                     <tr key={permission._id || index} className="text-center border-b">
                       <td className="p-2 font-bold">{permission.name || '-'}</td>
+                      <td className="p-2">{getAdminModuleLabel(permission.module)}</td>
                       <td className="p-2">{permission.slug || '-'}</td>
                       <td className="p-2">{permission.description || '-'}</td>
                       <td className="p-2">
@@ -307,7 +327,7 @@ export default function PermissionsComponent() {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="5" className="p-2 text-center text-gray-500">No permissions found.</td>
+                    <td colSpan="6" className="p-2 text-center text-gray-500">No permissions found.</td>
                   </tr>
                 )}
               </tbody>
@@ -333,6 +353,15 @@ export default function PermissionsComponent() {
             {showAlert && <div className="bg-green-500 text-white px-4 py-2 rounded-md mb-4 text-center">{alertMessage}</div>}
             <form onSubmit={handleSubmit} className="mt-4">
               <input type="text" name="name" placeholder="Permission Name" value={formData.name} onChange={handleChange} className="w-full border p-2 mb-2 rounded" required />
+              <select name="module" value={formData.module} onChange={handleChange} className="w-full border p-2 mb-2 rounded" required>
+                <option value="">Select Module (side menu)</option>
+                {adminModules.map((moduleItem) => (
+                  <option key={moduleItem.key} value={moduleItem.key}>
+                    {moduleItem.group === moduleItem.name ? moduleItem.name : `${moduleItem.group} / ${moduleItem.name}`}
+                  </option>
+                ))}
+              </select>
+              <p className="text-xs text-gray-500 mb-2">Module is the side menu item this permission can open.</p>
               <textarea name="description" placeholder="Description (optional)" value={formData.description} onChange={handleChange} className="w-full border p-2 mb-2 rounded" rows="3" />
               <button type="submit" className="bg-red-500 text-white px-4 py-2 rounded w-full mt-2">
                 {submitButtonText}

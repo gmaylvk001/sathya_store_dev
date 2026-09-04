@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { verifyToken } from "@/lib/verifyToken";
-import { getUserPermissions, hasPermission } from "@/lib/permissions";
+import { getUserAccess, hasPermission } from "@/lib/permissions";
 
 export async function GET(req) {
   const token = req.headers.get("Authorization")?.split(" ")[1];
@@ -15,20 +15,18 @@ export async function GET(req) {
     const { searchParams } = new URL(req.url);
     const slug = searchParams.get("slug");
 
-    const permissions = await getUserPermissions(userId);
+    const access = await getUserAccess(userId);
 
     if (slug) {
       const allowed = await hasPermission(userId, slug);
       return NextResponse.json({
         allowed,
         slug,
-        permissions,
+        ...access,
       });
     }
 
-    return NextResponse.json({
-      permissions,
-    });
+    return NextResponse.json(access);
   } catch (error) {
     return NextResponse.json({ error: "Invalid token" }, { status: 401 });
   }
