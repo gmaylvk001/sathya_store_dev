@@ -30,7 +30,8 @@ const menuItems = [
       { icon: 'mdi:home-import-outline', label: 'Home Delivery', link: 'homedelivery', dotColor: 'bg-yellow-500' },
       { icon: 'mdi:cart-off', label: 'Abandoned Order', link: 'abandonedorder', dotColor: 'bg-yellow-500' },
       { icon: 'mdi:cancel', label: 'Cancel Order', link: 'order/cancel-order', dotColor: 'bg-[#d72828]' },
-      { icon: 'mdi:truck-delivery-outline', label: 'Shipped Order', link: 'shippedorder', dotColor: 'bg-green-500' }
+      { icon: 'mdi:truck-delivery-outline', label: 'Shipped Order', link: 'shippedorder', dotColor: 'bg-green-500' },
+      { icon: 'mdi:clipboard-list-outline', label: 'Sathya Exist Orders', link: 'sathya-exist-orders', dotColor: 'bg-yellow-500' },
     ]
   },
   { icon: 'mdi:percent-outline', label: 'Offer', link: 'offer' },
