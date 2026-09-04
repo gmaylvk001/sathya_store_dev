@@ -3,6 +3,9 @@ import * as XLSX from "xlsx";
 import dbConnect from "@/lib/db";
 import ExistSathyaOrder, { EXIST_SATHYA_ORDER_FIELDS } from "@/models/ExistSathyaOrder";
 
+export const maxDuration = 300;
+export const dynamic = "force-dynamic";
+
 const DATE_FIELDS = new Set(["created_at", "updated_at", "offline_order_date"]);
 const MIXED_FIELDS = new Set(["schema_request", "bajaj_do_checkout"]);
 
@@ -47,11 +50,9 @@ function stringifyValue(value) {
   return String(cleaned).trim();
 }
 
-function getCell(row, keys) {
+function getCell(row, headerMap, keys) {
   for (const key of keys) {
-    const match = Object.keys(row).find(
-      (header) => String(header).toLowerCase().trim().replace(/\s+/g, "_") === key
-    );
+    const match = headerMap[key];
     if (match !== undefined && row[match] !== undefined && row[match] !== null && row[match] !== "") {
       return row[match];
     }
@@ -59,15 +60,24 @@ function getCell(row, keys) {
   return "";
 }
 
+function buildHeaderMap(row) {
+  const map = {};
+  for (const header of Object.keys(row || {})) {
+    map[String(header).toLowerCase().trim().replace(/\s+/g, "_")] = header;
+  }
+  return map;
+}
+
 function mapRowToOrder(row) {
+  const headerMap = buildHeaderMap(row);
   const order = {};
-  const existId = parseExistId(getCell(row, ["exist_id", "id"]));
+  const existId = parseExistId(getCell(row, headerMap, ["exist_id", "id"]));
   order.exist_id = existId;
 
   for (const field of EXIST_SATHYA_ORDER_FIELDS) {
     if (field === "exist_id") continue;
     const aliases = field === "referrel_url" ? ["referrel_url", "referral_url"] : [field];
-    const raw = getCell(row, aliases);
+    const raw = getCell(row, headerMap, aliases);
 
     if (DATE_FIELDS.has(field)) {
       order[field] = parseDateValue(raw);
@@ -171,6 +181,7 @@ export async function POST(req) {
     const existingNumbers = new Set(existing.map((item) => String(item.order_number || "").trim()).filter(Boolean));
     const idsInFile = new Set();
     const numbersInFile = new Set();
+    const toInsert = [];
 
     for (let index = 0; index < rows.length; index++) {
       const excelRow = index + 2;
@@ -180,7 +191,9 @@ export async function POST(req) {
 
       if (!existId && !orderNumber && !order.order_username && !order.order_phonenumber) {
         skippedCount += 1;
-        errors.push({ row: excelRow, error: "Empty row" });
+        if (errors.length < 50) {
+          errors.push({ row: excelRow, error: "Empty row" });
+        }
         continue;
       }
 
@@ -190,35 +203,39 @@ export async function POST(req) {
       if (duplicateId || duplicateNumber) {
         skippedCount += 1;
         skippedExistingCount += 1;
-        skippedOrders.push({
-          row: excelRow,
-          exist_id: existId,
-          order_number: orderNumber,
-        });
-        continue;
-      }
-
-      if (existId) idsInFile.add(existId);
-      if (orderNumber) numbersInFile.add(orderNumber);
-
-      try {
-        await ExistSathyaOrder.create(order);
-        addedCount += 1;
-        if (existId) existingIds.add(existId);
-        if (orderNumber) existingNumbers.add(orderNumber);
-      } catch (error) {
-        skippedCount += 1;
-        if (existId) idsInFile.delete(existId);
-        if (orderNumber) numbersInFile.delete(orderNumber);
-        if (error.code === 11000) {
-          skippedExistingCount += 1;
+        if (skippedOrders.length < 50) {
           skippedOrders.push({
             row: excelRow,
             exist_id: existId,
             order_number: orderNumber,
           });
-        } else {
-          errors.push({ row: excelRow, error: error.message });
+        }
+        continue;
+      }
+
+      if (existId) idsInFile.add(existId);
+      if (orderNumber) numbersInFile.add(orderNumber);
+      toInsert.push(order);
+    }
+
+    const batchSize = 250;
+    for (let i = 0; i < toInsert.length; i += batchSize) {
+      const batch = toInsert.slice(i, i + batchSize);
+      try {
+        const inserted = await ExistSathyaOrder.insertMany(batch, { ordered: false });
+        addedCount += inserted.length;
+      } catch (error) {
+        const writeErrors = error.writeErrors || error.result?.getWriteErrors?.() || [];
+        const failedCount = writeErrors.length || 0;
+        const insertedCount = error.result?.insertedCount
+          ?? error.insertedDocs?.length
+          ?? Math.max(0, batch.length - failedCount);
+        addedCount += insertedCount;
+        skippedCount += failedCount;
+        skippedExistingCount += failedCount;
+        if (failedCount === 0 && error.message) {
+          errors.push({ row: i + 2, error: error.message });
+          skippedCount += batch.length;
         }
       }
     }

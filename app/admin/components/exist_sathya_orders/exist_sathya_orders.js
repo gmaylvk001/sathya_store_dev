@@ -147,7 +147,9 @@ export default function ExistSathyaOrdersComponent() {
     setImportResult(null);
 
     try {
-      const response = await axios.post("/api/exist_sathya_orders/import", data);
+      const response = await axios.post("/api/exist_sathya_orders/import", data, {
+        timeout: 300000,
+      });
       setImportResult(response.data);
       setAlertMessage(response.data.message || "✅ Import completed");
       setShowAlert(true);
