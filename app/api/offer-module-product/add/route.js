@@ -14,6 +14,7 @@ export async function POST(req) {
     const productSellingType = formData.get("productSellingType") || "Price";
     const price = formData.get("price");
     const specialPrice = formData.get("specialPrice");
+    const emiStartsFrom = formData.get("emiStartsFrom");
     const categories = formData.get("categories");
     const isCombo = formData.get("isCombo") || "No";
     const file = formData.get("primaryImage");
@@ -38,12 +39,17 @@ export async function POST(req) {
       image_url = filename;
     }
 
+    const sellingType = ["Price", "EMI", "GIFT"].includes(productSellingType)
+      ? productSellingType
+      : "Price";
+
     const newOfferProduct = new OfferModuleProduct({
       productName,
       offerId,
-      productSellingType,
-      price: price ? parseFloat(price) : undefined,
-      specialPrice: specialPrice ? parseFloat(specialPrice) : undefined,
+      productSellingType: sellingType,
+      price: sellingType === "Price" && price ? parseFloat(price) : null,
+      specialPrice: sellingType === "Price" && specialPrice ? parseFloat(specialPrice) : null,
+      emiStartsFrom: sellingType === "EMI" && emiStartsFrom ? parseFloat(emiStartsFrom) : null,
       categories,
       isCombo,
       primaryImage: image_url,

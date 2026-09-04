@@ -22,6 +22,7 @@ export default function OfferProductComponent() {
     productSellingType: "Price",
     price: "",
     specialPrice: "",
+    emiStartsFrom: "",
     categories: "",
     isCombo: "No",
     primaryImage: null,
@@ -69,11 +70,33 @@ export default function OfferProductComponent() {
   };
 
   const handleInputChange = (e) => {
-    setNewProduct({ ...newProduct, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    if (name === "productSellingType") {
+      setNewProduct((prev) => ({
+        ...prev,
+        productSellingType: value,
+        price: value === "Price" ? prev.price : "",
+        specialPrice: value === "Price" ? prev.specialPrice : "",
+        emiStartsFrom: value === "EMI" ? prev.emiStartsFrom : "",
+      }));
+      return;
+    }
+    setNewProduct({ ...newProduct, [name]: value });
   };
 
   const handleEditInputChange = (e) => {
-    setEditingProduct({ ...editingProduct, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    if (name === "productSellingType") {
+      setEditingProduct((prev) => ({
+        ...prev,
+        productSellingType: value,
+        price: value === "Price" ? prev.price : "",
+        specialPrice: value === "Price" ? prev.specialPrice : "",
+        emiStartsFrom: value === "EMI" ? prev.emiStartsFrom : "",
+      }));
+      return;
+    }
+    setEditingProduct({ ...editingProduct, [name]: value });
   };
 
   const handleImageChange = (e) => {
@@ -121,6 +144,7 @@ export default function OfferProductComponent() {
           productSellingType: "Price",
           price: "",
           specialPrice: "",
+          emiStartsFrom: "",
           categories: "",
           isCombo: "No",
           primaryImage: null,
@@ -141,7 +165,8 @@ export default function OfferProductComponent() {
     setEditingProduct({
       ...product,
       offerId: product.offerId?._id || product.offerId,
-      existingImage: product.primaryImage
+      existingImage: product.primaryImage,
+      emiStartsFrom: product.emiStartsFrom ?? "",
     });
     setEditImagePreview(
       product.primaryImage ? `/uploads/OfferProducts/${product.primaryImage}?t=${Date.now()}` : null
@@ -412,31 +437,49 @@ export default function OfferProductComponent() {
                     className="w-3/4 border rounded p-2 focus:outline-none focus:border-blue-400"
                   >
                     <option value="Price">Price</option>
-                    <option value="Percentage">Percentage</option>
+                    <option value="EMI">EMI</option>
+                    <option value="GIFT">GIFT</option>
                   </select>
                 </div>
-                <div className="flex items-center">
-                  <label className="w-1/4 text-sm font-semibold text-gray-700">Price</label>
-                  <input
-                    type="number"
-                    step="any"
-                    name="price"
-                    value={newProduct.price}
-                    onChange={handleInputChange}
-                    className="w-3/4 border rounded p-2 focus:outline-none focus:border-blue-400"
-                  />
-                </div>
-                <div className="flex items-center">
-                  <label className="w-1/4 text-sm font-semibold text-gray-700">Special Price</label>
-                  <input
-                    type="number"
-                    step="any"
-                    name="specialPrice"
-                    value={newProduct.specialPrice}
-                    onChange={handleInputChange}
-                    className="w-3/4 border rounded p-2 focus:outline-none focus:border-blue-400"
-                  />
-                </div>
+                {newProduct.productSellingType === "Price" && (
+                  <>
+                    <div className="flex items-center">
+                      <label className="w-1/4 text-sm font-semibold text-gray-700">Price</label>
+                      <input
+                        type="number"
+                        step="any"
+                        name="price"
+                        value={newProduct.price}
+                        onChange={handleInputChange}
+                        className="w-3/4 border rounded p-2 focus:outline-none focus:border-blue-400"
+                      />
+                    </div>
+                    <div className="flex items-center">
+                      <label className="w-1/4 text-sm font-semibold text-gray-700">Special Price</label>
+                      <input
+                        type="number"
+                        step="any"
+                        name="specialPrice"
+                        value={newProduct.specialPrice}
+                        onChange={handleInputChange}
+                        className="w-3/4 border rounded p-2 focus:outline-none focus:border-blue-400"
+                      />
+                    </div>
+                  </>
+                )}
+                {newProduct.productSellingType === "EMI" && (
+                  <div className="flex items-center">
+                    <label className="w-1/4 text-sm font-semibold text-gray-700">EMI Starts From</label>
+                    <input
+                      type="number"
+                      step="any"
+                      name="emiStartsFrom"
+                      value={newProduct.emiStartsFrom}
+                      onChange={handleInputChange}
+                      className="w-3/4 border rounded p-2 focus:outline-none focus:border-blue-400"
+                    />
+                  </div>
+                )}
                 <div className="flex items-center">
                   <label className="w-1/4 text-sm font-semibold text-gray-700">Categories</label>
                   <select
@@ -549,36 +592,54 @@ export default function OfferProductComponent() {
                   <label className="w-1/4 text-sm font-semibold text-gray-700">Product Selling Type</label>
                   <select
                     name="productSellingType"
-                    value={editingProduct.productSellingType}
+                    value={editingProduct.productSellingType || "Price"}
                     onChange={handleEditInputChange}
                     className="w-3/4 border rounded p-2 focus:outline-none focus:border-blue-400"
                   >
                     <option value="Price">Price</option>
-                    <option value="Percentage">Percentage</option>
+                    <option value="EMI">EMI</option>
+                    <option value="GIFT">GIFT</option>
                   </select>
                 </div>
-                <div className="flex items-center">
-                  <label className="w-1/4 text-sm font-semibold text-gray-700">Price</label>
-                  <input
-                    type="number"
-                    step="any"
-                    name="price"
-                    value={editingProduct.price || ""}
-                    onChange={handleEditInputChange}
-                    className="w-3/4 border rounded p-2 focus:outline-none focus:border-blue-400"
-                  />
-                </div>
-                <div className="flex items-center">
-                  <label className="w-1/4 text-sm font-semibold text-gray-700">Special Price</label>
-                  <input
-                    type="number"
-                    step="any"
-                    name="specialPrice"
-                    value={editingProduct.specialPrice || ""}
-                    onChange={handleEditInputChange}
-                    className="w-3/4 border rounded p-2 focus:outline-none focus:border-blue-400"
-                  />
-                </div>
+                {(editingProduct.productSellingType || "Price") === "Price" && (
+                  <>
+                    <div className="flex items-center">
+                      <label className="w-1/4 text-sm font-semibold text-gray-700">Price</label>
+                      <input
+                        type="number"
+                        step="any"
+                        name="price"
+                        value={editingProduct.price || ""}
+                        onChange={handleEditInputChange}
+                        className="w-3/4 border rounded p-2 focus:outline-none focus:border-blue-400"
+                      />
+                    </div>
+                    <div className="flex items-center">
+                      <label className="w-1/4 text-sm font-semibold text-gray-700">Special Price</label>
+                      <input
+                        type="number"
+                        step="any"
+                        name="specialPrice"
+                        value={editingProduct.specialPrice || ""}
+                        onChange={handleEditInputChange}
+                        className="w-3/4 border rounded p-2 focus:outline-none focus:border-blue-400"
+                      />
+                    </div>
+                  </>
+                )}
+                {editingProduct.productSellingType === "EMI" && (
+                  <div className="flex items-center">
+                    <label className="w-1/4 text-sm font-semibold text-gray-700">EMI Starts From</label>
+                    <input
+                      type="number"
+                      step="any"
+                      name="emiStartsFrom"
+                      value={editingProduct.emiStartsFrom || ""}
+                      onChange={handleEditInputChange}
+                      className="w-3/4 border rounded p-2 focus:outline-none focus:border-blue-400"
+                    />
+                  </div>
+                )}
                 <div className="flex items-center">
                   <label className="w-1/4 text-sm font-semibold text-gray-700">Categories</label>
                   <select

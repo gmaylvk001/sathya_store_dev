@@ -15,6 +15,7 @@ export async function PUT(req) {
     const productSellingType = formData.get("productSellingType");
     const price = formData.get("price");
     const specialPrice = formData.get("specialPrice");
+    const emiStartsFrom = formData.get("emiStartsFrom");
     const categories = formData.get("categories");
     const isCombo = formData.get("isCombo");
     const existingImage = formData.get("existingImage");
@@ -40,14 +41,19 @@ export async function PUT(req) {
       image_url = filename;
     }
 
+    const sellingType = ["Price", "EMI", "GIFT"].includes(productSellingType)
+      ? productSellingType
+      : "Price";
+
     const updatedProduct = await OfferModuleProduct.findByIdAndUpdate(
       id,
       {
         productName,
         offerId,
-        productSellingType,
-        price: price ? parseFloat(price) : undefined,
-        specialPrice: specialPrice ? parseFloat(specialPrice) : undefined,
+        productSellingType: sellingType,
+        price: sellingType === "Price" && price ? parseFloat(price) : null,
+        specialPrice: sellingType === "Price" && specialPrice ? parseFloat(specialPrice) : null,
+        emiStartsFrom: sellingType === "EMI" && emiStartsFrom ? parseFloat(emiStartsFrom) : null,
         categories,
         isCombo,
         primaryImage: image_url,
