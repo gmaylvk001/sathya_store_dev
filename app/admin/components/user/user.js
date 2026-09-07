@@ -28,6 +28,8 @@ export default function UserComponent() {
   });
   const [isEditMode, setIsEditMode] = useState(false);
   const [currentUserId, setCurrentUserId] = useState(null);
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
 
   useEffect(() => {
     fetchUsers();
@@ -64,26 +66,102 @@ export default function UserComponent() {
     setIsModalOpen(true);
   };
 
-  const handleDelete = async (userId) => {
+  const handleToggleSelect = (userId) => {
+    const id = String(userId);
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  };
+
+  const handleSetStatus = async (user, status) => {
+    const label = status === "Inactive" ? "inactive" : "active";
+    const confirmed = window.confirm(`Set this user to ${label}?`);
+    if (!confirmed) {
+      return;
+    }
+
     try {
-      const response = await axios.delete(`/api/users/delete`, {
-        data: { userId },
+      const response = await axios.post("/api/users/status", {
+        userId: user._id,
+        status,
       });
-  
+
       if (response.data.success) {
-        setAlertMessage("✅ User set to inactive successfully!");
+        setAlertMessage(`✅ ${response.data.message || `User set to ${label} successfully`}`);
         setShowAlert(true);
         setTimeout(() => setShowAlert(false), 3000);
         fetchUsers();
       } else {
-        setAlertMessage("❌ Error setting user to inactive");
+        setAlertMessage("❌ Error updating user status");
         setShowAlert(true);
         setTimeout(() => setShowAlert(false), 3000);
       }
     } catch (error) {
-      setAlertMessage("❌ Error setting user to inactive");
+      setAlertMessage(error.response?.data?.error || "❌ Error updating user status");
       setShowAlert(true);
       setTimeout(() => setShowAlert(false), 3000);
+    }
+  };
+
+  const handleDelete = async (userId) => {
+    const confirmed = window.confirm("Delete this user? This cannot be undone.");
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      const response = await axios.delete("/api/users/delete", {
+        data: { userId },
+      });
+      setSelectedIds((prev) => prev.filter((id) => id !== String(userId)));
+
+      if (response.data.success) {
+        setAlertMessage("✅ User deleted successfully!");
+        setShowAlert(true);
+        setTimeout(() => setShowAlert(false), 3000);
+        fetchUsers();
+      } else {
+        setAlertMessage("❌ Error deleting user");
+        setShowAlert(true);
+        setTimeout(() => setShowAlert(false), 3000);
+      }
+    } catch (error) {
+      setAlertMessage(error.response?.data?.error || "❌ Error deleting user");
+      setShowAlert(true);
+      setTimeout(() => setShowAlert(false), 3000);
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (!selectedIds.length) {
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Delete ${selectedIds.length} selected user(s)? This cannot be undone.`
+    );
+    if (!confirmed) {
+      return;
+    }
+
+    setIsBulkDeleting(true);
+    try {
+      const response = await axios.delete("/api/users/delete", {
+        data: { userIds: selectedIds },
+      });
+
+      setAlertMessage(`✅ ${response.data.message || "Users deleted successfully!"}`);
+      setShowAlert(true);
+      setTimeout(() => setShowAlert(false), 3000);
+      setSelectedIds([]);
+      setCurrentPage(1);
+      fetchUsers();
+    } catch (error) {
+      setAlertMessage(error.response?.data?.error || "❌ Error deleting users");
+      setShowAlert(true);
+      setTimeout(() => setShowAlert(false), 3000);
+    } finally {
+      setIsBulkDeleting(false);
     }
   };
 
@@ -154,6 +232,7 @@ export default function UserComponent() {
     // Apply search filter
     const matchesSearch = searchQuery === "" || 
       (user.name && user.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (user.last_name && user.last_name.toLowerCase().includes(searchQuery.toLowerCase())) ||
       (user.email && user.email.toLowerCase().includes(searchQuery.toLowerCase())) ||
       (user.mobile && user.mobile.toLowerCase().includes(searchQuery.toLowerCase()));
     
@@ -184,6 +263,21 @@ export default function UserComponent() {
   const currentUsers = filteredUsers.slice(indexOfFirstUser, indexOfLastUser);
   const startEntry = indexOfFirstUser + 1;
   const endEntry = Math.min(indexOfLastUser, totalEntries);
+  const currentPageIds = currentUsers.map((user) => String(user._id));
+  const allCurrentSelected =
+    currentPageIds.length > 0 && currentPageIds.every((id) => selectedIds.includes(id));
+
+  const toggleSelectCurrentPage = () => {
+    if (allCurrentSelected) {
+      setSelectedIds((prev) => prev.filter((id) => !currentPageIds.includes(id)));
+      return;
+    }
+    setSelectedIds((prev) => [...new Set([...prev, ...currentPageIds])]);
+  };
+
+  const selectAllFiltered = () => {
+    setSelectedIds(filteredUsers.map((user) => String(user._id)));
+  };
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
@@ -327,25 +421,79 @@ export default function UserComponent() {
                 </button>
               </div>
             </div>
+            {showAlert && !isModalOpen && (
+              <div className="bg-green-500 text-white px-4 py-2 rounded-md mb-4 text-center">{alertMessage}</div>
+            )}
+            <div className="flex flex-wrap items-center gap-2 mb-3">
+              {selectedIds.length > 0 && (
+                <>
+                  <span className="text-sm text-gray-700">{selectedIds.length} selected</span>
+                  <button
+                    onClick={handleBulkDelete}
+                    disabled={isBulkDeleting}
+                    className="p-2 bg-red-500 hover:bg-red-600 text-white rounded-md transition disabled:opacity-50"
+                  >
+                    {isBulkDeleting ? "Deleting..." : "Delete selected"}
+                  </button>
+                </>
+              )}
+              {filteredUsers.length > 0 && selectedIds.length !== filteredUsers.length && (
+                <button
+                  type="button"
+                  onClick={selectAllFiltered}
+                  className="p-2 border border-gray-300 hover:bg-gray-50 rounded-md transition text-sm"
+                >
+                  Select all {filteredUsers.length}
+                </button>
+              )}
+              {selectedIds.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setSelectedIds([])}
+                  className="p-2 border border-gray-300 hover:bg-gray-50 rounded-md transition text-sm"
+                >
+                  Clear
+                </button>
+              )}
+            </div>
             <hr className="border-t border-gray-200 mb-4" />
             <table className="w-full border border-gray-300">
               <thead>
                 <tr className="bg-gray-200">
+                  <th className="p-2 w-10">
+                    <input
+                      type="checkbox"
+                      checked={allCurrentSelected}
+                      onChange={toggleSelectCurrentPage}
+                      disabled={currentUsers.length === 0}
+                    />
+                  </th>
                   <th className="p-2">Email Address</th>
                   <th className="p-2">Display Name</th>
+                  <th className="p-2">Last Name</th>
                   <th className="p-2">Mobile Number</th>
                   <th className="p-2">User Type</th>
                   <th className="p-2">Status</th>
+                  <th className="p-2">Notify Status</th>
                   <th className="p-2">Created At</th>
+                  <th className="p-2">Updated At</th>
                   <th className="p-2">Action</th>
                 </tr>
               </thead>
               <tbody>
                 {currentUsers.length > 0 ? (
                   currentUsers.map((user, index) => (
-                    <tr key={index} className="text-center border-b">
+                    <tr key={user._id || index} className="text-center border-b">
+                      <td className="p-2">
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.includes(String(user._id))}
+                          onChange={() => handleToggleSelect(user._id)}
+                        />
+                      </td>
                       <td className="p-2 font-bold">{user.email || '-'}</td>
                       <td className="p-2">{user.name || '-'}</td>
+                      <td className="p-2">{user.last_name || '-'}</td>
                       <td className="p-2">{user.mobile || '-'}</td>
                       <td className="p-2 font-semibold">{user.user_type || '-'}</td>
                       <td className="p-2">
@@ -355,8 +503,12 @@ export default function UserComponent() {
                           {user.status || '-'}
                         </span>
                       </td>
+                      <td className="p-2">{user.notify_status ?? '-'}</td>
                       <td className="p-2">
                         {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : '-'}
+                      </td>
+                      <td className="p-2">
+                        {user.updatedAt ? new Date(user.updatedAt).toLocaleDateString() : '-'}
                       </td>
                       <td className="p-2">
                         <div className="flex items-center gap-2 justify-center">
@@ -367,6 +519,23 @@ export default function UserComponent() {
                           >
                             <Icon icon="mingcute:edit-line" />
                           </button>
+                          {user.status === "Active" ? (
+                            <button
+                              onClick={() => handleSetStatus(user, "Inactive")}
+                              className="w-7 h-7 bg-orange-100 text-orange-600 rounded-full inline-flex items-center justify-center"
+                              title="Set Inactive"
+                            >
+                              <Icon icon="mdi:account-off-outline" />
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => handleSetStatus(user, "Active")}
+                              className="w-7 h-7 bg-green-100 text-green-600 rounded-full inline-flex items-center justify-center"
+                              title="Set Active"
+                            >
+                              <Icon icon="mdi:account-check-outline" />
+                            </button>
+                          )}
                           <button
                             onClick={() => handleDelete(user._id)}
                             className="w-7 h-7 bg-pink-100 text-pink-600 rounded-full inline-flex items-center justify-center"
@@ -380,7 +549,7 @@ export default function UserComponent() {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="7" className="p-2 text-center text-gray-500">No users found.</td>
+                    <td colSpan="11" className="p-2 text-center text-gray-500">No users found.</td>
                   </tr>
                 )}
               </tbody>

@@ -41,6 +41,7 @@ export default function ExistSathyaUsersComponent() {
   const [selectedIds, setSelectedIds] = useState([]);
   const [isBulkDeleting, setIsBulkDeleting] = useState(false);
   const [roleFilter, setRoleFilter] = useState("");
+  const [movingUserId, setMovingUserId] = useState(null);
 
   useEffect(() => {
     fetchUsers();
@@ -110,6 +111,30 @@ export default function ExistSathyaUsersComponent() {
       setAlertMessage("❌ Error deleting user");
       setShowAlert(true);
       setTimeout(() => setShowAlert(false), 3000);
+    }
+  };
+
+  const handleMove = async (user) => {
+    const userType = String(user.role_id ?? "").trim() === "1" ? "admin" : "user";
+    const confirmed = window.confirm(
+      `Move this user to live ${userType === "admin" ? "System Users" : "Users"} as ${userType}?`
+    );
+    if (!confirmed) {
+      return;
+    }
+
+    setMovingUserId(user._id);
+    try {
+      const response = await axios.post("/api/exist_sathya_users/move", { id: user._id });
+      setAlertMessage(`✅ ${response.data.message || "User moved successfully"}`);
+      setShowAlert(true);
+      setTimeout(() => setShowAlert(false), 4000);
+    } catch (error) {
+      setAlertMessage(error.response?.data?.error || "❌ Failed to move user");
+      setShowAlert(true);
+      setTimeout(() => setShowAlert(false), 4000);
+    } finally {
+      setMovingUserId(null);
     }
   };
 
@@ -514,6 +539,14 @@ export default function ExistSathyaUsersComponent() {
                       <td className="p-2">
                         <div className="flex items-center gap-2 justify-center">
                           <button
+                            onClick={() => handleMove(user)}
+                            disabled={movingUserId === user._id}
+                            className="px-2 h-7 bg-green-100 text-green-700 rounded-full inline-flex items-center justify-center text-xs font-medium disabled:opacity-50"
+                            title="Move to Users"
+                          >
+                            {movingUserId === user._id ? "Moving..." : "Move"}
+                          </button>
+                          <button
                             onClick={() => handleEdit(user)}
                             className="w-7 h-7 bg-red-100 text-red-600 rounded-full inline-flex items-center justify-center"
                             title="Edit"
@@ -606,7 +639,8 @@ export default function ExistSathyaUsersComponent() {
             )}
             <p className="text-sm text-gray-600 mt-4 mb-2">
               Required column: <b>phone</b>.
-              Optional: <b>exist_id</b> (or <b>id</b>), <b>first_name</b>, <b>email</b>, <b>password</b> and other columns can be empty.
+              Optional: <b>exist_id</b> (or <b>id</b>), <b>first_name</b>, <b>email</b>, <b>password</b>, <b>created_at</b>, <b>updated_at</b> and other columns can be empty.
+              If created_at or updated_at is empty, today&apos;s date is used.
             </p>
             <a
               href="/api/exist_sathya_users/import/sample"

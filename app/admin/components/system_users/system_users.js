@@ -358,6 +358,7 @@ export default function SystemUsersComponent() {
                   <th className="p-2">Role</th>
                   <th className="p-2">Status</th>
                   <th className="p-2">Created At</th>
+                  <th className="p-2">Updated At</th>
                   <th className="p-2">Action</th>
                 </tr>
               </thead>
@@ -378,6 +379,9 @@ export default function SystemUsersComponent() {
                       </td>
                       <td className="p-2">
                         {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : '-'}
+                      </td>
+                      <td className="p-2">
+                        {user.updatedAt ? new Date(user.updatedAt).toLocaleDateString() : '-'}
                       </td>
                       <td className="p-2">
                         <div className="flex items-center gap-2 justify-center">
@@ -401,7 +405,7 @@ export default function SystemUsersComponent() {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="8" className="p-2 text-center text-gray-500">No users found.</td>
+                    <td colSpan="9" className="p-2 text-center text-gray-500">No users found.</td>
                   </tr>
                 )}
               </tbody>

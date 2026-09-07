@@ -16,6 +16,8 @@ export async function GET() {
       confirmed: "",
       notify_pincode: "",
       notify_status: 0,
+      created_at: "2024-01-15 10:00:00",
+      updated_at: "2024-01-16 12:00:00",
     },
   ];
 

@@ -20,7 +20,7 @@ function excelSerialToDate(serial) {
   return Number.isNaN(date.getTime()) ? null : date;
 }
 
-function parseLoggedInDate(value) {
+function parseSheetDate(value) {
   if (value === undefined || value === null || value === "") {
     return null;
   }
@@ -160,8 +160,12 @@ export async function POST(req) {
       const confirmedValue = emptyToNull(getCell(row, ["confirmed"]));
       const notifyStatusValue = emptyToNull(getCell(row, ["notify_status"]));
 
+      const now = new Date();
+      const created_at = parseSheetDate(getCell(row, ["created_at"])) || now;
+      const updated_at = parseSheetDate(getCell(row, ["updated_at"])) || now;
+
       try {
-        await ExistSathyaUser.create({
+        const newUser = new ExistSathyaUser({
           exist_id: parseExistId(getCell(row, ["exist_id", "id"])),
           first_name,
           last_name: emptyToNull(getCell(row, ["last_name"])),
@@ -180,8 +184,15 @@ export async function POST(req) {
           avatar_original: emptyToNull(getCell(row, ["avatar_original"])),
           notify_pincode: emptyToNull(getCell(row, ["notify_pincode"])),
           notify_status: notifyStatusValue === null ? 0 : Number(notifyStatusValue),
-          logged_in: parseLoggedInDate(getCell(row, ["logged_in"])),
+          logged_in: parseSheetDate(getCell(row, ["logged_in"])),
+          created_at,
+          updated_at,
         });
+        await newUser.save({ timestamps: false });
+        await ExistSathyaUser.collection.updateOne(
+          { _id: newUser._id },
+          { $set: { created_at, updated_at } }
+        );
         addedCount += 1;
         if (email) {
           existingEmails.add(email);

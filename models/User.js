@@ -30,6 +30,19 @@ const UserSchema = new mongoose.Schema({
     default: null,
   },
   status: { type: String, enum: ["Active", "Inactive"], default: "Active" },
+  store_id: { type: String, required: false, default: null },
+  last_name: { type: String, required: false, default: null, trim: true },
+  confirmed: { type: Number, required: false, default: null },
+  confirmation_code: { type: String, required: false, default: null },
+  provider: { type: String, required: false, default: null },
+  provider_id: { type: String, required: false, default: null },
+  notify_pincode: { type: String, required: false, default: null },
+  notify_status: { type: Number, required: false, default: null },
+  logged_in: { type: Date, required: false, default: null },
 }, { timestamps: true });
 
-export default mongoose.models.ecom_users_info || mongoose.model("ecom_users_info", UserSchema);
+if (mongoose.models.ecom_users_info) {
+  delete mongoose.models.ecom_users_info;
+}
+
+export default mongoose.model("ecom_users_info", UserSchema);
