@@ -84,7 +84,7 @@ const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { wishlistCount } = useWishlist();
   const { cartCount, updateCartCount } = useCart();
-  const { selectedRegion, openRegionModal, pincode, city } = useRegion();
+  const { region, selectedRegion, openRegionModal, pincode, city } = useRegion();
   const [loyaltyPoints, setLoyaltyPoints] = useState(0);
   const [overviewAvailability, setOverviewAvailability] = useState({});
 
@@ -266,7 +266,137 @@ const Header = () => {
   const [showMenu, setShowMenu] = useState(false);
   // const [userData, setUserData] = useState(null);
   const [hasMounted, setHasMounted] = useState(false);
-  const { userData, isLoggedIn, setIsLoggedIn, setUserData, isAdmin, setIsAdmin } = useHeaderdetails();
+  const [headerOfferTimer, setHeaderOfferTimer] = useState(null);
+  const [headerTopBanner, setHeaderTopBanner] = useState(null);
+  const {
+    userData,
+    isLoggedIn,
+    setIsLoggedIn,
+    setUserData,
+    isAdmin,
+    setIsAdmin,
+    activeOfferTimer,
+    setActiveOfferTimer,
+    activeTopBanner,
+    setActiveTopBanner,
+    normalTopBanner,
+    setNormalTopBanner,
+  } = useHeaderdetails();
+
+  useEffect(() => {
+    let timerExpiryTimeout = null;
+    let isMounted = true;
+
+    const fetchBanners = async () => {
+      const reg = region || selectedRegion?.id || "tamilnadu";
+      let hasActiveOffer = false;
+
+      // 1. Fetch active offer timer for region
+      try {
+        const res = await fetch(`/api/offers/global-timer?region=${encodeURIComponent(reg)}`, { cache: 'no-store' });
+        if (res.ok) {
+          const data = await res.json();
+          if (isMounted && data?.success && data.timer) {
+            const timer = data.timer;
+            const banner = data.top_banner_url || timer.top_banner_url || timer.topBanner || null;
+            const endDate = timer.endDate || timer.offer_end;
+            const endMs = endDate ? new Date(endDate).getTime() : 0;
+            const remainingMs = endMs - Date.now();
+
+            if (remainingMs > 0) {
+              hasActiveOffer = true;
+              setHeaderOfferTimer(timer);
+              setHeaderTopBanner(banner);
+              if (setActiveOfferTimer) setActiveOfferTimer(timer);
+              if (setActiveTopBanner) setActiveTopBanner(banner);
+
+              if (timerExpiryTimeout) clearTimeout(timerExpiryTimeout);
+              timerExpiryTimeout = setTimeout(() => {
+                if (isMounted) {
+                  setHeaderOfferTimer(null);
+                  setHeaderTopBanner(null);
+                  if (setActiveOfferTimer) setActiveOfferTimer(null);
+                  if (setActiveTopBanner) setActiveTopBanner(null);
+                }
+              }, remainingMs);
+            } else {
+              setHeaderOfferTimer(null);
+              setHeaderTopBanner(null);
+              if (setActiveOfferTimer) setActiveOfferTimer(null);
+            }
+          } else if (isMounted) {
+            setHeaderOfferTimer(null);
+            setHeaderTopBanner(null);
+            if (setActiveOfferTimer) setActiveOfferTimer(null);
+          }
+        }
+      } catch (e) {
+        console.error("Failed to fetch active offer timer:", e);
+      }
+
+      // 2. Fetch regular state-wise top banner for region (priority fallback)
+      try {
+        const resTop = await fetch(`/api/topbanner?region=${encodeURIComponent(reg)}`, { cache: 'no-store' });
+        if (resTop.ok) {
+          const dataTop = await resTop.json();
+          if (isMounted && dataTop?.success && dataTop.banners?.length > 0) {
+            const normalBanner = dataTop.banners[0]?.banner_image || null;
+            if (setNormalTopBanner) setNormalTopBanner(normalBanner);
+            if (!hasActiveOffer && setActiveTopBanner) {
+              setActiveTopBanner(normalBanner);
+            }
+          } else if (isMounted) {
+            if (setNormalTopBanner) setNormalTopBanner(null);
+            if (!hasActiveOffer && setActiveTopBanner) {
+              setActiveTopBanner(null);
+            }
+          }
+        }
+      } catch (e) {
+        console.error("Failed to fetch regular top banner:", e);
+      }
+    };
+
+    fetchBanners();
+
+    // Listen for cross-tab or form updates without page reload
+    const handleStorageUpdate = (e) => {
+      if (e.key === "sathya_offer_timer_sync" || e.key === "sathya_top_banner_sync") {
+        fetchBanners();
+      }
+    };
+    const handleCustomUpdate = () => fetchBanners();
+
+    window.addEventListener("storage", handleStorageUpdate);
+    window.addEventListener("offerTimerUpdated", handleCustomUpdate);
+    window.addEventListener("focus", handleCustomUpdate);
+
+    return () => {
+      isMounted = false;
+      if (timerExpiryTimeout) clearTimeout(timerExpiryTimeout);
+      window.removeEventListener("storage", handleStorageUpdate);
+      window.removeEventListener("offerTimerUpdated", handleCustomUpdate);
+      window.removeEventListener("focus", handleCustomUpdate);
+    };
+  }, [region, selectedRegion?.id, setActiveOfferTimer, setActiveTopBanner, setNormalTopBanner]);
+
+  // Priority derivation:
+  // 1. Active eligible Offer Timer Top Banner (if valid image)
+  // 2. Existing normal state-wise Top Banner
+  // 3. Existing default header background (null)
+  const effectiveOfferTimer = headerOfferTimer || activeOfferTimer;
+  const currentBannerUrl = useMemo(() => {
+    const timerBanner = effectiveOfferTimer
+      ? (effectiveOfferTimer.top_banner_url || effectiveOfferTimer.topBanner || headerTopBanner || activeTopBanner)
+      : null;
+    if (timerBanner) {
+      return timerBanner.startsWith("/") ? timerBanner : `/uploads/topbanner/${timerBanner}`;
+    }
+    if (normalTopBanner) {
+      return normalTopBanner.startsWith("/") ? normalTopBanner : `/uploads/topbanner/${normalTopBanner}`;
+    }
+    return null;
+  }, [effectiveOfferTimer, headerTopBanner, activeTopBanner, normalTopBanner]);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [profileMenuPos, setProfileMenuPos] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState("All Category");
@@ -1658,11 +1788,28 @@ const Header = () => {
               }
             `}</style>
         {/* Main Header */}
-        <div className={`${isMobileMenuOpen ? "fixed inset-0 mt-0 pt-0 z-50 overflow-y-auto overflow-x-hidden" : "bg-white px-3 sm:px-6 md:px-6 py-1 sticky top-0 z-40 overflow-x-hidden"}`}>
+        <div className={`${
+            isMobileMenuOpen
+              ? "fixed inset-0 mt-0 pt-0 z-50 overflow-y-auto overflow-x-hidden"
+              : `${
+                  currentBannerUrl ? "bg-cover bg-center" : "bg-white"
+                } px-3 sm:px-6 md:px-6 py-1 sticky top-0 z-40 overflow-x-hidden transition-all duration-300`
+          }`}
+          style={
+            !isMobileMenuOpen && currentBannerUrl
+              ? {
+                  backgroundImage: `url("${currentBannerUrl}")`,
+                  backgroundSize: "cover",
+                  backgroundPosition: "center",
+                  backgroundRepeat: "no-repeat",
+                  backgroundColor: "transparent",
+                }
+              : undefined
+          }>
           {/* NEW MOBILE TOP ROW — compact so it never overflows viewport */}
           <div className="sm:hidden flex items-center justify-between w-full max-w-full min-w-0 relative">
             <div className="flex items-center gap-1.5 min-w-0">
-              <Link href="/" className="p-1 rounded-lg flex-shrink-0">
+              <Link href="/" className={`p-1 rounded-lg flex-shrink-0 ${currentBannerUrl ? "bg-transparent" : "bg-white"}`}>
                 <img src="/uploads/sathya-header-logo.webp" alt="Logo" width={64} height={40} className="h-9 w-auto" />
               </Link>
               <button
@@ -1675,6 +1822,11 @@ const Header = () => {
                 <span className="truncate">{pincode ? pincode : (selectedRegion?.code || 'TN')}</span>
                 <span className="text-[9px] opacity-70">▾</span>
               </button>
+              {(effectiveOfferTimer?.offerTitle || effectiveOfferTimer?.offer_title) && (
+                <span className="truncate max-w-[90px] text-[10px] font-bold text-brandRed px-2 py-0.5 rounded-full bg-white/95 border border-red-200">
+                  {effectiveOfferTimer.offerTitle || effectiveOfferTimer.offer_title}
+                </span>
+              )}
             </div>
             <div className="flex items-center gap-1.5 text-brandRed flex-shrink-0">
               <Link href="/wishlist" className={`${HEADER_ACTION_LINK_CLASS} relative min-w-[36px]`}>
@@ -1814,7 +1966,7 @@ const Header = () => {
           {/* DESKTOP ROW (unchanged original content) */}
           <div className="hidden sm:flex justify-between items-center gap-3">
             {/* Logo (Hidden on mobile) */}
-            <div className="hidden sm:block bg-white py-2 rounded-lg">
+            <div className={`hidden sm:block py-2 rounded-lg ${currentBannerUrl ? "bg-transparent" : "bg-white"}`}>
               <Link href="/" className="mx-auto">
                 <img src="/uploads/sathya-header-logo.webp" alt="Logo" className="h-auto" width={80} height={45} />
               </Link>
@@ -1877,6 +2029,16 @@ const Header = () => {
                 <FaSearch size={15} />
               </button>
             </div>
+            {/* Active Offer Title Display */}
+            {(effectiveOfferTimer?.offerTitle || effectiveOfferTimer?.offer_title) && (
+              <div className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/95 backdrop-blur-sm border border-red-200 text-brandRed font-bold text-xs shadow-sm flex-shrink-0">
+                <span className="inline-block w-2 h-2 rounded-full bg-[#ED1C24] animate-ping" />
+                <span className="truncate max-w-[160px]" title={effectiveOfferTimer.offerTitle || effectiveOfferTimer.offer_title}>
+                  {effectiveOfferTimer.offerTitle || effectiveOfferTimer.offer_title}
+                </span>
+              </div>
+            )}
+
             {/* Icons Group */}
             <div className="flex items-center gap-2.5 sm:gap-3 flex-shrink-0 mt-0.5">
               {/* Mobile Search Button (Hidden on desktop) */}

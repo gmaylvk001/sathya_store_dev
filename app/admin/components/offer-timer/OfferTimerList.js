@@ -41,6 +41,10 @@ export default function OfferTimerList() {
       const result = await response.json();
       if (response.ok) {
         setSuccessMessage("Offer timer deleted successfully");
+        try {
+          localStorage.setItem("sathya_offer_timer_sync", Date.now().toString());
+          window.dispatchEvent(new Event("offerTimerUpdated"));
+        } catch (e) {}
         fetchTimers();
       } else {
         alert(result.error || "Failed to delete offer timer");
@@ -106,10 +110,14 @@ export default function OfferTimerList() {
                     <td className="p-2">
                       {timer.topBanner ? (
                         <Image
-                          src={`/uploads/OfferTimers/${timer.topBanner}`}
+                          src={
+                            timer.topBanner.startsWith("/")
+                              ? timer.topBanner
+                              : `/uploads/topbanner/${timer.topBanner}`
+                          }
                           alt={timer.offerTitle}
                           width={220}
-                          height={20}
+                          height={28}
                           className="h-8 w-auto max-w-[220px] object-contain mx-auto"
                           unoptimized
                         />
