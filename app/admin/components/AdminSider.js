@@ -68,6 +68,13 @@ const menuItems = [
       { icon: "mdi:star-circle-outline", label: "Highlighted Products", link: "highlighted-products", permission: "offer", dotColor: "bg-blue-500" },
     ],
   },
+  {
+    icon: "mdi:palette-outline",
+    label: "Design",
+    submenu: [
+      { icon: "mdi:timer-outline", label: "Offer Timer", link: "offer-timer", dotColor: "bg-yellow-500" },
+    ],
+  },
 ];
 
 function setSidebarFlyoutTop(event) {
