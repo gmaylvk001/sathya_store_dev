@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 import dbConnect from "@/lib/db";
 import User from "@/models/User";
 
-export async function DELETE(req) {
+export async function POST(req) {
   await dbConnect();
 
   try {
@@ -22,27 +22,26 @@ export async function DELETE(req) {
       return NextResponse.json({ error: "User ID is required" }, { status: 400 });
     }
 
-    const result = await User.deleteMany({
-      _id: { $in: validIds },
-      user_type: "admin",
-    });
+    const status = body.status === "Inactive" ? "Inactive" : "Active";
 
-    if (!result.deletedCount) {
+    const result = await User.updateMany(
+      { _id: { $in: validIds }, user_type: "admin" },
+      { status }
+    );
+
+    if (!result.matchedCount) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    const message =
-      result.deletedCount === 1
-        ? "User deleted successfully"
-        : `${result.deletedCount} users deleted successfully`;
-
     return NextResponse.json({
       success: true,
-      message,
-      deletedCount: result.deletedCount,
+      message: status === "Inactive"
+        ? "User set to inactive successfully"
+        : "User set to active successfully",
+      status,
     });
   } catch (error) {
-    console.error("Error deleting system user:", error);
+    console.error("Error updating system user status:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }

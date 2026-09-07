@@ -92,24 +92,59 @@ export default function SystemUsersComponent() {
     setIsModalOpen(true);
   };
 
-  const handleDelete = async (userId) => {
+  const handleSetStatus = async (user, status) => {
+    const label = status === "Inactive" ? "inactive" : "active";
+    const confirmed = window.confirm(`Set this user to ${label}?`);
+    if (!confirmed) {
+      return;
+    }
+
     try {
-      const response = await axios.delete(`/api/system_users/delete`, {
-        data: { userId },
+      const response = await axios.post("/api/system_users/status", {
+        userId: user._id,
+        status,
       });
 
       if (response.data.success) {
-        setAlertMessage("✅ User set to inactive successfully!");
+        setAlertMessage(`✅ ${response.data.message || `User set to ${label} successfully`}`);
         setShowAlert(true);
         setTimeout(() => setShowAlert(false), 3000);
         fetchUsers();
       } else {
-        setAlertMessage("❌ Error setting user to inactive");
+        setAlertMessage("❌ Error updating user status");
         setShowAlert(true);
         setTimeout(() => setShowAlert(false), 3000);
       }
     } catch (error) {
-      setAlertMessage("❌ Error setting user to inactive");
+      setAlertMessage(error.response?.data?.error || "❌ Error updating user status");
+      setShowAlert(true);
+      setTimeout(() => setShowAlert(false), 3000);
+    }
+  };
+
+  const handleDelete = async (userId) => {
+    const confirmed = window.confirm("Delete this user? This cannot be undone.");
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      const response = await axios.delete("/api/system_users/delete", {
+        data: { userId },
+      });
+
+      if (response.data.success) {
+        setAlertMessage("✅ User deleted successfully!");
+        setShowAlert(true);
+        setTimeout(() => setShowAlert(false), 3000);
+        fetchUsers();
+      } else {
+        setAlertMessage("❌ Error deleting user");
+        setShowAlert(true);
+        setTimeout(() => setShowAlert(false), 3000);
+      }
+    } catch (error) {
+      setAlertMessage(error.response?.data?.error || "❌ Error deleting user");
       setShowAlert(true);
       setTimeout(() => setShowAlert(false), 3000);
     }
@@ -184,6 +219,7 @@ export default function SystemUsersComponent() {
 
     const matchesSearch = searchQuery === "" ||
       (user.name && user.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (user.last_name && user.last_name.toLowerCase().includes(searchQuery.toLowerCase())) ||
       (user.email && user.email.toLowerCase().includes(searchQuery.toLowerCase())) ||
       (user.mobile && user.mobile.toLowerCase().includes(searchQuery.toLowerCase())) ||
       (getRoleName(user.role) && getRoleName(user.role).toLowerCase().includes(searchQuery.toLowerCase()));
@@ -347,12 +383,16 @@ export default function SystemUsersComponent() {
                 </button>
               </div>
             </div>
+            {showAlert && !isModalOpen && (
+              <div className="bg-green-500 text-white px-4 py-2 rounded-md mb-4 text-center">{alertMessage}</div>
+            )}
             <hr className="border-t border-gray-200 mb-4" />
             <table className="w-full border border-gray-300">
               <thead>
                 <tr className="bg-gray-200">
                   <th className="p-2">Email Address</th>
                   <th className="p-2">Display Name</th>
+                  <th className="p-2">Last Name</th>
                   <th className="p-2">Mobile Number</th>
                   <th className="p-2">User Type</th>
                   <th className="p-2">Role</th>
@@ -368,6 +408,7 @@ export default function SystemUsersComponent() {
                     <tr key={index} className="text-center border-b">
                       <td className="p-2 font-bold">{user.email || '-'}</td>
                       <td className="p-2">{user.name || '-'}</td>
+                      <td className="p-2">{user.last_name || '-'}</td>
                       <td className="p-2">{user.mobile || '-'}</td>
                       <td className="p-2 font-semibold">{user.user_type || '-'}</td>
                       <td className="p-2">{getRoleName(user.role)}</td>
@@ -392,6 +433,23 @@ export default function SystemUsersComponent() {
                           >
                             <Icon icon="mingcute:edit-line" />
                           </button>
+                          {user.status === "Active" ? (
+                            <button
+                              onClick={() => handleSetStatus(user, "Inactive")}
+                              className="w-7 h-7 bg-orange-100 text-orange-600 rounded-full inline-flex items-center justify-center"
+                              title="Set Inactive"
+                            >
+                              <Icon icon="mdi:account-off-outline" />
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => handleSetStatus(user, "Active")}
+                              className="w-7 h-7 bg-green-100 text-green-600 rounded-full inline-flex items-center justify-center"
+                              title="Set Active"
+                            >
+                              <Icon icon="mdi:account-check-outline" />
+                            </button>
+                          )}
                           <button
                             onClick={() => handleDelete(user._id)}
                             className="w-7 h-7 bg-pink-100 text-pink-600 rounded-full inline-flex items-center justify-center"
@@ -405,7 +463,7 @@ export default function SystemUsersComponent() {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="9" className="p-2 text-center text-gray-500">No users found.</td>
+                    <td colSpan="10" className="p-2 text-center text-gray-500">No users found.</td>
                   </tr>
                 )}
               </tbody>
