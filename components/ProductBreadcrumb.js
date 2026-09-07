@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import { HiHome } from 'react-icons/hi';
 import { FaGreaterThan } from "react-icons/fa";
 
+import { buildCategoryBasePath } from '@/lib/categoryPageComponents/categoryHref';
+
 export default function ProductBreadcrumb({ product, className = "mb-4" }) {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -117,11 +119,8 @@ export default function ProductBreadcrumb({ product, className = "mb-4" }) {
       </Link>
       
       {categories.map((category, index) => {
-        // Build the path up to this breadcrumb level
-        const path = `/category/${categories
-          .slice(0, index + 1)
-          .map(cat => cat.category_slug || cat._id)
-          .join("/")}`;
+        const slugs = categories.slice(0, index + 1).map(cat => cat.category_slug || cat._id);
+        const path = buildCategoryBasePath(slugs, index);
 
         return (
           <div key={category._id} className="flex items-center flex-shrink-0">

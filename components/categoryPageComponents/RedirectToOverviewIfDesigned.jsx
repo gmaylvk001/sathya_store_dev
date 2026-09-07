@@ -45,7 +45,7 @@ export default function RedirectToOverviewIfDesigned({ pageType }) {
         const data = await res.json();
         if (cancelled || !data?.success) return;
         if (data.hasPage || (Array.isArray(data.components) && data.components.length > 0)) {
-          router.replace(`${buildCategoryBasePath(listingSlugs)}/overview`);
+          router.replace(`${pathname.replace(/\/$/, "")}/overview`);
         }
       } catch (err) {
         console.error("Overview redirect check failed:", err);

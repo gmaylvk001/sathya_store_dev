@@ -43,7 +43,13 @@ function buildCategoryPath(category, byId) {
   }
 
   if (!slugs.length) return null;
-  return `/category/${slugs.join("/")}`;
+  if (slugs.length === 1) {
+    return `/category-division/${slugs[0]}`;
+  }
+  if (slugs.length === 2) {
+    return `/category/${slugs[1]}`;
+  }
+  return `/category/${slugs[slugs.length - 2]}/${slugs[slugs.length - 1]}`;
 }
 
 export async function GET() {

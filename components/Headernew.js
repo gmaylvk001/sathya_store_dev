@@ -252,7 +252,7 @@ const Header = () => {
         const hasOverview = categoryId
           ? categoryHasOverviewDesign(overviewAvailability, categoryId, PAGE_TYPES.CATEGORY)
           : false;
-        const path = buildCategoryHref([categorySlug], hasOverview);
+        const path = buildCategoryHref([categorySlug], hasOverview, 0);
         setSelectedCategory(categoryName);
         setIsMobileMenuOpen(false);
         router.push(path);
@@ -524,7 +524,7 @@ const Header = () => {
         categoryId,
         pageType
       );
-      return buildCategoryHref(slugs, hasOverview);
+      return buildCategoryHref(slugs, hasOverview, level);
     }, [overviewAvailability]);
 
     const resolveCategoryBrandNavHref = useCallback(
