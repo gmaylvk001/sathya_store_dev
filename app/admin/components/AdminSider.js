@@ -63,9 +63,9 @@ const menuItems = [
     label: "Offer Module",
     submenu: [
       { icon: "mdi:percent-outline", label: "Offer", link: "offer", dotColor: "bg-yellow-500" },
-      { icon: "mdi:percent-outline", label: "Offers", link: "offers", permission: "offer", dotColor: "bg-yellow-500" },
+      { icon: "mdi:percent-outline", label: "Offers", link: "offers", permission: "offers", dotColor: "bg-yellow-500" },
       { icon: "mdi:tag-outline", label: "Offer Product", link: "offer-product", permission: "offer-product", dotColor: "bg-green-500" },
-      { icon: "mdi:star-circle-outline", label: "Highlighted Products", link: "highlighted-products", permission: "offer", dotColor: "bg-blue-500" },
+      { icon: "mdi:star-circle-outline", label: "Highlighted Products", link: "highlighted-products", permission: "highlighted-products", dotColor: "bg-blue-500" },
     ],
   },
   {
@@ -75,6 +75,15 @@ const menuItems = [
       { icon: "mdi:timer-outline", label: "Offer Timer", link: "offer-timer", dotColor: "bg-yellow-500" },
     ],
   },
+  {
+    icon: 'mdi:bank',
+    label: 'Finance',
+    submenu: [
+      { icon: 'mdi:chevron-double-right', label: 'Finance Bank', link: 'finance-bank', permission: finance - bank, dotColor: 'bg-blue-500' },
+      { icon: 'mdi:chevron-double-right', label: 'EMI Product', link: 'emi-product', permission: emi - product, dotColor: 'bg-green-500' },
+      { icon: 'mdi:chevron-double-right', label: 'EMI Scheme', link: 'emi-scheme', permission: emi - scheme, dotColor: 'bg-yellow-500' }
+    ]
+  }
 ];
 
 function setSidebarFlyoutTop(event) {
