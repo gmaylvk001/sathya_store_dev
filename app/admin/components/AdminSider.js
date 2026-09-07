@@ -79,9 +79,9 @@ const menuItems = [
     icon: 'mdi:bank',
     label: 'Finance',
     submenu: [
-      { icon: 'mdi:chevron-double-right', label: 'Finance Bank', link: 'finance-bank', permission: finance - bank, dotColor: 'bg-blue-500' },
-      { icon: 'mdi:chevron-double-right', label: 'EMI Product', link: 'emi-product', permission: emi - product, dotColor: 'bg-green-500' },
-      { icon: 'mdi:chevron-double-right', label: 'EMI Scheme', link: 'emi-scheme', permission: emi - scheme, dotColor: 'bg-yellow-500' }
+      { icon: 'mdi:chevron-double-right', label: 'Finance Bank', link: 'finance/bank', permission: "finance-bank", dotColor: 'bg-blue-500' },
+      { icon: 'mdi:chevron-double-right', label: 'EMI Product', link: 'finance/emi-product', permission: "emi-product", dotColor: 'bg-green-500' },
+      { icon: 'mdi:chevron-double-right', label: 'EMI Scheme', link: 'finance/emi-scheme', permission: "emi-scheme", dotColor: 'bg-yellow-500' }
     ]
   }
 ];
