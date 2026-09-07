@@ -1,27 +1,20 @@
 import mongoose from "mongoose";
 
-const OffertimerSchema = new mongoose.Schema(
+const OfferTimerSchema = new mongoose.Schema(
   {
-    state: {
-      type: String,
-      enum: ["tamilnadu", "andhra", "kerala", "karnataka", "telangana", "all"],
-      default: "all",
-      index: true,
-    },
-    offer_start: { type: Date, required: true },
-    offer_end: { type: Date, required: true },
-    status: {
-      type: String,
-      enum: ["active", "inactive"],
-      default: "active",
-      index: true,
-    },
-    offer_title: { type: String, required: true },
+    timerId: { type: Number, unique: true },
+    offerTitle: { type: String, required: true, trim: true },
+    startDate: { type: Date, required: true },
+    endDate: { type: Date, required: true },
+    state: { type: String, default: "all", trim: true },
+    offerViewStates: { type: [String], default: ["all"] },
+    timerDisplayStatus: { type: String, enum: ["Yes", "No"], default: "Yes" },
+    offerHeading: { type: String, default: "", trim: true },
+    offerDescription: { type: String, default: "", trim: true },
+    topBanner: { type: String, default: null },
+    dealsPopupImage: { type: String, default: null },
   },
   { timestamps: true }
 );
 
-OffertimerSchema.index({ state: 1, status: 1, offer_start: 1, offer_end: 1 });
-
-export default mongoose.models.Offertimer ||
-  mongoose.model("Offertimer", OffertimerSchema);
+export default mongoose.models.OfferTimer || mongoose.model("OfferTimer", OfferTimerSchema);
