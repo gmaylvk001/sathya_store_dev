@@ -106,6 +106,10 @@ export async function POST(req) {
         ? null
         : Number(existUser.notify_status),
       logged_in: existUser.logged_in || null,
+      zone_id: toOptionalString(existUser.zone_id),
+      remember_token: toOptionalString(existUser.remember_token),
+      avatar: toOptionalString(existUser.avatar),
+      avatar_original: toOptionalString(existUser.avatar_original),
     };
 
     const created = new User({

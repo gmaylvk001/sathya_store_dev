@@ -39,6 +39,10 @@ const UserSchema = new mongoose.Schema({
   notify_pincode: { type: String, required: false, default: null },
   notify_status: { type: Number, required: false, default: null },
   logged_in: { type: Date, required: false, default: null },
+  zone_id: { type: String, required: false, default: null },
+  remember_token: { type: String, required: false, default: null },
+  avatar: { type: String, required: false, default: null },
+  avatar_original: { type: String, required: false, default: null },
 }, { timestamps: true });
 
 if (mongoose.models.ecom_users_info) {

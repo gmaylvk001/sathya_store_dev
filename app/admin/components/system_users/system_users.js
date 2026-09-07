@@ -30,11 +30,31 @@ export default function SystemUsersComponent() {
   const [roles, setRoles] = useState([]);
   const [isEditMode, setIsEditMode] = useState(false);
   const [currentUserId, setCurrentUserId] = useState(null);
+  const [loggedInName, setLoggedInName] = useState("");
 
   useEffect(() => {
     fetchUsers();
     fetchRoles();
+    fetchLoggedInName();
   }, []);
+
+  const fetchLoggedInName = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+      const response = await fetch("/api/auth/check", {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const data = await response.json();
+      const fullName = [data.name, data.last_name].filter(Boolean).join(" ").trim();
+      setLoggedInName(fullName || data.user?.name || data.email || "");
+    } catch (error) {
+      console.error("Error fetching logged-in user:", error);
+    }
+  };
 
   const fetchUsers = async () => {
     setIsLoading(true);
@@ -324,6 +344,11 @@ export default function SystemUsersComponent() {
     <div className="container mx-auto">
       <div className="flex justify-between items-center mb-5 mt-5">
         <h2 className="text-2xl font-bold">System Users</h2>
+        {loggedInName && (
+          <span className="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-sm font-semibold text-green-800 ring-1 ring-green-200">
+            Current logged_in : {loggedInName}
+          </span>
+        )}
       </div>
 
       {isLoading ? (
