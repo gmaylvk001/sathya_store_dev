@@ -173,6 +173,12 @@ export default function ContactComponent() {
 
     "Mobile Number": item.mobile_number || "",
 
+    City: item.city || "",
+
+    "Enquiry Type": item.enquiry_type || "",
+
+    "Invoice Number": item.invoice_number || "",
+
     Message: item.message || "",
   }));
 
@@ -183,6 +189,9 @@ export default function ContactComponent() {
       "Name",
       "Email",
       "Mobile Number",
+      "City",
+      "Enquiry Type",
+      "Invoice Number",
       "Message",
     ],
   });
@@ -314,6 +323,8 @@ export default function ContactComponent() {
                     <th className="p-2">Name</th>
                      <th className="p-2">Email</th>
                     <th className="p-2">Mobile Number</th>
+                    <th className="p-2">City</th>
+                    <th className="p-2 whitespace-nowrap">Enquiry Type</th>
                     <th className="p-2">Message</th>
                     {/* <th className="p-2">Status</th> */}
                     {/* <th className="p-2">Created At</th>
@@ -328,6 +339,8 @@ export default function ContactComponent() {
                       <td className="p-2">{contact.name || '-'}</td>
                       <td className="p-2">{contact.email_address || '-'}</td>
                       <td className="p-2">{contact.mobile_number || '-'}</td>
+                      <td className="p-2">{contact.city || '-'}</td>
+                      <td className="p-2 whitespace-nowrap">{contact.enquiry_type || '-'}</td>
                       <td className="p-2">{contact.message || '-'}</td>
                       {/* <td className="p-2">
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${

@@ -25,6 +25,14 @@ const ContactSchema = new mongoose.Schema(
       type: String, 
       required: true 
     },
+    enquiry_type: {
+      type: String,
+      required: true
+    },
+    invoice_number: {
+      type: String,
+      default: ""
+    },
     status: {
       type: String,
       enum: ["active", "inactive"],
