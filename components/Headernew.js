@@ -1663,7 +1663,7 @@ const Header = () => {
           <div className="sm:hidden flex items-center justify-between w-full max-w-full min-w-0 relative">
             <div className="flex items-center gap-1.5 min-w-0">
               <Link href="/" className="p-1 rounded-lg flex-shrink-0">
-                <img src="/uploads/sathyalogo.webp" alt="Logo" width={64} height={40} className="h-9 w-auto" />
+                <img src="/uploads/sathya-header-logo.webp" alt="Logo" width={64} height={40} className="h-9 w-auto" />
               </Link>
               <button
                 type="button"
@@ -1816,7 +1816,7 @@ const Header = () => {
             {/* Logo (Hidden on mobile) */}
             <div className="hidden sm:block bg-white py-2 rounded-lg">
               <Link href="/" className="mx-auto">
-                <img src="/uploads/sathyalogo.webp" alt="Logo" className="h-auto" width={80} height={45} />
+                <img src="/uploads/sathya-header-logo.webp" alt="Logo" className="h-auto" width={80} height={45} />
               </Link>
             </div>
 
