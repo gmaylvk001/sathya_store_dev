@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { Icon } from "@iconify/react";
 import DateRangePicker from "@/components/DateRangePicker";
@@ -42,6 +42,9 @@ export default function ExistSathyaUsersComponent() {
   const [isBulkDeleting, setIsBulkDeleting] = useState(false);
   const [roleFilter, setRoleFilter] = useState("");
   const [movingUserId, setMovingUserId] = useState(null);
+  const [isBulkMoving, setIsBulkMoving] = useState(false);
+  const [bulkProgress, setBulkProgress] = useState(null);
+  const bulkAbortRef = useRef(false);
 
   const fetchUsers = async () => {
     setIsLoading(true);
@@ -153,6 +156,124 @@ export default function ExistSathyaUsersComponent() {
     } finally {
       setMovingUserId(null);
     }
+  };
+
+  const BULK_BATCH = 100;
+
+  const runBulkMove = async ({ mode, ids = [], roleId = "" }) => {
+    bulkAbortRef.current = false;
+    setIsBulkMoving(true);
+    setBulkProgress({
+      running: true,
+      mode,
+      moved: 0,
+      skipped: 0,
+      failed: 0,
+      scanned: 0,
+    });
+
+    try {
+      const totals = { moved: 0, skipped: 0, failed: 0, scanned: 0 };
+      const addTotals = (data) => {
+        totals.moved += data.moved || 0;
+        totals.skipped += data.skippedCount || 0;
+        totals.failed += data.failed || 0;
+        totals.scanned += data.scanned || 0;
+        setBulkProgress((prev) => ({
+          ...prev,
+          ...totals,
+        }));
+      };
+
+      if (mode === "selected") {
+        for (let i = 0; i < ids.length; i += BULK_BATCH) {
+          if (bulkAbortRef.current) break;
+          const chunk = ids.slice(i, i + BULK_BATCH);
+          const response = await axios.post("/api/exist_sathya_users/move-bulk", {
+            mode: "selected",
+            ids: chunk,
+            batchSize: BULK_BATCH,
+          }, { timeout: 300000 });
+          addTotals(response.data || {});
+        }
+      } else {
+        let cursor = null;
+        let done = false;
+        while (!done) {
+          if (bulkAbortRef.current) break;
+          const payload = {
+            mode,
+            cursor,
+            batchSize: BULK_BATCH,
+          };
+          if (mode === "role") payload.role_id = roleId;
+          const response = await axios.post("/api/exist_sathya_users/move-bulk", payload, { timeout: 300000 });
+          const data = response.data || {};
+          cursor = data.cursor || null;
+          done = Boolean(data.done);
+          addTotals(data);
+          if (!data.scanned) break;
+        }
+      }
+
+      const stopped = bulkAbortRef.current ? " (stopped)" : "";
+      setAlertMessage(
+        `✅ Bulk move completed${stopped}. Moved ${totals.moved}, skipped ${totals.skipped}, failed ${totals.failed}`
+      );
+      setShowAlert(true);
+      setTimeout(() => setShowAlert(false), 5000);
+      setSelectedIds([]);
+      fetchUsers();
+    } catch (error) {
+      setAlertMessage(error.response?.data?.error || "❌ Bulk move failed");
+      setShowAlert(true);
+      setTimeout(() => setShowAlert(false), 5000);
+      fetchUsers();
+    } finally {
+      setIsBulkMoving(false);
+      setBulkProgress((prev) => (prev ? { ...prev, running: false } : prev));
+    }
+  };
+
+  const handleMoveSelected = async () => {
+    const ids = selectedIds.filter((id) => {
+      const user = users.find((item) => String(item._id) === String(id));
+      return user && !user.is_moved;
+    });
+    if (!ids.length) {
+      setAlertMessage("❌ No not-moved users selected");
+      setShowAlert(true);
+      setTimeout(() => setShowAlert(false), 3000);
+      return;
+    }
+    const confirmed = window.confirm(`Move ${ids.length} selected not-moved user(s) in batches of ${BULK_BATCH}?`);
+    if (!confirmed) return;
+    await runBulkMove({ mode: "selected", ids });
+  };
+
+  const handleMoveRole = async () => {
+    if (!roleFilter) return;
+    const roleLabel = roleFilter === "__empty__" ? "No role" : `Role ID ${roleFilter}`;
+    const confirmed = window.confirm(
+      `Move all not-moved users with ${roleLabel}? This runs in batches of ${BULK_BATCH}.`
+    );
+    if (!confirmed) return;
+    await runBulkMove({ mode: "role", roleId: roleFilter });
+  };
+
+  const handleMoveAll = async () => {
+    const confirmed = window.confirm(
+      `Move ALL ${notMovedCount} not-moved users? This runs in batches of ${BULK_BATCH} and can take a while.`
+    );
+    if (!confirmed) return;
+    const typed = window.prompt("Type MOVE ALL to confirm:");
+    if (typed !== "MOVE ALL") {
+      setAlertMessage("❌ Move all cancelled");
+      setShowAlert(true);
+      setTimeout(() => setShowAlert(false), 3000);
+      return;
+    }
+    await runBulkMove({ mode: "all" });
   };
 
   const handleSubmit = async (e) => {
@@ -289,6 +410,15 @@ export default function ExistSathyaUsersComponent() {
 
   const totalEntries = filteredUsers.length;
   const notMovedCount = users.filter((user) => !user.is_moved).length;
+  const roleNotMovedCount = roleFilter
+    ? users.filter((user) => {
+      if (user.is_moved) return false;
+      if (roleFilter === "__empty__") {
+        return !user.role_id || String(user.role_id).trim() === "";
+      }
+      return String(user.role_id ?? "") === roleFilter;
+    }).length
+    : 0;
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentUsers = filteredUsers.slice(indexOfFirstItem, indexOfLastItem);
@@ -308,6 +438,12 @@ export default function ExistSathyaUsersComponent() {
 
   const selectAllFiltered = () => {
     setSelectedIds(filteredUsers.map((user) => String(user._id)));
+  };
+
+  const selectNotMovedFiltered = () => {
+    setSelectedIds(
+      filteredUsers.filter((user) => !user.is_moved).map((user) => String(user._id))
+    );
   };
 
   const handleBulkDelete = async () => {
@@ -471,18 +607,54 @@ export default function ExistSathyaUsersComponent() {
             <div className="bg-red-600 text-white px-4 py-2 rounded-md mb-4 font-semibold">
               Not moved users: {notMovedCount}
             </div>
+            {bulkProgress && (
+              <div className="bg-blue-50 border border-blue-200 text-blue-800 px-4 py-2 rounded-md mb-4 text-sm">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <span>
+                    {bulkProgress.running ? "Bulk move running..." : "Bulk move finished."}
+                    {" "}Moved {bulkProgress.moved}, skipped {bulkProgress.skipped}, failed {bulkProgress.failed}, scanned {bulkProgress.scanned}
+                  </span>
+                  {bulkProgress.running && (
+                    <button
+                      type="button"
+                      onClick={() => { bulkAbortRef.current = true; }}
+                      className="px-2 py-1 border border-blue-400 rounded text-xs"
+                    >
+                      Stop after this batch
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
             <div className="flex flex-wrap items-center gap-2 mb-3">
               {selectedIds.length > 0 && (
                 <>
                   <span className="text-sm text-gray-700">{selectedIds.length} selected</span>
                   <button
+                    onClick={handleMoveSelected}
+                    disabled={isBulkMoving || isBulkDeleting}
+                    className="p-2 bg-green-600 hover:bg-green-700 text-white rounded-md transition disabled:opacity-50 text-sm"
+                  >
+                    {isBulkMoving ? "Moving..." : "Move selected"}
+                  </button>
+                  <button
                     onClick={handleBulkDelete}
-                    disabled={isBulkDeleting}
+                    disabled={isBulkDeleting || isBulkMoving}
                     className="p-2 bg-red-500 hover:bg-red-600 text-white rounded-md transition disabled:opacity-50"
                   >
                     {isBulkDeleting ? "Deleting..." : "Delete selected"}
                   </button>
                 </>
+              )}
+              {filteredUsers.some((user) => !user.is_moved) && (
+                <button
+                  type="button"
+                  onClick={selectNotMovedFiltered}
+                  disabled={isBulkMoving}
+                  className="p-2 border border-green-600 text-green-700 hover:bg-green-50 rounded-md transition text-sm disabled:opacity-50"
+                >
+                  Select not-moved {roleFilter ? "in this role" : "in view"}
+                </button>
               )}
               {filteredUsers.length > 0 && selectedIds.length !== filteredUsers.length && (
                 <button
@@ -502,6 +674,24 @@ export default function ExistSathyaUsersComponent() {
                   Clear
                 </button>
               )}
+              {roleFilter && (
+                <button
+                  type="button"
+                  onClick={handleMoveRole}
+                  disabled={isBulkMoving || roleNotMovedCount === 0}
+                  className="p-2 bg-green-600 hover:bg-green-700 text-white rounded-md transition text-sm disabled:opacity-50"
+                >
+                  Move role ({roleNotMovedCount})
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={handleMoveAll}
+                disabled={isBulkMoving || notMovedCount === 0}
+                className="p-2 border border-green-600 text-green-700 hover:bg-green-50 rounded-md transition text-sm disabled:opacity-50"
+              >
+                Move all not-moved
+              </button>
               <span className="ml-auto text-xs text-gray-500 inline-flex items-center gap-1">
                 <span className="inline-block w-3 h-3 rounded-sm" style={{ backgroundColor: "#fff9c4" }} />
                 Light yellow = password is empty (Move uses first letter + 1234567 + first letter, lowercase)
@@ -566,7 +756,7 @@ export default function ExistSathyaUsersComponent() {
                           ) : (
                             <button
                               onClick={() => handleMove(user)}
-                              disabled={movingUserId === user._id}
+                              disabled={movingUserId === user._id || isBulkMoving}
                               className="px-2 h-7 bg-green-100 text-green-700 rounded-full inline-flex items-center justify-center text-xs font-medium disabled:opacity-50"
                               title="Move to Users"
                             >
