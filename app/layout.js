@@ -16,7 +16,7 @@ export const metadata = {
   title: "localhost:3000",
   description: "localhost:300",
   icons: {
-    icon: "/uploads/sathyalogo.webp",
+    icon: "/favicon.webp",
   },
 };
 
