@@ -40,70 +40,68 @@ function calculateReadTime(text) {
   return `${minutes} min read`;
 }
 
+// ── Static Blogs for Frontend Display (Temporary disconnected from DB) ──
+// Future developer can reconnect this to the new database API when ready
+const STATIC_BLOGS = [
+  {
+    _id: "static-blog-1",
+    blog_slug: "bosch-mixer-grinders-and-washing-machines",
+    blog_name: "Bosch Mixer Grinders and Washing Machines: A Buyer's Guide for Indian Homes",
+    description:
+      "Bosch Mixer Grinders and Washing Machines: A Buyer's Guide for Indian Homes German engineering has a certain reputation for durable performance, advanced energy efficiency, and whisper-quiet operation in everyday modern households.",
+    category: { category_name: "Washing Machine" },
+    image:
+      "https://images.unsplash.com/photo-1626806787461-102c1bfaaea1?w=800&auto=format&fit=crop&q=80",
+    createdAt: "2026-09-04T00:00:00.000Z",
+  },
+  {
+    _id: "static-blog-2",
+    blog_slug: "frostguard-pro-refrigerator-guide",
+    blog_name: "FrostGuard Pro1",
+    description:
+      "The FrostGuard Pro Double Door Refrigerator is the perfect blend of spacious design and advanced cooling technology. With multi-airflow and energy-saving inverter compressors, keep vegetables and perishables farm-fresh.",
+    category: { category_name: "Large Appliances" },
+    image:
+      "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30?w=800&auto=format&fit=crop&q=80",
+    createdAt: "2025-08-28T00:00:00.000Z",
+  },
+  {
+    _id: "static-blog-3",
+    blog_slug: "sonic-vibes-sound-system-journal",
+    blog_name: "Sonic Vibes The Sound System Journal",
+    description:
+      "Welcome to Sonic Vibes, your ultimate guide into the world of sound systems and audio experiences! Whether you are an audiophile or movie buff, find your perfect match with Dolby Atmos and surround sound clarity.",
+    category: { category_name: "Dishwasher" },
+    image:
+      "https://images.unsplash.com/photo-1545454675-3531b543be5d?w=800&auto=format&fit=crop&q=80",
+    createdAt: "2025-06-12T00:00:00.000Z",
+  },
+];
+
 export default function BlogListingPage() {
   const [bannerData, setBannerData] = useState(DEFAULT_BANNER);
-  const [blogs, setBlogs] = useState([]);
-  const [loading, setLoading] = useState(true);
+  // Pure frontend static data - DB is disabled as requested
+  const [blogs, setBlogs] = useState(STATIC_BLOGS);
+  const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
 
-  // 1. Fetch Banner (Pre-structured for future Admin-side integration)
-  useEffect(() => {
-    async function fetchBanner() {
-      try {
-        const res = await fetch("/api/blog-banner", { cache: "no-store" });
-        if (res.ok) {
-          const json = await res.json();
-          if (json?.data?.image || json?.banner?.image) {
-            setBannerData({
-              image: json.data?.image || json.banner?.image,
-              alt: json.data?.alt || json.banner?.alt || "Sathya Blogs Banner",
-              redirectUrl: json.data?.redirectUrl || json.banner?.redirectUrl || "",
-              isActive: json.data?.isActive ?? json.banner?.isActive ?? true,
-            });
-          }
-        }
-      } catch {
-        // Graceful fallback to static default banner
-      }
-    }
-    fetchBanner();
-  }, []);
-
-  // 2. Fetch Active Blogs from existing backend API
-  useEffect(() => {
-    async function fetchBlogs() {
-      try {
-        setLoading(true);
-        const res = await fetch("/api/blogs/get", { cache: "no-store" });
-        if (res.ok) {
-          const json = await res.json();
-          setBlogs(json.data || []);
-        }
-      } catch (err) {
-        console.error("Failed to load blogs:", err);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchBlogs();
-  }, []);
-
-  // 3. Dynamic Categories
+  // Dynamic Categories from the static blogs + standard categories
   const categories = useMemo(() => {
-    const list = ["All"];
-    const seen = new Set();
-    blogs.forEach((b) => {
-      const name = b.category?.category_name;
-      if (name && !seen.has(name)) {
-        seen.add(name);
-        list.push(name);
-      }
-    });
+    const list = [
+      "All",
+      "Washing Machine",
+      "Large Appliances",
+      "Dishwasher",
+      "Television",
+      "Mobile Phones",
+      "Air Conditioner",
+      "Refrigerator",
+    ];
     return list;
-  }, [blogs]);
+  }, []);
 
-  // 4. Filtered Blogs
+  // Filtered Blogs
   const filteredBlogs = useMemo(() => {
     return blogs.filter((b) => {
       const matchesCat =
@@ -263,6 +261,10 @@ export default function BlogListingPage() {
                       <img
                         src={blog.image}
                         alt={blog.blog_name}
+                        onError={(e) => {
+                          e.currentTarget.onerror = null;
+                          e.currentTarget.src = "/uploads/blog/blog-banner-default.png";
+                        }}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
                     ) : (
