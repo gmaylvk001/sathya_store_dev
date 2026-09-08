@@ -1798,9 +1798,9 @@ const Header = () => {
             `}</style>
         {/* Main Header */}
         <div className={`${isMobileMenuOpen
-            ? "fixed inset-0 mt-0 pt-0 z-50 overflow-y-auto overflow-x-hidden"
-            : `${currentBannerUrl ? "bg-cover bg-center" : "bg-white"
-            } px-3 sm:px-6 md:px-6 py-1 sticky top-0 z-40 overflow-x-hidden transition-all duration-300`
+          ? "fixed inset-0 mt-0 pt-0 z-50 overflow-y-auto overflow-x-hidden"
+          : `${currentBannerUrl ? "bg-cover bg-center" : "bg-white"
+          } px-3 sm:px-6 md:px-6 py-1 sticky top-0 z-40 overflow-x-hidden transition-all duration-300`
           }`}
           style={
             !isMobileMenuOpen && currentBannerUrl
@@ -2500,7 +2500,7 @@ const Header = () => {
                 >
                   {categories.map((category) => (
                     <SwiperSlide key={String(category._id)} className="!w-auto">
-                      <div ref={(el) => (slideRefs.current[category._id] = el)} onMouseEnter={() => handleMouseEnter(category._id)} onMouseLeave={() => startHide(120)} className="px-5 py-2 flex flex-col items-center text-center" >
+                      <div ref={(el) => (slideRefs.current[category._id] = el)} onMouseEnter={() => handleMouseEnter(category._id)} onMouseLeave={() => startHide(120)} className="px-2 py-2 flex flex-col items-center text-center" >
                         <Link
                           href={resolveCategoryNavHref([category.category_slug], category._id, 0)}
                           onClick={(e) => {
@@ -2512,7 +2512,7 @@ const Header = () => {
                               category._id
                             );
                           }}
-                          className="text-sm text-base text-white hover:text-[#FFF200] whitespace-nowrap"
+                          className="text-sm font-bold text-white hover:text-[#FFF200] whitespace-nowrap"
                         >
                           {category.category_name}
                         </Link>
