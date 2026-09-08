@@ -468,6 +468,7 @@ export default function UserComponent() {
                       disabled={currentUsers.length === 0}
                     />
                   </th>
+                  <th className="p-2">Exist ID</th>
                   <th className="p-2">Email Address</th>
                   <th className="p-2">Display Name</th>
                   <th className="p-2">Last Name</th>
@@ -491,6 +492,7 @@ export default function UserComponent() {
                           onChange={() => handleToggleSelect(user._id)}
                         />
                       </td>
+                      <td className="p-2">{user.exist_id || '-'}</td>
                       <td className="p-2 font-bold">{user.email || '-'}</td>
                       <td className="p-2">{user.name || '-'}</td>
                       <td className="p-2">{user.last_name || '-'}</td>

@@ -415,6 +415,7 @@ export default function SystemUsersComponent() {
             <table className="w-full border border-gray-300">
               <thead>
                 <tr className="bg-gray-200">
+                  <th className="p-2">Exist ID</th>
                   <th className="p-2">Email Address</th>
                   <th className="p-2">Display Name</th>
                   <th className="p-2">Last Name</th>
@@ -431,6 +432,7 @@ export default function SystemUsersComponent() {
                 {currentUsers.length > 0 ? (
                   currentUsers.map((user, index) => (
                     <tr key={index} className="text-center border-b">
+                      <td className="p-2">{user.exist_id || '-'}</td>
                       <td className="p-2 font-bold">{user.email || '-'}</td>
                       <td className="p-2">{user.name || '-'}</td>
                       <td className="p-2">{user.last_name || '-'}</td>

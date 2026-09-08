@@ -18,6 +18,7 @@ const UserSchema = new mongoose.Schema({
       match: [/^\S+@\S+\.\S+$/, "Please enter a valid email address"], // ✅ Regex validation
     },
   password: { type: String, required: true },
+  exist_id: { type: String, required: false, default: null, trim: true },
   user_type: { 
     type: String, 
     enum: ["admin", "user"], // ✅ Define allowed values

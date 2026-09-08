@@ -43,14 +43,13 @@ export default function ExistSathyaUsersComponent() {
   const [roleFilter, setRoleFilter] = useState("");
   const [movingUserId, setMovingUserId] = useState(null);
 
-  useEffect(() => {
-    fetchUsers();
-  }, []);
-
   const fetchUsers = async () => {
     setIsLoading(true);
     try {
-      const response = await axios.get("/api/exist_sathya_users/get");
+      const response = await axios.get("/api/exist_sathya_users/get", {
+        headers: { "Cache-Control": "no-store" },
+        params: { t: Date.now() },
+      });
       setUsers(Array.isArray(response.data) ? response.data : []);
     } catch (error) {
       console.error("Error fetching exist sathya users:", error);
@@ -58,6 +57,23 @@ export default function ExistSathyaUsersComponent() {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchUsers();
+
+    const refreshIfVisible = () => {
+      if (document.visibilityState === "visible") {
+        fetchUsers();
+      }
+    };
+
+    document.addEventListener("visibilitychange", refreshIfVisible);
+    window.addEventListener("focus", fetchUsers);
+    return () => {
+      document.removeEventListener("visibilitychange", refreshIfVisible);
+      window.removeEventListener("focus", fetchUsers);
+    };
+  }, []);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -129,6 +145,7 @@ export default function ExistSathyaUsersComponent() {
       setAlertMessage(`✅ ${response.data.message || "User moved successfully"}`);
       setShowAlert(true);
       setTimeout(() => setShowAlert(false), 4000);
+      fetchUsers();
     } catch (error) {
       setAlertMessage(error.response?.data?.error || "❌ Failed to move user");
       setShowAlert(true);
@@ -271,6 +288,7 @@ export default function ExistSathyaUsersComponent() {
   )].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
 
   const totalEntries = filteredUsers.length;
+  const notMovedCount = users.filter((user) => !user.is_moved).length;
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentUsers = filteredUsers.slice(indexOfFirstItem, indexOfLastItem);
@@ -450,6 +468,9 @@ export default function ExistSathyaUsersComponent() {
             {showAlert && !isModalOpen && !isImportOpen && (
               <div className="bg-green-500 text-white px-4 py-2 rounded-md mb-4 text-center">{alertMessage}</div>
             )}
+            <div className="bg-red-600 text-white px-4 py-2 rounded-md mb-4 font-semibold">
+              Not moved users: {notMovedCount}
+            </div>
             <div className="flex flex-wrap items-center gap-2 mb-3">
               {selectedIds.length > 0 && (
                 <>
@@ -483,7 +504,7 @@ export default function ExistSathyaUsersComponent() {
               )}
               <span className="ml-auto text-xs text-gray-500 inline-flex items-center gap-1">
                 <span className="inline-block w-3 h-3 rounded-sm" style={{ backgroundColor: "#fff9c4" }} />
-                Light yellow = password is empty
+                Light yellow = password is empty (Move uses first letter + 1234567 + first letter, lowercase)
               </span>
             </div>
             <hr className="border-t border-gray-200 mb-4" />
@@ -538,14 +559,20 @@ export default function ExistSathyaUsersComponent() {
                       </td>
                       <td className="p-2">
                         <div className="flex items-center gap-2 justify-center">
-                          <button
-                            onClick={() => handleMove(user)}
-                            disabled={movingUserId === user._id}
-                            className="px-2 h-7 bg-green-100 text-green-700 rounded-full inline-flex items-center justify-center text-xs font-medium disabled:opacity-50"
-                            title="Move to Users"
-                          >
-                            {movingUserId === user._id ? "Moving..." : "Move"}
-                          </button>
+                          {user.is_moved ? (
+                            <span className="px-2 h-7 bg-gray-100 text-gray-500 rounded-full inline-flex items-center justify-center text-xs font-medium">
+                              Moved
+                            </span>
+                          ) : (
+                            <button
+                              onClick={() => handleMove(user)}
+                              disabled={movingUserId === user._id}
+                              className="px-2 h-7 bg-green-100 text-green-700 rounded-full inline-flex items-center justify-center text-xs font-medium disabled:opacity-50"
+                              title="Move to Users"
+                            >
+                              {movingUserId === user._id ? "Moving..." : "Move"}
+                            </button>
+                          )}
                           <button
                             onClick={() => handleEdit(user)}
                             className="w-7 h-7 bg-red-100 text-red-600 rounded-full inline-flex items-center justify-center"

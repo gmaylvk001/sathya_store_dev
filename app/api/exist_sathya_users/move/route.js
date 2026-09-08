@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import bcrypt from "bcryptjs";
 import dbConnect from "@/lib/db";
 import ExistSathyaUser from "@/models/ExistSathyaUser";
 import User from "@/models/User";
@@ -42,6 +43,13 @@ function buildName(existUser) {
   return String(existUser.phone || "Exist User").trim();
 }
 
+function buildGeneratedPassword(name) {
+  const text = String(name || "").trim().toLowerCase();
+  const letterMatch = text.match(/[a-z]/);
+  const letter = letterMatch ? letterMatch[0] : "u";
+  return `${letter}1234567${letter}`;
+}
+
 export async function POST(req) {
   try {
     await dbConnect();
@@ -60,10 +68,16 @@ export async function POST(req) {
       ? null
       : String(existUser.email).trim().toLowerCase();
     const mobile = normalizeMobile(existUser.phone);
-    const password = toOptionalString(existUser.password);
+    const existingPassword = toOptionalString(existUser.password);
     const name = buildName(existUser);
     const lastName = toOptionalString(existUser.last_name);
     const userType = String(existUser.role_id ?? "").trim() === "1" ? "admin" : "user";
+    const generatedPassword = existingPassword
+      ? null
+      : buildGeneratedPassword(existUser.first_name || name);
+    const password = existingPassword
+      ? existingPassword
+      : await bcrypt.hash(generatedPassword, 10);
 
     if (!email) {
       return NextResponse.json({ error: "Email is required to move this user" }, { status: 400 });
@@ -73,9 +87,6 @@ export async function POST(req) {
     }
     if (!/^\d{10}$/.test(mobile)) {
       return NextResponse.json({ error: "Phone must be a valid 10-digit mobile number" }, { status: 400 });
-    }
-    if (!password) {
-      return NextResponse.json({ error: "Password is required to move this user" }, { status: 400 });
     }
 
     const existingEmail = await User.findOne({ email });
@@ -93,6 +104,7 @@ export async function POST(req) {
     const updatedAt = toValidDate(existUser.updated_at) || now;
 
     const extraFields = {
+      exist_id: toOptionalString(existUser.exist_id),
       store_id: toOptionalString(existUser.store_id),
       last_name: lastName,
       confirmed: existUser.confirmed === undefined || existUser.confirmed === null || existUser.confirmed === ""
@@ -138,11 +150,14 @@ export async function POST(req) {
 
     return NextResponse.json({
       success: true,
-      message: userType === "admin"
-        ? "User moved successfully as admin"
-        : "User moved successfully as user",
+      message: generatedPassword
+        ? `User moved successfully as ${userType}. Generated password: ${generatedPassword}`
+        : userType === "admin"
+          ? "User moved successfully as admin"
+          : "User moved successfully as user",
       user_type: userType,
       userId: created._id,
+      generated_password: generatedPassword,
     }, { status: 201 });
   } catch (error) {
     if (error.code === 11000) {
