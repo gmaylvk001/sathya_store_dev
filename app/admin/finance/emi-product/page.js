@@ -1,10 +1,10 @@
-"use client";
-import EmiProductTable from "../../../../app/admin/components/finance/EmiProductTable";
+import AdminPageShell from "../../components/AdminPageShell";
+import EmiProduct from "../../components/emi-product/EmiProduct";
 
 export default function EmiProductPage() {
   return (
-    <div>
-      <EmiProductTable />
-    </div>
+    <AdminPageShell>
+      <EmiProduct />
+    </AdminPageShell>
   );
 }

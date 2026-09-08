@@ -94,9 +94,13 @@ const OrderSchema = new mongoose.Schema(
     },
     api_status: {
       type: String,
+      required: false,
+      default: null,
     },
     api_reason: {
       type: String,
+      required: false,
+      default: null,
     },
 
     loyalty_points_awarded: { type: Number, default: 0 },
@@ -109,6 +113,36 @@ const OrderSchema = new mongoose.Schema(
     promotion_discount_applied: { type: Number, default: 0 },
     gst_number: { type: String, default: null },
 
+    sales_person_id: { type: String, required: false, default: null },
+    sales_person_role: { type: String, required: false, default: null },
+    order_billingaddress: { type: String, required: false, default: null },
+    type: { type: String, required: false, default: null },
+    user_addbillingid: { type: String, required: false, default: null },
+    pickup_type: { type: String, required: false, default: null },
+    file_path: { type: String, required: false, default: null },
+    invoice: { type: String, required: false, default: null },
+    is_tac: { type: String, required: false, default: null },
+    archive: { type: String, required: false, default: null },
+    referrel_url: { type: String, required: false, default: null },
+    utm_source: { type: String, required: false, default: null },
+    utm_campaign: { type: String, required: false, default: null },
+    coupon_discount: { type: String, required: false, default: null },
+    eo_discount: { type: String, required: false, default: null },
+    coupon_id: { type: String, required: false, default: null },
+    offline_order_date: { type: Date, required: false, default: null },
+    emi_txn_ref_no: { type: String, required: false, default: null },
+    rcu_status: { type: String, required: false, default: null },
+    asset_status: { type: String, required: false, default: null },
+    do_generation_status: { type: String, required: false, default: null },
+    doc_status: { type: String, required: false, default: null },
+    qc_status: { type: String, required: false, default: null },
+    bajajbilling: { type: String, required: false, default: null },
+    schema_request: { type: mongoose.Schema.Types.Mixed, required: false, default: null },
+    bajaj_do_checkout: { type: mongoose.Schema.Types.Mixed, required: false, default: null },
+    netamt: { type: String, required: false, default: null },
+    online_pay_refid: { type: String, required: false, default: null },
+    online_pay_ref_status: { type: String, required: false, default: null },
+    order_owner: { type: String, required: false, default: null },
 
     order_history: [OrderHistorySchema]
   },
@@ -116,5 +150,9 @@ const OrderSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-export default mongoose.models.ecom_order_info || mongoose.model("ecom_order_info", OrderSchema);
+if (mongoose.models.ecom_order_info) {
+  delete mongoose.models.ecom_order_info;
+}
+
+export default mongoose.model("ecom_order_info", OrderSchema);
 

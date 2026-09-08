@@ -1,10 +1,10 @@
-"use client";
-import EmiSchemeTable from "../../../../app/admin/components/finance/EmiSchemeTable";
+import AdminPageShell from "../../components/AdminPageShell";
+import EmiScheme from "../../components/emi-scheme/EmiScheme";
 
 export default function EmiSchemePage() {
   return (
-    <div>
-      <EmiSchemeTable />
-    </div>
+    <AdminPageShell>
+      <EmiScheme />
+    </AdminPageShell>
   );
 }

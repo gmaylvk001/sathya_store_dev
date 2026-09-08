@@ -317,7 +317,10 @@ const Footer = () => {
                 <h3 className="text-sm font-bold tracking-wide uppercase mb-4">
                   Categories
                 </h3>
-                <ul className="space-y-2.5 max-h-[28rem] overflow-y-auto pr-1">
+                <ul 
+                  className="space-y-2.5 max-h-[28rem] overflow-y-auto pr-1 scrollbar-hide"
+                  style={{ WebkitMaskImage: "linear-gradient(to bottom, black 85%, transparent 100%)", maskImage: "linear-gradient(to bottom, black 85%, transparent 100%)" }}
+                >
                   {categoryColumnLinks.length === 0 ? (
                     <li className="text-sm text-gray-500">Loading…</li>
                   ) : (

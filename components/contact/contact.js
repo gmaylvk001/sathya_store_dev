@@ -90,18 +90,6 @@ function ContactForm() {
       });
       const data = await res.json();
       if (res.ok) {
-        const contact = data.data;
-        const fd = new FormData();
-        fd.append("campaign_id", "04024860-c288-405b-9be7-9d111419093d");
-        fd.append("params", JSON.stringify([contact.name, contact.email_address, contact.mobile_number, contact.city, contact.message]));
-        ["arunkarthik@sathya.store", "ecom@sathya.store", "Customercare@sathya.store"].forEach(async (email) => {
-          fd.set("email", email);
-          await fetch("https://bea.eygr.in/api/email/send-msg", {
-            method: "POST",
-            headers: { Authorization: "Bearer 2|DC7TldSOIhrILsnzAf0gzgBizJcpYz23GHHs0Y2L" },
-            body: fd,
-          });
-        });
         setResponseMsg("Message sent successfully!");
         setForm({ name: "", email_address: "", mobile_number: "", city: "", enquiry_type: "", invoice_number: "", message: "", _hp: "" });
         setErrors({}); setTouched({});
@@ -114,8 +102,7 @@ function ContactForm() {
   };
 
   const inp = (hasErr) =>
-    `w-full border rounded px-3 py-[9px] text-[13px] text-gray-700 placeholder-gray-400 focus:outline-none focus:border-[#d72828] transition-colors ${
-      hasErr ? "border-red-400 bg-red-50" : "border-gray-300 bg-white"
+    `w-full border rounded px-3 py-[9px] text-[13px] text-gray-700 placeholder-gray-400 focus:outline-none focus:border-[#d72828] transition-colors ${hasErr ? "border-red-400 bg-red-50" : "border-gray-300 bg-white"
     }`;
 
   return (
@@ -143,7 +130,7 @@ function ContactForm() {
           <label className="block text-[12.5px] font-medium text-gray-700 mb-1">
             Phone <span className="text-red-500">*</span>
           </label>
-          <input type="text" name="mobile_number" value={form.mobile_number} onChange={handleChange} onBlur={handleBlur} placeholder="Enter your phone number" maxLength={10} className={inp("mobile_number" in errors && touched.mobile_number)} />
+          <input type="text" name="mobile_number" value={form.mobile_number} onChange={handleChange} onBlur={handleBlur} placeholder="Enter your phone number" maxLength={10} className={inp(errors.mobile_number && touched.mobile_number)} />
           {errors.mobile_number && touched.mobile_number && <p className="text-red-500 text-[11px] mt-0.5">{errors.mobile_number}</p>}
         </div>
         <div>
@@ -160,15 +147,20 @@ function ContactForm() {
           <label className="block text-[12.5px] font-medium text-gray-700 mb-1">
             Enquiry Type <span className="text-red-500">*</span>
           </label>
-          <select name="enquiry_type" value={form.enquiry_type} onChange={handleChange} onBlur={handleBlur} className={`${inp(errors.enquiry_type && touched.enquiry_type)} appearance-none`}>
-            <option value="">Select enquiry type</option>
-            <option value="Product Inquiry">Product Inquiry</option>
-            <option value="Order Support">Order Support</option>
-            <option value="Service Request">Service Request</option>
-            <option value="EMI / Finance">EMI / Finance</option>
-            <option value="Feedback">Feedback</option>
-            <option value="Other">Other</option>
-          </select>
+          <div className="relative">
+            <select name="enquiry_type" value={form.enquiry_type} onChange={handleChange} onBlur={handleBlur} className={`${inp(errors.enquiry_type && touched.enquiry_type)} appearance-none pr-10 ${!form.enquiry_type ? "text-gray-400" : "text-gray-700"}`}>
+              <option value="" disabled hidden>Select enquiry type</option>
+              <option value="Product Inquiry" className="text-gray-700">Product Inquiry</option>
+              <option value="Order Support" className="text-gray-700">Order Support</option>
+              <option value="Service Request" className="text-gray-700">Service Request</option>
+              <option value="EMI / Finance" className="text-gray-700">EMI / Finance</option>
+              <option value="Feedback" className="text-gray-700">Feedback</option>
+              <option value="Other" className="text-gray-700">Other</option>
+            </select>
+            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-400">
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+            </div>
+          </div>
           {errors.enquiry_type && touched.enquiry_type && <p className="text-red-500 text-[11px] mt-0.5">{errors.enquiry_type}</p>}
         </div>
         <div>
@@ -296,7 +288,7 @@ export default function ContactPage() {
       return;
     }
     const q = searchQuery.toLowerCase();
-const results = stores.filter(
+    const results = stores.filter(
       (s) =>
         s.city?.toLowerCase().includes(q) ||
         s.organisation_name?.toLowerCase().includes(q) ||
@@ -309,186 +301,77 @@ const results = stores.filter(
   return (
     <div className="font-sans bg-white text-gray-900">
 
-{/* ══════════════════════════════════════════════════
-    SECTION 1 — HERO BANNER
-══════════════════════════════════════════════════ */}
-<section className="relative w-full overflow-hidden">
-  {/* In-flow image sets height from asset AR — no crop on large screens */}
-  <img
-    src="/contact/banner1.png"
-    alt="Contact Sathya Stores"
-    className="relative z-0 block w-full h-auto"
-    onError={(e) => { e.target.style.display = "none"; }}
-  />
-  <div
-    className="absolute inset-0 z-[1] pointer-events-none"
-    style={{
-      background:
-        "linear-gradient(to right, rgba(5,13,40,0.97) 0%, rgba(5,13,40,0.93) 20%, rgba(5,13,40,0.72) 42%, rgba(5,13,40,0.28) 62%, rgba(5,13,40,0.06) 78%, transparent 92%)",
-    }}
-  />
-  <div className="absolute inset-0 z-[2] flex items-center px-[clamp(1rem,3vw,2.5rem)] py-[clamp(0.75rem,2vw,1.5rem)]">
-    <div className="ms-0 sm:ms-2 md:ms-4 lg:ms-6 space-y-[clamp(0.65rem,1.8vw,1.25rem)] max-w-5xl w-full">
-      {/* Heading + subtitle */}
-      <div>
-        <h1 className="font-black text-white leading-tight mb-1 sm:mb-1.5 text-[clamp(1.35rem,2.6vw+0.45rem,2.375rem)]">
-          Get in Touch With Sathya Stores
-        </h1>
-        <p className="text-[clamp(0.68rem,0.85vw+0.4rem,0.8125rem)] text-white leading-snug max-w-full sm:max-w-[min(300px,85vw)] md:max-w-[min(360px,70vw)] lg:max-w-[380px]">
-          We&apos;re here to help you with any queries, support,
-          or feedback. Reach out to us, we&apos;d love to hear from you!
-        </p>
-      </div>
-
-      {/* Contact chips */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[clamp(0.5rem,1.2vw,1.25rem)] w-full sm:max-w-[min(42rem,95vw)] lg:max-w-5xl">
-
-      {/* Call Us */}
-      <a href="tel:9842344323" className="flex items-center gap-[clamp(0.4rem,0.8vw,0.65rem)] no-underline min-w-0">
-        <div className="rounded-full border border-white/30 flex items-center justify-center flex-shrink-0 w-[clamp(1.65rem,1.4vw+1rem,2.1rem)] h-[clamp(1.65rem,1.4vw+1rem,2.1rem)]">
-          <svg className="w-[clamp(0.7rem,0.5vw+0.55rem,0.9rem)] h-[clamp(0.7rem,0.5vw+0.55rem,0.9rem)]" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.85)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.57 3.54 2 2 0 0 1 3.54 1.35h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.9a16 16 0 0 0 5.86 5.86l.88-.88a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21.99 17z"/>
-          </svg>
-        </div>
-        <div className="min-w-0">
-          <div className="text-[clamp(0.6rem,0.55vw+0.42rem,0.72rem)] text-white font-medium leading-none mb-0.5">Call Us</div>
-          <div className="text-[clamp(0.72rem,0.7vw+0.45rem,0.9rem)] text-white font-bold leading-tight">98423 44323</div>
-          <div className="text-[clamp(0.62rem,0.55vw+0.4rem,0.82rem)] text-white leading-tight mt-0.5">10:00 AM – 9:00 PM</div>
-        </div>
-      </a>
-
-      {/* Email Us */}
-      <a href="mailto:customercare@sathya.store" className="flex items-center gap-[clamp(0.4rem,0.8vw,0.65rem)] no-underline min-w-0 sm:border-l sm:border-white/15 sm:pl-[clamp(0.5rem,1vw,1rem)]">
-        <div className="rounded-full border border-white/30 flex items-center justify-center flex-shrink-0 w-[clamp(1.65rem,1.4vw+1rem,2.1rem)] h-[clamp(1.65rem,1.4vw+1rem,2.1rem)]">
-          <svg className="w-[clamp(0.7rem,0.5vw+0.55rem,0.9rem)] h-[clamp(0.7rem,0.5vw+0.55rem,0.9rem)]" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.85)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
-            <polyline points="22,6 12,13 2,6"/>
-          </svg>
-        </div>
-        <div className="min-w-0">
-          <div className="text-[clamp(0.6rem,0.55vw+0.42rem,0.72rem)] text-white font-medium leading-none mb-0.5">Email Us</div>
-          <div className="text-[clamp(0.72rem,0.7vw+0.45rem,0.9rem)] text-white font-bold leading-tight break-all">customercare@</div>
-          <div className="text-[clamp(0.62rem,0.55vw+0.4rem,0.82rem)] text-white leading-tight mt-0.5 break-all">sathya.store</div>
-        </div>
-      </a>
-
-      {/* Video Demo Call */}
-      <button
-        type="button"
-        onClick={openLiveDemoModal}
-        className="flex items-center gap-[clamp(0.4rem,0.8vw,0.65rem)] min-w-0 sm:border-l sm:border-white/15 sm:pl-[clamp(0.5rem,1vw,1rem)] bg-transparent border-0 p-0 cursor-pointer text-left"
-      >
-        <div className="rounded-full border border-white/30 flex items-center justify-center flex-shrink-0 w-[clamp(1.65rem,1.4vw+1rem,2.1rem)] h-[clamp(1.65rem,1.4vw+1rem,2.1rem)]">
-          <svg className="w-[clamp(0.7rem,0.5vw+0.55rem,0.9rem)] h-[clamp(0.7rem,0.5vw+0.55rem,0.9rem)]" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.85)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M23 7l-7 5 7 5V7z"/>
-            <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
-          </svg>
-        </div>
-        <div className="min-w-0">
-          <div className="text-[clamp(0.6rem,0.55vw+0.42rem,0.72rem)] text-white font-medium leading-none mb-0.5">Video Call</div>
-          <div className="text-[clamp(0.72rem,0.7vw+0.45rem,0.9rem)] text-white font-bold leading-tight">Sathya Stores Live Demo</div>
-          <div className="text-[clamp(0.62rem,0.55vw+0.4rem,0.82rem)] text-white leading-tight mt-0.5">Demo Video Call</div>
-        </div>
-      </button>
-
-      {/* Stores */}
-      <Link href="/location" className="flex items-center gap-[clamp(0.4rem,0.8vw,0.65rem)] no-underline min-w-0 sm:border-l sm:border-white/15 sm:pl-[clamp(0.5rem,1vw,1rem)]">
-        <div className="rounded-full border border-white/30 flex items-center justify-center flex-shrink-0 w-[clamp(1.65rem,1.4vw+1rem,2.1rem)] h-[clamp(1.65rem,1.4vw+1rem,2.1rem)]">
-          <svg className="w-[clamp(0.7rem,0.5vw+0.55rem,0.9rem)] h-[clamp(0.7rem,0.5vw+0.55rem,0.9rem)]" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.85)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-            <polyline points="9 22 9 12 15 12 15 22"/>
-          </svg>
-        </div>
-        <div className="min-w-0">
-          <div className="text-[clamp(0.6rem,0.55vw+0.42rem,0.72rem)] text-white font-medium leading-none mb-0.5">
-            {totalStores > 0 ? `${totalStores}+` : "47+"} Stores
-          </div>
-          <div className="text-[clamp(0.72rem,0.7vw+0.45rem,0.9rem)] text-white font-bold leading-tight">Across Tamil Nadu</div>
-          <div className="text-[clamp(0.62rem,0.55vw+0.4rem,0.82rem)] text-white leading-tight mt-0.5 underline">
-            Find Nearest Store →
-          </div>
-        </div>
-      </Link>
-
-      </div>
-    </div>
-  </div>
-</section>
+      {/* ══════════════════════════════════════════════════
+          SECTION 1 — BANNER IMAGE
+      ══════════════════════════════════════════════════ */}
+      <section className="w-full">
+        {/* Banner Image */}
+        <img src="/uploads/frontend_images/sathya_contact.png" alt="Sathya Store" className="w-full h-auto max-h-[500px] object-cover" />
+      </section>
 
       {/* ══════════════════════════════════════════════════
           SECTION 2 — 3 SUPPORT CARDS
       ══════════════════════════════════════════════════ */}
       <section className="w-full max-w-full sm:max-w-[720px] md:max-w-[960px] lg:max-w-[1320px] xl:max-w-[1520px] 2xl:max-w-[1680px] mx-auto px-0 sm:px-3 md:px-6 lg:px-8 mt-6 md:mt-8">
-        <div className="max-w-12xl mx-auto px-4 md:px-6 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
+        <div className="max-w-12xl mx-auto px-4 md:px-6 grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
 
-          {/* Talk to Experts */}
-          <div className="border border-gray-200 rounded-xl p-3 sm:p-4 flex items-start gap-2.5 sm:gap-3">
-            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[#d72828] flex items-center justify-center flex-shrink-0">
-              <FaPhoneAlt className="text-white text-[15px] sm:text-[17px]" />
+          {/* Email Card */}
+          <div className="border border-gray-200 rounded-xl p-5 flex flex-col items-center justify-center text-center gap-3 hover:shadow-lg transition-shadow">
+            <div className="w-14 h-14 rounded-full bg-[#d72828] flex items-center justify-center flex-shrink-0">
+              <FaEnvelope className="text-white text-[22px]" />
             </div>
             <div>
-              <div className="text-[14px] font-bold text-gray-900 mb-1.5">Talk to Our Experts</div>
-              <p className="text-[12px] text-gray-500 leading-relaxed mb-2">
-                Our support team is ready to assist you with your product, orders or general enquiries.
-              </p>
-              <a href="tel:9842344323" className="text-[#d72828] font-bold text-[13px] block hover:underline">
-                ☎ 98423 44323
-              </a>
-              <div className="text-[11px] text-gray-400 mt-0.5">Mon to Sun: 10:00 AM – 9:00 PM</div>
-            </div>
-          </div>
-
-          {/* Email Support */}
-          <div className="border border-gray-200 rounded-xl p-3 sm:p-4 flex items-start gap-2.5 sm:gap-3">
-            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[#d72828] flex items-center justify-center flex-shrink-0">
-              <FaEnvelope className="text-white text-[15px] sm:text-[17px]" />
-            </div>
-            <div>
-              <div className="text-[14px] font-bold text-gray-900 mb-1.5">Email Support</div>
-              <p className="text-[12px] text-gray-500 leading-relaxed mb-2">
+              <div className="text-[16px] font-bold text-gray-900 mb-2">Email Support</div>
+              <p className="text-[13px] text-gray-500 leading-relaxed mb-3">
                 Drop us an email. We typically respond within 24 hours.
               </p>
-              <a href="mailto:customercare@sathya.store" className="text-[#d72828] font-bold text-[12px] hover:underline break-all">
-                customercare@<br/>sathya.store
+              <a href="mailto:info@sathya.store" className="text-[#d72828] font-bold text-[14px] hover:underline">
+                info@sathya.store
               </a>
             </div>
           </div>
 
-          {/* Sathya Stores Live Video Demo */}
-          <button
-            type="button"
-            onClick={openLiveDemoModal}
-            className="border border-[#c4b5fd] rounded-xl p-3 sm:p-4 flex items-start gap-2.5 sm:gap-3 bg-[#f5f3ff] hover:bg-[#ede9fe] transition-colors text-left w-full"
-          >
-            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[#5B4CF5] flex items-center justify-center flex-shrink-0">
-              <FaVideo className="text-white text-[15px] sm:text-[17px]" />
+          {/* Location Card */}
+          <div className="border border-gray-200 rounded-xl p-5 flex flex-col items-center justify-center text-center gap-3 hover:shadow-lg transition-shadow">
+            <div className="w-14 h-14 rounded-full bg-[#d72828] flex items-center justify-center flex-shrink-0">
+              <FaMapMarkerAlt className="text-white text-[22px]" />
             </div>
             <div>
-              <div className="text-[14px] font-bold text-[#5B4CF5] mb-1.5">Sathya Stores Live Video Demo</div>
-              <p className="text-[12px] text-gray-500 leading-relaxed mb-2">
-                See products live on a video call. Compare models and ask our experts anything.
+              <div className="text-[16px] font-bold text-gray-900 mb-2">Store Locations</div>
+              <p className="text-[13px] text-gray-500 leading-relaxed mb-3">
+                {totalStores > 0 ? totalStores : "427"} showrooms across Tamil Nadu. Find the one near you.
               </p>
-              <span className="text-[#5B4CF5] font-bold text-[13px] inline-flex items-center gap-1">
-                Demo Video Call <FaArrowRight size={11} />
-              </span>
-            </div>
-          </button>
-
-          {/* Visit Our Stores */}
-          <div className="border border-gray-200 rounded-xl p-3 sm:p-4 flex items-start gap-2.5 sm:gap-3">
-            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[#d72828] flex items-center justify-center flex-shrink-0">
-              <FaStore className="text-white text-[15px] sm:text-[17px]" />
-            </div>
-            <div>
-              <div className="text-[14px] font-bold text-gray-900 mb-1.5">Visit Our Stores</div>
-              <p className="text-[12px] text-gray-500 leading-relaxed mb-2">
-                {totalStores > 0 ? `${totalStores}+` : "47+"} showrooms across Tamil Nadu. Find the one near you.
-              </p>
-              <Link href="/location" className="text-[#d72828] font-bold text-[13px] hover:underline inline-flex items-center gap-1">
-                Store Locator <FaArrowRight size={11} />
+              <Link href="/location" className="text-[#d72828] font-bold text-[14px] hover:underline inline-flex items-center gap-1.5">
+                Store Locator <FaArrowRight size={12} />
               </Link>
             </div>
           </div>
+
+          {/* Address Card */}
+          <div className="border border-gray-200 rounded-xl p-5 flex flex-col items-center justify-center text-center gap-3 hover:shadow-lg transition-shadow">
+            <div className="w-14 h-14 rounded-full bg-[#d72828] flex items-center justify-center flex-shrink-0">
+              <FaStore className="text-white text-[22px]" />
+            </div>
+            <div className="w-full flex flex-col h-full">
+              <div className="text-[16px] font-bold text-gray-900 mb-3 text-center">Our Offices</div>
+              <div className="text-[12px] text-gray-500 leading-relaxed mb-4 space-y-3 text-left">
+                <div>
+                  <strong className="text-gray-700 block mb-0.5">Corporate Office</strong>
+                  Plot No. 178, Kumaran Colony Main Road, Vadapalani, Chennai - 600 026, Tamil Nadu, India
+                </div>
+                <div>
+                  <strong className="text-gray-700 block mb-0.5">Registered Office</strong>
+                  No.2/174/4 & 2/174/5, Palayamkottai Main Road, NH-7A, Maravanmadam, Tuticorin - 628 101, Tamil Nadu, India
+                </div>
+              </div>
+              <div className="text-center mt-auto pt-2">
+                <a href="tel:9842344323" className="text-[#d72828] font-bold text-[14px] hover:underline">
+                  ☎ 98423 44323
+                </a>
+              </div>
+            </div>
+          </div>
+
         </div>
       </section>
 
@@ -496,7 +379,7 @@ const results = stores.filter(
           SECTION 3 — FORM (left) + MAP (right)
       ══════════════════════════════════════════════════ */}
       <section className="w-full max-w-full sm:max-w-[720px] md:max-w-[960px] lg:max-w-[1320px] xl:max-w-[1520px] 2xl:max-w-[1680px] mx-auto px-0 sm:px-3 md:px-6 lg:px-8 mt-8 md:mt-10">
-        <div className="max-w-12xl mx-auto px-4 md:px-6 grid grid-cols-1 lg:grid-cols-[1fr_1fr] gap-6 lg:gap-8 items-start">
+        <div className="max-w-12xl mx-auto px-4 md:px-6 grid grid-cols-1 lg:grid-cols-[1fr_1fr] gap-6 lg:gap-8 items-start pb-12">
 
           {/* Left — Form */}
           <div>
@@ -507,119 +390,27 @@ const results = stores.filter(
             <ContactForm />
           </div>
 
-          {/* Right — Map + Corporate */}
-          <div>
-            <h2 className="text-base sm:text-[17px] font-bold text-gray-900 mb-4">Our Corporate Office</h2>
+          {/* Right — Map Only */}
+          <div className="h-full flex flex-col">
+            <h2 className="text-base sm:text-[17px] font-bold text-gray-900 mb-4">Our Location</h2>
             {/* Map */}
-            <div className="rounded-xl overflow-hidden border border-gray-200 mb-4 h-[220px] sm:h-[260px] md:h-[280px]">
+            <div className="rounded-xl overflow-hidden border border-gray-200 h-full min-h-[400px]">
               <iframe
-                title="Sathya Stores Corporate Office"
+                title="Sathya Stores Location Map"
                 width="100%"
                 height="100%"
                 frameBorder="0"
                 style={{ border: 0 }}
                 referrerPolicy="no-referrer-when-downgrade"
-                src="https://maps.google.com/maps?q=Sathya+Stores&output=embed"
+                src="https://maps.google.com/maps?q=Sathya+Stores+Corporate+Office,+Chennai&output=embed"
                 allowFullScreen
               />
             </div>
-            {/* Address */}
-            <div className="space-y-2.5">
-              <div className="flex items-start gap-2.5">
-                <FaMapMarkerAlt size={13} className="text-gray-600 mt-0.5 flex-shrink-0" />
-                <p className="text-[12.5px] text-gray-600 leading-relaxed">
-                  26/1 Dr. Alagappa Chettiiyar Rd, Tatabad, Near Koval Scan Centre,
-                  Coimbatore – 641012, Tamil Nadu
-                </p>
-              </div>
-              <div className="flex items-center gap-2.5">
-                <FaPhoneAlt size={12} className="text-gray-600 flex-shrink-0" />
-                <a href="tel:9842344323" className="text-[12.5px] text-gray-700 hover:text-[#d72828]">
-                  98423 44323
-                </a>
-              </div>
-              <div className="flex items-center gap-2.5">
-                <FaEnvelope size={12} className="text-gray-600 flex-shrink-0" />
-                <a href="mailto:customercare@sathya.store" className="text-[12.5px] text-[#d72828] hover:underline">
-                  customercare@sathya.store
-                </a>
-              </div>
-            </div>
           </div>
 
         </div>
       </section>
 
-      {/* ══════════════════════════════════════════════════
-          SECTION 4 — FIND NEAREST STORE
-      ══════════════════════════════════════════════════ */}
-      <section className="w-full max-w-full sm:max-w-[720px] md:max-w-[960px] lg:max-w-[1320px] xl:max-w-[1520px] 2xl:max-w-[1680px] mx-auto px-4 md:px-6 lg:px-8 mt-8 md:mt-10 py-8 md:py-10">
-        <div className="max-w-12xl mx-auto px-4 md:px-6">
-
-          <h2 className="text-center text-lg sm:text-[22px] font-bold text-gray-900 mb-1 px-2">
-            Find Your Nearest Store
-          </h2>
-          <p className="text-center text-[12px] sm:text-[13px] text-gray-500 mb-6 px-2">
-            Search by city or pincode to locate a Sathya Stores showroom near you.
-          </p>
-
-          {/* Search bar */}
-          <div className="flex flex-col sm:flex-row max-w-xl mx-auto mb-8 gap-2 sm:gap-0 rounded-lg overflow-hidden border border-gray-300">
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-              placeholder="Enter city name or pincode"
-              className="flex-1 w-full px-4 py-2.5 text-[13px] sm:text-[13.5px] text-gray-700 placeholder-gray-400 focus:outline-none bg-white"
-            />
-            <button
-              onClick={handleSearch}
-              className="w-full sm:w-auto bg-[#d72828] hover:bg-[#d72828] text-white px-6 py-2.5 text-[13px] sm:text-[13.5px] font-semibold flex items-center justify-center gap-2 transition-colors flex-shrink-0"
-            >
-              <FaSearch size={13} />
-              Search
-            </button>
-          </div>
-
-          {/* Store cards — horizontal scroll */}
-          {filteredStores.length > 0 ? (
-            <>
-              <style>{`
-                .contact-store-track::-webkit-scrollbar { display: none; }
-                .contact-store-track { -ms-overflow-style: none; scrollbar-width: none; }
-              `}</style>
-              <div
-               className="contact-store-track flex gap-3 sm:gap-4 overflow-x-auto pb-2 mb-6 justify-start sm:justify-center px-1 sm:px-0"
-                style={{ scrollSnapType: "x mandatory" }}
-              >
-                {filteredStores.map((store) => (
-                  <div
-                    key={store._id}
-                    className="flex-shrink-0 w-[78vw] max-w-[200px] sm:w-[200px]"
-                    style={{ scrollSnapAlign: "start" }}
-                  >
-                    <StoreCard store={store} />
-                  </div>
-                ))}
-                {/* Arrow indicator — right edge hint */}
-                
-              </div>
-
-              {/* View All Stores */}
-              <div className="text-center mt-2">
-                <Link href="/location">
-                  <button className="inline-flex items-center justify-center gap-2 border border-[#d72828] text-[#d72828] hover:bg-red-50 rounded-lg px-5 sm:px-8 py-2.5 text-[13px] sm:text-[14px] font-bold transition-colors w-full sm:w-auto max-w-xs sm:max-w-none">
-                    View All Stores ({totalStores > 0 ? `${totalStores}+` : "47+"}) <FaArrowRight size={13} />
-                  </button>
-                </Link>
-              </div>
-            </>
-          ) : (
-            <div className="text-center py-10 text-gray-400 text-[13px]">No stores found.</div>
-          )}
-        </div>
-      </section>
 
     </div>
   );

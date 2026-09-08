@@ -8,15 +8,17 @@ import { normalizeOfferStates } from "@/lib/offerTimer";
 async function saveUpload(file, prefix) {
   if (!file || typeof file === "string" || !file.size) return null;
 
-  const uploadDir = path.join(process.cwd(), "public/uploads/OfferTimers");
+  const uploadDir = path.join(process.cwd(), "public", "uploads", "topbanner");
   await mkdir(uploadDir, { recursive: true });
 
   const buffer = Buffer.from(await file.arrayBuffer());
-  const ext = path.extname(file.name || "") || ".img";
-  const filename = `${prefix}-${Date.now()}${ext}`;
+  const ext = path.extname(file.name || "") || ".png";
+  const cleanName = path.basename(file.name || "image", ext).replace(/\s+/g, "_");
+  const filename = `${prefix}-${Date.now()}-${cleanName}${ext}`;
   await writeFile(path.join(uploadDir, filename), buffer);
-  return filename;
+  return `/uploads/topbanner/${filename}`;
 }
+
 
 export async function POST(req) {
   try {
@@ -56,16 +58,24 @@ export async function POST(req) {
 
     const timer = await OfferTimer.create({
       timerId,
+      custom_id: timerId,
       offerTitle,
+      offer_title: offerTitle,
       startDate: start,
+      offer_start: start,
       endDate: end,
+      offer_end: end,
       state: states.state,
       offerViewStates: states.offerViewStates,
+      states: states.offerViewStates,
       timerDisplayStatus,
+      status: timerDisplayStatus === "Yes" ? "active" : "inactive",
       offerHeading,
       offerDescription,
       topBanner,
+      top_banner_url: topBanner,
       dealsPopupImage,
+      popup_image_url: dealsPopupImage || null,
     });
 
     return NextResponse.json({ success: true, message: "Offer timer added successfully", data: timer }, { status: 201 });

@@ -510,3 +510,17 @@ body::-webkit-scrollbar {
 .admin-layout .text-xs {
   font-size: 0.75rem;
 }
+/* Custom Dark Scrollbar */
+.dark-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+.dark-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.dark-scrollbar::-webkit-scrollbar-thumb {
+  background: #4a4a4a;
+  border-radius: 10px;
+}
+.dark-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #6a6a6a;
+}

@@ -151,13 +151,13 @@ export default function HomePageBuilder() {
   const renderConfigForm = () => {
     if (!configType) {
       return (
-        <div className="py-16 text-center text-sm text-gray-500">
+        <div className="py-8 text-center text-sm text-gray-500">
           Select a component screenshot on the left to configure inputs.
           <div className="mt-4 text-xs text-gray-400">
             On this page: {components.length} component instance(s)
           </div>
           {components.length > 0 && (
-            <ul className="mt-4 space-y-1 text-left max-w-md mx-auto">
+            <ul className="mt-6 space-y-2 text-left w-full">
               {[...components]
                 .sort((a, b) => a.order - b.order)
                 .map((c) => (

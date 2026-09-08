@@ -32,6 +32,7 @@ const menuItems = [
       { icon: 'mdi:cancel', label: 'Cancel Order', link: 'order/cancel-order', dotColor: 'bg-[#d72828]' },
       { icon: 'mdi:truck-delivery-outline', label: 'Shipped Order', link: 'shippedorder', dotColor: 'bg-green-500' },
       { icon: 'mdi:clipboard-list-outline', label: 'Sathya Exist Orders', link: 'sathya-exist-orders', dotColor: 'bg-yellow-500' },
+      { icon: 'mdi:clipboard-list-outline', label: 'Sathya Exist Orders Details', link: 'sathya-exist-orders-details', dotColor: 'bg-yellow-500' },
     ]
   },
   { icon: 'mdi:note-text-outline', label: 'Blog', link: 'blog' },
@@ -55,7 +56,8 @@ const menuItems = [
       { icon: 'mdi:account-tie-outline', label: 'System_Users', link: 'system_users', dotColor: 'bg-yellow-500' },
       { icon: 'mdi:shield-key-outline', label: 'Permissions', link: 'permissions', dotColor: 'bg-purple-500' },
       { icon: 'mdi:account-group-outline', label: 'Roles', link: 'roles', dotColor: 'bg-blue-500' },
-      { icon: 'mdi:account-group-outline', label: 'Sathya Exist Users', link: 'exist_sathya_users', dotColor: 'bg-blue-500' }
+      { icon: 'mdi:account-group-outline', label: 'Sathya Exist Users', link: 'exist_sathya_users', dotColor: 'bg-blue-500' },
+      { icon: 'mdi:card-account-details-outline', label: 'Sathya Exist User Details', link: 'exist_sathya_user_details', dotColor: 'bg-blue-500' },
     ]
   },
   {
