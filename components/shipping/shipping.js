@@ -126,7 +126,7 @@ const ShippingPolicy = () => {
             <span>🏠</span> Home
           </Link>
           <span>›</span>
-          <Link href="/privacypolicy" className="hover:text-[#d72828]">
+          <Link href="/privacy-policy" className="hover:text-[#d72828]">
             Policies
           </Link>
           <span>›</span>

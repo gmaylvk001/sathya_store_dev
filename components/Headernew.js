@@ -2075,7 +2075,7 @@ const Header = () => {
                 <span className={`text-[10px] ${HEADER_ACTION_LABEL_CLASS}`}>Contact</span>
               </Link>
 
-              <Link href="/location" className={`${HEADER_ACTION_LINK_CLASS} hidden sm:flex min-w-[52px]`}>
+              <Link href="/all/stores" className={`${HEADER_ACTION_LINK_CLASS} hidden sm:flex min-w-[52px]`}>
                 <div className={HEADER_ACTION_ICON_WRAP_CLASS}>
                   <HiOutlineBuildingStorefront size={18} strokeWidth={1.75} />
                 </div>
@@ -2174,7 +2174,7 @@ const Header = () => {
                   <span className="text-[11px] font-semibold">Contact</span>
                 </Link>
                 <Link
-                  href="/location"
+                  href="/all/stores"
                   onClick={() => setIsMobileMenuOpen(false)}
                   className="flex flex-col items-center justify-center gap-1.5 rounded-xl border border-[#ED1C24]/20 bg-gradient-to-b from-[#fffdf5] to-white px-2 py-3 text-[#ED1C24] shadow-sm"
                 >

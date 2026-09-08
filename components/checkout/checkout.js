@@ -1226,7 +1226,7 @@ const sellingPrice = mrpTotal - itemDiscountTotal;
 
             {/* Policy links */}
             <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-red-600 mb-6">
-              {[['Privacy Policy', '/privacypolicy'], ['Terms & Conditions', '/terms-and-condition'], ['Shipping Policy', '/shipping'], ['Cancellation & Refund Policy', '/cancellation-refund-policy']].map(([label, href]) => (
+              {[['Privacy Policy', '/privacy-policy'], ['Terms & Conditions', '/terms-and-conditions'], ['Shipping Policy', '/shipping'], ['Cancellation & Refund Policy', '/cancellation-policy']].map(([label, href]) => (
                 <a key={href} href={href} target="_blank" rel="noopener noreferrer" className="underline hover:text-red-800">{label}</a>
               ))}
             </div>

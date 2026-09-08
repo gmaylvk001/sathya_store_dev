@@ -18,13 +18,13 @@ const FOOTER_BG = "#1a1a1a";
 
 const ABOUT_LINKS = [
   { label: "Home", href: "/" },
-  { label: "About Us", href: "/aboutus" },
+  { label: "About Us", href: "/about" },
   { label: "Store Locator", href: "/location" },
   { label: "Contact Us", href: "/contact" },
-  { label: "Privacy Policy", href: "/privacypolicy" },
-  { label: "Cancellation Policy", href: "/cancellation-refund-policy" },
-  { label: "Terms & Conditions", href: "/terms-and-condition" },
-  { label: "Help/FAQ", href: "/feedback" },
+  { label: "Privacy Policy", href: "/privacy-policy" },
+  { label: "Cancellation Policy", href: "/cancellation-policy" },
+  { label: "Terms & Conditions", href: "/terms-and-conditions" },
+  { label: "Help/FAQ", href: "/faq" },
   { label: "Sitemap", href: "/sitemap.xml" },
   { label: "Blogs", href: "/blog" },
 ];

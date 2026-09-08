@@ -1256,7 +1256,7 @@ const fetchBrand = async () => {
                   {/* Modal Footer */}
                   <div className="mt-6 flex justify-end border-t pt-3">
                     <a
-                      href="/cancellation-refund-policy"
+                      href="/cancellation-policy"
                       className="text-sm text-[#d72828] font-medium hover:underline"
                     >
                       Know More
@@ -1289,7 +1289,7 @@ const fetchBrand = async () => {
                   {/* Modal Footer */}
                   <div className="mt-6 flex justify-end border-t pt-3">
                     <a
-                      href="/privacypolicy"
+                      href="/privacy-policy"
                       className="text-sm text-[#d72828] font-medium hover:underline"
                     >
                       Know More

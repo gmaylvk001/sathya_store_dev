@@ -64,13 +64,13 @@ export async function GET() {
       "",
       "/location",
       "/contact",
-      "/privacypolicy",
-      "/terms-and-condition",
-      "/cancellation-refund-policy",
+      "/privacy-policy",
+      "/terms-and-conditions",
+      "/cancellation-policy",
       "/shipping",
-      "/aboutus",
+      "/about",
       "/blog",
-      "/feedback",
+      "/faq",
       "/careers",
     ];
 

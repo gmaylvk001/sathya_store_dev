@@ -219,7 +219,7 @@ const CancellationrefundComponent = () => {
             Home
           </Link>
           <span>›</span>
-          <Link href="/privacypolicy" className="hover:text-customBlue">
+          <Link href="/privacy-policy" className="hover:text-customBlue">
             Policies
           </Link>
           <span>›</span>
