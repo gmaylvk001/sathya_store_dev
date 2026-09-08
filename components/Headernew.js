@@ -311,14 +311,23 @@ const Header = () => {
               if (setActiveTopBanner) setActiveTopBanner(banner);
 
               if (timerExpiryTimeout) clearTimeout(timerExpiryTimeout);
+              // Max delay for 32-bit signed int in setTimeout is 2147483647 ms (~24.8 days).
+              // Any delay > 2147483647 overflows in V8/browsers to negative and fires immediately.
+              const MAX_TIMEOUT_MS = 2147483647;
+              const delay = Math.min(remainingMs, MAX_TIMEOUT_MS);
               timerExpiryTimeout = setTimeout(() => {
                 if (isMounted) {
-                  setHeaderOfferTimer(null);
-                  setHeaderTopBanner(null);
-                  if (setActiveOfferTimer) setActiveOfferTimer(null);
-                  if (setActiveTopBanner) setActiveTopBanner(null);
+                  const currentRemaining = (endDate ? new Date(endDate).getTime() : 0) - Date.now();
+                  if (currentRemaining <= 0) {
+                    setHeaderOfferTimer(null);
+                    setHeaderTopBanner(null);
+                    if (setActiveOfferTimer) setActiveOfferTimer(null);
+                    if (setActiveTopBanner) setActiveTopBanner(null);
+                  } else {
+                    fetchBanners();
+                  }
                 }
-              }, remainingMs);
+              }, delay);
             } else {
               setHeaderOfferTimer(null);
               setHeaderTopBanner(null);
