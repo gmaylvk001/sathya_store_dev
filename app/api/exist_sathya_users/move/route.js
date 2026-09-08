@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import dbConnect from "@/lib/db";
 import ExistSathyaUser from "@/models/ExistSathyaUser";
-import ExistSathyaUserDetail from "@/models/ExistSathyaUserDetail";
 import User from "@/models/User";
+import { mapUserDetailsToLiveUser } from "@/lib/existUserDetailsMap";
 
 function toOptionalString(value) {
   if (value === undefined || value === null) {
@@ -49,32 +49,6 @@ function buildGeneratedPassword(name) {
   const letterMatch = text.match(/[a-z]/);
   const letter = letterMatch ? letterMatch[0] : "u";
   return `${letter}1234567${letter}`;
-}
-
-function userIdMatchValues(value) {
-  const text = String(value ?? "").trim();
-  if (!text) return [];
-  const values = new Set([text]);
-  if (/^\d+(\.0+)?$/.test(text)) {
-    const n = Math.trunc(Number(text));
-    values.add(String(n));
-    values.add(`${n}.0`);
-    values.add(n);
-  }
-  return [...values];
-}
-
-async function mapUserDetailsToLiveUser(existId, liveUserId) {
-  const matchValues = userIdMatchValues(existId);
-  if (!matchValues.length) {
-    return 0;
-  }
-
-  const result = await ExistSathyaUserDetail.updateMany(
-    { user_id: { $in: matchValues } },
-    { $set: { live_user_id: String(liveUserId) } }
-  );
-  return result.modifiedCount || 0;
 }
 
 export async function POST(req) {
@@ -175,10 +149,11 @@ export async function POST(req) {
       }
     );
 
-    const mappedDetailsCount = await mapUserDetailsToLiveUser(
+    const mappedResult = await mapUserDetailsToLiveUser(
       existUser.exist_id,
       created._id
     );
+    const mappedDetailsCount = mappedResult.matchedCount || mappedResult.modifiedCount || 0;
 
     const typeLabel = userType === "admin" ? "admin" : "user";
     const mappedLabel = mappedDetailsCount

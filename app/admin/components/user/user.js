@@ -30,6 +30,7 @@ export default function UserComponent() {
   const [currentUserId, setCurrentUserId] = useState(null);
   const [selectedIds, setSelectedIds] = useState([]);
   const [isBulkDeleting, setIsBulkDeleting] = useState(false);
+  const [fetchingUserId, setFetchingUserId] = useState(null);
 
   useEffect(() => {
     fetchUsers();
@@ -71,6 +72,24 @@ export default function UserComponent() {
     setSelectedIds((prev) =>
       prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
     );
+  };
+
+  const handleFetchDetails = async (user) => {
+    if (!user?._id) return;
+    setFetchingUserId(user._id);
+    try {
+      const response = await axios.post("/api/users/fetch-details", { userId: user._id });
+      setAlertMessage(`✅ ${response.data.message || "User details fetched successfully"}`);
+      setShowAlert(true);
+      setTimeout(() => setShowAlert(false), 3000);
+      fetchUsers();
+    } catch (error) {
+      setAlertMessage(error.response?.data?.error || "❌ Failed to fetch user details");
+      setShowAlert(true);
+      setTimeout(() => setShowAlert(false), 4000);
+    } finally {
+      setFetchingUserId(null);
+    }
   };
 
   const handleSetStatus = async (user, status) => {
@@ -486,6 +505,7 @@ export default function UserComponent() {
                   <th className="p-2">Notify Status</th>
                   <th className="p-2">Created At</th>
                   <th className="p-2">Updated At</th>
+                  <th className="p-2">User Details</th>
                   <th className="p-2">Action</th>
                 </tr>
               </thead>
@@ -519,6 +539,29 @@ export default function UserComponent() {
                       </td>
                       <td className="p-2">
                         {user.updatedAt ? new Date(user.updatedAt).toLocaleDateString() : '-'}
+                      </td>
+                      <td className="p-2">
+                        {user.details_fetched ? (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            Success
+                          </span>
+                        ) : (
+                          <div className="inline-flex items-center gap-1 justify-center">
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                              Un fetched
+                            </span>
+                            {String(user.exist_id || "").trim() ? (
+                              <button
+                                onClick={() => handleFetchDetails(user)}
+                                disabled={fetchingUserId === user._id}
+                                className="px-2 h-6 bg-blue-100 text-blue-700 rounded-full text-xs font-medium disabled:opacity-50"
+                                title="Fetch user details"
+                              >
+                                {fetchingUserId === user._id ? "Fetching..." : "Fetch"}
+                              </button>
+                            ) : null}
+                          </div>
+                        )}
                       </td>
                       <td className="p-2">
                         <div className="flex items-center gap-2 justify-center">
@@ -559,7 +602,7 @@ export default function UserComponent() {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="11" className="p-2 text-center text-gray-500">No users found.</td>
+                    <td colSpan="13" className="p-2 text-center text-gray-500">No users found.</td>
                   </tr>
                 )}
               </tbody>
