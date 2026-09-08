@@ -253,7 +253,7 @@ export default function BlogListingPage() {
                 >
                   {/* Thumbnail */}
                   <Link
-                    href={`/blog/${slug}`}
+                    href={`/blog-listing/${slug}`}
                     className="relative block aspect-[16/10] overflow-hidden bg-gray-100"
                   >
                     {blog.image ? (
@@ -295,7 +295,7 @@ export default function BlogListingPage() {
                       </div>
 
                       {/* Title */}
-                      <Link href={`/blog/${slug}`}>
+                      <Link href={`/blog-listing/${slug}`}>
                         <h2 className="text-base sm:text-lg font-bold text-gray-900 leading-snug group-hover:text-[#d72828] transition-colors line-clamp-2 mb-2">
                           {blog.blog_name}
                         </h2>
