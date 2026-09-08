@@ -1,5 +1,5 @@
 import AdminPageShell from "../../components/AdminPageShell";
-import EmiProduct from "../../components/emi-product/EmiProduct";
+import EmiProduct from "../components/emi-product/EmiProduct";
 
 export default function EmiProductPage() {
   return (
