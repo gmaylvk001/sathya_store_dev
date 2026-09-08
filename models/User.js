@@ -1,28 +1,35 @@
 import mongoose from "mongoose";
 
 const UserSchema = new mongoose.Schema({
-  name: { type: String, required: false },
-  // mobile: { type: String, required: true, unique: true },
-  // email: { type: String, required: true, unique: true },
+  name: { type: String, required: false, default: null, trim: true },
   mobile: {
     type: String,
-    required: true,
-    unique: true,
-    match: [/^\d{10}$/, "Mobile number must be exactly 10 digits"], // ✅ Regex validation
+    required: false,
+    default: null,
+    trim: true,
   },
-
   email: {
     type: String,
     required: false,
-    unique: true,
-    match: [/^\S+@\S+\.\S+$/, "Please enter a valid email address"], // ✅ Regex validation
+    default: null,
+    trim: true,
+    lowercase: true,
+    validate: {
+      validator(value) {
+        if (value === undefined || value === null || value === "") {
+          return true;
+        }
+        return /^\S+@\S+\.\S+$/.test(value);
+      },
+      message: "Please enter a valid email address",
+    },
   },
-  password: { type: String, required: false },
+  password: { type: String, required: false, default: null },
   exist_id: { type: String, required: false, default: null, trim: true },
   user_type: {
     type: String,
-    enum: ["admin", "user"], // ✅ Define allowed values
-    default: "user" // ✅ Set default value
+    enum: ["admin", "user"],
+    default: "user",
   },
   role: {
     type: mongoose.Schema.Types.ObjectId,
@@ -46,8 +53,43 @@ const UserSchema = new mongoose.Schema({
   avatar_original: { type: String, required: false, default: null },
 }, { timestamps: true });
 
+UserSchema.index(
+  { email: 1 },
+  {
+    unique: true,
+    partialFilterExpression: { email: { $type: "string", $gt: "" } },
+    name: "email_unique_nonempty",
+  }
+);
+
+UserSchema.index(
+  { mobile: 1 },
+  {
+    unique: true,
+    partialFilterExpression: { mobile: { $type: "string", $gt: "" } },
+    name: "mobile_unique_nonempty",
+  }
+);
+
 if (mongoose.models.ecom_users_info) {
   delete mongoose.models.ecom_users_info;
 }
 
-export default mongoose.model("ecom_users_info", UserSchema);
+const User = mongoose.model("ecom_users_info", UserSchema);
+
+export async function ensureUserIndexes() {
+  for (const indexName of ["email_1", "mobile_1"]) {
+    try {
+      await User.collection.dropIndex(indexName);
+    } catch {
+      // Old unique index may already be gone.
+    }
+  }
+  try {
+    await User.syncIndexes();
+  } catch (error) {
+    console.error("User index sync:", error.message);
+  }
+}
+
+export default User;

@@ -69,6 +69,27 @@ function getCell(row, keys) {
   return "";
 }
 
+function preserveSheetPhone(rawValue) {
+  if (rawValue === undefined || rawValue === null || rawValue === "") {
+    return "";
+  }
+
+  if (typeof rawValue === "string") {
+    const text = rawValue.trim().replace(/^'/, "");
+    return text;
+  }
+
+  if (typeof rawValue === "number" && Number.isFinite(rawValue)) {
+    const digits = String(Math.trunc(rawValue));
+    if (digits.length === 9) {
+      return `0${digits}`;
+    }
+    return digits;
+  }
+
+  return String(rawValue).trim();
+}
+
 async function resolvePassword(rawPassword) {
   const password = emptyToNull(rawPassword);
   if (!password) {
@@ -132,7 +153,7 @@ export async function POST(req) {
       const first_name = emptyToNull(getCell(row, ["first_name"]));
       const emailRaw = emptyToNull(getCell(row, ["email"]));
       const email = emailRaw ? String(emailRaw).trim().toLowerCase() : null;
-      const phone = String(getCell(row, ["phone"])).trim();
+      const phone = preserveSheetPhone(getCell(row, ["phone"]));
       const rawPassword = getCell(row, ["password"]);
 
       if (!phone) {
