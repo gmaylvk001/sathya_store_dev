@@ -256,6 +256,8 @@ export default function UserComponent() {
     return matchesSearch && matchesStatus && matchesDate;
   });
 
+  const existUsersCount = users.filter((user) => String(user.exist_id || "").trim()).length;
+
   // Pagination calculations
   const totalEntries = filteredUsers.length;
   const indexOfLastUser = currentPage * itemsPerPage;
@@ -455,6 +457,12 @@ export default function UserComponent() {
                   Clear
                 </button>
               )}
+              <span
+                className="ml-auto inline-flex items-center rounded px-2 py-1 text-xs font-semibold text-yellow-900"
+                style={{ backgroundColor: "#fff59d" }}
+              >
+                Exist users: {existUsersCount}
+              </span>
             </div>
             <hr className="border-t border-gray-200 mb-4" />
             <table className="w-full border border-gray-300">

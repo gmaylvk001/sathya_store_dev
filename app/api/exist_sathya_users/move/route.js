@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import dbConnect from "@/lib/db";
 import ExistSathyaUser from "@/models/ExistSathyaUser";
+import ExistSathyaUserDetail from "@/models/ExistSathyaUserDetail";
 import User from "@/models/User";
 
 function toOptionalString(value) {
@@ -48,6 +49,32 @@ function buildGeneratedPassword(name) {
   const letterMatch = text.match(/[a-z]/);
   const letter = letterMatch ? letterMatch[0] : "u";
   return `${letter}1234567${letter}`;
+}
+
+function userIdMatchValues(value) {
+  const text = String(value ?? "").trim();
+  if (!text) return [];
+  const values = new Set([text]);
+  if (/^\d+(\.0+)?$/.test(text)) {
+    const n = Math.trunc(Number(text));
+    values.add(String(n));
+    values.add(`${n}.0`);
+    values.add(n);
+  }
+  return [...values];
+}
+
+async function mapUserDetailsToLiveUser(existId, liveUserId) {
+  const matchValues = userIdMatchValues(existId);
+  if (!matchValues.length) {
+    return 0;
+  }
+
+  const result = await ExistSathyaUserDetail.updateMany(
+    { user_id: { $in: matchValues } },
+    { $set: { live_user_id: String(liveUserId) } }
+  );
+  return result.modifiedCount || 0;
 }
 
 export async function POST(req) {
@@ -148,16 +175,25 @@ export async function POST(req) {
       }
     );
 
+    const mappedDetailsCount = await mapUserDetailsToLiveUser(
+      existUser.exist_id,
+      created._id
+    );
+
+    const typeLabel = userType === "admin" ? "admin" : "user";
+    const mappedLabel = mappedDetailsCount
+      ? ` Mapped ${mappedDetailsCount} user detail row(s).`
+      : "";
+
     return NextResponse.json({
       success: true,
       message: generatedPassword
-        ? `User moved successfully as ${userType}. Generated password: ${generatedPassword}`
-        : userType === "admin"
-          ? "User moved successfully as admin"
-          : "User moved successfully as user",
+        ? `User moved successfully as ${typeLabel}. Generated password: ${generatedPassword}.${mappedLabel}`
+        : `User moved successfully as ${typeLabel}.${mappedLabel}`,
       user_type: userType,
       userId: created._id,
       generated_password: generatedPassword,
+      mapped_details_count: mappedDetailsCount,
     }, { status: 201 });
   } catch (error) {
     if (error.code === 11000) {

@@ -31,6 +31,7 @@ const ExistSathyaUserDetailSchema = new mongoose.Schema({
   gst_lt: optionalString,
   gst_pncd: optionalString,
   gst_lg: optionalString,
+  live_user_id: optionalString,
   created_at: { type: Date, required: false, default: null },
   updated_at: { type: Date, required: false, default: null },
 }, {
@@ -46,6 +47,8 @@ ExistSathyaUserDetailSchema.index(
     name: "exist_id_unique_nonempty",
   }
 );
+
+ExistSathyaUserDetailSchema.index({ live_user_id: 1 }, { name: "live_user_id_idx" });
 
 if (mongoose.models.ecom_exist_sathya_user_details) {
   delete mongoose.models.ecom_exist_sathya_user_details;

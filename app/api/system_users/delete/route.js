@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import mongoose from "mongoose";
 import dbConnect from "@/lib/db";
 import User from "@/models/User";
+import ExistSathyaUserDetail from "@/models/ExistSathyaUserDetail";
 
 export async function DELETE(req) {
   await dbConnect();
@@ -30,6 +31,11 @@ export async function DELETE(req) {
     if (!result.deletedCount) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
+
+    await ExistSathyaUserDetail.updateMany(
+      { live_user_id: { $in: validIds } },
+      { $set: { live_user_id: null } }
+    );
 
     const message =
       result.deletedCount === 1

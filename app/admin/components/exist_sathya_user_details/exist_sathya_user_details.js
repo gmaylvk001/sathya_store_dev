@@ -31,6 +31,7 @@ const FIELD_LABELS = [
   ["gst_lt", "GST LT"],
   ["gst_pncd", "GST PNCD"],
   ["gst_lg", "GST LG"],
+  ["live_user_id", "Live User ID"],
   ["created_at", "Created At"],
   ["updated_at", "Updated At"],
 ];
@@ -153,7 +154,7 @@ export default function ExistSathyaUserDetailsComponent() {
     const q = searchQuery.toLowerCase();
     const matchesSearch =
       searchQuery === "" ||
-      [row.exist_id, row.user_id, row.username, row.phonenumber, row.altnumber, row.city, row.state, row.pincode, row.gst_number, row.address]
+      [row.exist_id, row.user_id, row.live_user_id, row.username, row.phonenumber, row.altnumber, row.city, row.state, row.pincode, row.gst_number, row.address]
         .some((value) => value && String(value).toLowerCase().includes(q));
 
     const matchesType = typeFilter === "" || String(row.type || "") === typeFilter;
@@ -362,6 +363,10 @@ export default function ExistSathyaUserDetailsComponent() {
                 </button>
               </>
             )}
+            <span className="ml-auto text-xs text-gray-500 inline-flex items-center gap-1">
+              <span className="inline-block w-3 h-3 rounded-sm" style={{ backgroundColor: "#c8e6c9" }} />
+              Light green = mapped to live user
+            </span>
           </div>
 
           <table className="w-full border border-gray-300 min-w-[1200px]">
@@ -387,7 +392,11 @@ export default function ExistSathyaUserDetailsComponent() {
             <tbody>
               {currentRows.length > 0 ? (
                 currentRows.map((row, index) => (
-                  <tr key={row._id || index} className="text-center border-b">
+                  <tr
+                    key={row._id || index}
+                    className="text-center border-b"
+                    style={row.is_mapped ? { backgroundColor: "#c8e6c9" } : undefined}
+                  >
                     <td className="p-2">
                       <input
                         type="checkbox"
