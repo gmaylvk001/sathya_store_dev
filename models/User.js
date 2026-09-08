@@ -5,22 +5,22 @@ const UserSchema = new mongoose.Schema({
   // mobile: { type: String, required: true, unique: true },
   // email: { type: String, required: true, unique: true },
   mobile: {
-      type: String,
-      required: true,
-      unique: true,
-      match: [/^\d{10}$/, "Mobile number must be exactly 10 digits"], // ✅ Regex validation
-    },
+    type: String,
+    required: true,
+    unique: true,
+    match: [/^\d{10}$/, "Mobile number must be exactly 10 digits"], // ✅ Regex validation
+  },
 
-    email: {
-      type: String,
-      required: true,
-      unique: true,
-      match: [/^\S+@\S+\.\S+$/, "Please enter a valid email address"], // ✅ Regex validation
-    },
+  email: {
+    type: String,
+    required: false,
+    unique: true,
+    match: [/^\S+@\S+\.\S+$/, "Please enter a valid email address"], // ✅ Regex validation
+  },
   password: { type: String, required: true },
   exist_id: { type: String, required: false, default: null, trim: true },
-  user_type: { 
-    type: String, 
+  user_type: {
+    type: String,
     enum: ["admin", "user"], // ✅ Define allowed values
     default: "user" // ✅ Set default value
   },

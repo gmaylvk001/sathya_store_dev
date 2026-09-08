@@ -210,11 +210,10 @@ export default function BlogListingPage() {
                   key={cat}
                   type="button"
                   onClick={() => setSelectedCategory(cat)}
-                  className={`px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
-                    isSelected
-                      ? "bg-[#d72828] text-white shadow-sm ring-2 ring-[#d72828]/20"
-                      : "bg-white text-gray-700 border border-gray-200 hover:border-gray-300 hover:bg-gray-50"
-                  }`}
+                  className={`px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${isSelected
+                    ? "bg-[#d72828] text-white shadow-sm ring-2 ring-[#d72828]/20"
+                    : "bg-white text-gray-700 border border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+                    }`}
                 >
                   {cat}
                 </button>
@@ -313,7 +312,7 @@ export default function BlogListingPage() {
                     {/* Footer Action */}
                     <div className="pt-3 border-t border-gray-100 flex items-center justify-between">
                       <Link
-                        href={`/blog/${slug}`}
+                        href={`/blog-listing/${slug}`}
                         className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-[#d72828] hover:text-[#b91c1c] transition-colors group-hover:translate-x-0.5 transition-transform"
                       >
                         Read Article

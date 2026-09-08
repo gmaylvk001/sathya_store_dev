@@ -36,7 +36,7 @@ const menuItems = [
     ]
   },
   { icon: 'mdi:note-text-outline', label: 'Blog', link: 'blog' },
-
+  { icon: 'mdi:post-outline', label: 'Blogs', link: 'blogs' },
 
   {
     icon: 'mdi:cog-outline',
