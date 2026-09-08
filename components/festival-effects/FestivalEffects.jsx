@@ -33,10 +33,16 @@ function getCachedEffect() {
 }
 
 export default function FestivalEffects() {
-  // Start immediately from cache if available (0ms delay)
-  const [effect, setEffect] = useState(getCachedEffect);
+  // Initialize as null to prevent SSR hydration mismatch
+  const [effect, setEffect] = useState(null);
 
   useEffect(() => {
+    // Read cached effect on client mount
+    const cached = getCachedEffect();
+    if (cached) {
+      setEffect(cached);
+    }
+
     let cancelled = false;
 
     async function loadActiveEffect() {
