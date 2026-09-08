@@ -239,17 +239,7 @@ console.log(data)
             
             <div className="border-b border-gray-400 mt-4"></div>
             
-            {/* Key Specifications */}
-            {product.key_specifications && (
-              <div className="mt-4">
-                <h3 className="font-bold mb-2">Key Specifications:</h3>
-                <div className="text-gray-700 text-sm">
-                  {product.key_specifications.split('\n').map((spec, i) => (
-                    <p key={i}>{spec}</p>
-                  ))}
-                </div>
-              </div>
-            )}
+
           </div>
 
           {/* Right Column - Seller Info */}

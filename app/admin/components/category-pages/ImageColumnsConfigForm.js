@@ -553,6 +553,9 @@ export default function ImageColumnsConfigForm({
                   }
                   className="block w-full text-xs text-gray-600"
                 />
+                <p className="text-[10px] text-gray-400">
+                  {CATEGORY_PAGE_IMAGE_ACCEPT_HINT}
+                </p>
                 <input
                   type="text"
                   value={s.url}

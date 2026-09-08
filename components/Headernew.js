@@ -1501,7 +1501,7 @@ const Header = () => {
             onClick={() => {
               setIsMobileMenuOpen(false);
             }}
-            className="flex-1 text-left truncate"
+            className={`flex-1 text-left truncate ${level === 0 ? "font-bold" : ""}`}
             style={{ paddingLeft: level > 0 ? Math.min(level * 8, 24) : 0 }}
           >
             {node.category_name || "Category"}
@@ -2350,7 +2350,7 @@ const Header = () => {
                                                   category._id
                                                 );
                                               }}
-                                              className="text-sm text-base text-white hover:text-[#FFF200] whitespace-nowrap"
+                                              className="text-sm text-base font-bold text-white hover:text-[#FFF200] whitespace-nowrap"
                                             >
                                                 {category.category_name} 
                                             </Link>

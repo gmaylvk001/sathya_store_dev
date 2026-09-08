@@ -496,6 +496,9 @@ export default function BannerFourProductsConfigForm({
               }}
               className="block w-full text-sm"
             />
+            <p className="mt-1 text-[11px] text-gray-400">
+              {CATEGORY_PAGE_IMAGE_ACCEPT_HINT}
+            </p>
             {bannerMobilePreview ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
@@ -636,6 +639,9 @@ export default function BannerFourProductsConfigForm({
                 }}
                 className="block w-full text-sm"
               />
+              <p className="mt-1 text-[11px] text-gray-400">
+                {CATEGORY_PAGE_IMAGE_ACCEPT_HINT}
+              </p>
               {tile.imagePreview ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img

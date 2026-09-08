@@ -1421,56 +1421,7 @@ const fetchBrand = async () => {
     </div>
   )}
   
-{/* MOBILE VIEW */}
-<div className="flex flex-col gap-6 my-8 md:hidden">
-  {/* FAQ — Mobile */}
-  {faqs.length > 0 && (
-    <div>
-      <h2 className="text-base font-bold text-[#d72828] mb-3">
-        Frequently Asked Questions
-      </h2>
-      <div className="border border-gray-200 rounded-sm overflow-hidden divide-y divide-gray-200">
-        {faqs.map((faq, i) => (
-          <FaqItem key={i} question={faq.question} answer={faq.answer} />
-        ))}
-      </div>
-    </div>
-  )}
 
-  {/* Exchange — Mobile */}
-  <div className="border border-gray-200 rounded-sm p-4 bg-white">
-    <div className="flex flex-col gap-3">
-      <h3 className="text-base font-bold text-[#d72828]">Exchange Your Old Appliance</h3>
-      <p className="text-sm text-gray-500 leading-relaxed">
-        Upgrade to a new product and get the best value for your old one.
-      </p>
-      <div className="flex items-center gap-3 justify-center my-2">
-       <img
-  src={
-    product.images?.[0]?.startsWith("http")
-      ? product.images[0]
-      : `/uploads/products/${product.images?.[0]}`
-  }
-  alt="old product"
-  className="w-24 h-32 object-contain opacity-40"
-/>
-<span className="text-gray-400 text-xl">→</span>
-<img
-  src={
-    product.images?.[0]?.startsWith("http")
-      ? product.images[0]
-      : `/uploads/products/${product.images?.[0]}`
-  }
-  alt="new product"
-  className="w-24 h-32 object-contain"
-/>
-      </div>
-      <button className="w-fit border border-[#d72828] text-[#d72828] text-sm font-semibold px-4 py-2 rounded hover:bg-red-50 transition">
-        Check Exchange Value
-      </button>
-    </div>
-  </div>
-</div>
 </div>
 {/* ===== END MOBILE & TABLET VIEW ===== */}
 
@@ -1738,20 +1689,7 @@ const fetchBrand = async () => {
       </div>
     </div>
 
-    {/* Key Specifications List */}
-    {Array.isArray(product.key_specifications) && product.key_specifications.length > 0 && (
-      <div className="mt-2 border-t border-gray-200 pt-3">
-        <h4 className="text-xs font-bold text-gray-900 mb-2 uppercase tracking-wide">Key Specifications</h4>
-        <ul className="space-y-1.5 text-xs text-gray-700">
-          {product.key_specifications.map((spec, i) => (
-            <li key={i} className="flex items-start gap-2">
-              <span className="text-green-600 font-bold mt-0.5">✓</span>
-              <span>{spec}</span>
-            </li>
-          ))}
-        </ul>
-      </div>
-    )}
+
 
   </div>
 
@@ -1949,71 +1887,7 @@ const fetchBrand = async () => {
   />
 </div>
 
-{/* DESKTOP ONLY — FAQ + EXCHANGE */}
-<div className="hidden md:flex gap-8 my-10 items-start">
 
-  {/* LEFT — FAQ (50%) */}
-  <div className="w-1/2">
-    <h2 className="text-base font-bold text-[#d72828] mb-3">
-      Frequently Asked Questions
-    </h2>
-
-    {faqs.length > 0 ? (
-      <div className="border border-gray-200 rounded-sm overflow-hidden">
-        {faqs.map((faq, i) => (
-          <FaqItem key={i} question={faq.question} answer={faq.answer} />
-        ))}
-      </div>
-    ) : (
-      <div className="border border-gray-200 rounded-sm p-6 text-center text-sm text-gray-400">
-        No questions available
-      </div>
-    )}
-  </div>
-
-{/* EXCHANGE BOX */}
-<div className="w-1/2 border border-gray-200 rounded-sm p-5 bg-white">
-  <div className="flex items-center justify-between h-full gap-4">
-    
-    {/* LEFT — Title, text, button */}
-    <div className="flex flex-col gap-3 flex-1">
-      <h3 className="text-base font-bold text-[#d72828]">
-        Exchange Your Old Appliance
-      </h3>
-      <p className="text-sm text-gray-500 leading-relaxed">
-        Upgrade to a new {ProductBreadcrumb?.[2]?.name || "product"} and get the best value for your old one.
-      </p>
-      <button className="w-fit border border-[#d72828] text-[#d72828] text-sm font-semibold px-4 py-2 rounded hover:bg-red-50 transition">
-        Check Exchange Value
-      </button>
-    </div>
-
-    {/* RIGHT — Two images + arrow */}
-    <div className="flex items-center gap-3 flex-shrink-0">
-     <img
-  src={
-    product.images?.[0]?.startsWith("http")
-      ? product.images[0]
-      : `/uploads/products/${product.images?.[0]}`
-  }
-  alt="old product"
-  className="w-28 h-36 object-contain opacity-40"
-/>
-<span className="text-gray-400 text-xl">→</span>
-<img
-  src={
-    product.images?.[0]?.startsWith("http")
-      ? product.images[0]
-      : `/uploads/products/${product.images?.[0]}`
-  }
-  alt="new product"
-  className="w-28 h-36 object-contain"
-/>
-    </div>
-
-  </div>
-</div>
-</div>
 
 
         <RelatedProducts relatedProducts={product.related_products} />

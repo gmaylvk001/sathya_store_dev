@@ -7,6 +7,8 @@ import AdminSider from "@/app/admin/components/AdminSider";
 import AuthProvider from "@/app/admin/components/AuthProvider";
 import AdminPageShell from "@/app/admin/components/AdminPageShell";
 import { AdminNavLoadingProvider } from "@/app/admin/components/AdminNavLoading";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const SIDEBAR_COLLAPSED = "70px";
 const SIDEBAR_EXPANDED = "240px";
@@ -102,6 +104,7 @@ export default function AdminLayout({ children }) {
             <AdminPageShell>{children}</AdminPageShell>
           </main>
         </div>
+        <ToastContainer position="top-right" autoClose={4000} hideProgressBar={false} />
       </AdminNavLoadingProvider>
     </AuthProvider>
   );
