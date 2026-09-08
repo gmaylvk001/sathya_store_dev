@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
 const UserSchema = new mongoose.Schema({
-  name: { type: String, required: true },
+  name: { type: String, required: false },
   // mobile: { type: String, required: true, unique: true },
   // email: { type: String, required: true, unique: true },
   mobile: {
@@ -17,7 +17,7 @@ const UserSchema = new mongoose.Schema({
     unique: true,
     match: [/^\S+@\S+\.\S+$/, "Please enter a valid email address"], // ✅ Regex validation
   },
-  password: { type: String, required: true },
+  password: { type: String, required: false },
   exist_id: { type: String, required: false, default: null, trim: true },
   user_type: {
     type: String,

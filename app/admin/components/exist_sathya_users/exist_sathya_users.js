@@ -694,7 +694,7 @@ export default function ExistSathyaUsersComponent() {
               </button>
               <span className="ml-auto text-xs text-gray-500 inline-flex items-center gap-1">
                 <span className="inline-block w-3 h-3 rounded-sm" style={{ backgroundColor: "#fff9c4" }} />
-                Light yellow = password is empty (Move uses first letter + 1234567 + first letter, lowercase)
+                Light yellow = password is empty. Move copies password if present; if first/last name exists and password is empty it generates first-letter + 1234567 + first-letter; if no first and last name, password stays null. Email is optional.
               </span>
             </div>
             <hr className="border-t border-gray-200 mb-4" />

@@ -23,7 +23,6 @@ export async function POST(req) {
     if (result.moved === 0) {
       const messages = {
         already_moved: "This user is already in Users",
-        missing_email: "Email is required to move this user",
         invalid_email: "Invalid email format",
         invalid_phone: "Phone must be a valid 10-digit mobile number",
         duplicate_email: "This email already exists in Users",
