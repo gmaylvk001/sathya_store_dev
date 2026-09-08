@@ -41,6 +41,7 @@ export default function ExistSathyaUsersComponent() {
   const [selectedIds, setSelectedIds] = useState([]);
   const [isBulkDeleting, setIsBulkDeleting] = useState(false);
   const [roleFilter, setRoleFilter] = useState("");
+  const [moveFilter, setMoveFilter] = useState("");
   const [movingUserId, setMovingUserId] = useState(null);
   const [isBulkMoving, setIsBulkMoving] = useState(false);
   const [bulkProgress, setBulkProgress] = useState(null);
@@ -389,6 +390,13 @@ export default function ExistSathyaUsersComponent() {
       matchesRole = String(user.role_id ?? "") === roleFilter;
     }
 
+    let matchesMove = true;
+    if (moveFilter === "unmoved") {
+      matchesMove = !user.is_moved;
+    } else if (moveFilter === "moved") {
+      matchesMove = Boolean(user.is_moved);
+    }
+
     let matchesDate = true;
     if (dateFilter.startDate && dateFilter.endDate && user.created_at) {
       const userDate = new Date(user.created_at);
@@ -399,7 +407,7 @@ export default function ExistSathyaUsersComponent() {
       matchesDate = userDate >= startDate && userDate <= endDate;
     }
 
-    return matchesSearch && matchesRole && matchesDate;
+    return matchesSearch && matchesRole && matchesMove && matchesDate;
   });
 
   const roleOptions = [...new Set(
@@ -544,7 +552,7 @@ export default function ExistSathyaUsersComponent() {
       ) : (
         <>
           <div className="bg-white shadow-md rounded-lg p-5 mb-5 overflow-x-auto border border-gray-200">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end mb-4">
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end mb-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
                 <input
@@ -573,6 +581,21 @@ export default function ExistSathyaUsersComponent() {
                   {roleOptions.map((roleId) => (
                     <option key={roleId} value={roleId}>{roleId}</option>
                   ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Move status</label>
+                <select
+                  value={moveFilter}
+                  onChange={(e) => {
+                    setMoveFilter(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500"
+                >
+                  <option value="">All users</option>
+                  <option value="unmoved">Un moved</option>
+                  <option value="moved">Moved</option>
                 </select>
               </div>
               <div>
