@@ -1,11 +1,12 @@
 "use client";
-import Image from "next/image";
-//import Register from "../components/Register";
+import FestivalEffects from "@/components/festival-effects/FestivalEffects";
 import IndexComponent from "../components/index";
+
 export default function Home() {
   return (
-    <div className="">
-    <IndexComponent />
+    <div className="relative">
+      <FestivalEffects />
+      <IndexComponent />
     </div>
   );
 }
