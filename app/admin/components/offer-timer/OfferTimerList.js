@@ -6,7 +6,6 @@ import { FaEdit } from "react-icons/fa";
 import { Icon } from "@iconify/react";
 import Image from "next/image";
 import { formatOfferStates, formatTimerDateTime } from "@/lib/offerTimer";
-import CardOffersModal from "./CardOffersModal";
 
 export default function OfferTimerList() {
   const router = useRouter();
@@ -14,7 +13,6 @@ export default function OfferTimerList() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [timerToDelete, setTimerToDelete] = useState(null);
-  const [selectedTimerForCardOffers, setSelectedTimerForCardOffers] = useState(null);
   const [successMessage, setSuccessMessage] = useState("");
 
   const fetchTimers = async () => {
@@ -134,7 +132,7 @@ export default function OfferTimerList() {
                     <td className="p-2">
                       <div className="flex items-center gap-1.5 justify-center">
                         <button
-                          onClick={() => setSelectedTimerForCardOffers(timer)}
+                          onClick={() => router.push(`/admin/offer-timer/card-offer/${timer._id}`)}
                           className="px-2.5 py-1 text-xs border border-blue-500 text-blue-600 hover:bg-blue-50 rounded flex items-center gap-1 font-medium transition-colors shadow-xs"
                           title="View Card Offer"
                         >
@@ -180,16 +178,6 @@ export default function OfferTimerList() {
             </div>
           </div>
         </div>
-      )}
-
-      {/* Card Offers Management Modal matching Image 1 */}
-      {selectedTimerForCardOffers && (
-        <CardOffersModal
-          isOpen={Boolean(selectedTimerForCardOffers)}
-          timer={selectedTimerForCardOffers}
-          onClose={() => setSelectedTimerForCardOffers(null)}
-          onOffersUpdated={fetchTimers}
-        />
       )}
 
       {successMessage && (
