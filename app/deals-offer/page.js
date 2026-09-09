@@ -6,8 +6,31 @@ import Image from "next/image";
 import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import Addtocart from "@/components/AddToCart";
 import AddToWishlistButton from "@/components/ProductCard";
+import { useRegion } from "@/context/RegionContext";
 
-// Map subcategory slug / ID to broad section grouping if needed
+// Fallback card offers matching reference design if admin hasn't added cards yet
+const REFERENCE_CARD_OFFERS = [
+  {
+    id: "gas-stove",
+    title: "GAS STOVE",
+    image: "/uploads/cardoffers/card-offer-1788935251002-Capture.PNG",
+    link: "/category/gas-stove",
+  },
+  {
+    id: "chimney-offer",
+    title: "CHIMNEY OFFER",
+    image: "/uploads/cardoffers/card-offer-1788935251002-Capture.PNG",
+    link: "/category/kitchen-chimney",
+  },
+  {
+    id: "mixie-offer",
+    title: "MIXIE OFFER",
+    image: "/uploads/cardoffers/card-offer-1788935251002-Capture.PNG",
+    link: "/category/mixer-grinder",
+  },
+];
+
+// Map subcategory slug / ID to broad category section order
 const SECTION_ORDER = [
   {
     title: "TV & ACCESSORIES",
@@ -62,6 +85,47 @@ const SECTION_ORDER = [
   },
 ];
 
+// Card Offer Banner Component (matches user's reference image with red bottom bar)
+function AdminCardOfferItem({ card }) {
+  const initialImg = card.image
+    ? card.image.startsWith("/") || card.image.startsWith("http")
+      ? card.image
+      : `/uploads/cardoffers/${card.image}`
+    : "/uploads/sathya-header-logo.webp";
+
+  const [imgSrc, setImgSrc] = useState(initialImg);
+
+  const targetHref =
+    card.link ||
+    (card.title ? `/search?q=${encodeURIComponent(card.title)}` : "/category/appliances");
+
+  return (
+    <Link
+      href={targetHref}
+      className="group flex flex-col bg-white border border-gray-200/90 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden rounded-sm"
+    >
+      {/* Banner Image Container */}
+      <div className="relative w-full h-48 sm:h-52 md:h-56 bg-white flex items-center justify-center p-3 overflow-hidden">
+        <Image
+          src={imgSrc}
+          alt={card.title || "Offer Banner"}
+          fill
+          className="object-contain p-2 group-hover:scale-105 transition-transform duration-300"
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+          onError={() => setImgSrc("/uploads/sathya-header-logo.webp")}
+          unoptimized
+        />
+      </div>
+
+      {/* Red Title Bottom Bar */}
+      <div className="bg-[#d72828] group-hover:bg-red-700 text-white font-bold text-xs sm:text-sm py-2.5 px-4 uppercase tracking-wider transition-colors text-left">
+        {card.title}
+      </div>
+    </Link>
+  );
+}
+
+// Product Card Component with fallback image handling
 function DealProductCard({ product, brandMap }) {
   const price = Number(product.price) || 0;
   const specialPrice = Number(product.special_price) || 0;
@@ -168,6 +232,10 @@ function DealProductCard({ product, brandMap }) {
 }
 
 export default function DealsOfferPage() {
+  const { region } = useRegion();
+  const [activeOfferTitle, setActiveOfferTitle] = useState("FULL MOON SALE");
+  const [offerTopBanner, setOfferTopBanner] = useState(null);
+  const [cardOffers, setCardOffers] = useState([]);
   const [sections, setSections] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -178,7 +246,7 @@ export default function DealsOfferPage() {
     document.title = "Deals & Offers | Sathya Store";
   }, []);
 
-  // Fetch deals and category products
+  // Fetch admin offers, timers, and category products
   useEffect(() => {
     let isMounted = true;
 
@@ -187,12 +255,75 @@ export default function DealsOfferPage() {
         setLoading(true);
         setError(null);
 
-        // Fetch category product settings and brands in parallel
-        const [settingsRes, brandRes] = await Promise.allSettled([
+        // Fetch offer timers, category products, and brands in parallel
+        const [timersRes, settingsRes, brandRes] = await Promise.allSettled([
+          fetch("/api/offer-timer"),
           fetch("/api/categoryproduct/settings"),
           fetch("/api/brand"),
         ]);
 
+        // Process Offer Timers & Admin-added Card Offers
+        if (timersRes.status === "fulfilled" && timersRes.value.ok) {
+          const tData = await timersRes.value.json();
+          const timers = tData?.data || [];
+
+          if (timers.length > 0) {
+            // Find active timer matching region or active display status
+            const activeTimer =
+              timers.find((t) => {
+                const isDisplay =
+                  t.timerDisplayStatus === "Yes" || t.status === "active";
+                if (!isDisplay) return false;
+                const states = t.offerViewStates || t.states || [];
+                return (
+                  t.state === "all" ||
+                  states.includes("all") ||
+                  (region && states.includes(region.toLowerCase()))
+                );
+              }) || timers[0];
+
+            if (activeTimer) {
+              const title =
+                activeTimer.offerTitle || activeTimer.offer_title || "FULL MOON SALE";
+              setActiveOfferTitle(title);
+
+              const banner =
+                activeTimer.topBanner || activeTimer.top_banner_url || null;
+              if (banner) {
+                setOfferTopBanner(
+                  banner.startsWith("/") ? banner : `/uploads/topbanner/${banner}`
+                );
+              }
+
+              // Extract card offers added by admin
+              const activeCards = Array.isArray(activeTimer.card_offers)
+                ? activeTimer.card_offers.filter((c) => c.status !== "inactive")
+                : [];
+
+              if (activeCards.length > 0) {
+                setCardOffers(activeCards);
+              } else {
+                // Check if any other timer has card offers
+                const otherTimerCards = timers
+                  .flatMap((t) => t.card_offers || [])
+                  .filter((c) => c?.title && c.status !== "inactive");
+
+                if (otherTimerCards.length > 0) {
+                  setCardOffers(otherTimerCards);
+                } else {
+                  // Fallback to reference design cards
+                  setCardOffers(REFERENCE_CARD_OFFERS);
+                }
+              }
+            }
+          } else {
+            setCardOffers(REFERENCE_CARD_OFFERS);
+          }
+        } else {
+          setCardOffers(REFERENCE_CARD_OFFERS);
+        }
+
+        // Process Brand Data
         let bMap = {};
         if (brandRes.status === "fulfilled" && brandRes.value.ok) {
           const bData = await brandRes.value.json();
@@ -204,6 +335,7 @@ export default function DealsOfferPage() {
         }
         if (isMounted) setBrandMap(bMap);
 
+        // Process Category Products Data
         if (settingsRes.status === "fulfilled" && settingsRes.value.ok) {
           const result = await settingsRes.value.json();
           if (result?.ok && Array.isArray(result?.data)) {
@@ -217,12 +349,12 @@ export default function DealsOfferPage() {
 
             SECTION_ORDER.forEach((rule) => {
               const matchingItems = rawSections.filter((item) => {
-                const sSlug = item.subcategoryId?.category_slug?.toLowerCase() || "";
+                const sSlug =
+                  item.subcategoryId?.category_slug?.toLowerCase() || "";
                 return rule.slugs.includes(sSlug);
               });
 
               if (matchingItems.length > 0) {
-                // Combine products from matching items
                 const combinedProducts = [];
                 const seenProductIds = new Set();
 
@@ -250,12 +382,15 @@ export default function DealsOfferPage() {
             // Add any remaining categories not covered by SECTION_ORDER
             rawSections.forEach((item) => {
               if (!processedItemIds.has(item._id) && item.products?.length > 0) {
-                const catName = item.subcategoryId?.category_name || "SPECIAL DEALS";
+                const catName =
+                  item.subcategoryId?.category_name || "SPECIAL DEALS";
                 const catSlug = item.subcategoryId?.category_slug || "";
                 organized.push({
                   id: item._id || catSlug,
                   title: catName.toUpperCase(),
-                  viewAllHref: catSlug ? `/category/${catSlug}` : "/category/appliances",
+                  viewAllHref: catSlug
+                    ? `/category/${catSlug}`
+                    : "/category/appliances",
                   products: item.products,
                 });
               }
@@ -278,7 +413,7 @@ export default function DealsOfferPage() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [region]);
 
   const scrollContainer = (id, direction) => {
     const el = scrollRefs.current[id];
@@ -299,7 +434,10 @@ export default function DealsOfferPage() {
           <h1 className="text-sm sm:text-base font-extrabold tracking-wider text-gray-900 uppercase">
             GREAT DEALS - SHOP NOW
           </h1>
-          <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-gray-500 uppercase tracking-wider">
+          <nav
+            aria-label="Breadcrumb"
+            className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-gray-500 uppercase tracking-wider"
+          >
             <Link href="/" className="hover:text-[#d72828] transition-colors">
               HOME
             </Link>
@@ -309,32 +447,48 @@ export default function DealsOfferPage() {
         </div>
       </div>
 
-      {/* Main Deals Container */}
+      {/* Main Container */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-12">
         {/* Loading State Skeleton */}
         {loading && (
           <div className="space-y-10 py-6">
-            {[1, 2].map((n) => (
-              <div key={n} className="space-y-4">
-                <div className="flex items-center justify-between border-b pb-2">
-                  <div className="h-6 w-48 bg-gray-200 animate-pulse rounded" />
-                  <div className="h-8 w-24 bg-gray-200 animate-pulse rounded" />
-                </div>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                  {[1, 2, 3, 4, 5].map((i) => (
-                    <div
-                      key={i}
-                      className="border border-gray-200 rounded-xl p-4 space-y-3 bg-white animate-pulse"
-                    >
-                      <div className="h-40 bg-gray-100 rounded-lg" />
-                      <div className="h-4 bg-gray-200 rounded w-3/4" />
-                      <div className="h-4 bg-gray-200 rounded w-1/2" />
-                      <div className="h-8 bg-gray-200 rounded mt-4" />
-                    </div>
-                  ))}
-                </div>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between border-b pb-2">
+                <div className="h-7 w-56 bg-gray-200 animate-pulse rounded" />
+                <div className="h-8 w-24 bg-gray-200 animate-pulse rounded" />
               </div>
-            ))}
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                {[1, 2, 3].map((i) => (
+                  <div
+                    key={i}
+                    className="border border-gray-200 rounded overflow-hidden bg-white animate-pulse"
+                  >
+                    <div className="h-52 bg-gray-100" />
+                    <div className="h-10 bg-red-100" />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex items-center justify-between border-b pb-2">
+                <div className="h-6 w-48 bg-gray-200 animate-pulse rounded" />
+                <div className="h-8 w-24 bg-gray-200 animate-pulse rounded" />
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <div
+                    key={i}
+                    className="border border-gray-200 rounded-xl p-4 space-y-3 bg-white animate-pulse"
+                  >
+                    <div className="h-40 bg-gray-100 rounded-lg" />
+                    <div className="h-4 bg-gray-200 rounded w-3/4" />
+                    <div className="h-4 bg-gray-200 rounded w-1/2" />
+                    <div className="h-8 bg-gray-200 rounded mt-4" />
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         )}
 
@@ -351,21 +505,49 @@ export default function DealsOfferPage() {
           </div>
         )}
 
-        {/* Empty State */}
-        {!loading && !error && sections.length === 0 && (
-          <div className="text-center py-20 text-gray-500">
-            <p className="text-lg font-semibold">No active deals found at the moment.</p>
-            <p className="text-sm mt-1">Please check back soon for great discounts!</p>
-            <Link
-              href="/"
-              className="mt-6 inline-block bg-[#d72828] text-white px-6 py-2.5 rounded-lg font-bold hover:bg-red-700 transition"
-            >
-              Return Home
-            </Link>
+        {/* Admin Top Banner (if uploaded in Offer Timer) */}
+        {!loading && !error && offerTopBanner && (
+          <div className="w-full overflow-hidden rounded-lg shadow-sm border border-gray-100">
+            <Image
+              src={offerTopBanner}
+              alt={activeOfferTitle || "Offer Banner"}
+              width={1400}
+              height={320}
+              className="w-full h-auto object-cover max-h-[300px]"
+              unoptimized
+            />
           </div>
         )}
 
-        {/* Deals Sections */}
+        {/* Section 1: Active Offer & Card Offers Banner Section (Reference Image Clone) */}
+        {!loading && !error && (
+          <section className="relative">
+            {/* Header: Offer Title + VIEW ALL */}
+            <div className="flex items-center justify-between pb-2 mb-6 border-b border-gray-300">
+              <h2 className="text-lg sm:text-xl md:text-2xl font-bold tracking-wide text-[#d72828] uppercase">
+                {activeOfferTitle}
+              </h2>
+              <Link
+                href="/deals-offer"
+                className="bg-[#d72828] hover:bg-red-700 active:bg-red-800 text-white font-bold text-xs sm:text-sm px-6 py-2 uppercase tracking-wider transition-all duration-200 shadow-sm hover:shadow"
+              >
+                VIEW ALL
+              </Link>
+            </div>
+
+            {/* 3-Column Card Offers Grid with Red Title Bar (Matches Reference Image) */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+              {cardOffers.map((card, idx) => (
+                <AdminCardOfferItem
+                  key={card.id || card._id || idx}
+                  card={card}
+                />
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Section 2+: Category Product Carousels */}
         {!loading &&
           !error &&
           sections.map((section) => (
@@ -430,4 +612,3 @@ export default function DealsOfferPage() {
     </main>
   );
 }
-
