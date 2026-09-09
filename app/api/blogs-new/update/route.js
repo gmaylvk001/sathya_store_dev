@@ -1,5 +1,6 @@
 import dbConnect from "@/lib/db";
 import Blogs from "@/models/Blogs";
+import BlogFaq from "@/models/BlogFaq";
 import { NextResponse } from "next/server";
 
 export async function PUT(req) {
@@ -18,9 +19,39 @@ export async function PUT(req) {
       }
     }
 
-    const updatedBlog = await Blogs.findByIdAndUpdate(body._id, body, { new: true });
+    const { faqs, stores, isAllStores, store_id, store_ids, ...blogData } = body;
+    const updatedBlog = await Blogs.findByIdAndUpdate(
+      body._id,
+      {
+        $set: blogData,
+        $unset: { stores: 1, isAllStores: 1, store_id: 1, store_ids: 1, faqs: 1 },
+      },
+      { new: true }
+    );
     if (!updatedBlog) {
       return NextResponse.json({ success: false, error: "Blog not found" }, { status: 404 });
+    }
+
+    // Sync FAQs in separate blogs_faq collection linked by blogId foreign key
+    if (Array.isArray(faqs)) {
+      const delQuery = [{ blogId: updatedBlog._id }];
+      if (updatedBlog.existId) {
+        delQuery.push({ existId: String(updatedBlog.existId) });
+      }
+      await BlogFaq.deleteMany({ $or: delQuery });
+
+      const faqDocs = faqs
+        .filter((f) => f.question && f.question.trim() && f.answer && f.answer.trim())
+        .map((f) => ({
+          blogId: updatedBlog._id,
+          existId: updatedBlog.existId || "",
+          question: f.question.trim(),
+          answer: f.answer.trim(),
+        }));
+
+      if (faqDocs.length > 0) {
+        await BlogFaq.insertMany(faqDocs);
+      }
     }
 
     return NextResponse.json({ success: true, data: updatedBlog });
