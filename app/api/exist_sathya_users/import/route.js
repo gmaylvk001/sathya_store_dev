@@ -91,6 +91,15 @@ function preserveSheetPhone(rawValue) {
   return String(rawValue).trim();
 }
 
+function contactPairKey(email, phone) {
+  const emailKey = String(email || "").trim().toLowerCase();
+  const phoneKey = String(phone || "").trim();
+  if (!emailKey || !phoneKey) {
+    return "";
+  }
+  return `${emailKey}||${phoneKey}`;
+}
+
 async function resolvePassword(rawPassword) {
   const password = emptyToNull(rawPassword);
   if (!password) {
@@ -150,12 +159,12 @@ export async function POST(req) {
       });
     };
 
-    const existingEmails = new Set(
-      (await ExistSathyaUser.find({}, { email: 1 }).lean())
-        .map((user) => String(user.email || "").trim().toLowerCase())
+    const existingPairs = new Set(
+      (await ExistSathyaUser.find({}, { email: 1, phone: 1 }).lean())
+        .map((user) => contactPairKey(user.email, user.phone))
         .filter(Boolean)
     );
-    const emailsInFile = new Set();
+    const pairsInFile = new Set();
 
     for (let index = 0; index < rows.length; index++) {
       const row = rows[index];
@@ -177,16 +186,17 @@ export async function POST(req) {
         continue;
       }
 
-      if (email && (existingEmails.has(email) || emailsInFile.has(email))) {
+      const pairKey = contactPairKey(email, phone);
+      if (pairKey && (existingPairs.has(pairKey) || pairsInFile.has(pairKey))) {
         skippedCount += 1;
         skippedExistingCount += 1;
-        skippedEmails.push({ row: excelRow, email });
-        queueSkippedUser(row, "existing email", email, phone);
+        skippedEmails.push({ row: excelRow, email, phone });
+        queueSkippedUser(row, "existing email and phone", email, phone);
         continue;
       }
 
-      if (email) {
-        emailsInFile.add(email);
+      if (pairKey) {
+        pairsInFile.add(pairKey);
       }
 
       const hashedPassword = await resolvePassword(rawPassword);
@@ -228,18 +238,18 @@ export async function POST(req) {
           { $set: { created_at, updated_at } }
         );
         addedCount += 1;
-        if (email) {
-          existingEmails.add(email);
+        if (pairKey) {
+          existingPairs.add(pairKey);
         }
       } catch (error) {
         skippedCount += 1;
-        if (email) {
-          emailsInFile.delete(email);
+        if (pairKey) {
+          pairsInFile.delete(pairKey);
         }
         if (error.code === 11000) {
           skippedExistingCount += 1;
-          skippedEmails.push({ row: excelRow, email });
-          queueSkippedUser(row, "existing email", email, phone);
+          skippedEmails.push({ row: excelRow, email, phone });
+          queueSkippedUser(row, "existing email and phone", email, phone);
         } else {
           queueSkippedUser(row, error.message || "other skipped", email, phone);
           errors.push({
@@ -264,7 +274,7 @@ export async function POST(req) {
 
     return NextResponse.json({
       success: true,
-      message: `Import completed. Added ${addedCount}, skipped existing emails ${skippedExistingCount}, other skipped ${skippedCount - skippedExistingCount}.`,
+      message: `Import completed. Added ${addedCount}, skipped existing email and phone ${skippedExistingCount}, other skipped ${skippedCount - skippedExistingCount}.`,
       addedCount,
       skippedCount,
       skippedExistingCount,

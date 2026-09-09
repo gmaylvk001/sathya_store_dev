@@ -106,11 +106,14 @@ const ExistSathyaUserSchema = new mongoose.Schema({
 });
 
 ExistSathyaUserSchema.index(
-  { email: 1 },
+  { email: 1, phone: 1 },
   {
     unique: true,
-    partialFilterExpression: { email: { $type: "string" } },
-    name: "email_unique_nonempty",
+    partialFilterExpression: {
+      email: { $type: "string", $gt: "" },
+      phone: { $type: "string", $gt: "" },
+    },
+    name: "email_phone_unique",
   }
 );
 
@@ -121,10 +124,12 @@ if (mongoose.models.ecom_exist_sathya_users) {
 const ExistSathyaUser = mongoose.model("ecom_exist_sathya_users", ExistSathyaUserSchema);
 
 export async function ensureExistSathyaUserIndexes() {
-  try {
-    await ExistSathyaUser.collection.dropIndex("email_1");
-  } catch (error) {
-    // Old unique email index may already be gone.
+  for (const name of ["email_1", "email_unique_nonempty"]) {
+    try {
+      await ExistSathyaUser.collection.dropIndex(name);
+    } catch (error) {
+      // Old unique email index may already be gone.
+    }
   }
   try {
     await ExistSathyaUser.syncIndexes();
