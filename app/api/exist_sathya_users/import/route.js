@@ -3,6 +3,7 @@ import * as XLSX from "xlsx";
 import bcrypt from "bcryptjs";
 import dbConnect from "@/lib/db";
 import ExistSathyaUser, { ensureExistSathyaUserIndexes } from "@/models/ExistSathyaUser";
+import ExistSathyaUserSkipped from "@/models/ExistSathyaUserSkipped";
 
 function emptyToNull(value) {
   if (value === undefined || value === null || String(value).trim() === "") {
@@ -138,6 +139,16 @@ export async function POST(req) {
     let skippedExistingCount = 0;
     const errors = [];
     const skippedEmails = [];
+    const skippedUsers = [];
+
+    const queueSkippedUser = (row, skippedReason, emailValue, phoneValue) => {
+      skippedUsers.push({
+        exist_id: parseExistId(getCell(row, ["exist_id", "id"])),
+        email: emailValue || null,
+        phone: phoneValue ? String(phoneValue) : null,
+        skipped_reason: skippedReason,
+      });
+    };
 
     const existingEmails = new Set(
       (await ExistSathyaUser.find({}, { email: 1 }).lean())
@@ -158,6 +169,7 @@ export async function POST(req) {
 
       if (!phone) {
         skippedCount += 1;
+        queueSkippedUser(row, "phone is required", email, phone);
         errors.push({
           row: excelRow,
           error: "phone is required",
@@ -169,6 +181,7 @@ export async function POST(req) {
         skippedCount += 1;
         skippedExistingCount += 1;
         skippedEmails.push({ row: excelRow, email });
+        queueSkippedUser(row, "existing email", email, phone);
         continue;
       }
 
@@ -226,12 +239,26 @@ export async function POST(req) {
         if (error.code === 11000) {
           skippedExistingCount += 1;
           skippedEmails.push({ row: excelRow, email });
+          queueSkippedUser(row, "existing email", email, phone);
         } else {
+          queueSkippedUser(row, error.message || "other skipped", email, phone);
           errors.push({
             row: excelRow,
             error: error.message,
           });
         }
+      }
+    }
+
+    let skippedSavedCount = 0;
+    if (skippedUsers.length) {
+      try {
+        const inserted = await ExistSathyaUserSkipped.insertMany(skippedUsers, { ordered: false });
+        skippedSavedCount = inserted.length;
+      } catch (error) {
+        const insertedIds = error.result?.insertedIds || error.insertedIds || {};
+        skippedSavedCount = Object.keys(insertedIds).length || 0;
+        console.error("Exist sathya skipped users save error:", error.message);
       }
     }
 
@@ -241,6 +268,7 @@ export async function POST(req) {
       addedCount,
       skippedCount,
       skippedExistingCount,
+      skippedSavedCount,
       skippedEmails,
       errors,
     });

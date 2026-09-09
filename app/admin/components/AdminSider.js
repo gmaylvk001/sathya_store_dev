@@ -57,6 +57,7 @@ const menuItems = [
       { icon: 'mdi:shield-key-outline', label: 'Permissions', link: 'permissions', dotColor: 'bg-purple-500' },
       { icon: 'mdi:account-group-outline', label: 'Roles', link: 'roles', dotColor: 'bg-blue-500' },
       { icon: 'mdi:account-group-outline', label: 'Sathya Exist Users', link: 'exist_sathya_users', dotColor: 'bg-blue-500' },
+      { icon: 'mdi:account-cancel-outline', label: 'Sathya Exist User Skipped', link: 'exist_sathya_user_skipped', dotColor: 'bg-orange-500' },
       { icon: 'mdi:card-account-details-outline', label: 'Sathya Exist User Details', link: 'exist_sathya_user_details', dotColor: 'bg-blue-500' },
     ]
   },

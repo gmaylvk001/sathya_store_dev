@@ -909,6 +909,7 @@ export default function ExistSathyaUsersComponent() {
                 <p>Added: {importResult.addedCount || 0}</p>
                 <p>Skipped existing emails: {importResult.skippedExistingCount || 0}</p>
                 <p>Other skipped: {(importResult.skippedCount || 0) - (importResult.skippedExistingCount || 0)}</p>
+                <p>Saved to skipped module: {importResult.skippedSavedCount || 0}</p>
                 {importResult.skippedEmails?.length > 0 && (
                   <div className="mt-2 max-h-40 overflow-y-auto border rounded p-2 text-gray-600">
                     {importResult.skippedEmails.map((item, index) => (
