@@ -1830,9 +1830,13 @@ const Header = () => {
                 <span className="text-[9px] opacity-70">▾</span>
               </button>
               {(effectiveOfferTimer?.offerTitle || effectiveOfferTimer?.offer_title) && (
-                <span className="truncate max-w-[90px] text-[10px] font-bold text-brandRed px-2 py-0.5 rounded-full bg-white/95 border border-red-200">
+                <Link
+                  href="/deals-offer"
+                  className="truncate max-w-[90px] text-[10px] font-bold text-brandRed px-2 py-0.5 rounded-full bg-white/95 border border-red-200 hover:bg-red-50 hover:border-red-400 transition-colors cursor-pointer"
+                  title={effectiveOfferTimer.offerTitle || effectiveOfferTimer.offer_title}
+                >
                   {effectiveOfferTimer.offerTitle || effectiveOfferTimer.offer_title}
-                </span>
+                </Link>
               )}
             </div>
             <div className="flex items-center gap-1.5 text-brandRed flex-shrink-0">
@@ -2038,12 +2042,16 @@ const Header = () => {
             </div>
             {/* Active Offer Title Display */}
             {(effectiveOfferTimer?.offerTitle || effectiveOfferTimer?.offer_title) && (
-              <div className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/95 backdrop-blur-sm border border-red-200 text-brandRed font-bold text-xs shadow-sm flex-shrink-0">
+              <Link
+                href="/deals-offer"
+                className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/95 backdrop-blur-sm border border-red-200 text-brandRed font-bold text-xs shadow-sm flex-shrink-0 hover:bg-red-50 hover:border-red-400 hover:shadow transition-all cursor-pointer"
+                title={effectiveOfferTimer.offerTitle || effectiveOfferTimer.offer_title}
+              >
                 <span className="inline-block w-2 h-2 rounded-full bg-[#ED1C24] animate-ping" />
-                <span className="truncate max-w-[160px]" title={effectiveOfferTimer.offerTitle || effectiveOfferTimer.offer_title}>
+                <span className="truncate max-w-[160px]">
                   {effectiveOfferTimer.offerTitle || effectiveOfferTimer.offer_title}
                 </span>
-              </div>
+              </Link>
             )}
 
             {/* Icons Group */}
