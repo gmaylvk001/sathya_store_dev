@@ -56,6 +56,30 @@ const [selectedSubCategory, setSelectedSubCategory] = useState("");
   const [isFiltering, setIsFiltering] = useState(false);
   /** Stable options for URL slug↔id maps (not live facets) */
   const [filterCatalog, setFilterCatalog] = useState(null);
+  const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
+
+  const activeBanners =
+    categoryData.main_category?.banners &&
+    categoryData.main_category.banners.length > 0
+      ? categoryData.main_category.banners.filter(
+          (b) => b.banner_status !== "Inactive"
+        )
+      : [
+          {
+            banner_name:
+              categoryData.main_category?.category_name || "Kitchen Appliances",
+            banner_image:
+              "/uploads/1779188867520-kitchen appliances.webp",
+          },
+        ];
+
+  useEffect(() => {
+    if (activeBanners.length <= 1) return;
+    const bannerTimer = setInterval(() => {
+      setCurrentBannerIndex((prev) => (prev + 1) % activeBanners.length);
+    }, 4500);
+    return () => clearInterval(bannerTimer);
+  }, [activeBanners.length]);
 
   // SEO filter URL sync (query params only — category path unchanged)
   useCategoryFilterUrl({
@@ -750,7 +774,120 @@ const handlePageChange = (page) => {
 
     <div className={`${CATEGORY_PAGE_SHELL_CLASS} py-2 pb-3`}>
 
-      
+      {/* 1. Breadcrumbs Header (Matches Reference Image 2) */}
+      <div className="w-full bg-white border-b border-gray-200 py-3 mb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+          <h1 className="text-base sm:text-lg md:text-xl font-bold tracking-wide text-gray-900 uppercase">
+            {categoryData.main_category?.category_name || "Kitchen Appliances"}
+          </h1>
+          <nav
+            aria-label="Breadcrumb"
+            className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold tracking-wider uppercase text-gray-500"
+          >
+            <Link href="/" className="hover:text-[#d72828] transition-colors">
+              HOME
+            </Link>
+            <span>/</span>
+            <span className="text-gray-900 font-bold">
+              {categoryData.main_category?.category_name || "Kitchen Appliances"}
+            </span>
+          </nav>
+        </div>
+      </div>
+
+      {/* 2. Category Hero Banner Slider (Matches Reference Image 2) */}
+      {activeBanners.length > 0 && (
+        <div className="relative w-full mb-6 overflow-hidden rounded-md shadow-sm group">
+          <div
+            className="relative w-full aspect-[16/6] sm:aspect-[16/5] md:aspect-[1024/242] cursor-pointer"
+            onClick={() => {
+              const currentBanner = activeBanners[currentBannerIndex];
+              if (currentBanner?.redirect_url) {
+                window.location.href = currentBanner.redirect_url;
+              }
+            }}
+          >
+            {activeBanners.map((banner, idx) => (
+              <div
+                key={banner._id || idx}
+                className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${
+                  idx === currentBannerIndex
+                    ? "opacity-100 z-10"
+                    : "opacity-0 z-0 pointer-events-none"
+                }`}
+              >
+                <Image
+                  src={
+                    banner.banner_image.startsWith("http")
+                      ? banner.banner_image
+                      : banner.banner_image.startsWith("/")
+                      ? banner.banner_image
+                      : `/${banner.banner_image}`
+                  }
+                  alt={banner.banner_name || "Category Banner"}
+                  fill
+                  priority={idx === 0}
+                  className="object-cover w-full h-full"
+                  unoptimized
+                />
+              </div>
+            ))}
+
+            {/* Red Navigation Buttons (< and >) Matching Reference Image 2 */}
+            {activeBanners.length > 1 && (
+              <>
+                <button
+                  type="button"
+                  aria-label="Previous Banner"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setCurrentBannerIndex((prev) =>
+                      prev === 0 ? activeBanners.length - 1 : prev - 1
+                    );
+                  }}
+                  className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-20 w-8 h-8 sm:w-11 sm:h-11 rounded-lg bg-[#d72828] text-white flex items-center justify-center shadow-md hover:bg-red-700 active:scale-95 transition-all cursor-pointer"
+                >
+                  <ChevronLeft size={24} />
+                </button>
+                <button
+                  type="button"
+                  aria-label="Next Banner"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setCurrentBannerIndex((prev) =>
+                      prev === activeBanners.length - 1 ? 0 : prev + 1
+                    );
+                  }}
+                  className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-20 w-8 h-8 sm:w-11 sm:h-11 rounded-lg bg-[#d72828] text-white flex items-center justify-center shadow-md hover:bg-red-700 active:scale-95 transition-all cursor-pointer"
+                >
+                  <ChevronRight size={24} />
+                </button>
+
+                {/* Bottom Radio Indicators */}
+                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-20 flex space-x-2">
+                  {activeBanners.map((_, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      aria-label={`Slide ${idx + 1}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setCurrentBannerIndex(idx);
+                      }}
+                      className={`w-3 h-3 rounded-full transition-all ${
+                        idx === currentBannerIndex
+                          ? "bg-[#d72828] scale-110"
+                          : "bg-white/80 hover:bg-white border border-gray-400"
+                      }`}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
 {/* Categories Circle Section - Dynamic based on subcategories */}
 
 <div className="relative my-12 px-6">

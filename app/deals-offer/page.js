@@ -7,6 +7,7 @@ import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import Addtocart from "@/components/AddToCart";
 import AddToWishlistButton from "@/components/ProductCard";
 import { useRegion } from "@/context/RegionContext";
+import { useHeaderdetails } from "@/context/HeaderContext";
 
 // Fallback card offers matching reference design if admin hasn't added cards yet
 const REFERENCE_CARD_OFFERS = [
@@ -14,21 +15,63 @@ const REFERENCE_CARD_OFFERS = [
     id: "gas-stove",
     title: "GAS STOVE",
     image: "/uploads/cardoffers/card-offer-1788935251002-Capture.PNG",
-    link: "/category/gas-stove",
+    link: "/category/kitchen-appliances",
   },
   {
     id: "chimney-offer",
     title: "CHIMNEY OFFER",
     image: "/uploads/cardoffers/card-offer-1788935251002-Capture.PNG",
-    link: "/category/kitchen-chimney",
+    link: "/category/kitchen-appliances",
   },
   {
     id: "mixie-offer",
     title: "MIXIE OFFER",
     image: "/uploads/cardoffers/card-offer-1788935251002-Capture.PNG",
-    link: "/category/mixer-grinder",
+    link: "/category/kitchen-appliances",
   },
 ];
+
+// Helper to determine destination URL for any card offer
+export function getCardOfferHref(card) {
+  if (!card) return "/category/kitchen-appliances";
+
+  // 1. Explicit link if set
+  if (card.link && card.link !== "#") return card.link;
+  if (card.url && card.url !== "#") return card.url;
+  if (card.redirect_url && card.redirect_url !== "#") return card.redirect_url;
+  if (card.category_slug) return `/category/${card.category_slug}`;
+
+  // 2. Intelligent matching based on card title / keywords
+  const title = (card.title || "").trim().toLowerCase();
+
+  // Kitchen appliances (Gas stove, chimney, mixie, oven, fryer, etc.)
+  if (/gas\s*stove|stove|hob|burner|chimney|mixie|mixer|grinder|blender|kitchen|cooker|cooktop|fryer|microwave|toaster|kettle|purifier|otg|flask/i.test(title)) {
+    return "/category/kitchen-appliances";
+  }
+
+  // Televisions & Audio
+  if (/tv|television|audio|soundbar|speaker|qled|oled|led/i.test(title)) {
+    return "/category/televisions";
+  }
+
+  // Large Appliances
+  if (/refrigerator|fridge|washing|ac|air\s*conditioner|cooler|dishwasher|freezer/i.test(title)) {
+    return "/category/large-appliances";
+  }
+
+  // Mobiles & Accessories
+  if (/mobile|phone|tablet|wearable|smartwatch|earphone|headphone/i.test(title)) {
+    return "/category/mobiles-accessories";
+  }
+
+  // Laptops & Computers
+  if (/laptop|computer|monitor|pc|desktop/i.test(title)) {
+    return "/category/computers-laptops";
+  }
+
+  // Default fallback matching reference (e.g. for "RINA" or custom admin cards)
+  return "/category/kitchen-appliances";
+}
 
 // Map subcategory slug / ID to broad category section order
 const SECTION_ORDER = [
@@ -85,6 +128,58 @@ const SECTION_ORDER = [
   },
 ];
 
+// Helper to determine if an offer timer is active for the specified region
+function isTimerActiveForRegion(timer, currentRegion) {
+  // 1. Check if status is active
+  const isDisplay =
+    (timer.timerDisplayStatus ? timer.timerDisplayStatus === "Yes" : true) &&
+    (timer.status ? timer.status === "active" : true);
+  if (!isDisplay) return false;
+
+  // 2. Check dates if set
+  const now = Date.now();
+  const start = timer.startDate || timer.offer_start;
+  const end = timer.endDate || timer.offer_end;
+  if (start && new Date(start).getTime() > now) return false;
+  if (end && new Date(end).getTime() <= now) return false;
+
+  if (!currentRegion) return true;
+
+  const regNorm = currentRegion.toLowerCase().replace(/[^a-z0-9]/g, "");
+
+  const stateAliases = {
+    kerala: ["kerala", "kl"],
+    tamilnadu: ["tamilnadu", "tamil nadu", "tn"],
+    karnataka: ["karnataka", "ka"],
+    andhra: ["andhra", "andhra pradesh", "ap"],
+    telangana: ["telangana", "ts", "tg"],
+  };
+
+  const currentAliases = stateAliases[regNorm] || [regNorm];
+
+  // 3. Match 'all'
+  if (
+    timer.state === "all" ||
+    (Array.isArray(timer.offerViewStates) &&
+      timer.offerViewStates.some((s) => s.toLowerCase() === "all")) ||
+    (Array.isArray(timer.states) &&
+      timer.states.some((s) => s.toLowerCase() === "all"))
+  ) {
+    return true;
+  }
+
+  // 4. Match state lists
+  const timerStates = [
+    ...(Array.isArray(timer.offerViewStates) ? timer.offerViewStates : []),
+    ...(Array.isArray(timer.states) ? timer.states : []),
+    ...(typeof timer.state === "string" ? [timer.state] : []),
+  ].map((s) => s.toLowerCase().replace(/[^a-z0-9]/g, ""));
+
+  return currentAliases.some((alias) =>
+    timerStates.some((ts) => ts === alias.replace(/[^a-z0-9]/g, ""))
+  );
+}
+
 // Card Offer Banner Component (matches user's reference image with red bottom bar)
 function AdminCardOfferItem({ card }) {
   const initialImg = card.image
@@ -95,9 +190,7 @@ function AdminCardOfferItem({ card }) {
 
   const [imgSrc, setImgSrc] = useState(initialImg);
 
-  const targetHref =
-    card.link ||
-    (card.title ? `/search?q=${encodeURIComponent(card.title)}` : "/category/appliances");
+  const targetHref = getCardOfferHref(card);
 
   return (
     <Link
@@ -232,10 +325,9 @@ function DealProductCard({ product, brandMap }) {
 }
 
 export default function DealsOfferPage() {
-  const { region } = useRegion();
-  const [activeOfferTitle, setActiveOfferTitle] = useState("FULL MOON SALE");
-  const [offerTopBanner, setOfferTopBanner] = useState(null);
-  const [cardOffers, setCardOffers] = useState([]);
+  const { region, selectedRegion } = useRegion();
+  const { setActiveOfferTimer, setActiveTopBanner } = useHeaderdetails();
+  const [activeOfferTimers, setActiveOfferTimers] = useState([]);
   const [sections, setSections] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -255,6 +347,8 @@ export default function DealsOfferPage() {
         setLoading(true);
         setError(null);
 
+        const activeReg = region || selectedRegion?.id || "kerala";
+
         // Fetch offer timers, category products, and brands in parallel
         const [timersRes, settingsRes, brandRes] = await Promise.allSettled([
           fetch("/api/offer-timer"),
@@ -262,65 +356,57 @@ export default function DealsOfferPage() {
           fetch("/api/brand"),
         ]);
 
-        // Process Offer Timers & Admin-added Card Offers
+        // Process ALL Offer Timers active for current region
         if (timersRes.status === "fulfilled" && timersRes.value.ok) {
           const tData = await timersRes.value.json();
           const timers = tData?.data || [];
 
           if (timers.length > 0) {
-            // Find active timer matching region or active display status
-            const activeTimer =
-              timers.find((t) => {
-                const isDisplay =
-                  t.timerDisplayStatus === "Yes" || t.status === "active";
-                if (!isDisplay) return false;
-                const states = t.offerViewStates || t.states || [];
-                return (
-                  t.state === "all" ||
-                  states.includes("all") ||
-                  (region && states.includes(region.toLowerCase()))
-                );
-              }) || timers[0];
+            // Find ALL active timers matching current state/region
+            const matchedTimers = timers.filter((t) =>
+              isTimerActiveForRegion(t, activeReg)
+            );
 
-            if (activeTimer) {
-              const title =
-                activeTimer.offerTitle || activeTimer.offer_title || "FULL MOON SALE";
-              setActiveOfferTitle(title);
+            // Sort by latest first: highest timerId / latest startDate
+            matchedTimers.sort((a, b) => {
+              const idA = Number(a.timerId || a.custom_id || 0);
+              const idB = Number(b.timerId || b.custom_id || 0);
+              if (idB !== idA) return idB - idA;
 
-              const banner =
-                activeTimer.topBanner || activeTimer.top_banner_url || null;
-              if (banner) {
-                setOfferTopBanner(
-                  banner.startsWith("/") ? banner : `/uploads/topbanner/${banner}`
-                );
-              }
+              const dateA = new Date(
+                a.startDate || a.offer_start || a.createdAt || 0
+              ).getTime();
+              const dateB = new Date(
+                b.startDate || b.offer_start || b.createdAt || 0
+              ).getTime();
+              return dateB - dateA;
+            });
 
-              // Extract card offers added by admin
-              const activeCards = Array.isArray(activeTimer.card_offers)
-                ? activeTimer.card_offers.filter((c) => c.status !== "inactive")
-                : [];
+            if (isMounted) {
+              setActiveOfferTimers(
+                matchedTimers.length > 0 ? matchedTimers : timers
+              );
 
-              if (activeCards.length > 0) {
-                setCardOffers(activeCards);
-              } else {
-                // Check if any other timer has card offers
-                const otherTimerCards = timers
-                  .flatMap((t) => t.card_offers || [])
-                  .filter((c) => c?.title && c.status !== "inactive");
+              // Ensure the latest uploaded banner from top active offer shows as header background
+              const latestTimer = matchedTimers[0] || timers[0];
+              if (latestTimer) {
+                const latestBanner =
+                  latestTimer.topBanner || latestTimer.top_banner_url || null;
+                const bannerUrl = latestBanner
+                  ? latestBanner.startsWith("/")
+                    ? latestBanner
+                    : `/uploads/topbanner/${latestBanner}`
+                  : null;
 
-                if (otherTimerCards.length > 0) {
-                  setCardOffers(otherTimerCards);
-                } else {
-                  // Fallback to reference design cards
-                  setCardOffers(REFERENCE_CARD_OFFERS);
+                if (setActiveTopBanner && bannerUrl) {
+                  setActiveTopBanner(bannerUrl);
+                }
+                if (setActiveOfferTimer) {
+                  setActiveOfferTimer(latestTimer);
                 }
               }
             }
-          } else {
-            setCardOffers(REFERENCE_CARD_OFFERS);
           }
-        } else {
-          setCardOffers(REFERENCE_CARD_OFFERS);
         }
 
         // Process Brand Data
@@ -413,7 +499,7 @@ export default function DealsOfferPage() {
     return () => {
       isMounted = false;
     };
-  }, [region]);
+  }, [region, selectedRegion?.id]);
 
   const scrollContainer = (id, direction) => {
     const el = scrollRefs.current[id];
@@ -505,49 +591,61 @@ export default function DealsOfferPage() {
           </div>
         )}
 
-        {/* Admin Top Banner (if uploaded in Offer Timer) */}
-        {!loading && !error && offerTopBanner && (
-          <div className="w-full overflow-hidden rounded-lg shadow-sm border border-gray-100">
-            <Image
-              src={offerTopBanner}
-              alt={activeOfferTitle || "Offer Banner"}
-              width={1400}
-              height={320}
-              className="w-full h-auto object-cover max-h-[300px]"
-              unoptimized
-            />
-          </div>
-        )}
+        {/* Active Offer Sections: Rendered line by line, sorted latest on top */}
+        {!loading &&
+          !error &&
+          activeOfferTimers.map((timer) => {
+            const timerTitle =
+              timer.offerTitle || timer.offer_title || "SPECIAL OFFER";
+            const timerSlug = timerTitle
+              .toLowerCase()
+              .replace(/[^a-z0-9]+/g, "-");
+            const stateSlug = (
+              region ||
+              selectedRegion?.id ||
+              (timer.offerViewStates && timer.offerViewStates[0]) ||
+              timer.state ||
+              "all"
+            )
+              .toLowerCase()
+              .replace(/[^a-z0-9]+/g, "-");
+            const timerIdVal = timer.timerId ?? timer.custom_id ?? timer._id;
+            const viewAllLink = `/super-offers/${stateSlug}/${timerSlug}?offer_timer_id=${timerIdVal}`;
 
-        {/* Section 1: Active Offer & Card Offers Banner Section (Reference Image Clone) */}
-        {!loading && !error && (
-          <section className="relative">
-            {/* Header: Offer Title + VIEW ALL */}
-            <div className="flex items-center justify-between pb-2 mb-6 border-b border-gray-300">
-              <h2 className="text-lg sm:text-xl md:text-2xl font-bold tracking-wide text-[#d72828] uppercase">
-                {activeOfferTitle}
-              </h2>
-              <Link
-                href="/deals-offer"
-                className="bg-[#d72828] hover:bg-red-700 active:bg-red-800 text-white font-bold text-xs sm:text-sm px-6 py-2 uppercase tracking-wider transition-all duration-200 shadow-sm hover:shadow"
-              >
-                VIEW ALL
-              </Link>
-            </div>
+            const timerCards =
+              Array.isArray(timer.card_offers) && timer.card_offers.length > 0
+                ? timer.card_offers.filter((c) => c.status !== "inactive")
+                : REFERENCE_CARD_OFFERS;
 
-            {/* 3-Column Card Offers Grid with Red Title Bar (Matches Reference Image) */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-              {cardOffers.map((card, idx) => (
-                <AdminCardOfferItem
-                  key={card.id || card._id || idx}
-                  card={card}
-                />
-              ))}
-            </div>
-          </section>
-        )}
+            return (
+              <section key={timer._id || timer.timerId} className="relative">
+                {/* Header: Offer Title + VIEW ALL */}
+                <div className="flex items-center justify-between pb-2 mb-6 border-b border-gray-300">
+                  <h2 className="text-lg sm:text-xl md:text-2xl font-bold tracking-wide text-[#d72828] uppercase">
+                    {timerTitle}
+                  </h2>
+                  <Link
+                    href={viewAllLink}
+                    className="bg-[#d72828] hover:bg-red-700 active:bg-red-800 text-white font-bold text-xs sm:text-sm px-6 py-2 uppercase tracking-wider transition-all duration-200 shadow-sm hover:shadow"
+                  >
+                    VIEW ALL
+                  </Link>
+                </div>
 
-        {/* Section 2+: Category Product Carousels */}
+                {/* 3-Column Card Offers Grid with Red Title Bar (Matches Reference Image) */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                  {timerCards.map((card, idx) => (
+                    <AdminCardOfferItem
+                      key={card.id || card._id || idx}
+                      card={card}
+                    />
+                  ))}
+                </div>
+              </section>
+            );
+          })}
+
+        {/* Category Product Carousels */}
         {!loading &&
           !error &&
           sections.map((section) => (
