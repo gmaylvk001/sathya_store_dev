@@ -907,6 +907,7 @@ export default function ExistSathyaUsersComponent() {
             {importResult && (
               <div className="mt-4 text-sm">
                 <p>Added: {importResult.addedCount || 0}</p>
+                <p>Skipped existing exist_id: {importResult.skippedExistIdCount || 0}</p>
                 <p>Skipped existing email and phone: {importResult.skippedExistingCount || 0}</p>
                 <p>Other skipped: {(importResult.skippedCount || 0) - (importResult.skippedExistingCount || 0)}</p>
                 <p>Saved to skipped module: {importResult.skippedSavedCount || 0}</p>

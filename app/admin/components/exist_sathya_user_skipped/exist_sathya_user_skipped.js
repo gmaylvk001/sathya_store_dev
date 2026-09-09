@@ -85,6 +85,35 @@ export default function ExistSathyaUserSkippedComponent() {
     }
   };
 
+  const handleDeleteAll = async () => {
+    if (!rows.length) return;
+    const confirmed = window.confirm(
+      `Delete ALL ${rows.length} skipped users? This cannot be undone.`
+    );
+    if (!confirmed) return;
+
+    const typed = window.prompt("Type DELETE ALL to confirm:");
+    if (typed !== "DELETE ALL") {
+      showMessage("❌ Full delete cancelled");
+      return;
+    }
+
+    setIsBulkDeleting(true);
+    try {
+      const response = await axios.delete("/api/exist_sathya_user_skipped/delete", {
+        data: { deleteAll: true },
+      });
+      showMessage(`✅ ${response.data.message || "All skipped users deleted"}`);
+      setSelectedIds([]);
+      setCurrentPage(1);
+      fetchRows();
+    } catch (error) {
+      showMessage(error.response?.data?.error || "❌ Error deleting skipped users");
+    } finally {
+      setIsBulkDeleting(false);
+    }
+  };
+
   const reasonOptions = [...new Set(rows.map((row) => String(row.skipped_reason || "").trim()).filter(Boolean))];
 
   const filteredRows = rows.filter((row) => {
@@ -180,6 +209,14 @@ export default function ExistSathyaUserSkippedComponent() {
                 </button>
               </>
             )}
+            <button
+              type="button"
+              onClick={handleDeleteAll}
+              disabled={isBulkDeleting || rows.length === 0}
+              className="p-2 bg-red-500 hover:bg-red-600 text-white rounded-md disabled:opacity-50"
+            >
+              {isBulkDeleting ? "Deleting..." : `Delete all (${rows.length})`}
+            </button>
             <span className="ml-auto text-sm text-gray-600">Total skipped: {rows.length}</span>
           </div>
 
