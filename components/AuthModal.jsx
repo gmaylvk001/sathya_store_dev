@@ -5,84 +5,96 @@ import { useWishlist } from '@/context/WishlistContext';
 import { useHeaderdetails } from '@/context/HeaderContext';
 
 export const AuthModal = ({ onClose, onSuccess, error }) => {
-  const [activeTab, setActiveTab] = useState('login');
-    const { updateHeaderdetails, setIsLoggedIn, setUserData,setIsAdmin } = useHeaderdetails();
-  const [formData, setFormData] = useState({ email: '', password: '', name: '', mobile: '' });
+  const { updateHeaderdetails, setIsLoggedIn, setUserData, setIsAdmin } = useHeaderdetails();
+  const [step, setStep] = useState(1); // 1 = phone input, 2 = OTP input
+  const [mobile, setMobile] = useState('');
+  const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
   const [formError, setFormError] = useState('');
-  const [fieldErrors, setFieldErrors] = useState({
-    email: '',
-    password: ''
-  });
   const { updateCartCount } = useCart();
   const { updateWishlist } = useWishlist();
 
   const clearErrors = () => {
     setFormError('');
-    setFieldErrors({
-      email: '',
-      password: ''
-    });
   };
 
-  const handleSubmit = async (e) => {
+  // Step 1: Send OTP
+  const handleSendOtp = async (e) => {
     e.preventDefault();
-    setLoading(true);
     clearErrors();
-    const guestId = localStorage.getItem("guestCartId");
+
+    if (!mobile || !/^[6-9][0-9]{9}$/.test(mobile)) {
+      setFormError('Please enter a valid 10-digit mobile number');
+      return;
+    }
+
+    setLoading(true);
     try {
-      const endpoint = activeTab === 'login' ? '/api/auth/login' : '/api/auth/register';
-      const response = await fetch(endpoint, {
+      const res = await fetch('/api/auth/send-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(activeTab === 'login' ? {
-          email: formData.email,
-          password: formData.password,
-          guestId: guestId
-        } : {
-          name: formData.name,
-          email: formData.email,
-          mobile: formData.mobile,
-          password: formData.password
-        }),
+        body: JSON.stringify({ mobile }),
       });
+      const data = await res.json();
 
-      const data = await response.json();
-      
-      if (!response.ok) {
-        // Handle field-specific errors
-        if (data.errorType === 'email') {
-          setFieldErrors(prev => ({ ...prev, email: data.error }));
-        } else if (data.errorType === 'password') {
-          setFieldErrors(prev => ({ ...prev, password: data.error }));
-        } else {
-          throw new Error(data.error || 'Authentication failed');
-        }
+      if (!res.ok || !data.success) {
+        setFormError(data.error || 'Failed to send OTP');
         return;
       }
-      
+
+      setStep(2);
+    } catch (err) {
+      console.error('Send OTP error:', err);
+      setFormError('Something went wrong. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Step 2: Verify OTP & Login/Register
+  const handleVerifyOtp = async (e) => {
+    e.preventDefault();
+    clearErrors();
+
+    if (!otp || otp.length < 4) {
+      setFormError('Please enter the 4-digit OTP');
+      return;
+    }
+
+    setLoading(true);
+    const guestId = localStorage.getItem("guestCartId");
+    try {
+      const res = await fetch('/api/auth/verify-phone-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mobile, otp, guestId }),
+      });
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        setFormError(data.error || 'OTP verification failed');
+        return;
+      }
+
       if (data.token) {
         localStorage.setItem('token', data.token);
-        
-         const response = await fetch('/api/auth/check', {
+
+        const checkRes = await fetch('/api/auth/check', {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': data.token ? `Bearer ${data.token}` : '',
+            'Authorization': `Bearer ${data.token}`,
           }
         });
-        
-        const details = await response.json();
+        const details = await checkRes.json();
 
-              
         if (details.loggedIn) {
           updateHeaderdetails({ user: details.user });
-            setIsLoggedIn(true);
-          const role = details.role;
-          if(role == 'admin'){
+          setIsLoggedIn(true);
+          if (details.role === 'admin') {
             setIsAdmin(true);
           }
-        }else{
+        } else {
           setIsLoggedIn(false);
           return;
         }
@@ -107,15 +119,14 @@ export const AuthModal = ({ onClose, onSuccess, error }) => {
           updateWishlist(wishlistData.items, wishlistData.count);
         }
 
-        // 👇 Optional: clear guestId after merge
         localStorage.removeItem("guestCartId");
         location.reload();
       }
-      
+
       onSuccess();
-    } catch (error) {
-      console.error('Authentication error:', error);
-      setFormError(error.message);
+    } catch (err) {
+      console.error('Verify OTP error:', err);
+      setFormError(err.message || 'Something went wrong');
     } finally {
       setLoading(false);
     }
@@ -124,121 +135,98 @@ export const AuthModal = ({ onClose, onSuccess, error }) => {
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-8 w-96 max-w-full relative">
-        <button 
+        <button
           onClick={onClose}
           className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl"
         >
           &times;
         </button>
 
-        <div className="flex gap-4 mb-6 border-b">
-          <button
-            className={`pb-2 px-1 ${
-              activeTab === 'login' 
-                ? 'border-b-2 border-[#d72828] text-[#d72828]' 
-                : 'text-gray-500 hover:text-gray-700'
-            }`}
-            onClick={() => {
-              setActiveTab('login');
-              clearErrors();
-            }}
-          >
-            Login
-          </button>
-          <button
-            className={`pb-2 px-1 ${
-              activeTab === 'register'
-                ? 'border-b-2 border-[#d72828] text-[#d72828]'
-                : 'text-gray-500 hover:text-gray-700'
-            }`}
-            onClick={() => {
-              setActiveTab('register');
-              clearErrors();
-            }}
-          >
-            Register
-          </button>
-        </div>
+        <h2 className="text-xl font-semibold mb-1 text-gray-800">
+          {step === 1 ? 'Login / Register' : 'Verify OTP'}
+        </h2>
+        <p className="text-sm text-gray-500 mb-6">
+          {step === 1
+            ? 'Enter your mobile number to continue'
+            : `We've sent an OTP to ${mobile}`}
+        </p>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {activeTab === 'register' && (
+        {step === 1 ? (
+          <form onSubmit={handleSendOtp} className="space-y-4">
             <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Mobile Number</label>
+              <div className="flex items-center border rounded focus-within:ring-2 focus-within:ring-red-500 overflow-hidden">
+                <span className="px-3 py-2 bg-gray-50 text-gray-500 text-sm border-r">+91</span>
+                <input
+                  type="tel"
+                  placeholder="Enter 10-digit number"
+                  value={mobile}
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+                    setMobile(val);
+                    if (formError) clearErrors();
+                  }}
+                  className="flex-1 px-4 py-2 focus:outline-none text-sm"
+                  maxLength={10}
+                  required
+                  autoFocus
+                />
+              </div>
+            </div>
+
+            {(formError || error) && (
+              <div className="text-red-500 text-sm">{formError || error}</div>
+            )}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-[#d72828] text-white py-2.5 px-4 rounded hover:bg-[#b91c1c] disabled:bg-gray-400 transition-colors duration-200 font-medium"
+            >
+              {loading ? 'Sending OTP...' : 'Send OTP'}
+            </button>
+          </form>
+        ) : (
+          <form onSubmit={handleVerifyOtp} className="space-y-4">
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Enter OTP</label>
               <input
                 type="text"
-                placeholder="Name"
-                value={formData.name}
-                onChange={(e) => setFormData({...formData, name: e.target.value})}
-                className="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500"
+                placeholder="Enter 4-digit OTP"
+                value={otp}
+                onChange={(e) => {
+                  const val = e.target.value.replace(/\D/g, '').slice(0, 4);
+                  setOtp(val);
+                  if (formError) clearErrors();
+                }}
+                className="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500 text-center text-lg tracking-widest"
+                maxLength={4}
                 required
+                autoFocus
               />
             </div>
-          )}
-          
-          <div>
-            <input
-              type="email"
-              placeholder="Email"
-              value={formData.email}
-              onChange={(e) => {
-                setFormData({...formData, email: e.target.value});
-                if (fieldErrors.email) clearErrors();
-              }}
-              className={`w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500 ${
-                fieldErrors.email ? 'border-red-500' : ''
-              }`}
-              required
-            />
-            {fieldErrors.email && (
-              <p className="mt-1 text-sm text-red-500">{fieldErrors.email}</p>
-            )}
-          </div>
-          
-          {activeTab === 'register' && (
-            <div>
-              <input
-                type="mobile"
-                placeholder="Mobile"
-                value={formData.mobile}
-                onChange={(e) => setFormData({...formData, mobile: e.target.value})}
-                className="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500"
-                required
-              />
-            </div>
-          )}
-          
-          <div>
-            <input
-              type="password"
-              placeholder="Password"
-              value={formData.password}
-              onChange={(e) => {
-                setFormData({...formData, password: e.target.value});
-                if (fieldErrors.password) clearErrors();
-              }}
-              className={`w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500 ${
-                fieldErrors.password ? 'border-red-500' : ''
-              }`}
-              required
-            />
-            {fieldErrors.password && (
-              <p className="mt-1 text-sm text-red-500">{fieldErrors.password}</p>
-            )}
-          </div>
-          
-          {(formError || error) && (
-            <div className="text-red-500 text-sm">
-              {formError || error}
-            </div>
-          )}
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-[#d72828] text-white py-2 px-4 rounded hover:bg-[#d72828] disabled:bg-gray-400 transition-colors duration-200"
-          >
-            {loading ? 'Processing...' : activeTab === 'login' ? 'Login' : 'Register'}
-          </button>
-        </form>
+            {(formError || error) && (
+              <div className="text-red-500 text-sm">{formError || error}</div>
+            )}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-[#d72828] text-white py-2.5 px-4 rounded hover:bg-[#b91c1c] disabled:bg-gray-400 transition-colors duration-200 font-medium"
+            >
+              {loading ? 'Verifying...' : 'Verify & Login'}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => { setStep(1); setOtp(''); clearErrors(); }}
+              className="w-full text-sm text-gray-500 hover:text-gray-700 py-1"
+            >
+              ← Change mobile number
+            </button>
+          </form>
+        )}
       </div>
     </div>
   );

@@ -98,7 +98,7 @@ const RelatedProductCard = ({ product, brandMap = {} }) => {
   const productUrl = `/product/${product.slug || product._id}`;
 
   return (
-    <div className="group relative bg-white rounded-[16px] border border-gray-200/70 hover:border-gray-300 shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col h-full overflow-hidden w-full select-none">
+    <div className="group relative bg-white rounded-[16px] border border-red-200/90 hover:border-[#d72828] shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col h-full overflow-hidden w-full select-none">
       <div className="relative h-[180px] sm:h-[200px] w-full bg-gray-50/50 flex items-center justify-center p-3 overflow-hidden">
         {hasDiscount && (
           <span className="absolute top-2.5 left-2.5 z-10 bg-rose-600 text-white text-[10px] font-extrabold px-2 py-0.5 rounded-full shadow-xs tracking-wide">

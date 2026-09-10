@@ -24,39 +24,52 @@ export default function CategoryImageHotspotBanner({ config }) {
 
   return (
     <section className="w-full mb-8 bg-white">
-      {name ? (
-        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 px-1 text-center">
-          {name}
-        </h2>
-      ) : null}
+      <div className="w-full px-4 sm:px-6">
+        {name ? (
+          <h2 className="text-xl sm:text-2xl font-bold text-[#d72828] mb-4 px-1 text-center tracking-tight">
+            {name}
+          </h2>
+        ) : null}
 
-      <div className="relative w-full overflow-hidden">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={bannerImage}
-          alt={name || "Banner"}
-          className="block w-full h-auto"
-          draggable={false}
-        />
+        <div className="relative w-full overflow-hidden rounded-sm">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={bannerImage}
+            alt={name || "Banner"}
+            className="block w-full h-auto"
+            draggable={false}
+          />
 
-        {hotspots.map((hs) => {
-          const href = resolveHref(hs.link);
-          if (!href) return null;
+          {hotspots.map((hs) => {
+            const href = resolveHref(hs.link);
+            if (!href) return null;
 
-          const style = {
-            left: `${hs.x}%`,
-            top: `${hs.y}%`,
-            width: `${hs.width}%`,
-            height: `${hs.height}%`,
-          };
+            const style = {
+              left: `${hs.x}%`,
+              top: `${hs.y}%`,
+              width: `${hs.width}%`,
+              height: `${hs.height}%`,
+            };
 
-          const className =
-            "absolute z-10 block cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#ED1C24] focus-visible:ring-offset-1";
+            const className =
+              "absolute z-10 block cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#ED1C24] focus-visible:ring-offset-1";
 
-          const external = /^https?:\/\//i.test(href);
-          if (external) {
+            const external = /^https?:\/\//i.test(href);
+            if (external) {
+              return (
+                <a
+                  key={hs.id}
+                  href={href}
+                  className={className}
+                  style={style}
+                  aria-label={hs.label || "Hotspot link"}
+                  title={hs.label || undefined}
+                />
+              );
+            }
+
             return (
-              <a
+              <Link
                 key={hs.id}
                 href={href}
                 className={className}
@@ -65,24 +78,13 @@ export default function CategoryImageHotspotBanner({ config }) {
                 title={hs.label || undefined}
               />
             );
-          }
+          })}
+        </div>
 
-          return (
-            <Link
-              key={hs.id}
-              href={href}
-              className={className}
-              style={style}
-              aria-label={hs.label || "Hotspot link"}
-              title={hs.label || undefined}
-            />
-          );
-        })}
+        <p className="mt-2 text-center text-sm sm:text-base text-gray-600 px-2">
+          Click which you want
+        </p>
       </div>
-
-      <p className="mt-2 text-center text-sm sm:text-base text-gray-600 px-2">
-        Click which you want
-      </p>
     </section>
   );
 }

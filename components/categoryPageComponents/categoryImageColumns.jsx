@@ -146,9 +146,9 @@ export default function CategoryImageColumns({ config }) {
 
   return (
     <section className="w-full bg-white py-4 md:py-6">
-      <div className={CATEGORY_PAGE_SHELL_CLASS}>
+      <div className="w-full px-4 sm:px-6">
         {name ? (
-          <h2 className="text-lg md:text-xl font-semibold text-gray-900 mb-3 md:mb-4">
+          <h2 className="text-lg md:text-xl font-bold text-[#d72828] mb-3 md:mb-4 tracking-tight">
             {name}
           </h2>
         ) : null}

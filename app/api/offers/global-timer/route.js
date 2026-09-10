@@ -60,7 +60,8 @@ export async function GET(req) {
       );
     }
 
-    const activeTimer = await Offertimer.findOne({
+    // 1. Try to find currently active live timer
+    let activeTimer = await Offertimer.findOne({
       $and: [
         {
           $or: [
@@ -82,9 +83,44 @@ export async function GET(req) {
       .sort({ startDate: -1, offer_start: -1, createdAt: -1 })
       .lean();
 
+    let isUpcoming = false;
+    // 2. If no live timer, find next upcoming timer (e.g. tomorrow's offer)
+    if (!activeTimer) {
+      activeTimer = await Offertimer.findOne({
+        $and: [
+          {
+            $or: [
+              { timerDisplayStatus: "Yes" },
+              { status: "active" },
+            ],
+          },
+          {
+            $or: [
+              { startDate: { $gt: now }, endDate: { $gt: now } },
+              { offer_start: { $gt: now }, offer_end: { $gt: now } },
+            ],
+          },
+          {
+            $or: stateMatchOr,
+          },
+        ],
+      })
+        .sort({ startDate: 1, offer_start: 1, createdAt: 1 })
+        .lean();
+
+      if (activeTimer) {
+        isUpcoming = true;
+      }
+    }
+
     const banner = activeTimer?.topBanner || activeTimer?.top_banner_url || null;
     const top_banner_url = banner
       ? (banner.startsWith("/") ? banner : `/uploads/topbanner/${banner}`)
+      : null;
+
+    const popup = activeTimer?.dealsPopupImage || activeTimer?.popup_image_url || null;
+    const popup_image_url = popup
+      ? (popup.startsWith("/") ? popup : `/uploads/topbanner/${popup}`)
       : null;
 
     return NextResponse.json(
@@ -96,11 +132,15 @@ export async function GET(req) {
         timer: activeTimer
           ? {
               ...activeTimer,
+              isUpcoming,
               top_banner_url,
               topBanner: top_banner_url,
+              dealsPopupImage: popup_image_url,
+              popup_image_url,
               startDate: activeTimer.startDate || activeTimer.offer_start,
               endDate: activeTimer.endDate || activeTimer.offer_end,
               offerTitle: activeTimer.offerTitle || activeTimer.offer_title,
+              offerHeading: activeTimer.offerHeading || activeTimer.offerTitle || activeTimer.offer_title,
             }
           : null,
       },

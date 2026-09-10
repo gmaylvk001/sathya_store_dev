@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
-import ProductCard from "@/components/ProductCard";
+import StorefrontProductCard from "@/components/StorefrontProductCard";
 
 function usePerPage() {
   const [perPage, setPerPage] = useState(5);
@@ -35,16 +35,6 @@ function getPageStarts(total, perPage) {
   const last = total - perPage;
   if (starts[starts.length - 1] !== last) starts.push(last);
   return starts;
-}
-
-function productImageSrc(product) {
-  const img = product?.images?.[0];
-  if (!img) return "";
-  return img.startsWith("http") ? img : `/uploads/products/${img}`;
-}
-
-function formatPrice(n) {
-  return Math.round(Number(n) || 0).toLocaleString("en-IN");
 }
 
 function resolveHref(raw) {
@@ -80,6 +70,42 @@ function RelatedProducts({ products, seeAllHref, name }) {
   const scrollerRef = useRef(null);
   const [page, setPage] = useState(0);
   const [paused, setPaused] = useState(false);
+  const [brandMap, setBrandMap] = useState({});
+
+  useEffect(() => {
+    const fetchBrand = async () => {
+      try {
+        const response = await fetch('/api/brand');
+        const result = await response.json();
+        if (!result.error && Array.isArray(result.data)) {
+          const map = {};
+          result.data.forEach((b) => {
+            map[b._id] = b.brand_name;
+          });
+          setBrandMap(map);
+        }
+      } catch (error) {
+        console.error('Error fetching brand map:', error);
+      }
+    };
+    fetchBrand();
+  }, []);
+
+  const handleProductClick = (product) => {
+    try {
+      const storedString = localStorage.getItem('recentlyViewed');
+      let stored = [];
+      try {
+        stored = JSON.parse(storedString) || [];
+      } catch {
+        stored = [];
+      }
+      const updated = [product, ...stored.filter((p) => p._id !== product._id)].slice(0, 10);
+      localStorage.setItem('recentlyViewed', JSON.stringify(updated));
+    } catch (e) {
+      console.error('Error updating recentlyViewed localStorage:', e);
+    }
+  };
 
   const pageStarts = useMemo(
     () => getPageStarts(products.length, perPage),
@@ -123,74 +149,23 @@ function RelatedProducts({ products, seeAllHref, name }) {
     return () => clearInterval(id);
   }, [pageCount, paused]);
 
-  const gapPx = 12;
+  const gapPx = 14;
   const cellStyle = {
     width: `calc((100% - ${(perPage - 1) * gapPx}px) / ${perPage})`,
   };
 
   const renderCard = (product, key) => {
-    const price = Number(product.price) || 0;
-    const special = Number(product.special_price) || 0;
-    const hasOffer = special > 0 && special < price;
-    const display = hasOffer ? special : price;
-    const discountPct = hasOffer
-      ? Math.round(100 - (special / price) * 100)
-      : 0;
-    const img = productImageSrc(product);
-    const model = product.model_number
-      ? `(${String(product.model_number).trim()})`
-      : "";
-
     return (
       <div
         key={key}
-        className="box-border min-w-0 shrink-0"
+        className="box-border min-w-0 shrink-0 py-1"
         style={cellStyle}
       >
-        <div className="relative h-full border border-gray-200 bg-white flex flex-col">
-          <div className="absolute top-2 right-2 z-10">
-            <ProductCard productId={product._id} />
-          </div>
-          <Link
-            href={`/product/${product.slug}`}
-            className="block h-[110px] sm:h-[130px] bg-white overflow-hidden"
-          >
-            {img ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={img}
-                alt={product.name}
-                className="w-full h-full object-contain p-1.5 sm:p-2 pointer-events-none select-none"
-                draggable={false}
-              />
-            ) : (
-              <div className="w-full h-full bg-gray-50" />
-            )}
-          </Link>
-          <div className="px-2 pb-2 pt-0.5 flex flex-col flex-1">
-            <Link href={`/product/${product.slug}`}>
-              <h3 className="text-xs sm:text-sm font-medium text-gray-900 line-clamp-2 min-h-[2rem] leading-snug">
-                {product.name}
-              </h3>
-            </Link>
-            {model ? (
-              <p className="text-[10px] sm:text-[11px] text-gray-500 mt-0.5 line-clamp-1">
-                {model}
-              </p>
-            ) : null}
-            <p className="mt-1 text-sm font-bold text-gray-900">
-              ₹ {formatPrice(display)}
-            </p>
-            {hasOffer && (
-              <p className="text-[10px] sm:text-[11px] text-gray-600 mt-0.5 flex flex-wrap items-center gap-x-2">
-                <span className="line-through">₹ {formatPrice(price)}</span>
-                <span className="font-semibold text-red-600">
-                  {discountPct}% OFF
-                </span>
-              </p>
-            )}
-          </div>
-        </div>
+        <StorefrontProductCard
+          product={product}
+          brandMap={brandMap}
+          onProductClick={handleProductClick}
+        />
       </div>
     );
   };
@@ -199,15 +174,15 @@ function RelatedProducts({ products, seeAllHref, name }) {
 
   return (
     <div className="w-full mt-6">
-      <div className="flex items-center justify-between gap-3 mb-3 px-1">
-        <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900">
+      <div className="flex items-center justify-between gap-2 mb-2 px-0.5">
+        <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-[#d72828] tracking-tight">
           {name}
         </h2>
         <div className="flex items-center gap-2 shrink-0">
           {seeAllHref ? (
             <Link
               href={seeAllHref}
-              className="text-sm font-medium text-[#0069c1] hover:underline"
+              className="text-sm font-semibold text-[#d72828] hover:text-[#b31e1e] hover:underline"
             >
               See All
             </Link>
@@ -346,49 +321,51 @@ export default function CategoryBannerFourProducts({ config }) {
 
   return (
     <section className="w-full mb-8 bg-white">
-      <BannerLink
-        href={bannerHref}
-        className="flex w-full items-center justify-center overflow-hidden rounded-sm"
-      >
-        <picture className="flex w-full items-center justify-center">
-          {bannerMobile && bannerMobile !== bannerDesktop ? (
-            <source media="(max-width: 767px)" srcSet={bannerMobile} />
-          ) : null}
-          <ExactSizeImage src={bannerDesktop} alt="" className="mx-auto" />
-        </picture>
-      </BannerLink>
-
-      <div
-        className="w-full px-2 sm:px-3 py-3 sm:py-4 rounded-sm"
-        style={{ backgroundColor: tilesBgColor }}
-      >
-        <div
-          className={`grid ${tileGridClass} gap-2 sm:gap-3 place-items-center`}
+      <div className="w-full px-4 sm:px-6">
+        <BannerLink
+          href={bannerHref}
+          className="flex w-full items-center justify-center overflow-hidden rounded-sm"
         >
-          {visibleTiles.map((tile, idx) => {
-            const href = resolveHref(tile.url);
-            return (
-              <BannerLink
-                key={idx}
-                href={href}
-                className="flex items-center justify-center w-full min-w-0 overflow-hidden rounded-md hover:opacity-95 transition-opacity"
-              >
-                <ExactSizeImage
-                  src={tile.image}
-                  alt=""
-                  maxSide={TILE_MAX_DISPLAY}
-                />
-              </BannerLink>
-            );
-          })}
-        </div>
-      </div>
+          <picture className="flex w-full items-center justify-center">
+            {bannerMobile && bannerMobile !== bannerDesktop ? (
+              <source media="(max-width: 767px)" srcSet={bannerMobile} />
+            ) : null}
+            <ExactSizeImage src={bannerDesktop} alt="" className="mx-auto" />
+          </picture>
+        </BannerLink>
 
-      <RelatedProducts
-        products={products}
-        seeAllHref={bannerHref}
-        name={name}
-      />
+        <div
+          className="w-full px-2 sm:px-3 py-3 sm:py-4 rounded-sm"
+          style={{ backgroundColor: tilesBgColor }}
+        >
+          <div
+            className={`grid ${tileGridClass} gap-2 sm:gap-3 place-items-center`}
+          >
+            {visibleTiles.map((tile, idx) => {
+              const href = resolveHref(tile.url);
+              return (
+                <BannerLink
+                  key={idx}
+                  href={href}
+                  className="flex items-center justify-center w-full min-w-0 overflow-hidden rounded-md hover:opacity-95 transition-opacity"
+                >
+                  <ExactSizeImage
+                    src={tile.image}
+                    alt=""
+                    maxSide={TILE_MAX_DISPLAY}
+                  />
+                </BannerLink>
+              );
+            })}
+          </div>
+        </div>
+
+        <RelatedProducts
+          products={products}
+          seeAllHref={bannerHref}
+          name={name}
+        />
+      </div>
     </section>
   );
 }

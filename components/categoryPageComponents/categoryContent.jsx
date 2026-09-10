@@ -13,9 +13,9 @@ export default function CategoryContentBlock({ config }) {
 
   return (
     <section className="w-full bg-white">
-      <div className={`${CATEGORY_PAGE_SHELL_CLASS} py-6 md:py-8`}>
+      <div className="w-full px-4 sm:px-6 py-6 md:py-8">
         {title ? (
-          <h2 className="text-lg md:text-xl font-semibold text-gray-900 mb-3">
+          <h2 className="text-lg md:text-xl font-bold text-[#d72828] mb-3 tracking-tight">
             {title}
           </h2>
         ) : null}

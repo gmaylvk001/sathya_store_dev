@@ -170,8 +170,19 @@ export async function POST(req) {
 
       const bannerImage = normalizeImagePath(row.banner_image || row.bannerImage || row.banner);
       const featuredImage = normalizeImagePath(row.featured_image || row.featuredImage || row.image);
-      const shortDescription = String(row.short_description || row.shortDescription || "").trim();
-      const description = String(row.description || row.content || "").trim();
+      let shortDescription = String(row.short_description || row.shortDescription || "").trim();
+      let description = String(row.description || row.content || "").trim();
+
+      // Clean up unnecessary backslashes (SQL/CSV escape artifacts)
+      const cleanEscapes = (str) => {
+        return str
+          .replace(/\\n/g, "\n")    // preserve literal newlines
+          .replace(/\\r/g, "")      // remove literal carriage returns
+          .replace(/\\/g, "");      // brutally remove any other stray backslash
+      };
+
+      shortDescription = cleanEscapes(shortDescription);
+      description = cleanEscapes(description);
       const author = String(row.author || "Admin").trim();
 
       const readingTime = parseInt(row.reading_time || row.readingTime, 10) || 5;

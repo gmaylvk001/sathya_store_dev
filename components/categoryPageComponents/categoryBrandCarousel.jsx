@@ -282,7 +282,7 @@ export default function CategoryBrandCarousel({ config }) {
     <section className="w-full my-4 sm:my-6 py-6 sm:py-8 bg-[#FFF5F5]">
       {name && (
         <div className="text-center mb-4 px-4">
-          <h2 className="text-base sm:text-xl font-bold text-gray-900 tracking-tight">
+          <h2 className="text-base sm:text-xl font-bold text-[#d72828] tracking-tight">
             {name}
           </h2>
         </div>
