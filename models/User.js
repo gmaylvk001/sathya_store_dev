@@ -51,6 +51,7 @@ const UserSchema = new mongoose.Schema({
   remember_token: { type: String, required: false, default: null },
   avatar: { type: String, required: false, default: null },
   avatar_original: { type: String, required: false, default: null },
+  orders_fetched: { type: Number, required: false, default: 0 },
 }, { timestamps: true });
 
 UserSchema.index(

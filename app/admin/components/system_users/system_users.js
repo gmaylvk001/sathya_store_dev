@@ -568,6 +568,7 @@ export default function SystemUsersComponent() {
                   <th className="p-2">Created At</th>
                   <th className="p-2">Updated At</th>
                   <th className="p-2">User Details</th>
+                  <th className="p-2">Orders fetched</th>
                   <th className="p-2">Action</th>
                 </tr>
               </thead>
@@ -626,6 +627,20 @@ export default function SystemUsersComponent() {
                         )}
                       </td>
                       <td className="p-2">
+                        {Number(user.orders_fetched) === 1 ? (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
+                            Fetched
+                          </span>
+                        ) : (
+                          <span
+                            className="inline-flex items-center justify-center text-gray-400"
+                            title="Not fetched"
+                          >
+                            <Icon icon="mdi:close-circle-outline" width="20" />
+                          </span>
+                        )}
+                      </td>
+                      <td className="p-2">
                         <div className="flex items-center gap-2 justify-center">
                           <button
                             onClick={() => handleEdit(user)}
@@ -664,7 +679,7 @@ export default function SystemUsersComponent() {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="13" className="p-2 text-center text-gray-500">No users found.</td>
+                    <td colSpan="14" className="p-2 text-center text-gray-500">No users found.</td>
                   </tr>
                 )}
               </tbody>
