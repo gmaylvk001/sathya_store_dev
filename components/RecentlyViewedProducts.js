@@ -82,7 +82,7 @@ const RecentlyViewedCard = ({ product, brandMap = {}, onProductClick }) => {
   };
 
   return (
-    <div className="group relative bg-white rounded-[16px] border border-gray-200/70 hover:border-gray-300 shadow-2xs hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col h-full overflow-hidden w-full select-none">
+    <div className="group relative bg-white rounded-[16px] border border-red-200/90 hover:border-[#d72828] shadow-2xs hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col h-full overflow-hidden w-full select-none">
       {/* Top Image Container */}
       <div className="relative h-[150px] sm:h-[170px] w-full bg-[#f9fafb] flex items-center justify-center p-3 overflow-hidden">
         {hasDiscount && (
