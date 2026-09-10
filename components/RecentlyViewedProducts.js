@@ -67,10 +67,15 @@ const RecentlyViewedCard = ({ product, brandMap = {}, onProductClick }) => {
   const ratingValue = Number(product.avgRating || product.rating || product.average_rating || 0);
   const reviewCount = Number(product.reviewCount || product.reviews_count || product.numReviews || 0);
 
-  const imgSrc = product.images?.[0]
-    ? product.images[0].startsWith('http')
-      ? product.images[0]
-      : `/uploads/products/${product.images[0]}`
+  // const imgSrc = product.images?.[0]
+  //   ? product.images[0].startsWith('http')
+  //     ? product.images[0]
+  //     : `/uploads/products/${product.images[0]}`
+  //   : '/uploads/products/placeholder.jpg';
+  const tempURL = "https://www.sathya.store/img/product/";
+  const imagepathname = product.images?.[0] || "";
+  const imgSrc = imagepathname
+    ? (imagepathname.startsWith("http") ? imagepathname : `${tempURL}${imagepathname.replace(/^\/?(uploads\/products\/)?/, "").replace(/^\/+/, "")}`)
     : '/uploads/products/placeholder.jpg';
 
   const productUrl = `/product/${product.slug || product._id}`;
@@ -108,9 +113,8 @@ const RecentlyViewedCard = ({ product, brandMap = {}, onProductClick }) => {
             alt={product.name || 'Product Image'}
             fill
             sizes="(max-width: 640px) 70vw, (max-width: 1024px) 33vw, 20vw"
-            className={`object-contain p-2 group-hover:scale-105 transition-transform duration-300 ease-out ${
-              imgLoaded ? 'opacity-100' : 'opacity-0'
-            }`}
+            className={`object-contain p-2 group-hover:scale-105 transition-transform duration-300 ease-out ${imgLoaded ? 'opacity-100' : 'opacity-0'
+              }`}
             loading="lazy"
             onLoad={() => setImgLoaded(true)}
             onError={(e) => {

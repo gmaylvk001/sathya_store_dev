@@ -141,10 +141,15 @@ function SuperOfferProductCard({ product, brandMap }) {
     : 0;
   const displayPrice = hasDiscount ? specialPrice : price;
 
-  const initialImg = product.images?.[0]
-    ? product.images[0].startsWith("http")
-      ? product.images[0]
-      : `/uploads/products/${product.images[0]}`
+  // const initialImg = product.images?.[0]
+  //   ? product.images[0].startsWith("http")
+  //     ? product.images[0]
+  //     : `/uploads/products/${product.images[0]}`
+  //   : "/uploads/sathya-header-logo.webp";
+  const tempURL = "https://www.sathya.store/img/product/";
+  const imagepathname = product.images?.[0] || "";
+  const initialImg = imagepathname
+    ? (imagepathname.startsWith("http") ? imagepathname : `${tempURL}${imagepathname.replace(/^\/?(uploads\/products\/)?/, "").replace(/^\/+/, "")}`)
     : "/uploads/sathya-header-logo.webp";
 
   const [imgSrc, setImgSrc] = useState(initialImg);
@@ -207,7 +212,7 @@ function SuperOfferProductCard({ product, brandMap }) {
 
       <div className="text-[11px] font-medium mb-3">
         {product.stock_status === "In Stock" ||
-        (product.quantity && product.quantity > 0) ? (
+          (product.quantity && product.quantity > 0) ? (
           <span className="text-green-600 font-semibold">In Stock</span>
         ) : (
           <span className="text-red-500 font-semibold">Out of Stock</span>
@@ -411,8 +416,8 @@ function SuperOffersContent() {
               {timeLeft.isEnded
                 ? "SALE HAS ENDED"
                 : timeLeft.isLive
-                ? "SALE IS LIVE NOW!"
-                : "SALE STARTS SOON!"}
+                  ? "SALE IS LIVE NOW!"
+                  : "SALE STARTS SOON!"}
             </span>
           </div>
 

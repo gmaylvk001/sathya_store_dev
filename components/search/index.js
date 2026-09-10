@@ -484,10 +484,15 @@ export default function SearchPage() {
                     <Link href={`/product/${p.slug}`} className="block mb-2">
                       {p.images?.[0] && (
                         <Image
+                          // src={
+                          //   p.images[0].startsWith("http")
+                          //     ? p.images[0]
+                          //     : `/uploads/products/${p.images[0]}`
+                          // }
                           src={
                             p.images[0].startsWith("http")
                               ? p.images[0]
-                              : `/uploads/products/${p.images[0]}`
+                              : `https://www.sathya.store/img/product/${p.images[0].replace(/^\/?(uploads\/products\/)?/, "").replace(/^\/+/, "")}`
                           }
                           alt={p.name}
                           fill

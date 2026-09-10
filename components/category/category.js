@@ -274,10 +274,16 @@ export default function CategoryPage() {
                 <div className="relative h-48 mb-4">
                 
                   <Image
-                    src={`/uploads/products/${product.images[0]}`}
+                    // src={`/uploads/products/${product.images[0]}`}
+                    src={
+                      (product.images?.[0] || "").startsWith("http")
+                        ? product.images[0]
+                        : `https://www.sathya.store/img/product/${(product.images?.[0] || "").replace(/^\/?(uploads\/products\/)?/, "").replace(/^\/+/, "")}`
+                    }
                     alt={product.name}
                     fill
                     className="object-contain"
+                    unoptimized
                   />
                 </div>
                 <h3 className="text-lg font-semibold mb-2">

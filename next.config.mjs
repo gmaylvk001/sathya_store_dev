@@ -20,6 +20,11 @@ const nextConfig = {
         hostname: "bea.thamirabaranithiruvizha.in",
         pathname: "/uploads/**",
       },
+      {
+        protocol: "https",
+        hostname: "www.sathya.store",
+        pathname: "/**",
+      },
     ],
   },
   async redirects() {

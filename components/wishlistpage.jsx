@@ -525,13 +525,18 @@ function YouMayLikeCard({ product, updateCartCount, apiUrl }) {
     ? Math.round(100 - (specialPrice / originalPrice) * 100)
     : 0;
 
-  const imageUrl =
-    product.image ||
-    (product.images?.[0]
-      ? product.images[0].startsWith("http")
-        ? product.images[0]
-        : `/uploads/products/${product.images[0]}`
-      : null);
+  // const imageUrl =
+  //   product.image ||
+  //   (product.images?.[0]
+  //     ? product.images[0].startsWith("http")
+  //       ? product.images[0]
+  //       : `/uploads/products/${product.images[0]}`
+  //     : null);
+  const tempURL = "https://www.sathya.store/img/product/";
+  const imagepathname = product.image || product.images?.[0] || "";
+  const imageUrl = imagepathname
+    ? (imagepathname.startsWith("http") ? imagepathname : `${tempURL}${imagepathname.replace(/^\/?(uploads\/products\/)?/, "").replace(/^\/+/, "")}`)
+    : null;
 
   const handleCardClick = () => {
     router.push(`/product/${product.slug || product._id}`);
@@ -808,13 +813,18 @@ function RecentlyViewedCardItem({ product, onClick, updateCartCount, apiUrl }) {
     ? Math.round(100 - (specialPrice / originalPrice) * 100)
     : 0;
 
-  const imageUrl =
-    product.image ||
-    (product.images?.[0]
-      ? product.images[0].startsWith("http")
-        ? product.images[0]
-        : `/uploads/products/${product.images[0]}`
-      : null);
+  // const imageUrl =
+  //   product.image ||
+  //   (product.images?.[0]
+  //     ? product.images[0].startsWith("http")
+  //       ? product.images[0]
+  //       : `/uploads/products/${product.images[0]}`
+  //     : null);
+  const tempURL = "https://www.sathya.store/img/product/";
+  const imagepathname = product.image || product.images?.[0] || "";
+  const imageUrl = imagepathname
+    ? (imagepathname.startsWith("http") ? imagepathname : `${tempURL}${imagepathname.replace(/^\/?(uploads\/products\/)?/, "").replace(/^\/+/, "")}`)
+    : null;
 
   const handleCartClick = async (e) => {
     e.stopPropagation();

@@ -60,9 +60,14 @@ const getDiscountPct = (product) => {
 
 const getProductImageSrc = (product) => {
   if (!product.images?.[0]) return null;
-  return product.images[0].startsWith("http")
-    ? product.images[0]
-    : `/uploads/products/${product.images[0]}`;
+  // return product.images[0].startsWith("http")
+  //   ? product.images[0]
+  //   : `/uploads/products/${product.images[0]}`;
+  const tempURL = "https://www.sathya.store/img/product/";
+  const imagepathname = product.images[0];
+  return imagepathname.startsWith("http")
+    ? imagepathname
+    : `${tempURL}${imagepathname.replace(/^\/?(uploads\/products\/)?/, "").replace(/^\/+/, "")}`;
 };
 
 const buildCategoryNameMap = (tree) => {

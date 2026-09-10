@@ -46,10 +46,15 @@ export default function StorefrontProductCard({
     product.reviewCount || product.reviews_count || product.numReviews || 0
   );
 
-  const imgSrc = product.images?.[0]
-    ? product.images[0].startsWith("http")
-      ? product.images[0]
-      : `/uploads/products/${product.images[0]}`
+  // const imgSrc = product.images?.[0]
+  //   ? product.images[0].startsWith("http")
+  //     ? product.images[0]
+  //     : `/uploads/products/${product.images[0]}`
+  //   : "/uploads/products/placeholder.jpg";
+  const tempURL = "https://www.sathya.store/img/product/";
+  const imagepathname = product.images?.[0] || "";
+  const imgSrc = imagepathname
+    ? (imagepathname.startsWith("http") ? imagepathname : `${tempURL}${imagepathname.replace(/^\/?(uploads\/products\/)?/, "").replace(/^\/+/, "")}`)
     : "/uploads/products/placeholder.jpg";
 
   const productUrl = `/product/${product.slug || product._id}`;
