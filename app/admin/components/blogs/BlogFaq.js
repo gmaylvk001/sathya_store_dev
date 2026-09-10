@@ -271,23 +271,7 @@ export default function BlogFaqComponent() {
     }
   };
 
-  // Sample CSV Template
-  // const downloadSampleCsv = () => {
-  //   const headers = ["id", "exist id", "question", "answer", "timestamp"];
-  //   const sampleRows = [
-  //     `"1","19","Is 6GB RAM enough for everyday smartphone use?","Yes. For most users, 6GB RAM is sufficient for social media and browsing.","2026-07-08 11:14:51"`,
-  //     `"2","19","Should I buy a 5G smartphone in 2026?","Yes. With 5G expanding across India, it offers future readiness.","2026-07-08 11:14:51"`,
-  //     `"3","26","Is MacBook Air enough for students?","Yes, MacBook Air is ideal for students due to lightweight design and battery life.","2026-07-08 11:14:51"`,
-  //   ];
-  //   const csvContent = "data:text/csv;charset=utf-8," + headers.join(",") + "\n" + sampleRows.join("\n");
-  //   const encodedUri = encodeURI(csvContent);
-  //   const link = document.createElement("a");
-  //   link.setAttribute("href", encodedUri);
-  //   link.setAttribute("download", "blogs_faq_sample_template.csv");
-  //   document.body.appendChild(link);
-  //   link.click();
-  //   document.body.removeChild(link);
-  // };
+
 
   // Filter & Pagination
   const filteredFaqs = faqs.filter((f) => {
@@ -769,13 +753,7 @@ export default function BlogFaqComponent() {
                 <p className="font-semibold">SQL Foreign Key Matching:</p>
                 <p>• Matches each FAQ row using <code className="bg-purple-100 px-1 rounded font-bold">exist id</code> to the blog's SQL ID or slug.</p>
                 <p>• Supported SQL columns: <code className="bg-purple-100 px-1 rounded font-bold">id</code>, <code className="bg-purple-100 px-1 rounded font-bold">exist id</code>, <code className="bg-purple-100 px-1 rounded font-bold">question</code>, <code className="bg-purple-100 px-1 rounded font-bold">answer</code>, <code className="bg-purple-100 px-1 rounded">timestamp</code>.</p>
-                <button
-                  type="button"
-                  onClick={downloadSampleCsv}
-                  className="mt-1 text-purple-700 font-bold underline inline-flex items-center gap-1"
-                >
-                  <Icon icon="lucide:download" /> Download Sample FAQs Template
-                </button>
+
               </div>
 
               <div>
