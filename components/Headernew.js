@@ -1092,142 +1092,112 @@ const Header = () => {
     register: { name: "", email: "", mobile: "", password: "" },
   });
 
-  // ADD: define missing auth states to avoid ReferenceError
+  // OTP Login States
   const [loginData, setLoginData] = useState({ email: "", password: "" });
   const [registerData, setRegisterData] = useState({ name: "", email: "", mobile: "", password: "" });
+  const [otpStep, setOtpStep] = useState(1); // 1 = phone input, 2 = OTP input
+  const [otpMobile, setOtpMobile] = useState('');
+  const [otpValue, setOtpValue] = useState('');
+  const [otpError, setOtpError] = useState('');
 
+  // Send OTP handler
+  const handleSendOtp = async (e) => {
+    e.preventDefault();
+    setOtpError('');
+
+    if (!otpMobile || !/^[6-9][0-9]{9}$/.test(otpMobile)) {
+      setOtpError('Please enter a valid 10-digit mobile number');
+      return;
+    }
+
+    setLoadingAuth(true);
+    try {
+      const res = await fetch('/api/auth/send-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mobile: otpMobile }),
+      });
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        setOtpError(data.error || 'Failed to send OTP');
+        return;
+      }
+
+      setOtpStep(2);
+    } catch (err) {
+      console.error('Send OTP error:', err);
+      setOtpError('Something went wrong. Please try again.');
+    } finally {
+      setLoadingAuth(false);
+    }
+  };
+
+  // Verify OTP & Login handler
+  const handleVerifyOtp = async (e) => {
+    e.preventDefault();
+    setOtpError('');
+
+    if (!otpValue || otpValue.length < 4) {
+      setOtpError('Please enter the 4-digit OTP');
+      return;
+    }
+
+    setLoadingAuth(true);
+    const guestId = localStorage.getItem("guestCartId");
+    try {
+      const res = await fetch('/api/auth/verify-phone-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mobile: otpMobile, otp: otpValue, guestId }),
+      });
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        setOtpError(data.error || 'OTP verification failed');
+        return;
+      }
+
+      if (data.token) {
+        localStorage.setItem("token", data.token);
+        setIsLoggedIn(true);
+        setIsAdmin(data.user.role === "admin");
+        setUserData(data.user);
+        setShowAuthModal(false);
+
+        // reset OTP states
+        setOtpStep(1);
+        setOtpMobile('');
+        setOtpValue('');
+        setOtpError('');
+
+        // update cart
+        const cartResponse = await fetch("/api/cart/count", {
+          headers: { Authorization: `Bearer ${data.token}` },
+        });
+        if (cartResponse.ok) {
+          const cartDataCount = await cartResponse.json();
+          setCartCountSynced(cartDataCount.count);
+        }
+
+        // fetch and broadcast latest cartData after login/merge
+        try { await fetchCartLatest(); } catch { }
+
+        localStorage.removeItem("guestCartId");
+        location.reload();
+      } else {
+        setShowAuthModal(true);
+      }
+    } catch (err) {
+      setOtpError(err.message);
+    } finally {
+      setLoadingAuth(false);
+    }
+  };
+
+  // Keep old handleAuthSubmit as no-op for backward compatibility
   const handleAuthSubmit = async (e) => {
     e.preventDefault();
-    setLoadingAuth(false);
-
-    // SAFE CHECKS: prevent "ReferenceError: loginData is not defined"
-    if (activeTab === "login" && !(typeof loginData !== "undefined" && loginData)) {
-      setFormError("Login form is not ready. Please try again.");
-      return;
-    }
-    if (activeTab === "register" && !(typeof registerData !== "undefined" && registerData)) {
-      setFormError("Register form is not ready. Please try again.");
-      return;
-    }
-
-    // pick correct state depending on tab
-    const currentData = activeTab === "login" ? loginData : registerData;
-
-    // reset errors for current tab only
-    setErrors((prev) => ({
-      ...prev,
-      [activeTab]: { name: "", email: "", mobile: "", password: "" },
-    }));
-
-    let newErrors = {};
-
-    // ---------- REGISTER VALIDATION ----------
-    if (activeTab === "register") {
-      if (!currentData.name) newErrors.name = "Name must be filled";
-
-      if (!currentData.mobile) {
-        newErrors.mobile = "Mobile must be filled";
-      } else if (!isValidMobile(currentData.mobile)) {
-        newErrors.mobile = "Enter a valid mobile number";
-      }
-    }
-
-    // ---------- COMMON (LOGIN + REGISTER) ----------
-    if (!currentData.email) {
-      newErrors.email = "Email must be filled";
-    } else if (!isValidEmail(currentData.email)) {
-      newErrors.email = "Enter a valid email";
-    }
-
-    if (currentData.password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters";
-    }
-
-    // If errors exist, update state and stop
-    if (Object.keys(newErrors).length > 0) {
-      setErrors((prev) => ({
-        ...prev,
-        [activeTab]: { ...prev[activeTab], ...newErrors },
-      }));
-      return;
-    }
-
-
-    // ---------- API CALL ----------
-    if (
-      (activeTab === "login" &&
-        currentData.email &&
-        currentData.password.length >= 6) ||
-      (activeTab === "register" &&
-        currentData.name &&
-        currentData.email &&
-        currentData.mobile &&
-        currentData.password.length >= 6)
-    ) {
-      try {
-        setLoadingAuth(true);
-        setFormError("");
-        setError("");
-        const guestId = localStorage.getItem("guestCartId");
-        const endpoint =
-          activeTab === "login" ? "/api/auth/login" : "/api/auth/register";
-
-        const response = await fetch(endpoint, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ...currentData, guestId }),
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-          setError(
-            <span className="text-red-500">
-              {data.message || "Password Mismatch"}
-            </span>
-          );
-          return;
-        }
-
-        if (data.token) {
-          localStorage.setItem("token", data.token);
-          setIsLoggedIn(true);
-          setIsAdmin(data.user.role === "admin");
-          setUserData(data.user);
-          setShowAuthModal(false);
-
-          // reset states
-          setLoginData({ email: "", password: "" });
-          setRegisterData({ name: "", email: "", mobile: "", password: "" });
-
-          // update cart
-          const cartResponse = await fetch("/api/cart/count", {
-            headers: { Authorization: `Bearer ${data.token}` },
-          });
-          if (cartResponse.ok) {
-            const cartDataCount = await cartResponse.json();
-            // CHANGE: broadcast count to all tabs
-            setCartCountSynced(cartDataCount.count);
-          }
-
-          // ADD: fetch and broadcast latest cartData after login/merge
-          try { await fetchCartLatest(); } catch { }
-
-          // 👇 Optional: clear guestId after merge
-          localStorage.removeItem("guestCartId");
-          location.reload();
-        } else {
-          setShowAuthModal(true);
-          setActiveTab("login");
-        }
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoadingAuth(false);
-      }
-    } else {
-      return;
-    }
   };
   useEffect(() => {
     setHasMounted(true);
@@ -2187,140 +2157,99 @@ const Header = () => {
               </div>
             </div>
           )}
-          {/* Auth Modal */}
+          {/* Auth Modal — Phone + OTP */}
           {showAuthModal && (
             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
               <div className="bg-white rounded-lg p-8 w-96 max-w-full relative">
-                <button onClick={() => { setShowAuthModal(false); setFormError(''); setError(''); setErrors({ login: {}, register: {} }); setLoginData({ email: "", password: "" }); setRegisterData({ name: "", email: "", mobile: "", password: "" }); }} className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl">
+                <button onClick={() => { setShowAuthModal(false); setOtpStep(1); setOtpMobile(''); setOtpValue(''); setOtpError(''); }} className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl">
                   &times;
                 </button>
-                <div className="flex gap-4 mb-6 border-b">
-                  <button className={`pb-2 px-1 ${activeTab === 'login' ? 'border-b-2 border-brandRed text-brandRed' : 'text-gray-500 hover:text-gray-700'}`} onClick={() => setActiveTab('login')}>
-                    Login
-                  </button>
-                  <button className={`pb-2 px-1 ${activeTab === 'register' ? 'border-b-2 border-brandRed text-brandRed' : 'text-gray-500 hover:text-gray-700'}`} onClick={() => setActiveTab('register')}>
-                    Register
-                  </button>
-                </div>
-                <form onSubmit={handleAuthSubmit} className="space-y-4">
-                  {/* Register Name Field */}
-                  {activeTab === "register" && (
-                    <>
+
+                <h2 className="text-xl font-semibold mb-1 text-gray-800">
+                  {otpStep === 1 ? 'Login / Register' : 'Verify OTP'}
+                </h2>
+                <p className="text-sm text-gray-500 mb-6">
+                  {otpStep === 1
+                    ? 'Enter your mobile number to continue'
+                    : `We've sent an OTP to ${otpMobile}`}
+                </p>
+
+                {otpStep === 1 ? (
+                  <form onSubmit={handleSendOtp} className="space-y-4">
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">Mobile Number</label>
+                      <div className="flex items-center border rounded focus-within:ring-2 focus-within:ring-red-500 overflow-hidden">
+                        <span className="px-3 py-2 bg-gray-50 text-gray-500 text-sm border-r">+91</span>
+                        <input
+                          type="tel"
+                          placeholder="Enter 10-digit number"
+                          value={otpMobile}
+                          onChange={(e) => {
+                            const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+                            setOtpMobile(val);
+                            if (otpError) setOtpError('');
+                          }}
+                          className="flex-1 px-4 py-2 focus:outline-none text-sm"
+                          maxLength={10}
+                          required
+                          autoFocus
+                        />
+                      </div>
+                    </div>
+
+                    {otpError && (
+                      <div className="text-red-500 text-sm">{otpError}</div>
+                    )}
+
+                    <button
+                      type="submit"
+                      disabled={loadingAuth}
+                      className="w-full bg-red-500 text-white py-2.5 px-4 rounded hover:bg-brandRedDark disabled:bg-gray-400 transition-colors duration-200 font-medium"
+                    >
+                      {loadingAuth ? 'Sending OTP...' : 'Send OTP'}
+                    </button>
+                  </form>
+                ) : (
+                  <form onSubmit={handleVerifyOtp} className="space-y-4">
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">Enter OTP</label>
                       <input
                         type="text"
-                        placeholder="Name"
-                        value={registerData.name}
-                        onChange={(e) =>
-                          setRegisterData({ ...registerData, name: e.target.value })
-                        }
-                        className={`w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-brandRed ${errors?.register?.name ? "border-red-500" : ""
-                          }`}
-                      />
-                      {errors?.register?.name && (
-                        <p className="text-red-500 text-sm">{errors.register.name}</p>
-                      )}
-                    </>
-                  )}
-
-                  {/* Email Field */}
-                  <input
-                    type="text"
-                    placeholder="Email"
-                    value={
-                      activeTab === "login" ? loginData.email : registerData.email
-                    }
-                    onChange={(e) =>
-                      activeTab === "login"
-                        ? setLoginData({ ...loginData, email: e.target.value })
-                        : setRegisterData({ ...registerData, email: e.target.value })
-                    }
-                    className={`w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-brandRed ${errors?.[activeTab]?.email ? "border-red-500" : ""
-                      }`}
-                  />
-                  {errors?.[activeTab]?.email && (
-                    <p className="text-red-500 text-sm">{errors[activeTab].email}</p>
-                  )}
-
-                  {/* Register Mobile Field */}
-                  {activeTab === "register" && (
-                    <>
-                      <input
-                        type="tel"
-                        placeholder="Mobile"
-                        value={registerData.mobile}
-                        onChange={(e) =>
-                          setRegisterData({ ...registerData, mobile: e.target.value })
-                        }
-                        className={`w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-brandRed ${errors?.register?.mobile ? "border-red-500" : ""
-                          }`}
-                      />
-                      {errors?.register?.mobile && (
-                        <p className="text-red-500 text-sm">{errors.register.mobile}</p>
-                      )}
-                    </>
-                  )}
-
-                  {/* Password Field */}
-                  <input
-                    type="password"
-                    placeholder="Password"
-                    value={
-                      activeTab === "login" ? loginData.password : registerData.password
-                    }
-                    onChange={(e) =>
-                      activeTab === "login"
-                        ? setLoginData({ ...loginData, password: e.target.value })
-                        : setRegisterData({ ...registerData, password: e.target.value })
-                    }
-                    className={`w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-brandRed ${errors?.[activeTab]?.password ? "border-red-500" : ""
-                      }`}
-                    minLength={6}
-                  />
-                  {errors?.[activeTab]?.password && (
-                    <p className="text-red-500 text-sm">{errors[activeTab].password}</p>
-                  )}
-
-                  {/* Global Form Error */}
-                  {(formError || error) && (
-                    <div className="text-red-500 text-sm">{formError || error}</div>
-                  )}
-
-                  {/* Submit Button */}
-                  <button
-                    type="submit"
-                    disabled={loadingAuth}
-                    className="w-full bg-red-500 text-white py-2 px-4 rounded hover:bg-brandRedDark disabled:bg-gray-400 transition-colors duration-200"
-                  >
-                    {loadingAuth
-                      ? "Processing..."
-                      : activeTab === "login"
-                        ? "Login"
-                        : "Register"}
-                  </button>
-
-                  {/* Forgot Password (only in login) */}
-                  {activeTab === "login" && (
-                    <div className="text-center mt-2">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setShowAuthModal(false);
-                          setShowForgotPasswordModal(true);
-                          setForgotStep(1);
-                          setForgotPasswordEmail(formData?.email || "");
-                          setForgotOTP("");
-                          setNewPassword("");
-                          setConfirmPassword("");
-                          setForgotPasswordMessage("");
-                          setForgotPasswordError("");
+                        placeholder="Enter 4-digit OTP"
+                        value={otpValue}
+                        onChange={(e) => {
+                          const val = e.target.value.replace(/\D/g, '').slice(0, 4);
+                          setOtpValue(val);
+                          if (otpError) setOtpError('');
                         }}
-                        className="text-sm text-brandRed hover:underline"
-                      >
-                        Forgot Password?
-                      </button>
+                        className="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500 text-center text-lg tracking-widest"
+                        maxLength={4}
+                        required
+                        autoFocus
+                      />
                     </div>
-                  )}
-                </form>
+
+                    {otpError && (
+                      <div className="text-red-500 text-sm">{otpError}</div>
+                    )}
+
+                    <button
+                      type="submit"
+                      disabled={loadingAuth}
+                      className="w-full bg-red-500 text-white py-2.5 px-4 rounded hover:bg-brandRedDark disabled:bg-gray-400 transition-colors duration-200 font-medium"
+                    >
+                      {loadingAuth ? 'Verifying...' : 'Verify & Login'}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => { setOtpStep(1); setOtpValue(''); setOtpError(''); }}
+                      className="w-full text-sm text-gray-500 hover:text-gray-700 py-1"
+                    >
+                      ← Change mobile number
+                    </button>
+                  </form>
+                )}
               </div>
             </div>
           )}
