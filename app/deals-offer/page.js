@@ -8,6 +8,7 @@ import Addtocart from "@/components/AddToCart";
 import AddToWishlistButton from "@/components/ProductCard";
 import { useRegion } from "@/context/RegionContext";
 import { useHeaderdetails } from "@/context/HeaderContext";
+import DealsOfferModal from "@/components/deals-offer/DealsOfferModal";
 
 // Fallback card offers matching reference design if admin hasn't added cards yet
 const REFERENCE_CARD_OFFERS = [
@@ -136,11 +137,9 @@ function isTimerActiveForRegion(timer, currentRegion) {
     (timer.status ? timer.status === "active" : true);
   if (!isDisplay) return false;
 
-  // 2. Check dates if set
+  // 2. Check dates if set (allow upcoming offers for tomorrow/future)
   const now = Date.now();
-  const start = timer.startDate || timer.offer_start;
   const end = timer.endDate || timer.offer_end;
-  if (start && new Date(start).getTime() > now) return false;
   if (end && new Date(end).getTime() <= now) return false;
 
   if (!currentRegion) return true;
@@ -332,10 +331,25 @@ export default function DealsOfferPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [brandMap, setBrandMap] = useState({});
+  const [isModalOpen, setIsModalOpen] = useState(true);
   const scrollRefs = useRef({});
 
   useEffect(() => {
     document.title = "Deals & Offers | Sathya Store";
+  }, []);
+
+  // Listen for modal open triggers from URL query or header timer clicks
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("openModal") === "true") {
+        setIsModalOpen(true);
+      }
+
+      const handleOpenEvent = () => setIsModalOpen(true);
+      window.addEventListener("openDealsModal", handleOpenEvent);
+      return () => window.removeEventListener("openDealsModal", handleOpenEvent);
+    }
   }, []);
 
   // Fetch admin offers, timers, and category products
@@ -367,19 +381,21 @@ export default function DealsOfferPage() {
               isTimerActiveForRegion(t, activeReg)
             );
 
-            // Sort by latest first: highest timerId / latest startDate
+            // Sort by live offers first (startDate <= now), then upcoming (startDate > now), then latest
             matchedTimers.sort((a, b) => {
+              const now = Date.now();
+              const startA = new Date(a.startDate || a.offer_start || 0).getTime();
+              const startB = new Date(b.startDate || b.offer_start || 0).getTime();
+              const isLiveA = !startA || startA <= now;
+              const isLiveB = !startB || startB <= now;
+              if (isLiveA && !isLiveB) return -1;
+              if (!isLiveA && isLiveB) return 1;
+
               const idA = Number(a.timerId || a.custom_id || 0);
               const idB = Number(b.timerId || b.custom_id || 0);
               if (idB !== idA) return idB - idA;
 
-              const dateA = new Date(
-                a.startDate || a.offer_start || a.createdAt || 0
-              ).getTime();
-              const dateB = new Date(
-                b.startDate || b.offer_start || b.createdAt || 0
-              ).getTime();
-              return dateB - dateA;
+              return startB - startA;
             });
 
             if (isMounted) {
@@ -707,6 +723,15 @@ export default function DealsOfferPage() {
             </section>
           ))}
       </div>
+
+      {/* Interactive Deals Offer Countdown Modal (Matches Reference Image 1) */}
+      {activeOfferTimers.length > 0 && (
+        <DealsOfferModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          timer={activeOfferTimers[0]}
+        />
+      )}
     </main>
   );
 }
