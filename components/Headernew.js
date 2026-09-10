@@ -2635,6 +2635,7 @@ const Header = () => {
                                     height: 30,
                                     objectFit: 'contain',
                                     flexShrink: 0,
+                                    filter: 'brightness(0) saturate(100%) invert(18%) sepia(87%) saturate(3500%) hue-rotate(347deg) brightness(87%) contrast(96%)',
                                   }}
                                 />
                               ) : (
@@ -2643,7 +2644,7 @@ const Header = () => {
                                   background: '#FEE2E2', display: 'flex', alignItems: 'center',
                                   justifyContent: 'center', flexShrink: 0,
                                 }}>
-                                  <span style={{ fontSize: '10px', color: '#ED1C24', fontWeight: 700 }}>
+                                  <span style={{ fontSize: '10px', color: '#BC2121', fontWeight: 700 }}>
                                     {(sub.category_name || '').charAt(0)}
                                   </span>
                                 </div>
@@ -2658,14 +2659,14 @@ const Header = () => {
                               style={{
                                 fontSize: '13px',
                                 fontWeight: isActive ? 700 : 600,
-                                color: isActive ? '#ED1C24' : '#C4161D',
+                                color: isActive ? '#BC2121' : '#BC2121',
                                 textDecoration: 'none', lineHeight: 1.3,
                               }}
                             >
                               {sub.category_name}
                             </Link>
                           </div>
-                          <FiChevronRight size={13} style={{ color: isActive ? '#ED1C24' : '#d1d5db', flexShrink: 0 }} />
+                          <FiChevronRight size={13} style={{ color: isActive ? '#BC2121' : '#d1d5db', flexShrink: 0 }} />
                         </div>
                       );
                     })}
