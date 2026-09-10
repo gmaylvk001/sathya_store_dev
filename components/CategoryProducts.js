@@ -4,6 +4,7 @@ import Link from 'next/link';
 import Slider from "react-slick";
 import Addtocart from "@/components/AddToCart";
 import ProductCard from "@/components/ProductCard";
+import StorefrontProductCard from "@/components/StorefrontProductCard";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { FiChevronLeft, FiChevronRight } from 'react-icons/fi';
@@ -236,7 +237,7 @@ const getBannerRedirectUrls = (urls) => {
           <div className="space-y-6 ">
             <div className="space-y-6 max-w-7xl mx-auto">
 <div className="flex justify-between items-center flex-wrap gap-4 mb-3 sm:mb-5">
-              <h5 className="text-lg sm:text-2xl font-bold">Shop by Category</h5>
+              <h5 className="text-lg sm:text-2xl font-bold text-[#d72828] tracking-tight">Shop by Category</h5>
             </div>
             </div>
             
@@ -454,112 +455,17 @@ const getBannerRedirectUrls = (urls) => {
                               >
                                 {/* {products.slice(0, 15).map((product) => ( */}
                               {products.map((product) => (
-                                    <div
-                                      key={product._id}
-                                      // fixed responsive card widths so 5 fit on large screens; min-width keeps consistency
-                                      className="relative bg-white flex-none flex flex-col justify-between p-1 rounded-lg border border-gray-200 hover:border-[#0069c1] hover:shadow-md transition cursor-pointer h-full w-[48%] sm:w-[31%] md:w-[24%] lg:w-[23.9%] min-w-[160px]"
-                                    >
-                                      {/* Image */}
-                                      <div className="relative aspect-square bg-white overflow-hidden">
-                                        <Link href={`/product/${product.slug}`} onClick={() => handleProductClick(product)} className="block mb-1">
-                                        {product.images?.[0] && (
-                                          <>
-                                            <Image
-                                              src={product.images[0].startsWith("http") ? product.images[0] : `/uploads/products/${product.images[0]}`}
-                                              alt={product.name}
-                                              fill
-                                              // ensure the image fits without stretching
-                                              className="object-contain p-2 sm:p-3"
-                                              sizes="(max-width: 640px) 90vw, (max-width: 1024px) 45vw, 18vw"
-                                              unoptimized
-                                            />
-                                            {Number(product.special_price) > 0 && Number(product.special_price) < Number(product.price) && (
-                                              <span className="absolute top-2 left-2 bg-orange-500 text-white text-[10px] sm:text-xs font-bold px-1.5 py-0.5 rounded">
-                                                -{Math.round(100 - (Number(product.special_price) / Number(product.price)) * 100)}%
-                                              </span>
-                                            )}
-                                            <div className="absolute top-2 right-2">
-                                              <ProductCard productId={product._id} />
-                                            </div>
-                                          </>
-                                        )}
-                                        </Link>
-                                      </div>
- 
-                                       {/* Info */}
-                                       <div className="p-2 flex flex-col h-full">
-                                         <h4 className="text-[10px] sm:text-xs text-gray-500 mb-1 uppercase">
-                                           <Link href={`/brand/${brandMap[product.brand]?.toLowerCase().replace(/\s+/g, "-") || ""}`} className="hover:text-[#d72828]">
-                                             {brandMap[product.brand] || ""}
-                                           </Link>
-                                         </h4>
-                                         
-                                        <Link
-                                          href={`/product/${product.slug}`}
-                                          onClick={() => handleProductClick(product)}
-                                          className="block mb-1"
-                                        >
-                                          <h3 className="text-xs sm:text-sm font-medium text-[#d72828] hover:text-[#c02020] min-h-[32px] sm:min-h-[40px]">
-                                            {(() => {
-                                              const model = product.model_number ? `(${product.model_number.trim()})` : "";
-                                              const name = product.name ? product.name.trim() : "";
-                                              const maxLen = 40;
-
-                                              if (model) {
-                                                const remaining = maxLen - model.length - 1; // 1 for space before model
-                                                const truncatedName =
-                                                  name.length > remaining ? name.slice(0, remaining - 3) + `${model}...` : name;
-                                                return `${truncatedName} `;
-                                              } else {
-                                                return name.length > maxLen ? name.slice(0, maxLen - 3) + "..." : name;
-                                              }
-                                            })()}
-                                          </h3>
-                                        </Link>
-
-                                         <div className="flex items-center gap-2 mb-2 sm:mb-3">
-                                           <span className="text-sm sm:text-base font-semibold text-red-600">
-                                             ₹ {(product.special_price > 0 && product.special_price < product.price
-                                               ? Math.round(product.special_price)
-                                               : Math.round(product.price)
-                                             ).toLocaleString('en-IN')}
-                                           </span>
-                                           {product.special_price > 0 && product.special_price < product.price && (
-                                             <span className="text-[10px] sm:text-xs text-gray-500 line-through">
-                                               ₹ {Math.round(product.price).toLocaleString('en-IN')}
-                                             </span>
-                                           )}
-                                         </div>
- 
-                                         <h4 className={`text-[10px] sm:text-xs mb-2 ${product.stock_status === "In Stock" ? "text-green-600" : "text-red-600"}`}>
-                                           {product.stock_status}{product.stock_status === "In Stock" && product.quantity ? `, ${product.quantity} units` : ""}
-                                         </h4>
- 
-                                         {/* Actions */}
-                                        <div
-                                            className="mt-auto flex items-center gap-0 text-[12.5px] sm:text-[11.5px]  font-semibold"
-                                          >
-                                          <Addtocart
-                                            productId={product._id}
-                                            stockQuantity={product.quantity}
-                                            special_price={product.special_price}
-                                            className="flex-1 whitespace-nowrap text-[10px] sm:text-sm py-1.5"
-                                              movement={product.movement}
-                                          productName={product.name}
-                                           productSlug={product.slug}
-                                          />
-                                           {/* <button
-                    type="button"
-                    onClick={() => handleShare(product)}
-                    className="bg-[#d72828] hover:bg-[#d72828] text-white p-1.5 rounded-full transition-colors duration-300 flex items-center justify-center flex-shrink-0"
-                    title="Share this product"
-                  >
-                    <FaShareAlt className="w-5 h-5" />
-                  </button> */}
-                                        </div>
-                                       </div>
-                                 </div>
-                                 ))}
+                                <div
+                                  key={product._id}
+                                  className="flex-none w-[68%] sm:w-[45%] md:w-[30%] lg:w-[22%] xl:w-[19%] min-w-[170px] max-w-[240px]"
+                                >
+                                  <StorefrontProductCard
+                                    product={product}
+                                    brandMap={brandMap}
+                                    onProductClick={handleProductClick}
+                                  />
+                                </div>
+                              ))}
                              </div>
                           </div>
                         </div>

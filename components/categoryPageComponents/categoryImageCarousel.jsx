@@ -278,87 +278,82 @@ export default function CategoryImageCarousel({ config }) {
 
   return (
     <section className="w-full mb-8 bg-white">
-      {name && (
-        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 px-1 bg-white text-center">
-          {name}
-        </h2>
-      )}
-
-      <div
-        className="relative px-8 sm:px-10 lg:px-10 bg-white"
-        onMouseEnter={() => setPaused(true)}
-        onMouseLeave={() => setPaused(false)}
-        onTouchStart={() => setPaused(true)}
-        onTouchEnd={() => setPaused(false)}
-      >
-        <button
-          type="button"
-          aria-label="Previous"
-          disabled={page <= 0}
-          onClick={() => scrollToPage(page - 1)}
-          className="absolute left-0 top-1/2 -translate-y-1/2 z-10 h-10 w-10 sm:h-11 sm:w-11 rounded-full bg-[#ED1C24] text-white flex items-center justify-center shadow disabled:opacity-30 disabled:pointer-events-none"
-        >
-          <FiChevronLeft size={22} />
-        </button>
-        <button
-          type="button"
-          aria-label="Next"
-          disabled={page >= pageCount - 1}
-          onClick={() => scrollToPage(page + 1)}
-          className="absolute right-0 top-1/2 -translate-y-1/2 z-10 h-10 w-10 sm:h-11 sm:w-11 rounded-full bg-[#ED1C24] text-white flex items-center justify-center shadow disabled:opacity-30 disabled:pointer-events-none"
-        >
-          <FiChevronRight size={22} />
-        </button>
+      <div className="w-full px-4 sm:px-6">
+        {name && (
+          <h2 className="text-xl sm:text-2xl font-bold text-[#d72828] mb-4 px-1 bg-white text-center tracking-tight">
+            {name}
+          </h2>
+        )}
 
         <div
-          ref={scrollerRef}
-          className={`flex w-full overflow-x-auto overflow-y-hidden scroll-smooth snap-x snap-mandatory scrollbar-hide cursor-grab touch-pan-x select-none bg-white ${
-            showGap ? "gap-3" : "gap-0"
-          }`}
-          style={{
-            WebkitOverflowScrolling: "touch",
-            touchAction: "pan-x",
-          }}
+          className="relative px-8 sm:px-10 lg:px-10 bg-white"
+          onMouseEnter={() => setPaused(true)}
+          onMouseLeave={() => setPaused(false)}
+          onTouchStart={() => setPaused(true)}
+          onTouchEnd={() => setPaused(false)}
         >
-          {pages.map((chunk, pageIdx) => (
-            <div
-              key={pageIdx}
-              className={`flex w-full min-w-full shrink-0 snap-start snap-always items-center bg-white ${
-                showGap ? "gap-3" : "gap-0"
-              }`}
-              style={showGap ? { gap: `${gapPx}px` } : undefined}
-            >
-              {chunk.map((item, i) =>
-                renderItem(item, pageStarts[pageIdx] + i)
-              )}
-            </div>
-          ))}
+          <button
+            type="button"
+            aria-label="Previous"
+            disabled={page <= 0}
+            onClick={() => scrollToPage(page - 1)}
+            className="absolute left-0 top-1/2 -translate-y-1/2 z-10 h-10 w-10 sm:h-11 sm:w-11 rounded-full bg-[#ED1C24] text-white flex items-center justify-center shadow disabled:opacity-30 disabled:pointer-events-none"
+          >
+            <FiChevronLeft size={22} />
+          </button>
+          <button
+            type="button"
+            aria-label="Next"
+            disabled={page >= pageCount - 1}
+            onClick={() => scrollToPage(page + 1)}
+            className="absolute right-0 top-1/2 -translate-y-1/2 z-10 h-10 w-10 sm:h-11 sm:w-11 rounded-full bg-[#ED1C24] text-white flex items-center justify-center shadow disabled:opacity-30 disabled:pointer-events-none"
+          >
+            <FiChevronRight size={22} />
+          </button>
+
+          <div
+            ref={scrollerRef}
+            className="flex w-full gap-0 overflow-x-auto overflow-y-hidden scroll-smooth snap-x snap-mandatory scrollbar-hide cursor-grab touch-pan-x select-none bg-white"
+            style={{ WebkitOverflowScrolling: "touch", touchAction: "pan-x" }}
+          >
+            {pages.map((chunk, pageIdx) => (
+              <div
+                key={pageIdx}
+                className="flex w-full min-w-full shrink-0 snap-start snap-always bg-white"
+                style={{ gap: `${gapPx}px` }}
+              >
+                {chunk.map((item, i) =>
+                  renderItem(item, pageStarts[pageIdx] + i)
+                )}
+              </div>
+            ))}
+          </div>
         </div>
+
+        {pageCount > 1 && (
+          <div
+            className="flex items-center justify-center gap-2 mt-4"
+            role="tablist"
+            aria-label="Carousel pages"
+          >
+            {Array.from({ length: pageCount }).map((_, i) => (
+              <button
+                key={i}
+                type="button"
+                role="tab"
+                aria-selected={i === page}
+                aria-label={`Page ${i + 1}`}
+                onClick={() => scrollToPage(i)}
+                className={`h-1.5 w-1.5 rounded-full transition ${
+                  i === page
+                    ? "bg-[#ED1C24] scale-110"
+                    : "bg-gray-300 hover:bg-gray-400"
+                }`}
+              />
+            ))}
+          </div>
+        )}
       </div>
-
-      {pageCount > 1 && (
-        <div
-          className="flex items-center justify-center gap-2 mt-4"
-          role="tablist"
-          aria-label="Carousel pages"
-        >
-          {Array.from({ length: pageCount }).map((_, i) => (
-            <button
-              key={i}
-              type="button"
-              role="tab"
-              aria-selected={i === page}
-              aria-label={`Page ${i + 1}`}
-              onClick={() => scrollToPage(i)}
-              className={`h-1.5 w-1.5 rounded-full transition ${
-                i === page
-                  ? "bg-[#ED1C24] scale-110"
-                  : "bg-gray-300 hover:bg-gray-400"
-              }`}
-            />
-          ))}
-        </div>
-      )}
     </section>
   );
 }

@@ -1099,7 +1099,7 @@ export default function HomeComponent() {
                 >
                   {isFlashSalesLoading ? (
                     <div className="flex justify-center items-center h-64">
-                      <div className="rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600 animate-spin"></div>
+                      <div className="rounded-full h-12 w-12 border-t-2 border-b-2 border-[#d72828] animate-spin"></div>
                     </div>
                   ) : (
                     flashSalesData
@@ -1239,12 +1239,12 @@ export default function HomeComponent() {
             <div>
               <motion.div variants={containerVariants} className="bg-[#FFF5F5] rounded-2xl py-6 px-4 mx-2">
                 <motion.div variants={itemVariants} className="flex justify-between items-center mb-4">
-                  <h5 className="text-lg font-semibold">Shop by Brands</h5>
+                  <h5 className="text-lg font-bold text-[#d72828] tracking-tight">Shop by Brands</h5>
                 </motion.div>
 
                 {isBrandsLoading ? (
                   <div className="flex justify-center items-center h-32">
-                    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
+                    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#d72828]"></div>
                   </div>
                 ) : (
                   <motion.div variants={itemVariants}>
@@ -1290,7 +1290,7 @@ export default function HomeComponent() {
             <div className="relative">
               {isBannerLoading ? (
                 <div className="p-6 flex justify-center items-center h-64">
-                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
+                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#d72828]"></div>
                 </div>
               ) : bannerData.banner.items.length > 0 ? (
                 bannerData.banner.items.length > 1 ? (
@@ -1390,7 +1390,7 @@ export default function HomeComponent() {
             <div className="relative">
               {isSingleBannerNewLoading ? (
                 <div className="p-6 flex justify-center items-center h-64">
-                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
+                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#d72828]"></div>
                 </div>
               ) : singleBannerNewData.singlebanner_new.items.length > 0 ? (
                 singleBannerNewData.singlebanner_new.items.length > 1 ? (
@@ -1444,7 +1444,7 @@ export default function HomeComponent() {
             <div className="relative">
               {isSingleBannerTwoLoading ? (
                 <div className="p-6 flex justify-center items-center h-64">
-                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
+                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#d72828]"></div>
                 </div>
               ) : singleBannerTwoData.singlebanner_two.items.length > 0 ? (
                 singleBannerTwoData.singlebanner_two.items.length > 1 ? (
@@ -1501,7 +1501,7 @@ export default function HomeComponent() {
             <div className=" rounded-2xl">
               {/* Header */}
               <div className="flex justify-between items-center mb-6 md:px-4">
-                <h5 className="text-xl font-bold">What's Trending</h5>
+                <h5 className="text-xl font-bold text-[#d72828] tracking-tight">What's Trending</h5>
                 <div className="flex gap-2">
                   <button
                     onClick={() => scroll("left")}
@@ -1614,7 +1614,7 @@ export default function HomeComponent() {
                 <section id="offer">
                   <div className="px-2 py-4">
                     <div className="flex justify-between items-center mb-4">
-                      <h2 className="text-xl font-semibold">Exciting Offers</h2>
+                      <h2 className="text-xl font-bold text-[#d72828] tracking-tight">Exciting Offers</h2>
                       {offerProducts.length > 3 && (
                         <div className="flex gap-2">
                           {/* Optional navigation buttons */}
@@ -1755,13 +1755,13 @@ export default function HomeComponent() {
       {navigating && (
         <div className="fixed inset-0 z-[9999] flex justify-center items-center bg-black bg-opacity-30">
           <div className="p-4  shadow-lg">
-            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-600 mx-auto"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#d72828] mx-auto"></div>
           </div>
         </div>
       )}
       {isLoading && (
         <div className="preloader fixed inset-0 z-[9999] flex justify-center items-center bg-white">
-          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500 mx-auto"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#d72828] mx-auto"></div>
         </div>
       )}
       {/* main div start */}

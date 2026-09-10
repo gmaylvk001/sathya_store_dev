@@ -125,46 +125,48 @@ export default function CategoryBannerGrid({ config }) {
 
   return (
     <section className="w-full mb-8 bg-white overflow-hidden">
-      {name ? (
-        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 px-1 text-center">
-          {name}
-        </h2>
-      ) : null}
+      <div className="w-full px-4 sm:px-6">
+        {name ? (
+          <h2 className="text-xl sm:text-2xl font-bold text-[#d72828] mb-4 px-1 text-center tracking-tight">
+            {name}
+          </h2>
+        ) : null}
 
-      {count === 3 ? (
-        /* Mobile: row1 = 2 equal, row2 = 1 centered (same cell size). Desktop: 3 in a row */
-        <div
-          className={`grid w-full min-w-0 justify-items-center grid-cols-4 md:grid-cols-3 ${gapClass}`}
-        >
-          <div className="col-span-2 md:col-span-1 min-w-0 w-full flex justify-center">
-            <BannerTile banner={banners[0]} />
-          </div>
-          <div className="col-span-2 md:col-span-1 min-w-0 w-full flex justify-center">
-            <BannerTile banner={banners[1]} />
-          </div>
-          <div className="col-span-2 col-start-2 md:col-span-1 md:col-start-auto min-w-0 w-full flex justify-center">
-            <BannerTile banner={banners[2]} />
-          </div>
-        </div>
-      ) : (
-        <div className={gridClass}>
-          {banners.map((banner, idx) => (
-            <div key={idx} className="min-w-0 w-full flex justify-center">
-              <BannerTile banner={banner} />
+        {count === 3 ? (
+          /* Mobile: row1 = 2 equal, row2 = 1 centered (same cell size). Desktop: 3 in a row */
+          <div
+            className={`grid w-full min-w-0 justify-items-center grid-cols-4 md:grid-cols-3 ${gapClass}`}
+          >
+            <div className="col-span-2 md:col-span-1 min-w-0 w-full flex justify-center">
+              <BannerTile banner={banners[0]} />
             </div>
-          ))}
-        </div>
-      )}
+            <div className="col-span-2 md:col-span-1 min-w-0 w-full flex justify-center">
+              <BannerTile banner={banners[1]} />
+            </div>
+            <div className="col-span-2 col-start-2 md:col-span-1 md:col-start-auto min-w-0 w-full flex justify-center">
+              <BannerTile banner={banners[2]} />
+            </div>
+          </div>
+        ) : (
+          <div className={gridClass}>
+            {banners.map((banner, idx) => (
+              <div key={idx} className="min-w-0 w-full flex justify-center">
+                <BannerTile banner={banner} />
+              </div>
+            ))}
+          </div>
+        )}
 
-      {products.length >= 6 && productName ? (
-        <CategoryProductCarousel
-          config={{
-            name: productName,
-            products,
-            seeAllHref: "",
-          }}
-        />
-      ) : null}
+        {products.length >= 6 && productName ? (
+          <CategoryProductCarousel
+            config={{
+              name: productName,
+              products,
+              seeAllHref: "",
+            }}
+          />
+        ) : null}
+      </div>
     </section>
   );
 }

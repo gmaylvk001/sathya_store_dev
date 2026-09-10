@@ -279,7 +279,7 @@ const RecentlyViewedProducts = ({ products: initialProducts }) => {
 
   if (loading) {
     return (
-      <section aria-label="Recently Viewed Products" className="w-full my-8 sm:my-10 px-4 max-w-[1440px] mx-auto">
+      <section aria-label="Recently Viewed Products" className="w-full my-8 sm:my-10 px-4 sm:px-6">
         <div className="bg-white rounded-[24px] border border-gray-100 p-4 sm:p-6 shadow-2xs">
           <RecentlyViewedHeader />
           <div
@@ -310,7 +310,7 @@ const RecentlyViewedProducts = ({ products: initialProducts }) => {
 
   if (recentProducts.length === 1) {
     return (
-      <section aria-label="Recently Viewed Products" className="w-full my-8 sm:my-10 px-4 max-w-[1440px] mx-auto">
+      <section aria-label="Recently Viewed Products" className="w-full my-8 sm:my-10 px-4 sm:px-6">
         <div className="bg-white rounded-[24px] border border-gray-100 p-4 sm:p-6 shadow-2xs">
           <RecentlyViewedHeader />
           <div className="w-full max-w-[240px] sm:max-w-[260px]">
@@ -327,7 +327,7 @@ const RecentlyViewedProducts = ({ products: initialProducts }) => {
 
   if (recentProducts.length === 2) {
     return (
-      <section aria-label="Recently Viewed Products" className="w-full my-8 sm:my-10 px-4 max-w-[1440px] mx-auto">
+      <section aria-label="Recently Viewed Products" className="w-full my-8 sm:my-10 px-4 sm:px-6">
         <div className="bg-white rounded-[24px] border border-gray-100 p-4 sm:p-6 shadow-2xs">
           <RecentlyViewedHeader />
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-[500px] sm:max-w-[540px]">
@@ -346,7 +346,7 @@ const RecentlyViewedProducts = ({ products: initialProducts }) => {
   }
 
   return (
-    <section aria-label="Recently Viewed Products" className="w-full my-8 sm:my-10 px-4 max-w-[1440px] mx-auto">
+    <section aria-label="Recently Viewed Products" className="w-full my-8 sm:my-10 px-4 sm:px-6">
       <div className="bg-white rounded-[24px] border border-gray-100 p-4 sm:p-6 shadow-2xs">
         <RecentlyViewedHeader />
         <div className="relative w-full">

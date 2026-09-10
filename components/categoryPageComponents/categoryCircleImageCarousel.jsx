@@ -133,10 +133,10 @@ export default function CategoryCircleImageCarousel({ config }) {
 
   return (
     <section className="w-full my-6 py-4 bg-white select-none">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6">
+      <div className="w-full px-4 sm:px-6">
         {/* Whole component name displaying red color top center */}
         {name && (
-          <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-center text-[#BC2121] mb-6 tracking-tight">
+          <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-center text-[#d72828] mb-4 sm:mb-5 tracking-tight">
             {name}
           </h2>
         )}
@@ -153,9 +153,9 @@ export default function CategoryCircleImageCarousel({ config }) {
             aria-label="Previous"
             disabled={!canScrollLeft}
             onClick={() => scrollByDirection("left")}
-            className={`absolute -left-3 sm:-left-5 top-1/2 -translate-y-1/2 z-10 h-9 w-9 sm:h-11 sm:w-11 rounded-full bg-[#BC2121] text-white flex items-center justify-center shadow-lg transition-all duration-200 hover:bg-[#9E1B1B] hover:scale-105 active:scale-95 disabled:opacity-0 disabled:pointer-events-none`}
+            className={`absolute -left-2 sm:-left-4 top-1/2 -translate-y-1/2 z-10 h-8 w-8 sm:h-9 sm:w-9 rounded-full bg-[#BC2121] text-white flex items-center justify-center shadow-md transition-all duration-200 hover:bg-[#9E1B1B] hover:scale-105 active:scale-95 disabled:opacity-0 disabled:pointer-events-none`}
           >
-            <FiChevronLeft size={22} />
+            <FiChevronLeft size={18} />
           </button>
 
           {/* Right Arrow */}
@@ -164,9 +164,9 @@ export default function CategoryCircleImageCarousel({ config }) {
             aria-label="Next"
             disabled={!canScrollRight}
             onClick={() => scrollByDirection("right")}
-            className={`absolute -right-3 sm:-right-5 top-1/2 -translate-y-1/2 z-10 h-9 w-9 sm:h-11 sm:w-11 rounded-full bg-[#BC2121] text-white flex items-center justify-center shadow-lg transition-all duration-200 hover:bg-[#9E1B1B] hover:scale-105 active:scale-95 disabled:opacity-0 disabled:pointer-events-none`}
+            className={`absolute -right-2 sm:-right-4 top-1/2 -translate-y-1/2 z-10 h-8 w-8 sm:h-9 sm:w-9 rounded-full bg-[#BC2121] text-white flex items-center justify-center shadow-md transition-all duration-200 hover:bg-[#9E1B1B] hover:scale-105 active:scale-95 disabled:opacity-0 disabled:pointer-events-none`}
           >
-            <FiChevronRight size={22} />
+            <FiChevronRight size={18} />
           </button>
 
           {/* Scrollable Track */}
@@ -177,22 +177,22 @@ export default function CategoryCircleImageCarousel({ config }) {
             onPointerUp={endDrag}
             onPointerCancel={endDrag}
             onClick={onClickCapture}
-            className="flex items-start overflow-x-auto scrollbar-hide py-3 px-2 cursor-grab"
+            className="flex items-start overflow-x-auto scrollbar-hide py-2 px-1 cursor-grab"
             style={{
               scrollBehavior: "smooth",
               WebkitOverflowScrolling: "touch",
             }}
           >
-            <div className="flex items-start justify-center gap-5 sm:gap-7 mx-auto">
+            <div className="flex items-start justify-center gap-4 sm:gap-6 lg:gap-8 mx-auto">
               {items.map((item, idx) => {
                 const href = resolveItemHref(item);
                 const isExternal = /^https?:\/\//i.test(href);
 
                 const content = (
-                  <div className="flex flex-col items-center group/item cursor-pointer w-28 sm:w-32 md:w-36 lg:w-40 shrink-0 transition-transform duration-200 hover:-translate-y-1.5">
+                  <div className="flex flex-col items-center group/item cursor-pointer w-24 sm:w-28 md:w-32 lg:w-36 shrink-0 transition-transform duration-200 hover:-translate-y-1">
                     {/* Circle image container with radius 100 & red outline border */}
                     <div
-                      className="w-28 h-28 sm:w-32 sm:h-32 md:w-36 md:h-36 lg:w-40 lg:h-40 overflow-hidden bg-white border-2 sm:border-[3px] border-[#BC2121] shadow-sm flex items-center justify-center p-2 transition-all duration-300 group-hover/item:shadow-md group-hover/item:border-[#9E1B1B]"
+                      className="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 lg:w-36 lg:h-36 overflow-hidden bg-white border-2 sm:border-[2.5px] border-[#BC2121] shadow-xs flex items-center justify-center p-2 transition-all duration-300 group-hover/item:shadow-md group-hover/item:border-[#9E1B1B]"
                       style={{ borderRadius: "100%" }}
                     >
                       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -207,7 +207,7 @@ export default function CategoryCircleImageCarousel({ config }) {
 
                     {/* Image name displaying in the bottom of the image in red color */}
                     {item.imageName && (
-                      <span className="mt-3 text-center text-xs sm:text-sm font-bold text-[#BC2121] line-clamp-2 px-1 leading-snug tracking-tight transition-colors duration-200 group-hover/item:text-[#9E1B1B]">
+                      <span className="mt-2.5 text-center text-xs sm:text-sm font-semibold text-[#BC2121] line-clamp-2 px-1 leading-snug tracking-tight transition-colors duration-200 group-hover/item:text-[#9E1B1B]">
                         {item.imageName}
                       </span>
                     )}
