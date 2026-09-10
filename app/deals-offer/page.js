@@ -10,28 +10,6 @@ import { useRegion } from "@/context/RegionContext";
 import { useHeaderdetails } from "@/context/HeaderContext";
 import DealsOfferModal from "@/components/deals-offer/DealsOfferModal";
 
-// Fallback card offers matching reference design if admin hasn't added cards yet
-const REFERENCE_CARD_OFFERS = [
-  {
-    id: "gas-stove",
-    title: "GAS STOVE",
-    image: "/uploads/cardoffers/card-offer-1788935251002-Capture.PNG",
-    link: "/category/kitchen-appliances",
-  },
-  {
-    id: "chimney-offer",
-    title: "CHIMNEY OFFER",
-    image: "/uploads/cardoffers/card-offer-1788935251002-Capture.PNG",
-    link: "/category/kitchen-appliances",
-  },
-  {
-    id: "mixie-offer",
-    title: "MIXIE OFFER",
-    image: "/uploads/cardoffers/card-offer-1788935251002-Capture.PNG",
-    link: "/category/kitchen-appliances",
-  },
-];
-
 // Helper to determine destination URL for any card offer
 export function getCardOfferHref(card) {
   if (!card) return "/category/kitchen-appliances";
@@ -629,34 +607,63 @@ export default function DealsOfferPage() {
             const viewAllLink = `/super-offers/${stateSlug}/${timerSlug}?offer_timer_id=${timerIdVal}`;
 
             const timerCards =
-              Array.isArray(timer.card_offers) && timer.card_offers.length > 0
+              Array.isArray(timer.card_offers)
                 ? timer.card_offers.filter((c) => c.status !== "inactive")
-                : REFERENCE_CARD_OFFERS;
+                : [];
 
             return (
               <section key={timer._id || timer.timerId} className="relative">
-                {/* Header: Offer Title + VIEW ALL */}
+                {/* Header: Offer Title + VIEW ALL (only when card offers exist) */}
                 <div className="flex items-center justify-between pb-2 mb-6 border-b border-gray-300">
                   <h2 className="text-lg sm:text-xl md:text-2xl font-bold tracking-wide text-[#d72828] uppercase">
                     {timerTitle}
                   </h2>
-                  <Link
-                    href={viewAllLink}
-                    className="bg-[#d72828] hover:bg-red-700 active:bg-red-800 text-white font-bold text-xs sm:text-sm px-6 py-2 uppercase tracking-wider transition-all duration-200 shadow-sm hover:shadow"
-                  >
-                    VIEW ALL
-                  </Link>
+                  {timerCards.length > 0 && (
+                    <Link
+                      href={viewAllLink}
+                      className="bg-[#d72828] hover:bg-red-700 active:bg-red-800 text-white font-bold text-xs sm:text-sm px-6 py-2 uppercase tracking-wider transition-all duration-200 shadow-sm hover:shadow"
+                    >
+                      VIEW ALL
+                    </Link>
+                  )}
                 </div>
 
-                {/* 3-Column Card Offers Grid with Red Title Bar (Matches Reference Image) */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                  {timerCards.map((card, idx) => (
-                    <AdminCardOfferItem
-                      key={card.id || card._id || idx}
-                      card={card}
-                    />
-                  ))}
-                </div>
+                {/* Card Offers Grid or Amazon-Style Empty State */}
+                {timerCards.length > 0 ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                    {timerCards.map((card, idx) => (
+                      <AdminCardOfferItem
+                        key={card.id || card._id || idx}
+                        card={card}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="w-full h-[232px] sm:h-[250px] md:h-[266px] bg-gray-50/70 border border-dashed border-gray-300 rounded-xl sm:rounded-2xl p-4 sm:p-6 text-center flex flex-col items-center justify-center my-1">
+                    <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-red-50 border border-red-100 flex items-center justify-center text-[#d72828] mb-2.5 shadow-xs">
+                      <svg
+                        className="w-5 h-5 sm:w-6 sm:h-6"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="1.8"
+                          d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
+                        />
+                      </svg>
+                    </div>
+                    <h3 className="text-sm sm:text-base font-bold text-gray-800 tracking-tight mb-1">
+                      No Card Offers Available
+                    </h3>
+                    <p className="text-xs sm:text-sm text-gray-500 max-w-md mx-auto leading-relaxed">
+                      There are currently no active card offers for this promotion. Check back soon for new exclusive bank discounts and category deals.
+                    </p>
+                  </div>
+                )}
               </section>
             );
           })}

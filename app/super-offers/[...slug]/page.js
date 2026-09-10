@@ -11,8 +11,11 @@ import AddToWishlistButton from "@/components/ProductCard";
 // Format date into ordinal format e.g. "Sep 8th to 10th, 2026"
 function formatOfferDateRange(startVal, endVal) {
   if (!startVal && !endVal) return "Sep 8th to 10th, 2026";
-  const s = startVal ? new Date(startVal) : new Date();
-  const e = endVal ? new Date(endVal) : new Date(Date.now() + 86400000 * 2);
+  const s = startVal ? new Date(startVal) : null;
+  const e = endVal ? new Date(endVal) : null;
+
+  const validS = s && !isNaN(s.getTime()) ? s : null;
+  const validE = e && !isNaN(e.getTime()) ? e : null;
 
   const months = [
     "Jan",
@@ -35,16 +38,32 @@ function formatOfferDateRange(startVal, endVal) {
     return n + (s[(v - 20) % 10] || s[v] || s[0]);
   };
 
-  const m1 = months[s.getMonth()];
-  const m2 = months[e.getMonth()];
-  const d1 = getOrdinal(s.getDate());
-  const d2 = getOrdinal(e.getDate());
-  const y = e.getFullYear();
+  if (validS && validE) {
+    const m1 = months[validS.getMonth()];
+    const m2 = months[validE.getMonth()];
+    const d1 = getOrdinal(validS.getDate());
+    const d2 = getOrdinal(validE.getDate());
+    const y1 = validS.getFullYear();
+    const y2 = validE.getFullYear();
 
-  if (m1 === m2) {
-    return `${m1} ${d1} to ${d2}, ${y}`;
+    if (y1 === y2) {
+      if (m1 === m2) {
+        return `${m1} ${d1} to ${d2}, ${y1}`;
+      }
+      return `${m1} ${d1} to ${m2} ${d2}, ${y1}`;
+    }
+    return `${m1} ${d1}, ${y1} to ${m2} ${d2}, ${y2}`;
   }
-  return `${m1} ${d1} to ${m2} ${d2}, ${y}`;
+
+  if (validE) {
+    return `Valid till ${months[validE.getMonth()]} ${getOrdinal(validE.getDate())}, ${validE.getFullYear()}`;
+  }
+
+  if (validS) {
+    return `Starts ${months[validS.getMonth()]} ${getOrdinal(validS.getDate())}, ${validS.getFullYear()}`;
+  }
+
+  return "Sep 8th to 10th, 2026";
 }
 
 // Fallback card offers if none are uploaded in admin
@@ -243,13 +262,15 @@ function SuperOffersContent() {
   const [products, setProducts] = useState([]);
   const [brandMap, setBrandMap] = useState({});
   const [loading, setLoading] = useState(true);
-  const [timeLeft, setTimeLeft] = useState({
-    days: 0,
+  const [offerStatus, setOfferStatus] = useState({
+    status: "loading", // "loading" | "upcoming" | "countdown" | "live" | "ended"
+    isLive: false,
+    isCountdown: false,
+    isUpcoming: false,
+    isEnded: false,
     hours: 0,
     minutes: 0,
     seconds: 0,
-    isLive: true,
-    isEnded: false,
   });
 
   // Extract slug parameters
@@ -340,33 +361,102 @@ function SuperOffersContent() {
     };
   }, [queryTimerId, urlOfferSlug]);
 
-  // Live Countdown Timer
+  // Live Countdown & Offer Status Calculator
   useEffect(() => {
     if (!timer) return;
 
+    const FIVE_HOURS_MS = 5 * 60 * 60 * 1000;
+
     const calculateTime = () => {
       const now = Date.now();
-      const startDate = timer.startDate || timer.offer_start;
-      const endDate = timer.endDate || timer.offer_end;
+      const startDateRaw = timer.startDate || timer.offer_start;
+      const endDateRaw = timer.endDate || timer.offer_end;
 
-      const startMs = startDate
-        ? new Date(startDate).getTime()
-        : now - 86400000;
-      const endMs = endDate
-        ? new Date(endDate).getTime()
-        : now + 86400000 * 2;
+      const parsedStart = startDateRaw ? new Date(startDateRaw).getTime() : null;
+      const parsedEnd = endDateRaw ? new Date(endDateRaw).getTime() : null;
 
-      const isLive = now >= startMs && now < endMs;
-      const isEnded = now >= endMs;
-      const targetMs = isEnded ? 0 : now < startMs ? startMs : endMs;
-      const diff = Math.max(0, targetMs - now);
+      const startMs = parsedStart && !isNaN(parsedStart) ? parsedStart : null;
+      const endMs = parsedEnd && !isNaN(parsedEnd) ? parsedEnd : null;
 
-      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-      const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
-      const minutes = Math.floor((diff / (1000 * 60)) % 60);
-      const seconds = Math.floor((diff / 1000) % 60);
+      // 1. Ended (past end date)
+      if (endMs !== null && now >= endMs) {
+        setOfferStatus({
+          status: "ended",
+          isLive: false,
+          isCountdown: false,
+          isUpcoming: false,
+          isEnded: true,
+          hours: 0,
+          minutes: 0,
+          seconds: 0,
+        });
+        return;
+      }
 
-      setTimeLeft({ days, hours, minutes, seconds, isLive, isEnded });
+      // 2. Active / Live (start time reached and not yet ended)
+      if ((startMs !== null && now >= startMs) || (startMs === null && endMs !== null && now < endMs)) {
+        setOfferStatus({
+          status: "live",
+          isLive: true,
+          isCountdown: false,
+          isUpcoming: false,
+          isEnded: false,
+          hours: 0,
+          minutes: 0,
+          seconds: 0,
+        });
+        return;
+      }
+
+      // 3. Not started yet (now < startMs)
+      if (startMs !== null && now < startMs) {
+        const diff = startMs - now;
+
+        if (diff <= FIVE_HOURS_MS && diff > 0) {
+          // Within 5 hours before start: Show Countdown (HOURS, MINS, SECS only - no DAYS)
+          const totalSecs = Math.floor(diff / 1000);
+          const hours = Math.floor(totalSecs / 3600);
+          const minutes = Math.floor((totalSecs % 3600) / 60);
+          const seconds = totalSecs % 60;
+
+          setOfferStatus({
+            status: "countdown",
+            isLive: false,
+            isCountdown: true,
+            isUpcoming: false,
+            isEnded: false,
+            hours,
+            minutes,
+            seconds,
+          });
+          return;
+        }
+
+        // More than 5 hours before start: Hide Countdown, Show Upcoming Offer Info
+        setOfferStatus({
+          status: "upcoming",
+          isLive: false,
+          isCountdown: false,
+          isUpcoming: true,
+          isEnded: false,
+          hours: 0,
+          minutes: 0,
+          seconds: 0,
+        });
+        return;
+      }
+
+      // Fallback if neither start nor end is configured: treat as live
+      setOfferStatus({
+        status: "live",
+        isLive: true,
+        isCountdown: false,
+        isUpcoming: false,
+        isEnded: false,
+        hours: 0,
+        minutes: 0,
+        seconds: 0,
+      });
     };
 
     calculateTime();
@@ -406,82 +496,188 @@ function SuperOffersContent() {
         </p>
       </div>
 
-      {/* Main Countdown Hero Section (Black Background Matching Reference Image 1) */}
-      <section className="w-full bg-black py-12 px-4 sm:px-8 text-center text-white">
+      {/* Main Hero Section (Black Background Matching Reference Image 1) */}
+      <section className="w-full bg-black py-10 sm:py-14 px-4 sm:px-8 text-center text-white relative overflow-hidden">
         <div className="max-w-4xl mx-auto flex flex-col items-center">
-          {/* Sale Status Pill */}
-          <div className="flex items-center gap-2 text-yellow-400 font-bold text-sm sm:text-base uppercase tracking-widest mb-6">
-            <span className="w-2.5 h-2.5 rounded-full bg-yellow-400 animate-pulse" />
-            <span>
-              {timeLeft.isEnded
-                ? "SALE HAS ENDED"
-                : timeLeft.isLive
-                  ? "SALE IS LIVE NOW!"
-                  : "SALE STARTS SOON!"}
-            </span>
-          </div>
-
-          {/* 4 Countdown Time Boxes */}
-          <div className="flex items-center justify-center gap-2 sm:gap-4 md:gap-6 my-2">
-            {/* DAYS */}
-            <div className="flex flex-col items-center justify-center bg-[#131d33] border border-blue-900/60 rounded-xl sm:rounded-2xl p-3 sm:p-5 w-20 sm:w-28 md:w-32 shadow-2xl">
-              <span className="text-3xl sm:text-5xl font-black text-[#FFD700] tracking-tight font-mono">
-                {String(timeLeft.days).padStart(2, "0")}
-              </span>
-              <span className="text-[10px] sm:text-xs font-bold text-gray-300 tracking-wider uppercase mt-2">
-                DAYS
-              </span>
+          {/* Brief loading state if timer is still fetching */}
+          {loading && !timer && (
+            <div className="py-6 flex flex-col items-center justify-center space-y-3">
+              <div className="animate-spin rounded-full h-8 w-8 border-2 border-yellow-400 border-t-transparent" />
+              <div className="text-gray-400 text-xs font-medium uppercase tracking-wider">
+                Loading offer details...
+              </div>
             </div>
+          )}
 
-            <span className="text-2xl sm:text-4xl font-extrabold text-[#FFD700] self-center -mt-3">
-              :
-            </span>
+          {/* STATE 1: COUNTDOWN (Only within 5 hours before start) */}
+          {offerStatus.isCountdown && (
+            <>
+              {/* Sale Status Pill */}
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-yellow-400/10 border border-yellow-400/30 text-yellow-400 font-bold text-xs sm:text-sm uppercase tracking-widest mb-4">
+                <span className="w-2.5 h-2.5 rounded-full bg-yellow-400 animate-pulse" />
+                <span>SALE STARTS SOON - HURRY UP!</span>
+              </div>
 
-            {/* HOURS */}
-            <div className="flex flex-col items-center justify-center bg-[#131d33] border border-blue-900/60 rounded-xl sm:rounded-2xl p-3 sm:p-5 w-20 sm:w-28 md:w-32 shadow-2xl">
-              <span className="text-3xl sm:text-5xl font-black text-[#FFD700] tracking-tight font-mono">
-                {String(timeLeft.hours).padStart(2, "0")}
-              </span>
-              <span className="text-[10px] sm:text-xs font-bold text-gray-300 tracking-wider uppercase mt-2">
-                HOURS
-              </span>
-            </div>
+              {/* Countdown Title */}
+              <div className="mb-4">
+                <h2 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-white tracking-wide uppercase">
+                  DEALS UNLOCK IN
+                </h2>
+              </div>
 
-            <span className="text-2xl sm:text-4xl font-extrabold text-[#FFD700] self-center -mt-3">
-              :
-            </span>
+              {/* 3 Countdown Time Boxes: HOURS : MINS : SECS */}
+              <div className="flex items-center justify-center gap-2.5 sm:gap-4 md:gap-6 my-2">
+                {/* HOURS */}
+                <div className="flex flex-col items-center justify-center bg-[#131d33] border border-blue-900/60 rounded-xl sm:rounded-2xl p-3 sm:p-5 w-24 sm:w-28 md:w-32 shadow-2xl hover:border-blue-700/80 transition-all">
+                  <span className="text-3xl sm:text-5xl font-black text-[#FFD700] tracking-tight font-mono">
+                    {String(offerStatus.hours).padStart(2, "0")}
+                  </span>
+                  <span className="text-[10px] sm:text-xs font-bold text-gray-300 tracking-wider uppercase mt-2">
+                    HOURS
+                  </span>
+                </div>
 
-            {/* MINS */}
-            <div className="flex flex-col items-center justify-center bg-[#131d33] border border-blue-900/60 rounded-xl sm:rounded-2xl p-3 sm:p-5 w-20 sm:w-28 md:w-32 shadow-2xl">
-              <span className="text-3xl sm:text-5xl font-black text-[#FFD700] tracking-tight font-mono">
-                {String(timeLeft.minutes).padStart(2, "0")}
-              </span>
-              <span className="text-[10px] sm:text-xs font-bold text-gray-300 tracking-wider uppercase mt-2">
-                MINS
-              </span>
-            </div>
+                <span className="text-2xl sm:text-4xl font-extrabold text-[#FFD700] self-center -mt-3">
+                  :
+                </span>
 
-            <span className="text-2xl sm:text-4xl font-extrabold text-[#FFD700] self-center -mt-3">
-              :
-            </span>
+                {/* MINS */}
+                <div className="flex flex-col items-center justify-center bg-[#131d33] border border-blue-900/60 rounded-xl sm:rounded-2xl p-3 sm:p-5 w-24 sm:w-28 md:w-32 shadow-2xl hover:border-blue-700/80 transition-all">
+                  <span className="text-3xl sm:text-5xl font-black text-[#FFD700] tracking-tight font-mono">
+                    {String(offerStatus.minutes).padStart(2, "0")}
+                  </span>
+                  <span className="text-[10px] sm:text-xs font-bold text-gray-300 tracking-wider uppercase mt-2">
+                    MINS
+                  </span>
+                </div>
 
-            {/* SECS */}
-            <div className="flex flex-col items-center justify-center bg-[#131d33] border border-blue-900/60 rounded-xl sm:rounded-2xl p-3 sm:p-5 w-20 sm:w-28 md:w-32 shadow-2xl">
-              <span className="text-3xl sm:text-5xl font-black text-[#FFD700] tracking-tight font-mono">
-                {String(timeLeft.seconds).padStart(2, "0")}
-              </span>
-              <span className="text-[10px] sm:text-xs font-bold text-gray-300 tracking-wider uppercase mt-2">
-                SECS
-              </span>
-            </div>
-          </div>
+                <span className="text-2xl sm:text-4xl font-extrabold text-[#FFD700] self-center -mt-3">
+                  :
+                </span>
 
-          {/* Red Date Pill (Matching Reference Image 1) */}
-          <div className="mt-8">
-            <span className="bg-[#ED1C24] text-white font-bold text-xs sm:text-sm px-7 py-2.5 rounded-full inline-block shadow-lg tracking-wide">
-              {dateRangeBadge}
-            </span>
-          </div>
+                {/* SECS */}
+                <div className="flex flex-col items-center justify-center bg-[#131d33] border border-blue-900/60 rounded-xl sm:rounded-2xl p-3 sm:p-5 w-24 sm:w-28 md:w-32 shadow-2xl hover:border-blue-700/80 transition-all">
+                  <span className="text-3xl sm:text-5xl font-black text-[#FFD700] tracking-tight font-mono">
+                    {String(offerStatus.seconds).padStart(2, "0")}
+                  </span>
+                  <span className="text-[10px] sm:text-xs font-bold text-gray-300 tracking-wider uppercase mt-2">
+                    SECS
+                  </span>
+                </div>
+              </div>
+
+              {/* Red Date Pill */}
+              <div className="mt-7">
+                <span className="bg-[#ED1C24] text-white font-bold text-xs sm:text-sm px-7 py-2.5 rounded-full inline-block shadow-lg tracking-wide">
+                  {dateRangeBadge}
+                </span>
+              </div>
+            </>
+          )}
+
+          {/* STATE 2: UPCOMING (> 5 hours before start) */}
+          {offerStatus.isUpcoming && (
+            <>
+              {/* Status Pill */}
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-yellow-400/10 border border-yellow-400/30 text-yellow-400 font-bold text-xs sm:text-sm uppercase tracking-widest mb-4">
+                <span className="w-2.5 h-2.5 rounded-full bg-yellow-400 animate-pulse" />
+                <span>UPCOMING SUPER OFFER</span>
+              </div>
+
+              {/* Upcoming Offer Info */}
+              <div className="max-w-xl mx-auto my-2 space-y-3">
+                <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-white tracking-wide uppercase">
+                  {timer?.offerHeading || "GET READY FOR MEGA OFFERS!"}
+                </h2>
+                <p className="text-gray-300 text-xs sm:text-sm md:text-base font-normal max-w-lg mx-auto leading-relaxed">
+                  {timer?.offerDescription || "Exclusive discounts and limited-time savings will go live soon. Stay tuned!"}
+                </p>
+                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#131d33] border border-blue-900/50 text-gray-300 text-xs font-medium">
+                  <span className="text-yellow-400">⏰</span>
+                  <span>Countdown timer will go live 5 hours before start</span>
+                </div>
+              </div>
+
+              {/* Red Date Pill */}
+              <div className="mt-6">
+                <span className="bg-[#ED1C24] text-white font-bold text-xs sm:text-sm px-7 py-2.5 rounded-full inline-block shadow-lg tracking-wide">
+                  {dateRangeBadge}
+                </span>
+              </div>
+            </>
+          )}
+
+          {/* STATE 3: LIVE / ACTIVE (From start time until end date) */}
+          {offerStatus.isLive && (
+            <>
+              {/* Sale Status Pill */}
+              <div className="inline-flex items-center gap-2.5 px-5 py-2 rounded-full bg-red-600/20 border border-red-500/40 text-yellow-400 font-extrabold text-xs sm:text-sm uppercase tracking-widest mb-4 shadow-sm">
+                <span className="relative flex h-3 w-3">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                </span>
+                <span>SALE IS LIVE NOW!</span>
+              </div>
+
+              {/* Relevant Offer Text / Headline */}
+              <div className="max-w-2xl mx-auto my-2 space-y-2.5">
+                <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-white tracking-tight uppercase">
+                  {timer?.offerHeading || "EXCLUSIVE DEALS ARE UNLOCKED!"}
+                </h2>
+                <p className="text-gray-300 text-xs sm:text-sm md:text-base font-normal max-w-lg mx-auto leading-relaxed">
+                  {timer?.offerDescription || "Shop limited-time mega discounts on top brands and appliances. Limited stock available!"}
+                </p>
+              </div>
+
+              {/* Compact Modern Feature Pills */}
+              <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 my-3">
+                <span className="bg-[#131d33] border border-blue-900/60 text-[#FFD700] text-[11px] sm:text-xs font-semibold px-3.5 py-1.5 rounded-lg shadow-sm">
+                  ⚡ Best Price Guaranteed
+                </span>
+                <span className="bg-[#131d33] border border-blue-900/60 text-white text-[11px] sm:text-xs font-semibold px-3.5 py-1.5 rounded-lg shadow-sm">
+                  🛡️ 100% Genuine Products
+                </span>
+                <span className="bg-[#131d33] border border-blue-900/60 text-[#FFD700] text-[11px] sm:text-xs font-semibold px-3.5 py-1.5 rounded-lg shadow-sm">
+                  🚚 Fast Store Delivery
+                </span>
+              </div>
+
+              {/* Red Date Pill */}
+              <div className="mt-4">
+                <span className="bg-[#ED1C24] text-white font-bold text-xs sm:text-sm px-7 py-2.5 rounded-full inline-block shadow-lg tracking-wide">
+                  {dateRangeBadge}
+                </span>
+              </div>
+            </>
+          )}
+
+          {/* STATE 4: ENDED (Past end date) */}
+          {offerStatus.isEnded && (
+            <>
+              {/* Status Pill */}
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gray-800 border border-gray-700 text-gray-400 font-bold text-xs sm:text-sm uppercase tracking-widest mb-4">
+                <span className="w-2.5 h-2.5 rounded-full bg-gray-500" />
+                <span>SALE HAS ENDED</span>
+              </div>
+
+              {/* Relevant Offer Text */}
+              <div className="max-w-xl mx-auto my-2 space-y-2">
+                <h2 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-white tracking-wide uppercase">
+                  THIS OFFER HAS CONCLUDED
+                </h2>
+                <p className="text-gray-400 text-xs sm:text-sm font-normal max-w-md mx-auto">
+                  This limited-time offer has expired. Browse our wide range of products and active promotions below!
+                </p>
+              </div>
+
+              {/* Date Pill */}
+              <div className="mt-4">
+                <span className="bg-gray-800 text-gray-300 font-bold text-xs sm:text-sm px-7 py-2 rounded-full inline-block border border-gray-700 tracking-wide">
+                  Ended: {dateRangeBadge}
+                </span>
+              </div>
+            </>
+          )}
         </div>
       </section>
 

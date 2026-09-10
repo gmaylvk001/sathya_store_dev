@@ -303,10 +303,10 @@ export default function CardOffersView({ timerId }) {
           {/* Add Card Offer Button */}
           <button
             onClick={handleOpenCreate}
-            className="border border-green-600 bg-green-600 hover:bg-green-700 text-white px-4 py-1.5 rounded text-sm font-medium transition-colors flex items-center gap-1 shadow-sm"
+            className="border border-green-600 bg-green-600 hover:bg-green-700 text-white px-4 py-1.5 rounded text-sm font-medium transition-colors flex items-center gap-1.5 shadow-sm cursor-pointer"
           >
             <Icon icon="ic:baseline-add" className="w-4 h-4" />
-            + Add Card Offer
+            <span>Add Card Offer</span>
           </button>
         </div>
 
