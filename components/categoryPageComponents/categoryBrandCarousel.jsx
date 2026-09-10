@@ -6,15 +6,16 @@ import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
 
 /** How many images per screen by viewport width */
 function usePerPage() {
-  const [perPage, setPerPage] = useState(5);
+  const [perPage, setPerPage] = useState(6);
 
   useEffect(() => {
     const update = () => {
       const w = window.innerWidth;
-      if (w < 640) setPerPage(2);
-      else if (w < 900) setPerPage(3);
-      else if (w < 1100) setPerPage(4);
-      else setPerPage(5);
+      if (w < 480) setPerPage(2);
+      else if (w < 640) setPerPage(3);
+      else if (w < 900) setPerPage(4);
+      else if (w < 1200) setPerPage(5);
+      else setPerPage(6);
     };
     update();
     window.addEventListener("resize", update);
@@ -215,31 +216,29 @@ export default function CategoryBrandCarousel({ config }) {
 
   if (!items.length) return null;
 
-  const gapPx = showGap ? 12 : 0;
-  const cellStyle =
-    showGap && perPage > 1
-      ? {
-          width: `calc((100% - ${(perPage - 1) * gapPx}px) / ${perPage})`,
-        }
-      : { width: `${100 / perPage}%` };
+  const cellStyle = { width: `${100 / perPage}%` };
 
   const renderItem = (item, idx) => {
-    const img = item.image ? (
-      // eslint-disable-next-line @next/next/no-img-element
-      <img
-        src={item.image}
-        alt={item.notes || name || `Brand ${idx + 1}`}
-        className="block w-full h-auto max-w-[200px] max-h-[120px] object-contain pointer-events-none select-none"
-        draggable={false}
-      />
-    ) : (
-      <span className="text-sm font-semibold text-gray-700 text-center px-2">
-        {item.notes || `Brand ${idx + 1}`}
-      </span>
+    const cardContent = (
+      <div className="w-full h-16 sm:h-18 md:h-20 px-3 sm:px-4 py-2 bg-white rounded-xl border-2 border-gray-150/80 shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:border-[#ff9b9b] hover:ring-2 hover:ring-[#ffe4e6] hover:shadow-md transition-all duration-300 flex items-center justify-center group overflow-hidden">
+        {item.image ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={item.image}
+            alt={item.notes || name || `Brand ${idx + 1}`}
+            className="max-h-8 sm:max-h-9 md:max-h-10 max-w-[85px] sm:max-w-[105px] w-auto h-auto object-contain pointer-events-none select-none transition-transform duration-300 group-hover:scale-105"
+            draggable={false}
+          />
+        ) : (
+          <span className="text-xs sm:text-sm font-semibold text-gray-700 text-center px-2 line-clamp-1 group-hover:text-[#ED1C24] transition-colors">
+            {item.notes || `Brand ${idx + 1}`}
+          </span>
+        )}
+      </div>
     );
 
     const wrapClass =
-      "box-border flex min-w-0 shrink-0 items-center justify-center";
+      "box-border flex min-w-0 shrink-0 items-center justify-center p-1.5 sm:p-2";
 
     if (item.url) {
       const external = /^https?:\/\//i.test(item.url);
@@ -253,7 +252,7 @@ export default function CategoryBrandCarousel({ config }) {
             className={wrapClass}
             style={cellStyle}
           >
-            {img}
+            {cardContent}
           </a>
         );
       }
@@ -264,7 +263,7 @@ export default function CategoryBrandCarousel({ config }) {
           className={wrapClass}
           style={cellStyle}
         >
-          {img}
+          {cardContent}
         </Link>
       );
     }
@@ -275,21 +274,23 @@ export default function CategoryBrandCarousel({ config }) {
         className={wrapClass}
         style={cellStyle}
       >
-        {img}
+        {cardContent}
       </div>
     );
   };
 
   return (
-    <section className="w-full mb-8 bg-white">
+    <section className="w-full my-4 sm:my-6 py-6 sm:py-8 bg-[#FFF5F5]">
       {name && (
-        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 px-1 bg-white text-center">
-          {name}
-        </h2>
+        <div className="text-center mb-4 px-4">
+          <h2 className="text-base sm:text-xl font-bold text-gray-900 tracking-tight">
+            {name}
+          </h2>
+        </div>
       )}
 
       <div
-        className="relative px-8 sm:px-10 lg:px-10 bg-white"
+        className="relative px-7 sm:px-10 lg:px-12 w-full"
         onMouseEnter={() => setPaused(true)}
         onMouseLeave={() => setPaused(false)}
         onTouchStart={() => setPaused(true)}
@@ -300,25 +301,23 @@ export default function CategoryBrandCarousel({ config }) {
           aria-label="Previous"
           disabled={page <= 0}
           onClick={() => scrollToPage(page - 1)}
-          className="absolute left-0 top-1/2 -translate-y-1/2 z-10 h-10 w-10 sm:h-11 sm:w-11 rounded-full bg-[#ED1C24] text-white flex items-center justify-center shadow disabled:opacity-30 disabled:pointer-events-none"
+          className="absolute left-0 sm:left-1 top-1/2 -translate-y-1/2 z-10 h-8 w-8 sm:h-9 sm:w-9 rounded-full bg-[#ED1C24] hover:bg-[#d01820] text-white flex items-center justify-center shadow-md transition-all duration-200 hover:scale-105 disabled:opacity-25 disabled:pointer-events-none"
         >
-          <FiChevronLeft size={22} />
+          <FiChevronLeft size={18} />
         </button>
         <button
           type="button"
           aria-label="Next"
           disabled={page >= pageCount - 1}
           onClick={() => scrollToPage(page + 1)}
-          className="absolute right-0 top-1/2 -translate-y-1/2 z-10 h-10 w-10 sm:h-11 sm:w-11 rounded-full bg-[#ED1C24] text-white flex items-center justify-center shadow disabled:opacity-30 disabled:pointer-events-none"
+          className="absolute right-0 sm:right-1 top-1/2 -translate-y-1/2 z-10 h-8 w-8 sm:h-9 sm:w-9 rounded-full bg-[#ED1C24] hover:bg-[#d01820] text-white flex items-center justify-center shadow-md transition-all duration-200 hover:scale-105 disabled:opacity-25 disabled:pointer-events-none"
         >
-          <FiChevronRight size={22} />
+          <FiChevronRight size={18} />
         </button>
 
         <div
           ref={scrollerRef}
-          className={`flex w-full overflow-x-auto overflow-y-hidden scroll-smooth snap-x snap-mandatory scrollbar-hide cursor-grab touch-pan-x select-none bg-white ${
-            showGap ? "gap-3" : "gap-0"
-          }`}
+          className="flex w-full overflow-x-auto overflow-y-hidden scroll-smooth snap-x snap-mandatory scrollbar-hide cursor-grab touch-pan-x select-none py-1"
           style={{
             WebkitOverflowScrolling: "touch",
             touchAction: "pan-x",
@@ -327,10 +326,7 @@ export default function CategoryBrandCarousel({ config }) {
           {pages.map((chunk, pageIdx) => (
             <div
               key={pageIdx}
-              className={`flex w-full min-w-full shrink-0 snap-start snap-always items-center bg-white ${
-                showGap ? "gap-3" : "gap-0"
-              }`}
-              style={showGap ? { gap: `${gapPx}px` } : undefined}
+              className="flex w-full min-w-full shrink-0 snap-start snap-always items-center"
             >
               {chunk.map((item, i) =>
                 renderItem(item, pageStarts[pageIdx] + i)
@@ -342,7 +338,7 @@ export default function CategoryBrandCarousel({ config }) {
 
       {pageCount > 1 && (
         <div
-          className="flex items-center justify-center gap-2 mt-4"
+          className="flex items-center justify-center gap-1.5 mt-3"
           role="tablist"
           aria-label="Brand carousel pages"
         >
@@ -354,10 +350,10 @@ export default function CategoryBrandCarousel({ config }) {
               aria-selected={i === page}
               aria-label={`Page ${i + 1}`}
               onClick={() => scrollToPage(i)}
-              className={`h-1.5 w-1.5 rounded-full transition ${
+              className={`h-1.5 rounded-full transition-all duration-300 ${
                 i === page
-                  ? "bg-[#ED1C24] scale-110"
-                  : "bg-gray-300 hover:bg-gray-400"
+                  ? "w-4 bg-[#ED1C24]"
+                  : "w-1.5 bg-gray-300 hover:bg-gray-400"
               }`}
             />
           ))}

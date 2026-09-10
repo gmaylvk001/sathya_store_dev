@@ -7,71 +7,85 @@ import { GiNetworkBars } from "react-icons/gi";
 import { FaThumbsUp } from "react-icons/fa";
 import { FiHeadphones,  FiSettings,FiTag, FiTarget, FiMapPin, FiAward, FiUsers,FiUser,  FiMonitor, FiSpeaker, FiShoppingCart, FiStar, FiHome, FiBriefcase, FiPackage, FiCreditCard, FiTrendingUp, FiGift } from 'react-icons/fi';
 import { useRouter } from "next/navigation";
-import { useModal } from "@/context/ModalContext";
 
 const AboutUs = () => {
     const router = useRouter();
-    const { openLiveDemoModal } = useModal();
-    const chooseData = [{
-        image: "/uploads/productss.png",
-        icon: <FiMapPin />,
-        title: "100% Genuine Products",
-        desc: "Authorized retailer for leading electronics and home appliance brands."
-    },
-    {
-        image: "/uploads/wide_product.png",
-        icon: <FiShoppingCart />,
-        title: "Wide Product Range",
-        desc: "5000+ products including TVs, refrigerators, ACs and mobiles."
-    },
-    {
-        image: "/uploads/customer_first_approach.png",
-        icon: <FiUsers />,
-        title: "Customer First Approach",
-        desc: "Trusted by families for honest advice and better service."
-    },
-    {
-        image: "/uploads/47_store.png",
-        icon: <FiHome />,
-        title: "427+ Store Network",
-        desc: "Always near you with 427+ showrooms across South India."
-    },
-    {
-        image: "/uploads/flexiable_finance_options.png",
-        icon: <FiCreditCard />,
-        title: "Flexible Finance Options",
-        desc: "Easy EMI & finance solutions from leading banks."
-    },
-    {
-        image: "/uploads/realiable_support.png",
-        icon: <FiHeadphones />,
-        title: "Reliable Support",
-        desc: "Before & after purchase support, installation & service."
-    }];
+    
+    const chooseData = [
+        {
+            icon: <FiAward size={26} />,
+            title: "100% Genuine Products",
+            desc: "Authorized retailer for leading electronics and home appliance brands."
+        },
+        {
+            icon: <FiShoppingCart size={26} />,
+            title: "Wide Product Range",
+            desc: "5000+ products including TVs, refrigerators, ACs and mobiles."
+        },
+        {
+            icon: <FiUsers size={26} />,
+            title: "Customer First Approach",
+            desc: "Trusted by families for honest advice and better service."
+        },
+        {
+            icon: <FiHome size={26} />,
+            title: "427+ Store Network",
+            desc: "Always near you with 427+ showrooms across South India."
+        },
+        {
+            icon: <FiCreditCard size={26} />,
+            title: "Flexible Finance Options",
+            desc: "Easy EMI & finance solutions from leading banks."
+        },
+        {
+            icon: <FiHeadphones size={26} />,
+            title: "Reliable Support",
+            desc: "Before & after purchase support, installation & service."
+        }
+    ];
 
-    const storeExperience = [{
-        image: "/uploads/tv_zone.png",
-        title: "TV Experience Zone",
+    const storeExperience = [
+        {
+            icon: <FiMonitor size={28} />,
+            title: "TV & Audio Lounge",
+            desc: "Experience 4K, 8K OLED & smart Dolby sound systems live.",
+            tag: "Live Audio-Visual",
+            color: "text-[#d72828] bg-red-50 border-red-100"
         },
         {
-            image: "/uploads/kitchen_appliances.png",
-            title: "Kitchen Appliance Zone",
+            icon: <FiSettings size={28} />,
+            title: "Kitchen Appliance Studio",
+            desc: "Smart cooking hobs, chimneys, dishwashers & air fryers.",
+            tag: "Smart Cooking",
+            color: "text-rose-600 bg-rose-50 border-rose-100"
         },
         {
-            image: "/uploads/ref_zone.png",
+            icon: <FiHome size={28} />,
             title: "Refrigerator Zone",
+            desc: "Side-by-side, French door & multi-door inverter cooling.",
+            tag: "Energy Efficient",
+            color: "text-emerald-600 bg-emerald-50 border-emerald-100"
         },
         {
-            image: "/uploads/ac_zone.png",
-            title: "AC Experience Zone",
+            icon: <FiHeadphones size={28} />,
+            title: "AC Comfort Zone",
+            desc: "Inverter ACs, split systems & smart climate controls.",
+            tag: "All-Season Cooling",
+            color: "text-[#d72828] bg-red-50 border-red-100"
         },
         {
-            image: "/uploads/customer_interaction.png",
-            title: "Customer Interaction",
+            icon: <FiUsers size={28} />,
+            title: "Customer Interaction Hub",
+            desc: "One-on-one personalized consultation with product experts.",
+            tag: "Honest Guidance",
+            color: "text-amber-600 bg-amber-50 border-amber-100"
         },
         {
-            image: "/uploads/fast_safe_delivery.png",
+            icon: <FiPackage size={28} />,
             title: "Fast & Safe Delivery",
+            desc: "Safe unboxing, expert demo & prompt installation at doorstep.",
+            tag: "Doorstep Service",
+            color: "text-[#d72828] bg-red-50 border-red-100"
         },
     ];
 
@@ -90,458 +104,403 @@ const AboutUs = () => {
 
     return (
         <>
-         {/* 🟠 About us Header Bar */}
-            <div className="bg-red-50 py-6 px-4 md:px-8 lg:px-10 flex justify-between items-center">
-                <div className="flex items-center space-x-2">
-                <Link href="/" className="text-gray-600 hover:text-[#d72828]">🏠 Home</Link>
-                <span className="text-gray-500">›</span>
-                <span className="text-[#d72828] font-semibold">About us</span>
+            {/* 🟠 About us Header Bar */}
+            <div className="bg-red-50 py-5 px-4 md:px-8 lg:px-10 flex justify-between items-center border-b border-red-100">
+                <div className="flex items-center space-x-2 text-sm">
+                    <Link href="/" className="text-gray-600 hover:text-[#d72828] transition">🏠 Home</Link>
+                    <span className="text-gray-400">›</span>
+                    <span className="text-[#d72828] font-semibold">About us</span>
                 </div>
             </div>
-<section className="w-full">
-    {/* Desktop/Laptop - overlay layout */}
-    <div className="relative w-full hidden lg:block">
-    <Image 
-        src="/uploads/aboutus-banner1.png" 
-        width={1920}
-        height={650}
-        alt="Sathya Stores Store" 
-        className="relative z-0 w-full h-auto block"
-        priority
-    />
-    {/* Adjusted padding to pull content directly to the margin edge */}
-    <div className="absolute inset-0 z-[2] flex items-center px-4 md:px-8 lg:px-10">
-        <div className="w-[50%] lg:w-[45%] xl:w-[40%] 2xl:w-[35%]">
-            <p className="text-sm xl:text-base 2xl:text-lg text-gray-500 mb-1">Tamil Nadu's</p>
-            <h1 className="text-2xl lg:text-3xl xl:text-4xl 2xl:text-6xl font-bold leading-tight text-[#0a1d56]">Most Trusted <br />Electronics Destination</h1>
-           <h2 className="text-2xl lg:text-3xl xl:text-4xl 2xl:text-6xl font-bold text-[#d72828] mt-2">Since 1987</h2>
-            <p className="mt-2 text-gray-600 text-sm xl:text-base 2xl:text-xl leading-7 2xl:leading-9">Sathya Agencies Limited is one of South India&apos;s largest consumer durables and electronics retailers, with 427+ stores across Tamil Nadu, Andhra Pradesh, Kerala, Karnataka and Puducherry.</p>
-            <div className="flex flex-wrap gap-3 mt-6">
-                <button onClick={() => router.push("/location")} className="bg-[#d72828] text-white px-5 py-2.5 2xl:px-7 2xl:py-3 rounded-lg font-semibold text-sm 2xl:text-base flex items-center gap-2 hover:bg-[#1d45b8] transition">
-                    <FiMapPin size={16} />
-                    Explore Our Stores
-                </button>
-                <button onClick={() => router.push("/")} className="border border-[#d72828] text-[#d72828] px-5 py-2.5 2xl:px-7 2xl:py-3 rounded-lg font-semibold text-sm 2xl:text-base flex items-center gap-2 hover:bg-[#d72828] hover:text-white transition">
-                    <FiShoppingCart size={16} />
-                    Shop Now
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
 
-    {/* Tablet/Mobile - stacked layout */}
-    <div className="lg:hidden">
-        <Image 
-            src="/uploads/aboutus-banner.webp" 
-            width={1920}
-            height={650}
-            alt="Sathya Stores Store" 
-            className="w-full h-auto block"
-            priority
-        />
-        {/* Matched responsive padding */}
-        <div className="px-4 md:px-8 py-10 bg-gradient-to-b from-[#f5f8ff] to-white">
-            <p className="text-sm text-gray-500 mb-1">Tamil Nadu's</p>
-            <h1 className="text-2xl font-bold leading-tight text-[#0a1d56]">Most Trusted <br />Electronics Destination</h1>
-            <h2 className="text-2xl font-bold text-[#d72828] mt-2">Since 1987</h2>
-            <p className="mt-2 text-gray-600 text-sm leading-7">Sathya Agencies Limited is one of South India&apos;s largest consumer durables and electronics retailers, with 427+ stores across Tamil Nadu, Andhra Pradesh, Kerala, Karnataka and Puducherry.</p>
-            <div className="flex flex-wrap gap-3 mt-6">
-                <button onClick={() => router.push("/location")} className="bg-[#d72828] text-white px-5 py-2.5 rounded-lg font-semibold text-sm flex items-center gap-2 hover:bg-[#1d45b8] transition">
-                    <FiMapPin size={16} />
-                    Explore Our Stores
-                </button>
-                <button onClick={() => router.push("/")} className="border border-[#d72828] text-[#d72828] px-5 py-2.5 rounded-lg font-semibold text-sm flex items-center gap-2 hover:bg-[#d72828] hover:text-white transition">
-                    <FiShoppingCart size={16} />
-                    Shop Now
-                </button>
-            </div>
-        </div>
-    </div>
-</section>
-        <div className="w-full max-w-full sm:max-w-[720px] md:max-w-[960px] lg:max-w-[1320px] xl:max-w-[1520px] 2xl:max-w-[1680px] mx-auto px-0 sm:px-3 md:px-6 lg:px-8">
-           
-            {/* Statistics Bar (Kept constraints strictly as requested) */}
-            <section className="-mt-8 relative z-20">
-                <div className="max-w-7xl mx-auto px-6">
-                    <div className="bg-white rounded-2xl shadow-lg p-3">
-                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
-                            {[{
-                                count: "25+",
-                                label: (<>Years of <br />Excellence</>),
-                                icon: <FiAward size={32} className="text-[#d72828]" />
-                            },
-                            {
-                                count: "427+",
-                                label: (<>Showrooms <br />Across Tamil Nadu </>),
-                                icon: <FiHome size={32} className="text-[#d72828]" />
-                            },
-                            {
-                                count: "17+",
-                                label: (<>Cities <br /> We Serve</>),
-                                icon: <FiMapPin size={32} className="text-[#d72828]" />
-                            },
-                            {
-                                count: "50 Lakh+",
-                                label: (<>Happy <br /> Customers</>),
-                                icon: <FiUsers size={32} className="text-[#d72828]" />
-                            },
-                            {
-                                count: "30+",
-                                label: (<>Leading <br />Brand Partners</>),
-                                icon: <FiBriefcase size={32} className="text-[#d72828]" />
-                            },
-                            {
-                                count: "5000+",
-                                label: (<>Products <br /> Across Categories</>),
-                                icon: <FiPackage size={32} className="text-[#d72828]" />
-                            },].map((item, i) => (
-                                <div key={i} className={`flex items-center gap-4 px-4 py-0 ${ i !== 5 ? "lg:border-r border-gray-200" : ""}`}>
-                                    {/* Left Icon */}
-                                    <div className="flex-shrink-0">{item.icon}</div>
-                                    {/* Right Content */}
+            {/* 🖼️ Hero Background Banner Section (With Background Image) */}
+            <section className="w-full">
+                {/* Desktop/Laptop - overlay layout */}
+                <div className="relative w-full hidden lg:block">
+                    <Image 
+                        src="/uploads/aboutus-banner-store.png" 
+                        width={1920}
+                        height={650}
+                        alt="Sathya Stores Showroom" 
+                        className="relative z-0 w-full h-auto block object-cover"
+                        priority
+                        unoptimized
+                    />
+                    {/* Content Overlay */}
+                    <div className="absolute inset-0 z-[2] flex items-center px-4 md:px-8 lg:px-10 bg-gradient-to-r from-white/95 via-white/75 to-transparent">
+                        <div className="w-[50%] lg:w-[45%] xl:w-[40%] 2xl:w-[35%]">
+                            <p className="text-sm xl:text-base 2xl:text-lg text-gray-500 mb-1">Tamil Nadu&apos;s</p>
+                            <h1 className="text-2xl lg:text-3xl xl:text-4xl 2xl:text-6xl font-bold leading-tight text-[#111827]">Most Trusted <br />Electronics Destination</h1>
+                            <h2 className="text-2xl lg:text-3xl xl:text-4xl 2xl:text-6xl font-bold text-[#d72828] mt-2">Since 1987</h2>
+                            <p className="mt-2 text-gray-600 text-sm xl:text-base 2xl:text-xl leading-7 2xl:leading-9">Sathya Agencies Limited is one of South India&apos;s largest consumer durables and electronics retailers, with 427+ stores across Tamil Nadu, Andhra Pradesh, Kerala, Karnataka and Puducherry.</p>
+                            <div className="flex flex-wrap gap-3 mt-6">
+                                <button onClick={() => router.push("/location")} className="bg-[#d72828] text-white px-5 py-2.5 2xl:px-7 2xl:py-3 rounded-lg font-semibold text-sm 2xl:text-base flex items-center gap-2 hover:bg-[#b81d1d] transition shadow-md">
+                                    <FiMapPin size={16} />
+                                    Explore Our Stores
+                                </button>
+                                <button onClick={() => router.push("/")} className="border-2 border-[#d72828] text-[#d72828] bg-white/80 px-5 py-2.5 2xl:px-7 2xl:py-3 rounded-lg font-semibold text-sm 2xl:text-base flex items-center gap-2 hover:bg-[#d72828] hover:text-white transition shadow-xs">
+                                    <FiShoppingCart size={16} />
+                                    Shop Now
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Tablet/Mobile - stacked layout */}
+                <div className="lg:hidden">
+                    <Image 
+                        src="/uploads/aboutus-banner-store.png" 
+                        width={1920}
+                        height={650}
+                        alt="Sathya Stores Showroom" 
+                        className="w-full h-auto block object-cover"
+                        priority
+                        unoptimized
+                    />
+                    <div className="px-4 md:px-8 py-8 bg-gradient-to-b from-[#FFF5F5] via-white to-white">
+                        <p className="text-xs text-gray-500 mb-1">Tamil Nadu&apos;s</p>
+                        <h1 className="text-2xl font-bold leading-tight text-[#111827]">Most Trusted <br />Electronics Destination</h1>
+                        <h2 className="text-2xl font-bold text-[#d72828] mt-1">Since 1987</h2>
+                        <p className="mt-2 text-gray-600 text-sm leading-relaxed">Sathya Agencies Limited is one of South India&apos;s largest consumer durables and electronics retailers, with 427+ stores across South India.</p>
+                        <div className="flex flex-wrap gap-3 mt-5">
+                            <button onClick={() => router.push("/location")} className="bg-[#d72828] text-white px-5 py-2.5 rounded-lg font-semibold text-sm flex items-center gap-2 hover:bg-[#b81d1d] transition">
+                                <FiMapPin size={16} />
+                                Explore Our Stores
+                            </button>
+                            <button onClick={() => router.push("/")} className="border border-[#d72828] text-[#d72828] px-5 py-2.5 rounded-lg font-semibold text-sm flex items-center gap-2 hover:bg-[#d72828] hover:text-white transition">
+                                <FiShoppingCart size={16} />
+                                Shop Now
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* 📦 ALL SUBSEQUENT SECTIONS BUILT WITH PURE MODERN UI DESIGN (NO IMAGES) */}
+            <div className="w-full max-w-full sm:max-w-[720px] md:max-w-[960px] lg:max-w-[1320px] xl:max-w-[1520px] 2xl:max-w-[1680px] mx-auto px-0 sm:px-3 md:px-6 lg:px-8">
+               
+                {/* 1. Statistics Bar (Pure UI) */}
+                <section className="-mt-8 relative z-20">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6">
+                        <div className="bg-white rounded-2xl shadow-xl border border-gray-150 p-4 sm:p-5">
+                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-y-4">
+                                {[
+                                    { count: "25+", label: (<>Years of <br />Excellence</>), icon: <FiAward size={28} className="text-[#d72828]" /> },
+                                    { count: "427+", label: (<>Showrooms <br />Across South India</>), icon: <FiHome size={28} className="text-[#d72828]" /> },
+                                    { count: "17+", label: (<>Major Cities <br />We Serve</>), icon: <FiMapPin size={28} className="text-[#d72828]" /> },
+                                    { count: "50 Lakh+", label: (<>Happy <br />Families</>), icon: <FiUsers size={28} className="text-[#d72828]" /> },
+                                    { count: "30+", label: (<>Leading <br />Brand Partners</>), icon: <FiBriefcase size={28} className="text-[#d72828]" /> },
+                                    { count: "5000+", label: (<>Products <br />Across Categories</>), icon: <FiPackage size={28} className="text-[#d72828]" /> },
+                                ].map((item, i) => (
+                                    <div key={i} className={`flex items-center gap-3 px-3 py-1 ${ i !== 5 ? "lg:border-r border-gray-200" : ""}`}>
+                                        <div className="w-11 h-11 rounded-xl bg-red-50 flex items-center justify-center shrink-0 shadow-xs">{item.icon}</div>
+                                        <div>
+                                            <h3 className="text-xl sm:text-2xl font-black text-[#d72828] leading-none mb-1">{item.count}</h3>
+                                            <p className="text-gray-600 text-[11px] sm:text-xs leading-4">{item.label}</p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                
+                {/* 2. Why Customers Choose Sathya Stores (Pure UI Icon Cards) */}
+                <section className="py-10 bg-white">
+                    <div className="w-full px-4 md:px-8 lg:px-10">
+                        <div className="text-center mb-8">
+                            <span className="text-xs font-bold uppercase tracking-wider text-[#d72828] bg-red-50 px-3.5 py-1 rounded-full border border-red-100">
+                                Our Key Advantages
+                            </span>
+                            <h2 className="text-2xl sm:text-3xl font-bold text-[#111827] mt-2">Why Customers Choose Sathya Stores?</h2>
+                            <div className="w-12 h-1 bg-[#d72828] mx-auto mt-2.5 rounded-full"></div>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                            {chooseData.map((item, i) => (
+                                <div key={i} className="bg-white border border-gray-150 rounded-2xl p-5 shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:shadow-xl hover:border-red-200 hover:-translate-y-1 transition-all duration-300 flex flex-col items-center text-center group">
+                                    <div className="w-14 h-14 rounded-2xl bg-red-50 text-[#d72828] group-hover:bg-[#d72828] group-hover:text-white flex items-center justify-center text-2xl transition-all duration-300 shadow-xs mb-4">
+                                        {item.icon}
+                                    </div>
+                                    <h3 className="font-bold text-[#111827] text-sm sm:text-[15px] group-hover:text-[#d72828] transition-colors min-h-[38px] flex items-center justify-center">
+                                        {item.title}
+                                    </h3>
+                                    <p className="text-xs text-gray-600 mt-2 leading-relaxed">
+                                        {item.desc}
+                                    </p>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </section>
+                
+                {/* 3. Experience Sathya Stores - Store Experience Zones (Pure UI Cards - No Images) */}
+                <section className="py-8 bg-white">
+                    <div className="w-full px-4 md:px-8 lg:px-10">
+                        <div className="text-center mb-8">
+                            <span className="text-xs font-bold uppercase tracking-wider text-[#d72828] bg-red-50 px-3.5 py-1 rounded-full border border-red-100">
+                                In-Store Experience
+                            </span>
+                            <h2 className="text-2xl sm:text-3xl font-bold text-[#111827] mt-2">Experience Sathya Stores</h2>
+                            <div className="w-12 h-1 bg-[#d72828] mx-auto mt-2.5 rounded-full"></div>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                            {storeExperience.map((item, i) => (
+                                <div
+                                    key={i}
+                                    className="bg-white border border-gray-150 rounded-2xl p-5 shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:shadow-xl hover:border-red-200 hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group"
+                                >
                                     <div>
-                                        <h3 className="text-2xl font-bold text-[#d72828]">{item.count}</h3>
-                                        <p className="text-gray-600 text-sm leading-5">{item.label}</p>
+                                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center font-bold text-xl border mb-3.5 transition-transform duration-300 group-hover:scale-110 ${item.color}`}>
+                                            {item.icon}
+                                        </div>
+                                        <span className="inline-block text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-md bg-gray-100 text-gray-600 mb-2">
+                                            {item.tag}
+                                        </span>
+                                        <h3 className="text-sm font-bold text-[#111827] group-hover:text-[#d72828] transition-colors leading-snug mb-1.5">
+                                            {item.title}
+                                        </h3>
+                                        <p className="text-xs text-gray-500 leading-relaxed">
+                                            {item.desc}
+                                        </p>
+                                    </div>
+                                    <div className="mt-4 pt-3 border-t border-gray-100 flex items-center text-[11px] font-bold text-[#d72828] group-hover:translate-x-1 transition-transform">
+                                        Explore Zone →
                                     </div>
                                 </div>
                             ))}
                         </div>
                     </div>
-                </div>
-            </section>
-            
-            {/* Why Choose Sathya Stores (Stretched to margins) */}
-            <section className="py-6 bg-white">
-                <div className="w-full px-4 md:px-8 lg:px-10">
-                    <div className="text-center mb-10">
-                        <h2 className="text-2xl font-bold text-[#2b3a79]">Why Customers Choose Sathya Stores?</h2>
-                        <div className="w-12 h-1 bg-[#d72828] mx-auto mt-2 rounded-full"></div>
-                    </div>
-                    <div className="grid md:grid-cols-3 lg:grid-cols-6 gap-4">
-                        {chooseData.map((item, i) => (
-                            <div key={i} className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition duration-300">
-                                {/* Image */}
+                </section>
+
+                {/* 5. Company Journey Timeline & Vision */}
+                <section className="py-10">
+                    <div className="w-full px-4 md:px-8 lg:px-10">
+                        
+                        {/* Row 1: Journey & Vision */}
+                        <div className="grid grid-cols-1 lg:grid-cols-[62%_38%] gap-5 mb-6">
+                            {/* Journey */}
+                            <div className="bg-white rounded-2xl p-6 sm:p-7 border border-gray-150 shadow-lg">
+                                <div className="flex items-center justify-between mb-8">
+                                    <h2 className="text-2xl font-bold text-[#111827]">Our Journey</h2>
+                                    <span className="text-xs font-semibold text-gray-500 bg-gray-100 px-3 py-1 rounded-full">1987 — 2026</span>
+                                </div>
                                 <div className="relative">
-                                    <img src={item.image} alt={item.title} className="w-full h-30 object-cover"/>
-                                    {/* Floating Icon */}
-                                    <div className="absolute -bottom-4 left-4 w-9 h-9 rounded-full bg-white border-2 border-[#d72828] flex items-center justify-center text-[#d72828] shadow-md">{item.icon}</div>
-                                </div>
-
-                                {/* Content */}
-                                <div className="pt-7 px-3 pb-4 text-center">
-                                    <h3 className="font-bold text-[#2b3a79] text-sm leading-5 min-h-[40px]">{item.title}</h3>
-                                    <p className="text-[12px] text-gray-600 mt-1 leading-5">{item.desc}</p>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </section>
-            
-            {/* Sathya Stores Live Demo */}
-            <section className="py-6 bg-white">
-                <div className="w-full px-4 md:px-8 lg:px-10">
-                    <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-8 rounded-2xl border border-[#c4b5fd] bg-gradient-to-br from-[#f8f6ff] via-[#f5f7ff] to-[#eef3ff] overflow-hidden px-5 sm:px-8 pt-5 sm:pt-6 pb-0">
-                        <div className="flex-1 min-w-0 py-2 sm:py-4 text-center sm:text-left">
-                            <h2 className="text-[#0a1d56] font-extrabold text-xl sm:text-2xl leading-tight mb-2">
-                                Experience Sathya Stores From Anywhere
-                            </h2>
-                            <p className="text-sm sm:text-[15px] text-gray-600 leading-relaxed mb-4 max-w-xl">
-                                Can&apos;t visit one of our showrooms? Let us bring the store to you.
-                            </p>
-                            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 mb-5 text-left max-w-lg mx-auto sm:mx-0">
-                                {[
-                                    "Live Product Demonstration",
-                                    "Compare Products",
-                                    "Expert Buying Advice",
-                                    "Google Meet / WhatsApp Video",
-                                ].map((item) => (
-                                    <li key={item} className="flex items-center gap-2 text-sm font-medium text-[#0a1d56]">
-                                        <span className="text-[#d72828] font-bold shrink-0">✓</span>
-                                        {item}
-                                    </li>
-                                ))}
-                            </ul>
-                            <button
-                                type="button"
-                                onClick={openLiveDemoModal}
-                                className="inline-flex items-center justify-center gap-2 bg-[#5B4CF5] hover:bg-[#4a3de0] text-white text-sm font-bold py-3 px-6 rounded-xl transition-colors"
-                            >
-                                Book Sathya Stores Live Demo
-                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                                </svg>
-                            </button>
-                        </div>
-                        <div className="shrink-0 w-[150px] sm:w-[180px] md:w-[210px] self-end">
-                            <img
-                                src="/uploads/live-video-phone.png"
-                                alt="Sathya Stores Live Demo"
-                                className="w-full h-auto object-contain bg-transparent"
-                            />
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            {/* Store Experience Section (Stretched to margins) */}
-            <section className="pb-8 bg-white">
-                <div className="w-full px-4 md:px-8 lg:px-10">
-                    <div className="text-center mb-5">
-                        <h2 className="text-2xl font-bold text-[#2b3a79]">Experience Sathya Stores</h2>
-                        <div className="w-12 h-1 bg-[#d72828] mx-auto mt-2 rounded-full"></div>
-                    </div>
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-
-                    {storeExperience.map((item, i) => (
-                        <div
-                        key={i}
-                        className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition"
-                        >
-
-                        {/* Image */}
-                        <div className="overflow-hidden">
-                            <img
-                            src={item.image}
-                            alt={item.title}
-                            className="w-full h-30 object-cover hover:scale-105 transition duration-300"
-                            />
-                        </div>
-
-                        {/* Title */}
-                        <div className="py-2 px-2">
-                            <h3 className="text-[12px] font-semibold text-center text-[#2b3a79] leading-4">
-                            {item.title}
-                            </h3>
-                        </div>
-
-                        </div>
-                    ))}
-
-                    </div>
-                </div>
-            </section>
-
-            {/* Company Journey Timeline & Subsequent Blocks (Stretched to margins) */}
-            <section className="py-12">
-                <div className="w-full px-4 md:px-8 lg:px-10">
-                    
-                    {/* Row 1 */}
-                   <div className="grid grid-cols-1 lg:grid-cols-[60%_40%] gap-5 mb-5">
-                        {/* Journey (Added shadow-lg) */}
-                        <div className="bg-white rounded-2xl p-6 border shadow-lg">
-                            <h2 className="text-2xl font-bold text-[#1f3bb3] mb-8">Our Journey</h2>
-                            <div className="relative">
-                                {/* Connecting Line */}
-                               <div className="hidden md:block absolute top-7 left-[8%] right-[8%] h-[3px] bg-gradient-to-r from-[#d72828] via-purple-400 to-orange-400"></div>
-                               <div className="grid grid-cols-3 md:grid-cols-6 gap-2 relative z-10">
-                                    {[
-                                        {
-                                            year: "1987",
-                                            title: "Our Beginning",
-                                            desc: "Established in Tuticorin, Tamil Nadu as a proprietorship venture.",
-                                            icon: <FiHome size={22} />,
-                                            color: "bg-[#d72828]",
-                                        },
-                                        {
-                                            year: "1990",
-                                            title: "Sathya Agencies",
-                                            desc: "Expanded as a partnership firm under the name Sathya Agencies.",
-                                            icon: <FiBriefcase size={22} />,
-                                            color: "bg-orange-500",
-                                        },
-                                        {
-                                            year: "2005",
-                                            title: "Incorporation",
-                                            desc: "Incorporated as Sathya Agencies Limited.",
-                                            icon: <FiTrendingUp size={22} />,
-                                            color: "bg-green-500",
-                                        },
-                                        {
-                                            year: "2015",
-                                            title: "Growing Network",
-                                            desc: "Expanded retail presence across South India.",
-                                            icon: <FiAward size={22} />,
-                                            color: "bg-purple-500",
-                                        },
-                                        {
-                                            year: "2020",
-                                            title: "Digital Transformation",
-                                            desc: "Enhanced online presence and customer experience.",
-                                            icon: <FiMapPin size={22} />,
-                                            color: "bg-[#d72828]",
-                                        },
-                                        {
-                                            year: "2026",
-                                            title: "427+ Stores",
-                                            desc: "Operating across Tamil Nadu, Andhra Pradesh, Kerala, Karnataka and Puducherry.",
-                                            icon:  <FiGift size={22} />,
-                                            color: "bg-orange-500",
-                                        },
-                                    ].map((item, i) => (
-                                        <div key={i} className="text-center">
-                                            <div className={`w-14 h-14 mx-auto rounded-full ${item.color} border-4 border-white shadow-lg flex items-center justify-center text-white`}>
-                                                {item.icon}
+                                    {/* Connecting Line */}
+                                    <div className="hidden md:block absolute top-7 left-[6%] right-[6%] h-[3px] bg-gradient-to-r from-[#d72828] via-rose-400 to-amber-500"></div>
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 relative z-10">
+                                        {[
+                                            { year: "1987", title: "Our Beginning", desc: "Started in Tuticorin, Tamil Nadu.", icon: <FiHome size={20} />, color: "bg-[#d72828]" },
+                                            { year: "1990", title: "Sathya Agencies", desc: "Expanded partnership firm.", icon: <FiBriefcase size={20} />, color: "bg-amber-600" },
+                                            { year: "2005", title: "Incorporation", desc: "Incorporated as Limited Company.", icon: <FiTrendingUp size={20} />, color: "bg-emerald-600" },
+                                            { year: "2015", title: "Growing Network", desc: "Fast retail presence across South India.", icon: <FiAward size={20} />, color: "bg-rose-600" },
+                                            { year: "2020", title: "Digital Era", desc: "Omnichannel e-commerce & Live Demo.", icon: <FiMapPin size={20} />, color: "bg-[#d72828]" },
+                                            { year: "2026", title: "427+ Stores", desc: "Leading South Indian retail network.", icon: <FiGift size={20} />, color: "bg-amber-600" },
+                                        ].map((item, i) => (
+                                            <div key={i} className="text-center">
+                                                <div className={`w-12 h-12 mx-auto rounded-full ${item.color} border-4 border-white shadow-md flex items-center justify-center text-white`}>
+                                                    {item.icon}
+                                                </div>
+                                                <h4 className="text-[#111827] font-bold text-sm mt-2.5">{item.year}</h4>
+                                                <p className="text-[11px] font-semibold text-gray-800">{item.title}</p>
+                                                <p className="text-[10px] text-gray-500 mt-0.5 leading-snug">{item.desc}</p>
                                             </div>
-                                            <h4 className="text-[#1f3bb3] font-bold mt-3">{item.year}</h4>
-                                            <p className="text-[12px] font-semibold">{item.title}</p>
-                                            <p className="text-[10px] text-gray-500 mt-1">{item.desc}</p>
-                                        </div>
-                                    ))}
+                                        ))}
+                                    </div>
                                 </div>
                             </div>
-                        </div>
 
-                        {/* Vision */}
-                        <div className="bg-[#f7f9ff] rounded-xl border overflow-hidden shadow-lg p-5 md:p-6 flex flex-col justify-center">
-                          <h3 className="text-xl font-bold text-[#2b3a79] mb-3">Our Vision</h3>
-                          <p className="text-[12px] text-gray-600 leading-6">Sathya Agencies Limited brings world-class electronics and home appliances closer to every home across South India.</p>
-                          <p className="text-[12px] text-gray-600 leading-6 mt-3">With 427+ stores and partnerships with 150+ leading brands, we combine trust, technology and customer experience.</p>
-                        </div>
-                    </div>
-
-                    {/* Row 2 */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-5 items-start">
-                        
-                        {/* Tamil Nadu (Added shadow-lg) */}
-                        <div className="bg-[#f7f9ff] rounded-xl border border-gray-200 p-4 lg:p-6 shadow-lg">
-                            <h3 className="text-xl font-bold text-[#1f3bb3] mb-1">Sathya Stores Across Tamil Nadu</h3>
-                            <p className="text-sm text-gray-600 mb-4">Serving customers across</p>
-                           <div className="grid grid-cols-1 sm:grid-cols-[140px_1fr] gap-4 items-start">
-                                {/* Locations */}
+                            {/* Vision */}
+                            <div className="bg-gradient-to-br from-[#1c1917] via-[#292524] to-[#1c1917] text-white rounded-2xl shadow-lg border border-gray-800 p-6 sm:p-7 flex flex-col justify-between">
                                 <div>
-                                    <ul className="space-y-3 text-sm text-gray-700">
-                                        <li className="flex gap-2">
-                                            <span className="text-[#d72828]">📍</span>Coimbatore
-                                        </li>
+                                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 text-xs font-semibold text-red-300 border border-white/20 mb-3">
+                                        <span>🌟</span> Corporate Mission
+                                    </div>
+                                    <h3 className="text-2xl font-bold mb-3">Our Vision</h3>
+                                    <p className="text-xs sm:text-sm text-gray-200 leading-relaxed mb-3">
+                                        Sathya Agencies Limited brings world-class electronics and home appliances closer to every home across South India with unmatched trust and transparency.
+                                    </p>
+                                    <p className="text-xs sm:text-sm text-gray-300 leading-relaxed">
+                                        With 427+ stores and partnerships with 150+ leading brands, we combine trust, technology and exceptional customer happiness.
+                                    </p>
+                                </div>
+                                <div className="pt-4 mt-4 border-t border-white/15 flex items-center justify-between text-xs text-gray-300">
+                                    <span>Integrity • Trust • Value</span>
+                                    <span className="text-[#ff7676] font-bold">Since 1987</span>
+                                </div>
+                            </div>
+                        </div>
 
-                                        <li className="flex items-center gap-2">
-                                            <span className="text-[#d72828]">📍</span>Salem
-                                        </li>
+                        {/* Row 2: Tamil Nadu Stores Dashboard & Brand Partners */}
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-6 items-stretch">
+                            
+                            {/* Tamil Nadu Regional Presence (Pure UI Dashboard - No Image) */}
+                            <div className="bg-white rounded-2xl border border-gray-150 p-6 shadow-lg flex flex-col justify-between">
+                                <div>
+                                    <div className="flex items-center justify-between mb-4">
+                                        <div>
+                                            <h3 className="text-xl font-bold text-[#111827]">Sathya Stores Regional Coverage</h3>
+                                            <p className="text-xs text-gray-500 mt-0.5">Serving 427+ locations across South India</p>
+                                        </div>
+                                        <span className="w-3 h-3 rounded-full bg-emerald-500 animate-ping" />
+                                    </div>
 
-                                        <li className="flex items-center gap-2">
-                                            <span className="text-[#d72828]">📍</span>Erode
-                                        </li>
+                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mb-5">
+                                        {[
+                                            "Coimbatore", "Chennai", "Madurai", "Trichy",
+                                            "Salem", "Erode", "Tirupur", "Tirunelveli",
+                                            "Tuticorin", "Vellore", "Dharmapuri", "Krishnagiri"
+                                        ].map((city, idx) => (
+                                            <div key={idx} className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-gray-50 border border-gray-150 text-xs font-semibold text-gray-700">
+                                                <span className="text-[#d72828]">📍</span>
+                                                <span className="truncate">{city}</span>
+                                            </div>
+                                        ))}
+                                    </div>
 
-                                        <li className="flex items-center gap-2">
-                                            <span className="text-[#d72828]">📍</span>Tirupur
-                                        </li>
-
-                                        <li className="flex items-center gap-2">
-                                            <span className="text-[#d72828]">📍</span>Namakkal
-                                        </li>
-
-                                        <li className="flex items-center gap-2">
-                                            <span className="text-[#d72828]">📍</span>Trichy
-                                        </li>
-
-                                        <li className="flex items-center gap-2">
-                                            <span className="text-[#d72828]">📍</span>Dharmapuri
-                                        </li>
-
-                                        <li className="flex items-center gap-2">
-                                            <span className="text-[#d72828]">📍</span>Krishnagiri
-                                        </li>
-
-                                        <li className="text-[#d72828] font-medium text-sm pt-1">
-                                            <a href="/location">and many more...</a>
-                                        </li>
-                                    </ul>
+                                    {/* Regional Breakdown Bars */}
+                                    <div className="space-y-2 pt-2 border-t border-gray-100">
+                                        {[
+                                            { region: "Tamil Nadu Network", stores: "350+ Stores", width: "85%" },
+                                            { region: "Karnataka & Bengaluru", stores: "35+ Stores", width: "40%" },
+                                            { region: "Kerala & Andhra Pradesh", stores: "30+ Stores", width: "35%" },
+                                            { region: "Puducherry & UT", stores: "12+ Stores", width: "20%" },
+                                        ].map((r, idx) => (
+                                            <div key={idx} className="space-y-0.5">
+                                                <div className="flex justify-between text-[11px] font-semibold text-gray-700">
+                                                    <span>{r.region}</span>
+                                                    <span className="text-[#d72828] font-bold">{r.stores}</span>
+                                                </div>
+                                                <div className="w-full bg-gray-100 h-1.5 rounded-full overflow-hidden">
+                                                    <div className="bg-[#d72828] h-full rounded-full" style={{ width: r.width }} />
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
                                 </div>
 
-                                {/* Map */}
-                                <div className="flex justify-center">
-                                <img src="/uploads/aboutus-map.png" alt="Sathya Stores Across Tamil Nadu" className="max-w-[200px] object-cover" />
-                                          </div>
+                                <div className="mt-5 pt-3 border-t border-gray-100 text-center">
+                                    <button onClick={() => router.push("/location")} className="text-xs font-bold text-[#111827] hover:text-[#d72828] transition flex items-center justify-center gap-1 mx-auto">
+                                        View All 427+ Store Addresses & Directions →
+                                    </button>
+                                </div>
                             </div>
-                        </div>
 
-                        {/* Brand Partners (Added shadow-lg) */}
-                        <div className="bg-white rounded-2xl border shadow-lg p-6 lg:p-9 h-full">
-                            <h3 className="text-2xl font-bold text-[#1f3bb3] mb-2">Our Premium Brand Partners</h3>
-                            <p className="text-gray-500 text-sm mb-5">Sathya Stores brings together the world's leading electronics and home appliance brands under one roof.</p>
-                            <div className="grid grid-cols-4 sm:grid-cols-5 gap-3">
-                                {brands.map((logo, i) => (
-                                    <div key={i} className="h-16 bg-white border rounded-xl flex items-center justify-center hover:shadow-md transition">
-                                        <img src={logo} alt="" className="max-h-8 object-contain"/>
+                            {/* Brand Partners */}
+                            <div className="bg-white rounded-2xl border border-gray-150 shadow-lg p-6 flex flex-col justify-between">
+                                <div>
+                                    <h3 className="text-xl font-bold text-[#111827] mb-1">Our Premium Brand Partners</h3>
+                                    <p className="text-gray-500 text-xs mb-5">Sathya Stores brings together the world&apos;s leading electronics and home appliance brands under one roof.</p>
+                                    <div className="grid grid-cols-4 sm:grid-cols-5 gap-2.5">
+                                        {brands.map((logo, i) => (
+                                            <div key={i} className="h-14 bg-white border border-gray-150 rounded-xl p-2 flex items-center justify-center hover:shadow-md hover:border-red-200 transition">
+                                                <img src={logo} alt="Brand Partner" className="max-h-7 max-w-[80px] object-contain"/>
+                                            </div>
+                                        ))}
                                     </div>
-                                ))}
-                            </div>
-                            <div className="text-center mt-6">
-                                <button className="bg-[#1f3bb3] text-white px-6 py-3 rounded-lg">View All Brands →</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Row 3 */}
-                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-                        
-                        {/* Team Banner (Added shadow-lg) */}
-                        <div className="relative rounded-2xl overflow-hidden shadow-lg">
-                            <img src="/uploads/drivenByPeople.png" alt="" className="w-full object-cover h-[320px] lg:h-full"/>
-
-                            <div className="absolute inset-0 to-transparent"></div>
-
-                            <div className="absolute left-6 top-6 text-[#ffffff] max-w-md ">
-                            <h3 className="text-3xl font-bold mb-2">
-                                Built on Trust. Driven by People.
-                            </h3>
-
-                            <p className="text-sm">
-                                Meet the people behind Sathya Stores who believe
-                                in customer happiness, innovation and excellence.
-                            </p>
+                                </div>
+                                <div className="text-center mt-6 pt-3 border-t border-gray-100">
+                                    <button onClick={() => router.push("/")} className="bg-[#d72828] hover:bg-[#b81d1d] text-white text-xs font-bold px-6 py-2.5 rounded-lg transition shadow-md shadow-red-500/10">
+                                        Explore All Brand Offers →
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
-                        {/* Testimonials (Added shadow-lg) */}
-                        <div className="bg-[#f7f9ff] rounded-2xl border shadow-lg p-4 lg:p-6 h-full">
-                            <h3 className="text-xl font-bold text-center text-[#2b3a79] mb-6">What Our Customers Say</h3>
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                                {[
-                                    {
-                                        name: "Ramesh Kumar",
-                                        city: "Coimbatore",
-                                        review: "Best place to buy electronics.",
-                                        image: "/uploads/user1.jpg",
-                                    },
-                                    {
-                                        name: "Priya Natarajan",
-                                        city: "Chennai",
-                                        review: "Wide range of products.",
-                                        image: "/uploads/user2.jpg",
-                                    },
-                                    {
-                                        name: "Karthik Vel",
-                                        city: "Madurai",
-                                        review: "Finance options are easy.",
-                                        image: "/uploads/user3.jpg",
-                                    },
-                                ].map((item, i) => (
-                                    <div key={i} className="border bg-white rounded-xl p-4 hover:shadow-md transition">
-                                        <div className="text-yellow-500 mb-2 text-lg">★★★★★</div>
-                                        <p className="text-sm text-gray-600 mb-5">"{item.review}"</p>
-                                        {/* User Info */}
-                                        <div className="flex items-center gap-3">
-                                            {/* Option 2: If no image, use icon */}
-                                            <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center text-[#1f3bb3]">
-                                                <FiUser size={20} />
-                                            </div>
-                                            <div>
-                                                <p className="font-semibold text-[#1f3bb3] text-sm">{item.name}</p>
-                                                <p className="text-xs text-gray-500 flex items-center gap-1">📍 {item.city}</p>
-                                            </div>
+                        {/* Row 3: Team Values Banner & Testimonials */}
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                            
+                            {/* Team & People Culture Banner (Pure Modern UI - No image) */}
+                            <div className="rounded-2xl shadow-lg bg-gradient-to-br from-[#1c1917] via-[#292524] to-[#1c1917] border border-gray-800 p-6 sm:p-8 text-white flex flex-col justify-between">
+                                <div>
+                                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/20 text-xs font-semibold text-red-300 mb-4 backdrop-blur-sm">
+                                        <span>✨</span> Sathya Culture & People
+                                    </div>
+                                    <h3 className="text-2xl sm:text-3xl font-bold mb-3 leading-tight">
+                                        Built on Trust. <br className="hidden sm:inline" />Driven by Passionate People.
+                                    </h3>
+                                    <p className="text-xs sm:text-sm text-gray-200 leading-relaxed mb-6">
+                                        Meet the 3,000+ passionate team members across South India who believe in customer delight, honesty, and excellence in every interaction.
+                                    </p>
+                                </div>
+                                <div className="grid grid-cols-3 gap-3 pt-4 border-t border-white/15">
+                                    <div className="bg-white/10 rounded-xl p-3 backdrop-blur-sm text-center">
+                                        <h4 className="text-xl font-bold text-white">3,000+</h4>
+                                        <p className="text-[11px] text-gray-300 mt-0.5">Trained Staff</p>
+                                    </div>
+                                    <div className="bg-white/10 rounded-xl p-3 backdrop-blur-sm text-center">
+                                        <h4 className="text-xl font-bold text-white">427+</h4>
+                                        <p className="text-[11px] text-gray-300 mt-0.5">Showrooms</p>
+                                    </div>
+                                    <div className="bg-white/10 rounded-xl p-3 backdrop-blur-sm text-center">
+                                        <h4 className="text-xl font-bold text-white">24/7</h4>
+                                        <p className="text-[11px] text-gray-300 mt-0.5">Support Care</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Testimonials (Pure Modern UI Avatar Cards - No image) */}
+                            <div className="bg-white rounded-2xl border border-gray-150 shadow-lg p-6 flex flex-col justify-between">
+                                <div>
+                                    <div className="flex items-center justify-between mb-5">
+                                        <h3 className="text-xl font-bold text-[#111827]">What Our Customers Say</h3>
+                                        <div className="text-amber-500 font-bold text-xs flex items-center gap-1">
+                                            ★★★★★ <span>4.9 / 5.0</span>
                                         </div>
                                     </div>
-                                ))}
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                                        {[
+                                            {
+                                                name: "Ramesh Kumar",
+                                                city: "Coimbatore",
+                                                initials: "RK",
+                                                review: "Best place to buy electronics. Great staff and quick installation!",
+                                                color: "from-red-600 to-rose-700"
+                                            },
+                                            {
+                                                name: "Priya Natarajan",
+                                                city: "Chennai",
+                                                initials: "PN",
+                                                review: "Wide range of genuine products with competitive pricing.",
+                                                color: "from-amber-600 to-orange-700"
+                                            },
+                                            {
+                                                name: "Karthik Vel",
+                                                city: "Madurai",
+                                                initials: "KV",
+                                                review: "Finance and EMI options were processed seamlessly in minutes.",
+                                                color: "from-rose-600 to-red-700"
+                                            },
+                                        ].map((item, i) => (
+                                            <div key={i} className="border border-gray-150 bg-gray-50/50 rounded-xl p-3.5 flex flex-col justify-between hover:shadow-md hover:bg-white transition">
+                                                <div>
+                                                    <div className="text-yellow-400 text-xs mb-2">★★★★★</div>
+                                                    <p className="text-xs text-gray-600 leading-relaxed mb-4">
+                                                        &ldquo;{item.review}&rdquo;
+                                                    </p>
+                                                </div>
+                                                <div className="flex items-center gap-2.5 pt-2 border-t border-gray-100">
+                                                    <div className={`w-8 h-8 rounded-full bg-gradient-to-br ${item.color} text-white font-bold text-xs flex items-center justify-center shrink-0`}>
+                                                        {item.initials}
+                                                    </div>
+                                                    <div className="min-w-0">
+                                                        <p className="font-bold text-[#111827] text-xs truncate">{item.name}</p>
+                                                        <p className="text-[10px] text-gray-500 flex items-center gap-0.5 truncate">📍 {item.city}</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                                <div className="mt-5 pt-3 border-t border-gray-100 text-center text-xs text-gray-500">
+                                    Trusted by over <strong className="text-gray-800">50 Lakh+ happy families</strong> across South India.
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                </div>
-            </section>
-        </div>
+                    </div>
+                </section>
+            </div>
         </>
     );
 };

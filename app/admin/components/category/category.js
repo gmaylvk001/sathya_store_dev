@@ -31,6 +31,7 @@ export default function CategoryComponent() {
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
   const [statusFilter, setStatusFilter] = useState(""); // "active" | "inactive" | ""
   const [searchQuery, setSearchQuery] = useState("");
   const [imageError, setImageError] = useState("");
@@ -198,25 +199,40 @@ export default function CategoryComponent() {
 
   // Export categories to Excel
   const exportCategories = async () => {
-    const params = new URLSearchParams();
+    try {
+      setIsExporting(true);
+      const params = new URLSearchParams();
 
-    if (searchQuery) params.append("search", searchQuery);
-    if (statusFilter) params.append("status", statusFilter);
+      if (searchQuery) params.append("search", searchQuery);
+      if (statusFilter) params.append("status", statusFilter);
 
-    if (dateFilter.startDate && dateFilter.endDate) {
-      params.append("startDate", dateFilter.startDate);
-      params.append("endDate", dateFilter.endDate);
+      if (dateFilter.startDate && dateFilter.endDate) {
+        params.append("startDate", dateFilter.startDate);
+        params.append("endDate", dateFilter.endDate);
+      }
+
+      const res = await fetch(`/api/categories/export?${params.toString()}`);
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        throw new Error(errJson.message || "Failed to export categories");
+      }
+
+      const blob = await res.blob();
+      const today = new Date().toISOString().slice(0, 10);
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `categories_export_${today}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Export error:", error);
+      alert(error.message || "Failed to export categories");
+    } finally {
+      setIsExporting(false);
     }
-
-    const res = await fetch(`/api/categories/export?${params.toString()}`);
-    const blob = await res.blob();
-
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "categories.xlsx";
-    a.click();
-    window.URL.revokeObjectURL(url);
   };
 
   // When opening update modal, populate existing filters
@@ -1038,20 +1054,12 @@ export default function CategoryComponent() {
           </button>
 
           <button
-            onClick={() => {
-              const params = new URLSearchParams({
-                search: searchQuery,
-                status: statusFilter,
-                startDate: dateFilter.startDate || "",
-                endDate: dateFilter.endDate || "",
-              });
-
-              window.location.href = `/api/categories/export?${params.toString()}`;
-            }}
-            className="inline-flex items-center gap-1.5 bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 px-4 py-2.5 rounded-lg text-sm font-medium transition"
+            onClick={exportCategories}
+            disabled={isExporting}
+            className="inline-flex items-center gap-1.5 bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 px-4 py-2.5 rounded-lg text-sm font-medium transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Icon icon="mdi:microsoft-excel" className="text-base text-emerald-600" />
-            Export Excel
+            {isExporting ? "Exporting..." : "Export Excel"}
           </button>
         </div>
       </div>
