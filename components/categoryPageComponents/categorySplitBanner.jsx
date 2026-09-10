@@ -7,7 +7,7 @@ function BannerLink({ href, children }) {
   if (!url) return children;
   if (/^https?:\/\//i.test(url)) {
     return (
-      <a href={url} target="_blank" rel="noopener noreferrer" className="block">
+      <a href={url} className="block">
         {children}
       </a>
     );

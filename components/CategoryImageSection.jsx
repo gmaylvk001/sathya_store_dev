@@ -37,8 +37,6 @@ export default function CategoryImageSection({ categorySlug, index = 0 }) {
   const ImageCard = ({ img, i }) => (
     <a
       href={img.url || "#"}
-      target="_blank"
-      rel="noopener noreferrer"
       className="block"
       style={{ display: "block", lineHeight: 0 }}
     >

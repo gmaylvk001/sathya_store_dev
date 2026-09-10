@@ -63,8 +63,6 @@ function BannerLink({ href, children, className = "", style }) {
         href={href}
         className={className}
         style={style}
-        target="_blank"
-        rel="noopener noreferrer"
       >
         {children}
       </a>

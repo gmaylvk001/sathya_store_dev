@@ -247,8 +247,6 @@ export default function CategoryBrandCarousel({ config }) {
           <a
             key={`brand-${idx}`}
             href={item.url}
-            target="_blank"
-            rel="noopener noreferrer"
             className={wrapClass}
             style={cellStyle}
           >
@@ -256,10 +254,11 @@ export default function CategoryBrandCarousel({ config }) {
           </a>
         );
       }
+      const href = item.url.startsWith("/") ? item.url : `/${item.url}`;
       return (
         <Link
           key={`brand-${idx}`}
-          href={item.url}
+          href={href}
           className={wrapClass}
           style={cellStyle}
         >

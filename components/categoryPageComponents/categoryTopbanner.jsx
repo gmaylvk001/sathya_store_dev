@@ -95,9 +95,8 @@ export default function CategoryTopBanner({
                 e.stopPropagation();
                 setIndex(i);
               }}
-              className={`h-2 w-2 rounded-full ${
-                i === index ? "bg-white" : "bg-white/50"
-              }`}
+              className={`h-2 w-2 rounded-full ${i === index ? "bg-white" : "bg-white/50"
+                }`}
             />
           ))}
         </div>
@@ -109,12 +108,13 @@ export default function CategoryTopBanner({
     const isExternal = /^https?:\/\//i.test(current.url);
     if (isExternal) {
       return (
-        <a href={current.url} target="_blank" rel="noopener noreferrer">
+        <a href={current.url}>
           {content}
         </a>
       );
     }
-    return <Link href={current.url}>{content}</Link>;
+    const href = current.url.startsWith("/") ? current.url : `/${current.url}`;
+    return <Link href={href}>{content}</Link>;
   }
 
   return content;

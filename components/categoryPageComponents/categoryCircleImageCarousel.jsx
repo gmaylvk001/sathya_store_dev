@@ -220,18 +220,17 @@ export default function CategoryCircleImageCarousel({ config }) {
                     <a
                       key={item._id || idx}
                       href={href}
-                      target="_blank"
-                      rel="noopener noreferrer"
                       className="no-underline"
                     >
                       {content}
                     </a>
                   );
                 }
+                const linkHref = href.startsWith("/") ? href : `/${href}`;
                 return (
                   <Link
                     key={item._id || idx}
-                    href={href}
+                    href={linkHref}
                     className="no-underline"
                   >
                     {content}

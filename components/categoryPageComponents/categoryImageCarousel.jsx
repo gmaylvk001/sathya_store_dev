@@ -244,8 +244,6 @@ export default function CategoryImageCarousel({ config }) {
           <a
             key={`img-${idx}`}
             href={item.url}
-            target="_blank"
-            rel="noopener noreferrer"
             className={wrapClass}
             style={cellStyle}
           >
@@ -253,10 +251,11 @@ export default function CategoryImageCarousel({ config }) {
           </a>
         );
       }
+      const href = item.url.startsWith("/") ? item.url : `/${item.url}`;
       return (
         <Link
           key={`img-${idx}`}
-          href={item.url}
+          href={href}
           className={wrapClass}
           style={cellStyle}
         >

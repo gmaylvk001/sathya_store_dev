@@ -51,13 +51,14 @@ function BannerLink({ href, children, className = "" }) {
   const external = /^https?:\/\//i.test(href);
   if (external) {
     return (
-      <a href={href} className={className} target="_blank" rel="noopener noreferrer">
+      <a href={href} className={className}>
         {children}
       </a>
     );
   }
+  const linkHref = href.startsWith("/") ? href : `/${href}`;
   return (
-    <Link href={href} className={className}>
+    <Link href={linkHref} className={className}>
       {children}
     </Link>
   );
