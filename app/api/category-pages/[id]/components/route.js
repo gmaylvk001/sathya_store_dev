@@ -13,6 +13,7 @@ import CategoryBrandCarousel from "@/models/categoryBrandCarousel";
 import CategoryImageHotspotBanner from "@/models/categoryImageHotspotBanner";
 import CategoryContent from "@/models/categoryContent";
 import CategorySplitBanner from "@/models/categorySplitBanner";
+import CategoryCircleImageCarousel from "@/models/categoryCircleImageCarousel";
 import CategoryTopBanner from "@/models/categoryTopbanner";
 import {
   allowsMultipleInstances,
@@ -182,6 +183,16 @@ export async function POST(req, { params }) {
         status: "active",
       });
       configId = config._id;
+    } else if (type === COMPONENT_TYPES.CIRCLE_IMAGE_CAROUSEL) {
+      const config = await CategoryCircleImageCarousel.create({
+        instanceId,
+        pageId: page._id,
+        categoryId: page.categoryId,
+        name: title || "",
+        items: [],
+        status: "active",
+      });
+      configId = config._id;
     }
 
     const instance = {
@@ -277,6 +288,7 @@ export async function DELETE(req, { params }) {
       [COMPONENT_TYPES.IMAGE_HOTSPOT_BANNER]: CategoryImageHotspotBanner,
       [COMPONENT_TYPES.CATEGORY_CONTENT]: CategoryContent,
       [COMPONENT_TYPES.SPLIT_BANNER]: CategorySplitBanner,
+      [COMPONENT_TYPES.CIRCLE_IMAGE_CAROUSEL]: CategoryCircleImageCarousel,
     };
 
     if (instance.type === COMPONENT_TYPES.TOP_BANNER) {

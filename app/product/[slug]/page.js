@@ -1,65 +1,48 @@
-import ProductClient from "./ProductClient";
+import { permanentRedirect, notFound } from "next/navigation";
+import dbConnect from "@/lib/db";
+import Product from "@/models/product";
+import ecom_category_info from "@/models/ecom_category_info";
 
 export async function generateMetadata({ params }) {
   const awaitedParams = await params;
-  const slug = awaitedParams.slug;
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL;
- // console.log("slug:", slug);
-  try {
-    const response = await fetch(`${baseUrl}/api/product/${slug}`, {
-      cache: "no-store",
-    });
-
-    if (!response.ok) {
-      return {
-        title: "Product not found",
-        description: "This product is unavailable",
-      };
-    }
-
-    const product = await response.json();
-  //  console.log("product:", product);
-
-    const title = product.meta_title || product.name;
-    const description =
-      product.meta_description ||
-      product.description?.replace(/<[^>]*>/g, "").slice(0, 160) ||
-      "Buy products online at best price";
-
-    const image =
-      product.images?.length > 0
-        ? `${baseUrl}/uploads/products/${product.images[0]}`
-        : `${baseUrl}/no-image.jpg`;
-
-    return {
-      title,
-      description,
-      keywords: product.search_keywords || "",
-
-      openGraph: {
-        title,
-        description,
-        url: `${baseUrl}/product/${slug}`,
-        images: [image],
-        type: "website", // ✅ FIXED
-      },
-
-      twitter: {
-        card: "summary_large_image",
-        title,
-        description,
-        images: [image],
-      },
-    };
-  } catch (error) {
-    console.error("Metadata error:", error);
-    return {
-      title: "Product",
-      description: "Buy products online",
-    };
-  }
+  const slug = awaitedParams?.slug;
+  return {
+    title: slug || "Product",
+  };
 }
 
-export default function ProductNew() {
-  return <ProductClient />;
+export default async function ProductPage({ params }) {
+  const awaitedParams = await params;
+  const slug = awaitedParams?.slug;
+  if (!slug) notFound();
+
+  await dbConnect();
+  const product = await Product.findOne({ slug }).select("category sub_category slug").lean();
+  if (!product) notFound();
+
+  const targetCatId = product.sub_category || product.category;
+  let subSlug = "";
+  let childSlug = "";
+
+  if (targetCatId) {
+    const childCat = await ecom_category_info.findById(targetCatId).lean();
+    if (childCat) {
+      childSlug = childCat.category_slug;
+      if (childCat.parentid && childCat.parentid !== "none") {
+        const parentCat = await ecom_category_info.findById(childCat.parentid).lean();
+        if (parentCat) {
+          subSlug = parentCat.category_slug;
+        }
+      }
+      if (!subSlug) {
+        subSlug = childSlug;
+      }
+    }
+  }
+
+  if (subSlug && childSlug) {
+    permanentRedirect(`/category/${subSlug}/${childSlug}/${slug}`);
+  }
+
+  permanentRedirect(`/`);
 }

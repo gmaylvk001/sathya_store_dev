@@ -22,6 +22,7 @@ import BrandCarouselConfigForm from "../category-pages/BrandCarouselConfigForm";
 import ImageHotspotBannerConfigForm from "../category-pages/ImageHotspotBannerConfigForm";
 import CategoryContentConfigForm from "../category-pages/CategoryContentConfigForm";
 import SplitBannerConfigForm from "../category-pages/SplitBannerConfigForm";
+import CircleImageCarouselConfigForm from "../category-pages/CircleImageCarouselConfigForm";
 
 export default function HomePageBuilder() {
   const router = useRouter();
@@ -387,6 +388,11 @@ export default function HomePageBuilder() {
         Form: SplitBannerConfigForm,
         label: "Single / Double Banner",
         extra: { apiBase: "/api/home-split-banner" },
+      },
+      [COMPONENT_TYPES.CIRCLE_IMAGE_CAROUSEL]: {
+        Form: CircleImageCarouselConfigForm,
+        label: "Circle Image Carousel",
+        extra: { apiBase: "/api/home-circle-image-carousel" },
       },
     };
 

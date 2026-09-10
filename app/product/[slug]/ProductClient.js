@@ -58,7 +58,8 @@ function FaqItem({ question, answer }) {
 
 export default function ProductClient() {
   const router = useRouter(); 
-  const { slug } = useParams();
+  const params = useParams();
+  const slug = params?.sub_slug_one || params?.slug;
   const [relatedProductsLoading, setRelatedProductsLoading] = useState(false);
   const [relatedProducts, setRelatedProducts] = useState([]);
   const [brand, setBrand] = useState([]);
@@ -786,7 +787,9 @@ const resolveImagePath = (image) => {
     setSelectedWarrantyData(null);
     if (cached?.images?.[0]) setSelectedImage(`/uploads/products/${cached.images[0]}`);
 
-    const nextUrl = `/product/${targetSlug}`;
+    const nextUrl = params?.sub_slug_one
+      ? `/category/${params.slug}/${params.sub_slug}/${targetSlug}`
+      : `/product/${targetSlug}`;
     if (typeof window !== "undefined" && window.location.pathname !== nextUrl) {
       window.history.pushState(null, "", nextUrl);
     }

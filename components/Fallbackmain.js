@@ -1031,7 +1031,7 @@ const handlePageChange = (page) => {
             {/* Product Image */}
             <div className="relative aspect-square bg-white">
               <Link
-                href={`/product/${product.slug}`}
+                href={sub_slug ? `/category/${slug}/${sub_slug}/${product.slug}` : `/product/${product.slug}`}
                 className="block mb-2"
                 onClick={() => handleProductClick(product)}
               >
@@ -1086,7 +1086,7 @@ const handlePageChange = (page) => {
                   {window.innerWidth < 540 && product.name.length > 140 ? product.name.slice(0, 100) + "..." : product.name}
                 </h3>
               </Link> */}
-              <Link href={`/product/${product.slug}`} className="block mb-2 flex-1" onClick={() => handleProductClick(product)}>
+              <Link href={sub_slug ? `/category/${slug}/${sub_slug}/${product.slug}` : `/product/${product.slug}`} className="block mb-2 flex-1" onClick={() => handleProductClick(product)}>
                 <h3 className="text-xs sm:text-sm font-medium text-[#d72828] hover:text-[#c02020] min-h-[32px] sm:min-h-[40px]">
                   {(() => {
                     const model = product.model_number ? `(${product.model_number.trim()})` : "";

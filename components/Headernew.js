@@ -435,7 +435,7 @@ const Header = () => {
   };
 
   // --- Add cache helpers after your state declarations (place near other consts) ---
-  const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
+  const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
   const loadCache = (key) => {
     // returns null if not found or parse error
     try {
@@ -507,9 +507,14 @@ const Header = () => {
   };
 
   useEffect(() => {
-    const rawKey = 'categories_raw_cache_v2';
-    const nestedKey = 'categories_nested_cache_v2';
+    const rawKey = 'categories_raw_cache_v3';
+    const nestedKey = 'categories_nested_cache_v3';
     let mounted = true;
+
+    try {
+      localStorage.removeItem('categories_raw_cache_v2');
+      localStorage.removeItem('categories_nested_cache_v2');
+    } catch {}
 
     const buildNestedAndCache = (rawData) => {
       const rawArr = extractCategoryArray(rawData);
@@ -549,23 +554,25 @@ const Header = () => {
 
     const setupCategories = async () => {
       try {
-        // 1) Nested cache for mega-menu
+        // 1) Nested cache for mega-menu (instant render)
         const nestedCached = loadCache(nestedKey);
         if (nestedCached && (Date.now() - nestedCached.ts) < CACHE_TTL_MS) {
           if (mounted) setCategories(nestedCached.data);
         }
 
-        // 2) Raw cache for search placeholder words (+ build nested if missing)
+        // 2) Raw cache for search placeholder words
         const rawCached = loadCache(rawKey);
         if (rawCached && (Date.now() - rawCached.ts) < CACHE_TTL_MS) {
           if (mounted) {
             applyRawToWords(rawCached.data);
-            if (!nestedCached || (Date.now() - nestedCached.ts) >= CACHE_TTL_MS) {
+            if (!nestedCached) {
               setCategories(buildNestedAndCache(rawCached.data));
             }
           }
-        } else {
-          // Single network fetch shared by menu + placeholder words
+        }
+
+        // Fetch fresh categories if no valid cache or if cache expired
+        if (!nestedCached || !rawCached || (Date.now() - nestedCached.ts) >= CACHE_TTL_MS) {
           const res = await fetch("/api/categories/get");
           const raw = await res.json();
           if (!mounted) return;
@@ -2609,19 +2616,31 @@ const Header = () => {
                           }}
                         >
                           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            {sub.icon_url ? (
-                              <img src={sub.icon_url} alt="" style={{ width: 30, height: 30, objectFit: 'contain', flexShrink: 0, filter: isActive ? 'invert(27%) sepia(95%) saturate(1200%) hue-rotate(204deg) brightness(95%) contrast(95%)' : 'none', transition: 'filter 0.15s', }} />
-                            ) : (
-                              <div style={{
-                                width: 20, height: 20, borderRadius: '4px',
-                                background: '#FEE2E2', display: 'flex', alignItems: 'center',
-                                justifyContent: 'center', flexShrink: 0,
-                              }}>
-                                <span style={{ fontSize: '9px', color: '#ED1C24', fontWeight: 700 }}>
-                                  {(sub.category_name || '').charAt(0)}
-                                </span>
-                              </div>
-                            )}
+                            {(() => {
+                              const iconSrc = sub.icon_url || sub.image;
+                              return iconSrc ? (
+                                <img
+                                  src={iconSrc}
+                                  alt={sub.category_name || ''}
+                                  style={{
+                                    width: 30,
+                                    height: 30,
+                                    objectFit: 'contain',
+                                    flexShrink: 0,
+                                  }}
+                                />
+                              ) : (
+                                <div style={{
+                                  width: 24, height: 24, borderRadius: '4px',
+                                  background: '#FEE2E2', display: 'flex', alignItems: 'center',
+                                  justifyContent: 'center', flexShrink: 0,
+                                }}>
+                                  <span style={{ fontSize: '10px', color: '#ED1C24', fontWeight: 700 }}>
+                                    {(sub.category_name || '').charAt(0)}
+                                  </span>
+                                </div>
+                              );
+                            })()}
                             <Link
                               href={resolveCategoryNavHref(
                                 [hoveredCategory.category_slug, sub.category_slug],

@@ -15,6 +15,7 @@ import CategoryBrandCarousel from "@/components/categoryPageComponents/categoryB
 import CategoryImageHotspotBanner from "@/components/categoryPageComponents/categoryImageHotspotBanner";
 import CategoryContentBlock from "@/components/categoryPageComponents/categoryContent";
 import CategorySplitBanner from "@/components/categoryPageComponents/categorySplitBanner";
+import CategoryCircleImageCarousel from "@/components/categoryPageComponents/categoryCircleImageCarousel";
 
 /**
  * Renders Home Settings page-builder components in saved admin order.
@@ -163,6 +164,14 @@ export default function HomePageRenderer({ onHasDesign }) {
         if (item.type === COMPONENT_TYPES.SPLIT_BANNER) {
           return (
             <CategorySplitBanner
+              key={item.instanceId || idx}
+              config={item.config}
+            />
+          );
+        }
+        if (item.type === COMPONENT_TYPES.CIRCLE_IMAGE_CAROUSEL) {
+          return (
+            <CategoryCircleImageCarousel
               key={item.instanceId || idx}
               config={item.config}
             />

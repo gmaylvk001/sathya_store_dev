@@ -15,6 +15,7 @@ import CategoryBrandCarousel from "./categoryBrandCarousel";
 import CategoryImageHotspotBanner from "./categoryImageHotspotBanner";
 import CategoryContentBlock from "./categoryContent";
 import CategorySplitBanner from "./categorySplitBanner";
+import CategoryCircleImageCarousel from "./categoryCircleImageCarousel";
 
 /**
  * Renders category page builder components in saved admin order.
@@ -184,6 +185,14 @@ export default function CategoryPageRenderer({
         if (item.type === COMPONENT_TYPES.SPLIT_BANNER) {
           return (
             <CategorySplitBanner
+              key={item.instanceId ? `${item.instanceId}-${idx}` : idx}
+              config={item.config}
+            />
+          );
+        }
+        if (item.type === COMPONENT_TYPES.CIRCLE_IMAGE_CAROUSEL) {
+          return (
+            <CategoryCircleImageCarousel
               key={item.instanceId ? `${item.instanceId}-${idx}` : idx}
               config={item.config}
             />

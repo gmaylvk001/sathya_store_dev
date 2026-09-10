@@ -3,7 +3,7 @@ import Category from "@/models/ecom_category_info";
 import CategoryFilter from "@/models/ecom_categoryfilters_infos"; // Import the new model
 import { NextResponse } from "next/server";
 import md5 from "md5";
-import { writeFile, unlink } from "fs/promises";
+import { writeFile, unlink, mkdir } from "fs/promises";
 import path from "path";
 import mongoose from "mongoose";
 
@@ -93,6 +93,7 @@ export async function PUT(req) {
       // Save new image
       const buffer = Buffer.from(await file.arrayBuffer());
       const uploadDir = path.join(process.cwd(), "public/uploads/categories");
+      await mkdir(uploadDir, { recursive: true });
       const fileName = `category_${Date.now()}${path.extname(file.name)}`;
       await writeFile(path.join(uploadDir, fileName), buffer);
       image_url = `/uploads/categories/${fileName}`;
@@ -116,6 +117,7 @@ export async function PUT(req) {
       }
       const buffer = Buffer.from(await navFile.arrayBuffer());
       const uploadDir = path.join(process.cwd(), "public/uploads/categories");
+      await mkdir(uploadDir, { recursive: true });
       const fileName = `category_nav_${Date.now()}${path.extname(navFile.name)}`;
       await writeFile(path.join(uploadDir, fileName), buffer);
       nav_image_url = `/uploads/categories/${fileName}`;
@@ -134,6 +136,7 @@ if (iconFile && typeof iconFile !== "string" && iconFile.name && iconFile.size >
   }
   const buffer = Buffer.from(await iconFile.arrayBuffer());
   const uploadDir = path.join(process.cwd(), "public/uploads/categories");
+  await mkdir(uploadDir, { recursive: true });
   const fileName = `category_icon_${Date.now()}${path.extname(iconFile.name)}`;
   await writeFile(path.join(uploadDir, fileName), buffer);
   icon_url = `/uploads/categories/${fileName}`;
@@ -192,6 +195,11 @@ if (iconFile && typeof iconFile !== "string" && iconFile.name && iconFile.size >
 
     if (!updatedCategory) {
       return NextResponse.json({ error: "Failed to update category" }, { status: 400 });
+    }
+
+    if (globalThis.__sathyaCategoriesCache) {
+      globalThis.__sathyaCategoriesCache.data = null;
+      globalThis.__sathyaCategoriesCache.at = 0;
     }
 
     return NextResponse.json(

@@ -100,194 +100,257 @@ export async function POST(req) {
       await mongoose.connect(process.env.MONGODB_URI);
     }
 
+    // Detect column index for movement dynamically from header row
+    const headerRow = (Array.isArray(products) && products[0]) || (Array.isArray(validProducts) && validProducts[0]) || [];
+    let movementColIdx = -1;
+    if (Array.isArray(headerRow)) {
+      movementColIdx = headerRow.findIndex(cell => 
+        typeof cell === 'string' && /movement/i.test(cell.trim())
+      );
+    }
+    if (movementColIdx === -1 && Array.isArray(validProducts[0])) {
+      movementColIdx = validProducts[0].findIndex(cell => 
+        typeof cell === 'string' && /movement/i.test(cell.trim())
+      );
+    }
+
+    const totalProducts = validProducts.length - 1;
+    let createdCount = 0;
+    let updatedCount = 0;
+    const failedProducts = [];
+
+    console.log(`[Bulk Upload] 🚀 Starting bulk upload processing for ${totalProducts} products...`);
+
     for (let i = 1; i < validProducts.length; i++) {
       const row = validProducts[i];
-      
-      // Process category and brand
-      const category = await Category.findOne({ category_name: row[3] }).select("_id");
-      const sub_category = await Category.findOne({ category_name: row[4] }).select("_id");
-      const brand = await Brand.findOne({ brand_name: row[5] }).select("_id");
+      const rowNum = i + 1; // 1-based index in Excel file
+      const itemCode = row[0] ? String(row[0]).trim() : '';
 
-      // Process filters
-      const size = row[6] || '';
-      const star = row[7] || '';
-      const filterString = `${size},${star}`;
-      const filterNames = filterString.split(',')
-        .map(name => name.trim())
-        .filter(name => name !== '');
-      
-      let filterIds = [];
-      let filters = []; // Changed from const to let
-      if (filterNames.length > 0) {
-        filters = await Filter.find({ filter_name: { $in: filterNames } }); // Ensure no status filter
-        filterIds = filters.map(filter => filter._id.toString());
-      }
+      try {
+        console.log(`[Bulk Upload] [${i}/${totalProducts}] Processing row ${rowNum} | Item Code: "${itemCode}" | Name: "${row[1] || ''}"`);
 
-      // Process images and variants
-      let images = [row[13], row[14], row[15]].filter(img => img);
-      let overviewImage = [];
-      if (row[16]) overviewImage = row[16].split(',').filter(img => img);
-      
-      let variants = [];
-      if (row[18] && row[18].trim() !== "") {
-        try {
-          variants = JSON.parse(row[18].trim());
-          if (!Array.isArray(variants)) variants = [];
-        } catch (error) {
-          console.error(`Error parsing variants at row ${i + 1}: ${error.message}`);
-          variants = [];
+        // Process category and brand
+        const category = await Category.findOne({ category_name: row[3] }).select("_id");
+        const sub_category = await Category.findOne({ category_name: row[4] }).select("_id");
+        const brand = await Brand.findOne({ brand_name: row[5] }).select("_id");
+
+        // Process filters
+        const size = row[6] || '';
+        const star = row[7] || '';
+        const filterString = `${size},${star}`;
+        const filterNames = filterString.split(',')
+          .map(name => name.trim())
+          .filter(name => name !== '');
+        
+        let filterIds = [];
+        let filters = []; // Changed from const to let
+        if (filterNames.length > 0) {
+          filters = await Filter.find({ filter_name: { $in: filterNames } }); // Ensure no status filter
+          filterIds = filters.map(filter => filter._id.toString());
         }
-      }
-      
-      // ✅ Price & Special Price with validation
-      const rawPrice = row[9]?.toString().replace(/,/g, '') || '0';
-      const rawSpecialPrice = row[10]?.toString().replace(/,/g, '') || '';
 
-      const price = parseFloat(rawPrice);
-      const specialPrice = parseFloat(rawSpecialPrice);
-
-      if (isNaN(price) || price < 0) {
-        return NextResponse.json(
-          { error: `Invalid price at row ${i + 2}. Must be a positive number.` },
-          { status: 400 }
-        );
-      }
-
-      if (rawSpecialPrice !== '') {
-        if (isNaN(specialPrice) || specialPrice < 0) {
-          return NextResponse.json(
-            { error: `Invalid special price at row ${i + 2}. It must be a positive number less than price.` },
-            { status: 400 }
-          );
+        // Process images and variants
+        let images = [row[13], row[14], row[15]].filter(img => img);
+        let overviewImage = [];
+        if (row[16]) overviewImage = row[16].split(',').filter(img => img);
+        
+        let variants = [];
+        if (row[18] && typeof row[18] === 'string' && row[18].trim() !== "") {
+          try {
+            variants = JSON.parse(row[18].trim());
+            if (!Array.isArray(variants)) variants = [];
+          } catch (error) {
+            console.error(`[Bulk Upload] ⚠️ Error parsing variants at row ${rowNum} (${itemCode}): ${error.message}`);
+            variants = [];
+          }
         }
-      }
-      
-      let highlights = [];
-      if (row[21] && typeof row[21] === 'string') {
-        highlights = row[21].split(',').map(item => item.trim()).filter(Boolean);
-      }
-      
-      let key_specifications = [];
-      if(row[12] && typeof row[12] === 'string'){
-        key_specifications = row[12].split(',');
-      }
+        
+        // ✅ Price & Special Price with validation
+        const rawPrice = row[9]?.toString().replace(/,/g, '') || '0';
+        const rawSpecialPrice = row[10]?.toString().replace(/,/g, '') || '';
 
-      // Extended warranty (expects JSON string in Excel column 21)
-      let extend_warranty = [];
-      if (row[20] && typeof row[20] === 'string') {
-        try {
-          extend_warranty = JSON.parse(row[20].trim());
-          if (!Array.isArray(extend_warranty)) extend_warranty = [];
-        } catch (error) {
-          console.error(`Error parsing extend_warranty at row ${i + 1}: ${error.message}`);
-          extend_warranty = [];
+        const price = parseFloat(rawPrice);
+        const specialPrice = parseFloat(rawSpecialPrice);
+
+        if (isNaN(price) || price < 0) {
+          console.error(`[Bulk Upload] ❌ Invalid price at row ${rowNum} (${itemCode}): "${rawPrice}". Skipping row.`);
+          failedProducts.push({ row: rowNum, item_code: itemCode, error: `Invalid price: "${rawPrice}"` });
+          continue;
         }
-      }
 
-      
-      // Check for existing product
-      const existingProduct = await Product.findOne({
-        $or: [
-          { item_code: row[0] },
-          // { name: row[1] },
-        ],
-      });
-
-      // Prepare product data
-      const productData = {
-        item_code: row[0],
-        name: row[1],
-        quantity: row[2],
-        category: category?._id || null,
-        sub_category: sub_category?._id || null,
-        brand: brand?._id || null,
-        price: row[9],
-        special_price: row[10],
-        description: row[11],
-        key_specifications: key_specifications,
-        overview_description: row[17],
-        hasVariants: variants.length > 0,
-        variants: variants,
-        status: row[19],
-        extend_warranty: extend_warranty,
-        stock_status: row[2] > 0 ? "In Stock" : "Out of Stock",
-        product_highlights: highlights,
-      };
-
-      // Only update images if new ones are provided in Excel
-      if (images.length > 0) {
-        productData.images = images;
-      } else if (existingProduct) {
-        // Preserve existing images if no new ones are provided
-        productData.images = existingProduct.images;
-      }
-
-      // Only update overview images if new ones are provided in Excel
-      if (overviewImage.length > 0) {
-        productData.overview_image = overviewImage;
-      } else if (existingProduct) {
-        // Preserve existing overview images if no new ones are provided
-        productData.overview_image = existingProduct.overview_image;
-      }
-
-      console.log(productData);
-      
-      if (!existingProduct) {
-        // Create new product
-        const productSlug = productData.name.toLowerCase()
-          .replace(/[^\w\s-]/g, '')        // Remove all non-word characters except spaces and hyphens
-          .replace(/\s+/g, '-')            // Replace spaces with hyphens
-          .replace(/--+/g, '-')            // Replace multiple hyphens with a single one
-          .trim(); 
-        productData.slug = productSlug;
-        productData.md5_name = md5(productSlug);
-        console.log(productData);
-        const newProduct = await Product.create(productData);
-
-        // Create product filters
-        if (filterIds.length > 0) {
-          await ProductFilter.insertMany(
-            filterIds.map(filterId => ({
-              product_id: newProduct._id,
-              filter_id: filterId
-            }))
-          );
+        if (rawSpecialPrice !== '') {
+          if (isNaN(specialPrice) || specialPrice < 0) {
+            console.error(`[Bulk Upload] ❌ Invalid special price at row ${rowNum} (${itemCode}): "${rawSpecialPrice}". Skipping row.`);
+            failedProducts.push({ row: rowNum, item_code: itemCode, error: `Invalid special price: "${rawSpecialPrice}"` });
+            continue;
+          }
         }
-      } else {
-        // Update existing product
-        await Product.updateOne(
-          { _id: existingProduct._id },
-          { $set: productData }
-        );
+        
+        let highlights = [];
+        if (row[21] && typeof row[21] === 'string') {
+          highlights = row[21].split(',').map(item => item.trim()).filter(Boolean);
+        }
+        
+        let key_specifications = [];
+        if(row[12] && typeof row[12] === 'string'){
+          key_specifications = row[12].split(',');
+        }
 
-        const existingProductFilters = await ProductFilter.find({ product_id: existingProduct._id });
-        const existingFilterIds = existingProductFilters.map(pf => pf.filter_id.toString());
+        // Extended warranty (expects JSON string in Excel column 21)
+        let extend_warranty = [];
+        if (row[20] && typeof row[20] === 'string') {
+          try {
+            extend_warranty = JSON.parse(row[20].trim());
+            if (!Array.isArray(extend_warranty)) extend_warranty = [];
+          } catch (error) {
+            console.error(`[Bulk Upload] ⚠️ Error parsing extend_warranty at row ${rowNum} (${itemCode}): ${error.message}`);
+            extend_warranty = [];
+          }
+        }
 
-        const newFilterIds = filters.map(f => f._id.toString());
-
-        // Remove associations not present in Excel
-        await ProductFilter.deleteMany({
-          product_id: existingProduct._id,
-          filter_id: { $nin: newFilterIds }
+        // Movement field extraction
+        let movement = "";
+        if (movementColIdx !== -1 && row[movementColIdx] !== undefined && row[movementColIdx] !== null) {
+          movement = row[movementColIdx].toString().trim();
+        } else if (row[8] !== undefined && row[8] !== null) {
+          const col8Val = row[8].toString().trim();
+          if (col8Val !== "" && isNaN(Number(col8Val))) {
+            movement = col8Val;
+          }
+        }
+        
+        // Check for existing product
+        const existingProduct = await Product.findOne({
+          $or: [
+            { item_code: row[0] },
+            // { name: row[1] },
+          ],
         });
 
-        // Add new associations
-        const operations = newFilterIds
-          .filter(id => !existingFilterIds.includes(id))
-          .map(id => ({
-            insertOne: {
-              document: {
-                product_id: existingProduct._id,
-                filter_id: id
-              }
-            }
-          }));
+        // Prepare product data
+        const productData = {
+          item_code: row[0],
+          name: row[1],
+          quantity: row[2],
+          category: category?._id || null,
+          sub_category: sub_category?._id || null,
+          brand: brand?._id || null,
+          price: row[9],
+          special_price: row[10],
+          description: row[11],
+          key_specifications: key_specifications,
+          overview_description: row[17],
+          hasVariants: variants.length > 0,
+          variants: variants,
+          status: row[19],
+          extend_warranty: extend_warranty,
+          stock_status: row[2] > 0 ? "In Stock" : "Out of Stock",
+          product_highlights: highlights,
+        };
 
-        if (operations.length > 0) {
-          await ProductFilter.bulkWrite(operations, { ordered: false });
+        if (movement) {
+          productData.movement = movement;
+        } else if (existingProduct && existingProduct.movement) {
+          productData.movement = existingProduct.movement;
+        } else {
+          productData.movement = movement || "";
         }
+
+        // Only update images if new ones are provided in Excel
+        if (images.length > 0) {
+          productData.images = images;
+        } else if (existingProduct) {
+          // Preserve existing images if no new ones are provided
+          productData.images = existingProduct.images;
+        }
+
+        // Only update overview images if new ones are provided in Excel
+        if (overviewImage.length > 0) {
+          productData.overview_image = overviewImage;
+        } else if (existingProduct) {
+          // Preserve existing overview images if no new ones are provided
+          productData.overview_image = existingProduct.overview_image;
+        }
+
+        if (!existingProduct) {
+          // Create new product
+          let baseSlug = String(productData.name || productData.item_code || "product")
+            .toLowerCase()
+            .replace(/[^\w\s-]/g, '')        // Remove all non-word characters except spaces and hyphens
+            .replace(/\s+/g, '-')            // Replace spaces with hyphens
+            .replace(/--+/g, '-')            // Replace multiple hyphens with a single one
+            .trim(); 
+          if (!baseSlug) baseSlug = `product-${productData.item_code || Date.now()}`;
+
+          let productSlug = baseSlug;
+          let counter = 1;
+          while (await Product.exists({ slug: productSlug })) {
+            productSlug = `${baseSlug}-${counter}`;
+            counter++;
+          }
+
+          productData.slug = productSlug;
+          productData.md5_name = md5(productSlug);
+
+          console.log(`[Bulk Upload] Row ${rowNum}: Creating NEW product (Item Code: "${row[0]}", Slug: "${productSlug}")`);
+          const newProduct = await Product.create(productData);
+          createdCount++;
+
+          // Create product filters
+          if (filterIds.length > 0) {
+            await ProductFilter.insertMany(
+              filterIds.map(filterId => ({
+                product_id: newProduct._id,
+                filter_id: filterId
+              }))
+            );
+          }
+          console.log(`[Bulk Upload] ✅ Row ${rowNum}: Successfully created product (Item Code: "${row[0]}", ID: ${newProduct._id})`);
+        } else {
+          // Update existing product
+          console.log(`[Bulk Upload] Row ${rowNum}: Updating EXISTING product (Item Code: "${row[0]}", ID: ${existingProduct._id})`);
+          await Product.updateOne(
+            { _id: existingProduct._id },
+            { $set: productData }
+          );
+          updatedCount++;
+
+          const existingProductFilters = await ProductFilter.find({ product_id: existingProduct._id });
+          const existingFilterIds = existingProductFilters.map(pf => pf.filter_id.toString());
+
+          const newFilterIds = filters.map(f => f._id.toString());
+
+          // Remove associations not present in Excel
+          await ProductFilter.deleteMany({
+            product_id: existingProduct._id,
+            filter_id: { $nin: newFilterIds }
+          });
+
+          // Add new associations
+          const operations = newFilterIds
+            .filter(id => !existingFilterIds.includes(id))
+            .map(id => ({
+              insertOne: {
+                document: {
+                  product_id: existingProduct._id,
+                  filter_id: id
+                }
+              }
+            }));
+
+          if (operations.length > 0) {
+            await ProductFilter.bulkWrite(operations, { ordered: false });
+          }
+          console.log(`[Bulk Upload] ✅ Row ${rowNum}: Successfully updated product (Item Code: "${row[0]}")`);
+        }
+      } catch (rowError) {
+        console.error(`[Bulk Upload] ❌ ERROR at row ${rowNum} (Item Code: "${itemCode}", Name: "${row[1] || ''}"):`, rowError.message || rowError);
+        console.error(rowError);
+        failedProducts.push({ row: rowNum, item_code: itemCode, error: rowError.message || String(rowError) });
       }
     }
+
+    console.log(`[Bulk Upload] 🎉 Completed processing. Total: ${totalProducts}, Created: ${createdCount}, Updated: ${updatedCount}, Failed: ${failedProducts.length}`);
 
     const count =
       validProducts.length > 1
@@ -295,8 +358,12 @@ export async function POST(req) {
         : validProducts.length;
 
     return NextResponse.json({
-      message: `Successfully processed ${count} products.`,
+      message: `Successfully processed ${count} products (${createdCount} created, ${updatedCount} updated${failedProducts.length ? `, ${failedProducts.length} failed` : ''}).`,
       productCount: count,
+      createdCount,
+      updatedCount,
+      failedCount: failedProducts.length,
+      errors: failedProducts.slice(0, 50),
     });
 
   } catch (error) {

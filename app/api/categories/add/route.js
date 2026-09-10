@@ -3,7 +3,7 @@ import Category from "@/models/ecom_category_info";
 import CategoryFilter from "@/models/ecom_categoryfilters_infos"; // Import the filter model
 import { NextResponse } from "next/server";
 import md5 from "md5";
-import { writeFile } from "fs/promises";
+import { writeFile, mkdir } from "fs/promises";
 import path from "path";
 import mongoose from "mongoose";
 
@@ -180,6 +180,7 @@ export async function POST(req) {
         const bytes = await file.arrayBuffer();
         const buffer = Buffer.from(bytes);
         const uploadDir = path.join(process.cwd(), "public/uploads/categories");
+        await mkdir(uploadDir, { recursive: true });
         const filename = `${Date.now()}-${file.name}`;
         await writeFile(path.join(uploadDir, filename), buffer);
         image_url = `/uploads/categories/${filename}`; // Use relative path instead of localhost
@@ -201,6 +202,7 @@ export async function POST(req) {
         const bytes = await navFile.arrayBuffer();
         const buffer = Buffer.from(bytes);
         const uploadDir = path.join(process.cwd(), "public/uploads/categories");
+        await mkdir(uploadDir, { recursive: true });
         const filename = `${Date.now()}-nav-${navFile.name}`;
         await writeFile(path.join(uploadDir, filename), buffer);
         nav_image_url = `/uploads/categories/${filename}`;
@@ -210,20 +212,21 @@ export async function POST(req) {
     }
 
     // Handle icon image upload
-let icon_url = "";
-const iconFile = formData.get("icon_image");
-if (iconFile && typeof iconFile !== "string" && iconFile.name && iconFile.size > 0) {
-  try {
-    const bytes = await iconFile.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-    const uploadDir = path.join(process.cwd(), "public/uploads/categories");
-    const filename = `${Date.now()}-icon-${iconFile.name}`;
-    await writeFile(path.join(uploadDir, filename), buffer);
-    icon_url = `/uploads/categories/${filename}`;
-  } catch (fileError) {
-    console.error("Error processing icon image file:", fileError);
-  }
-}
+    let icon_url = "";
+    const iconFile = formData.get("icon_image");
+    if (iconFile && typeof iconFile !== "string" && iconFile.name && iconFile.size > 0) {
+      try {
+        const bytes = await iconFile.arrayBuffer();
+        const buffer = Buffer.from(bytes);
+        const uploadDir = path.join(process.cwd(), "public/uploads/categories");
+        await mkdir(uploadDir, { recursive: true });
+        const filename = `${Date.now()}-icon-${iconFile.name}`;
+        await writeFile(path.join(uploadDir, filename), buffer);
+        icon_url = `/uploads/categories/${filename}`;
+      } catch (fileError) {
+        console.error("Error processing icon image file:", fileError);
+      }
+    }
 
     // ✅ Create category with content field
     const newCategory = new Category({
@@ -276,6 +279,11 @@ if (iconFile && typeof iconFile !== "string" && iconFile.name && iconFile.size >
       }
     } else {
       console.log("No filters selected for new category");
+    }
+
+    if (globalThis.__sathyaCategoriesCache) {
+      globalThis.__sathyaCategoriesCache.data = null;
+      globalThis.__sathyaCategoriesCache.at = 0;
     }
 
     return NextResponse.json(

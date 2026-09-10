@@ -74,7 +74,7 @@ export default function CategoryPage() {
 
  
   const handleShare = async (product) => {
-    const productUrl = `${window.location.origin}/product/${product.slug}`;
+    const productUrl = `${window.location.origin}/category/${slug}/${sub_slug}/${product.slug}`;
     try {
       if (navigator.share) {
         await navigator.share({
@@ -904,7 +904,7 @@ const handlePageChange = (page) => {
                     {/* Product Image */}
                     <div className="relative aspect-square bg-white">
                       <Link
-                        href={`/product/${product.slug}`}
+                        href={`/category/${slug}/${sub_slug}/${product.slug}`}
                         className="block mb-2"
                         onClick={() => handleProductClick(product)}
                       >
@@ -957,7 +957,7 @@ const handlePageChange = (page) => {
 
                       {/* Title with improved responsive height */}
                   <Link
-                    href={`/product/${product.slug}`}
+                    href={`/category/${slug}/${sub_slug}/${product.slug}`}
                     className="block mb-2 flex-1"
                     onClick={() => handleProductClick(product)}
                   >

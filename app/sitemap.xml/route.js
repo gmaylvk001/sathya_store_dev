@@ -44,7 +44,7 @@ function buildCategoryPath(category, byId) {
 
   if (!slugs.length) return null;
   if (slugs.length === 1) {
-    return `/category-division/${slugs[0]}`;
+    return `/collection/${slugs[0]}`;
   }
   if (slugs.length === 2) {
     return `/category/${slugs[1]}`;

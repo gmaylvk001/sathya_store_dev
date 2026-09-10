@@ -72,7 +72,11 @@ export async function POST(req, { params }) {
           name: title || "",
           status: "active",
         };
-        if (type === COMPONENT_TYPES.IMAGE_CAROUSEL || type === COMPONENT_TYPES.BRAND_CAROUSEL) {
+        if (
+          type === COMPONENT_TYPES.IMAGE_CAROUSEL ||
+          type === COMPONENT_TYPES.BRAND_CAROUSEL ||
+          type === COMPONENT_TYPES.CIRCLE_IMAGE_CAROUSEL
+        ) {
           defaults.items = [];
         } else if (type === COMPONENT_TYPES.PRODUCT_CAROUSEL) {
           defaults.products = [];

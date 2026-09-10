@@ -25,6 +25,7 @@ import BrandCarouselConfigForm from "./BrandCarouselConfigForm";
 import ImageHotspotBannerConfigForm from "./ImageHotspotBannerConfigForm";
 import CategoryContentConfigForm from "./CategoryContentConfigForm";
 import SplitBannerConfigForm from "./SplitBannerConfigForm";
+import CircleImageCarouselConfigForm from "./CircleImageCarouselConfigForm";
 
 /**
  * Page Builder:
@@ -300,6 +301,24 @@ export default function PageBuilder({
       if (!data.success) throw new Error(data.message);
       setPage(data.page);
       setConfigType(COMPONENT_TYPES.SPLIT_BANNER);
+      setConfigInstanceId(data.instance?.instanceId || null);
+    } catch (e) {
+      alert(e.message);
+    }
+  };
+
+  const addNewCircleCarouselSet = async () => {
+    setMessage("");
+    try {
+      const res = await fetch(`/api/category-pages/${id}/components`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: COMPONENT_TYPES.CIRCLE_IMAGE_CAROUSEL }),
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.message);
+      setPage(data.page);
+      setConfigType(COMPONENT_TYPES.CIRCLE_IMAGE_CAROUSEL);
       setConfigInstanceId(data.instance?.instanceId || null);
     } catch (e) {
       alert(e.message);
@@ -1059,6 +1078,45 @@ export default function PageBuilder({
                 }}
                 onSaved={() => {
                   setMessage("Single / Double Banner set saved.");
+                  load();
+                }}
+              />
+            ) : configType === COMPONENT_TYPES.CIRCLE_IMAGE_CAROUSEL ? (
+              <CircleImageCarouselConfigForm
+                key={configInstanceId || "cic-list"}
+                pageId={page._id}
+                instanceId={configInstanceId}
+                setLabel={
+                  configInstanceId
+                    ? instanceLabels[configInstanceId]
+                    : null
+                }
+                existingSets={[...components]
+                  .filter((c) => c.type === COMPONENT_TYPES.CIRCLE_IMAGE_CAROUSEL)
+                  .sort((a, b) => a.order - b.order)
+                  .map((c) => ({
+                    instanceId: c.instanceId,
+                    title: c.title || "",
+                    label:
+                      instanceLabels[c.instanceId] ||
+                      c.title ||
+                      "Circle Image Carousel",
+                  }))}
+                onAddNew={addNewCircleCarouselSet}
+                onEditSet={(instanceId) => {
+                  setConfigInstanceId(instanceId);
+                  setMessage("");
+                }}
+                onDeleteSet={() => {
+                  setMessage("Circle Image Carousel set deleted.");
+                  load();
+                }}
+                onBackToList={() => {
+                  setConfigInstanceId(null);
+                  load();
+                }}
+                onSaved={() => {
+                  setMessage("Circle Image Carousel set saved.");
                   load();
                 }}
               />

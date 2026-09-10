@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 
-import FeedbackComponent from "@/components/feedback/feedback";
+import FeedbackComponent from "@/components/faq/feedback";
 
 
 export default function Dashboard() {

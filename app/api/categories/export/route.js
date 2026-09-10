@@ -1,159 +1,204 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
-
 import Category from "@/models/ecom_category_info";
-import CategoryFilter from "@/models/ecom_categoryfilters_infos";
-import Filter from "@/models/ecom_filter_infos";
-import FilterGroup from "@/models/ecom_filter_group_infos";
-
 import * as XLSX from "xlsx";
 
 export async function GET(req) {
   try {
-  await dbConnect();
-  const { searchParams } = new URL(req.url);
+    await dbConnect();
+    const { searchParams } = new URL(req.url);
 
-  const search = searchParams.get("search");
+    const search = searchParams.get("search")?.trim() || "";
+    const status = searchParams.get("status")?.trim() || "";
+    const startDate = searchParams.get("startDate")?.trim() || "";
+    const endDate = searchParams.get("endDate")?.trim() || "";
 
-  // FETCH CATEGORIES
-  let categories = [];
-  if (search) {
-    categories = await Category.find({
-      $or: [
-        { category_name: { $regex: search, $options: "i" } },
-        { category_slug: { $regex: search, $options: "i" } },
-      ],
-    }).lean();
-  } else {
-    categories = await Category.find({}).lean();
-  }
-
-  console.log("Fetched categories:", categories.length);
-
-  if (!categories.length) throw new Error("No categories found");
-
-  const categoryMap = {};
-  /* for (const cat of categories) {
-    categoryMap[cat._id.toString()] = cat;
-    if (cat.parentid) {
-      const parent = await Category.findById(cat.parentid).lean();
-      console.log("Fetched parent:", parent);
-      if (parent) categoryMap[parent._id.toString()] = parent;
-    }
-  } */
-
-
-    for (const cat of categories) {
-  categoryMap[cat._id.toString()] = cat;
-
-  // Only fetch parent if parentid is a valid ObjectId
-  if (cat.parentid && cat.parentid !== "none") {
-    try {
-      const parent = await Category.findById(cat.parentid).lean();
-      if (parent) categoryMap[parent._id.toString()] = parent;
-    } catch (err) {
-      console.warn(`Invalid parentid skipped: ${cat.parentid}`);
-    }
-  }
-}
-
-  const categoryIds = categories.map(c => c._id.toString());
-  const categoryFilters = await CategoryFilter.find({
-    category_id: { $in: categoryIds },
-  }).lean();
-  console.log("Category filters:", categoryFilters.length);
-
-  if (!categoryFilters.length) throw new Error("No category filters found");
-
-  const filterIds = categoryFilters.map(cf => cf.filter_id);
-  const filters = await Filter.find({ _id: { $in: filterIds } }).lean();
-  console.log("Filters:", filters.length);
-
-  const filterMap = {};
-  filters.forEach(f => (filterMap[f._id.toString()] = f));
-
-  const filterGroupIds = filters.map(f => f.filter_group);
-  const filterGroups = await FilterGroup.find({
-    _id: { $in: filterGroupIds },
-  }).lean();
-  console.log("Filter groups:", filterGroups.length);
-
-  const filterGroupMap = {};
-  filterGroups.forEach(g => (filterGroupMap[g._id.toString()] = g.filtergroup_name));
-
-  const excelData = [];
-  /* categoryFilters.forEach(cf => {
-    const category = categoryMap[cf.category_id];
-    const filter = filterMap[cf.filter_id];
-    if (!category || !filter) return;
-
-    let categoryName = "-";
-    let subCategoryName = category.category_name;
-    if (category.parentid) {
-      const parent = categoryMap[category.parentid];
-      categoryName = parent?.category_name || "-";
+    // Fetch all categories to reconstruct full hierarchy
+    const allCategories = await Category.find({}).lean();
+    if (!allCategories || allCategories.length === 0) {
+      throw new Error("No categories found in database");
     }
 
-    excelData.push({
-      "Category": categoryName,
-      "Sub Category": subCategoryName,
-      "Filter Group": filterGroupMap[filter.filter_group] || "-",
-      "Filter Value": filter.filter_name,
+    // Build lookup maps for fast parent resolution
+    const byId = new Map();
+    const byMd5 = new Map();
+    const byName = new Map();
+
+    for (const cat of allCategories) {
+      if (cat._id) byId.set(String(cat._id), cat);
+      if (cat.md5_cat_name) byMd5.set(String(cat.md5_cat_name), cat);
+      if (cat.category_name) byName.set(cat.category_name.trim().toLowerCase(), cat);
+    }
+
+    const findParent = (cat) => {
+      if (!cat) return null;
+      const pid = cat.parentid ? String(cat.parentid).trim() : "";
+      if (!pid || pid === "none" || pid === "0" || pid === "null" || pid === "undefined") {
+        return null;
+      }
+
+      // 1. Direct _id match
+      if (byId.has(pid)) {
+        const p = byId.get(pid);
+        if (String(p._id) !== String(cat._id)) return p;
+      }
+
+      // 2. parentid_new (md5) match
+      const pidNew = cat.parentid_new ? String(cat.parentid_new).trim() : "";
+      if (pidNew && pidNew !== "none" && byMd5.has(pidNew)) {
+        const p = byMd5.get(pidNew);
+        if (String(p._id) !== String(cat._id)) return p;
+      }
+
+      // 3. md5 match on parentid itself
+      if (byMd5.has(pid)) {
+        const p = byMd5.get(pid);
+        if (String(p._id) !== String(cat._id)) return p;
+      }
+
+      // 4. Case-insensitive category_name match fallback
+      const lowerPid = pid.toLowerCase();
+      if (byName.has(lowerPid)) {
+        const p = byName.get(lowerPid);
+        if (String(p._id) !== String(cat._id)) return p;
+      }
+
+      return null;
+    };
+
+    const getAncestors = (cat) => {
+      const chain = [];
+      let current = cat;
+      const visited = new Set([String(cat._id)]);
+
+      while (current) {
+        const parent = findParent(current);
+        if (!parent) break;
+        const pIdStr = String(parent._id);
+        if (visited.has(pIdStr)) break; // avoid loops
+        visited.add(pIdStr);
+        chain.unshift(parent); // oldest ancestor first: [Parent, Sub, ...]
+        current = parent;
+      }
+      return chain;
+    };
+
+    // Track children count to identify leaf nodes if needed
+    const childrenCount = new Map();
+    for (const cat of allCategories) {
+      const parent = findParent(cat);
+      if (parent) {
+        const pId = String(parent._id);
+        childrenCount.set(pId, (childrenCount.get(pId) || 0) + 1);
+      }
+    }
+
+    // Collect child categories
+    // 1st column: Child Category
+    // 2nd column: Sub Category
+    // 3rd column: Parent Category
+    const rows = [];
+
+    for (const cat of allCategories) {
+      const chain = getAncestors(cat);
+
+      // Level 2+ child category: has sub category parent and parent category grandparent
+      if (chain.length >= 2) {
+        const parentCategory = chain[0];
+        const subCategory = chain[chain.length - 1];
+
+        // Apply filters if any
+        if (status && cat.status && cat.status.toLowerCase() !== status.toLowerCase()) {
+          continue;
+        }
+
+        if (startDate && endDate && cat.createdAt) {
+          const catDate = new Date(cat.createdAt);
+          const start = new Date(startDate);
+          const end = new Date(endDate);
+          end.setHours(23, 59, 59, 999);
+          if (catDate < start || catDate > end) {
+            continue;
+          }
+        }
+
+        if (search) {
+          const s = search.toLowerCase();
+          const matchChild = cat.category_name?.toLowerCase().includes(s);
+          const matchSub = subCategory.category_name?.toLowerCase().includes(s);
+          const matchParent = parentCategory.category_name?.toLowerCase().includes(s);
+          if (!matchChild && !matchSub && !matchParent) {
+            continue;
+          }
+        }
+
+        rows.push({
+          "Child Category": cat.category_name || "-",
+          "Sub Category": subCategory.category_name || "-",
+          "Parent Category": parentCategory.category_name || "-",
+        });
+      }
+    }
+
+    // Fallback: If no Level 2 categories found, include Level 1 leaf categories
+    if (rows.length === 0) {
+      for (const cat of allCategories) {
+        const chain = getAncestors(cat);
+        const hasChildren = (childrenCount.get(String(cat._id)) || 0) > 0;
+        if (chain.length === 1 && !hasChildren) {
+          const parentCategory = chain[0];
+          rows.push({
+            "Child Category": cat.category_name || "-",
+            "Sub Category": "-",
+            "Parent Category": parentCategory.category_name || "-",
+          });
+        }
+      }
+    }
+
+    // Sort rows alphabetically: Parent Category -> Sub Category -> Child Category
+    rows.sort((a, b) => {
+      const p = (a["Parent Category"] || "").localeCompare(b["Parent Category"] || "");
+      if (p !== 0) return p;
+      const s = (a["Sub Category"] || "").localeCompare(b["Sub Category"] || "");
+      if (s !== 0) return s;
+      return (a["Child Category"] || "").localeCompare(b["Child Category"] || "");
     });
-  }); */
 
-  categoryFilters.forEach(cf => {
-  const category = categoryMap[cf.category_id];
-  const filter = filterMap[cf.filter_id];
-  if (!category || !filter) return;
+    const excelData = rows.length > 0 ? rows : [
+      {
+        "Child Category": "No child categories found",
+        "Sub Category": "",
+        "Parent Category": "",
+      }
+    ];
 
-  let categoryName = "-";
-  let subCategoryName = "-";
+    const worksheet = XLSX.utils.json_to_sheet(excelData);
 
-  // If category has a parent, parent becomes "Category" and current becomes "Sub Category"
-  if (category.parentid && category.parentid !== "none") {
-    const parent = categoryMap[category.parentid];
-    categoryName = parent?.category_name || "-";
-    subCategoryName = category.category_name;
-  } else {
-    // No parent, it's a main category
-    categoryName = category.category_name;
-    subCategoryName = "-"; // Only subcategory exists if parent is there
+    // Set column widths for readability
+    worksheet["!cols"] = [
+      { wch: 35 }, // Child Category
+      { wch: 30 }, // Sub Category
+      { wch: 30 }, // Parent Category
+    ];
+
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Child Categories");
+
+    const buffer = XLSX.write(workbook, { type: "buffer", bookType: "xlsx" });
+
+    return new NextResponse(buffer, {
+      headers: {
+        "Content-Disposition": "attachment; filename=categories.xlsx",
+        "Content-Type":
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      },
+    });
+  } catch (error) {
+    console.error("Category export error:", error);
+    return NextResponse.json(
+      { success: false, message: `Export failed: ${error.message}` },
+      { status: 500 }
+    );
   }
-
-  excelData.push({
-    "Category": categoryName,
-    "Sub Category": subCategoryName,
-    "Filter Group": filterGroupMap[filter.filter_group] || "-",
-    "Filter Value": filter.filter_name,
-  });
-});
-
-
-  console.log("Excel data length:", excelData.length);
-
-  if (!excelData.length) throw new Error("Excel data is empty");
-
-  const worksheet = XLSX.utils.json_to_sheet(excelData);
-  const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, "Category Filters");
-
-  const buffer = XLSX.write(workbook, { type: "buffer", bookType: "xlsx" });
-
-  return new NextResponse(buffer, {
-    headers: {
-      "Content-Disposition": "attachment; filename=category-filter-export.xlsx",
-      "Content-Type":
-        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    },
-  });
-
-} catch (error) {
-  console.error("Export error:", error);
-  return NextResponse.json(
-    { success: false, message: `Export failed: ${error.message}` },
-    { status: 500 }
-  );
-}
-
 }

@@ -1,93 +1,66 @@
-
-import CategoryClient from "@/components/category/[slug]/[sub_slug]/[sub_slug_one]/page";
-import CategoryOverviewPage from "@/components/categoryPageComponents/CategoryOverviewPage";
-import RedirectToOverviewIfDesigned from "@/components/categoryPageComponents/RedirectToOverviewIfDesigned";
-import { PAGE_TYPES } from "@/lib/categoryPageComponents/registry";
+import ProductClient from "@/app/product/[slug]/ProductClient";
 
 export async function generateMetadata({ params }) {
   const awaitedParams = await params;
-  const sub_slug_one = awaitedParams.sub_slug_one;
+  const slug = awaitedParams.slug;
   const sub_slug = awaitedParams.sub_slug;
+  const sub_slug_one = awaitedParams.sub_slug_one;
   const baseUrl = process.env.NEXT_PUBLIC_API_URL;
- // console.log('sub_slug_one',sub_slug_one);
+
   try {
-    const res = await fetch(`${baseUrl}/api/categories/${sub_slug_one}`, {
+    const response = await fetch(`${baseUrl}/api/product/${sub_slug_one}`, {
       cache: "no-store",
     });
 
-    if (!res.ok) {
+    if (!response.ok) {
       return {
-        title: "Category Not Found",
-        description: "This category does not exist",
+        title: "Product not found",
+        description: "This product is unavailable",
       };
     }
 
-    const data = await res.json();
-    const category = data.main_category;
-    //console.log('category',category);
+    const product = await response.json();
+
+    const title = product.meta_title || product.name;
+    const description =
+      product.meta_description ||
+      product.description?.replace(/<[^>]*>/g, "").slice(0, 160) ||
+      "Buy products online at best price";
+
+    const image =
+      product.images?.length > 0
+        ? `${baseUrl}/uploads/products/${product.images[0]}`
+        : `${baseUrl}/no-image.jpg`;
+
     return {
-      //title: category.meta_title || category.category_name,
-      title:
-  category.meta_title && category.meta_title !== "none"
-    ? category.meta_title
-    : category.category_name,
-     description:
-        category.meta_description && category.meta_description !== "none"
-    ? category.meta_description
-    : `Browse products in ${category.category_name}`,
-      keywords: category.meta_keyword || "",
+      title,
+      description,
+      keywords: product.search_keywords || "",
 
       openGraph: {
-        title:
-  category.meta_title && category.meta_title !== "none"
-    ? category.meta_title
-    : category.category_name,
-     description:
-        category.meta_description && category.meta_description !== "none"
-    ? category.meta_description
-    : `Browse products in ${category.category_name}`,
-        url: `${baseUrl}/category/${sub_slug}`,
-        images: category.image ? [`${baseUrl}${category.image}`] : [],
+        title,
+        description,
+        url: `${baseUrl}/category/${slug}/${sub_slug}/${sub_slug_one}`,
+        images: [image],
         type: "website",
       },
 
       twitter: {
         card: "summary_large_image",
-        title:
-  category.meta_title && category.meta_title !== "none"
-    ? category.meta_title
-    : category.category_name,
-     description:
-        category.meta_description && category.meta_description !== "none"
-    ? category.meta_description
-    : `Browse products in ${category.category_name}`,
+        title,
+        description,
+        images: [image],
       },
     };
-  } catch {
+  } catch (error) {
+    console.error("Metadata error:", error);
     return {
-      title: "Category",
-      description: "Browse products by category",
+      title: "Product",
+      description: "Buy products online",
     };
   }
 }
 
-export default async function Page({ params }) {
-  const { slug, sub_slug, sub_slug_one } = await params;
-  if (sub_slug_one === "overview") {
-    return (
-      <CategoryOverviewPage
-        pageType={PAGE_TYPES.SUB_CATEGORY}
-        slug={sub_slug}
-        parentSlug={slug}
-        listingSlugs={[slug, sub_slug]}
-      />
-    );
-  }
-
-  return (
-    <>
-      <RedirectToOverviewIfDesigned pageType={PAGE_TYPES.CHILD_CATEGORY} />
-      <CategoryClient />
-    </>
-  );
+export default function ProductPage() {
+  return <ProductClient />;
 }

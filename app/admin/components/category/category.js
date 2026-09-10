@@ -241,6 +241,7 @@ export default function CategoryComponent() {
         existingFilters: [],
         content: category.content || "", 
         existingContent: category.content || "", 
+        icon_image: null,
         existingIconImage: category.icon_url || null,
       });
 
@@ -370,12 +371,21 @@ export default function CategoryComponent() {
     formData.append("category_name", trimmedCategoryName);
     formData.append("parentid", newCategory.parentid);
     formData.append("status", newCategory.status);
-    formData.append("image", newCategory.image);
-    formData.append("navImage", newCategory.navImage);
     formData.append("meta_title", newCategory.meta_title);
     formData.append("meta_description", newCategory.meta_description);
     formData.append("meta_keyword", newCategory.meta_keyword);
-    formData.append("icon_image", newCategory.icon_image);
+
+    if (newCategory.image instanceof File) {
+      formData.append("image", newCategory.image);
+    }
+
+    if (newCategory.navImage instanceof File) {
+      formData.append("navImage", newCategory.navImage);
+    }
+
+    if (newCategory.icon_image instanceof File) {
+      formData.append("icon_image", newCategory.icon_image);
+    }
 
     // Send selected filters as JSON string
     formData.append(
@@ -384,15 +394,6 @@ export default function CategoryComponent() {
     );
 
     formData.append("content", newCategory.content);
-
-    // Only append image if provided
-    if (newCategory.image) {
-      formData.append("image", newCategory.image);
-    }
-
-    if (newCategory.navImage) {
-      formData.append("navImage", newCategory.navImage);
-    }
 
     try {
       const response = await fetch("/api/categories/add", {
@@ -415,7 +416,9 @@ export default function CategoryComponent() {
           status: "Active",
           image: null,
           navImage: null,
+          selectedFilters: [],
           content: "",
+          icon_image: null,
         });
         setImagePreview(null);
 
@@ -668,15 +671,29 @@ export default function CategoryComponent() {
 
       const result = await response.json();
       if (response.ok) {
+        setCategories((prev) =>
+          prev.filter(
+            (c) =>
+              c._id !== categoryId &&
+              c.parentid !== categoryId &&
+              c.parentid !== String(categoryId)
+          )
+        );
         fetchCategories();
         setAlertMessage("Category deleted successfully!");
         setShowAlert(true);
         setTimeout(() => setShowAlert(false), 3000);
       } else {
         console.error("Error:", result.error);
+        setAlertMessage(result.error || "Failed to delete category");
+        setShowAlert(true);
+        setTimeout(() => setShowAlert(false), 3000);
       }
     } catch (error) {
       console.error("Error:", error);
+      setAlertMessage("Failed to delete category");
+      setShowAlert(true);
+      setTimeout(() => setShowAlert(false), 3000);
     } finally {
       setShowConfirmationModal(false);
       setCategoryToDelete(null);
