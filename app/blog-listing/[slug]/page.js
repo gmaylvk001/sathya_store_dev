@@ -326,6 +326,71 @@ export default function BlogDetailPage() {
 
 
 
+            {/* ── Frequently Asked Questions (FAQ) Section ── */}
+            {activeFaqs && activeFaqs.length > 0 && (
+              <section className="mt-10 mb-10 rounded-2xl border border-[#ececec] bg-white p-6 sm:p-8 shadow-[0_16px_40px_rgba(17,17,17,0.04)]">
+                <div className="flex flex-col sm:flex-row sm:items-end justify-between pb-5 mb-6 border-b border-[#eee] gap-4">
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="w-4 h-0.5 bg-[#d72828] inline-block" />
+                      <span className="text-xs font-bold uppercase tracking-wider text-[#d72828]">
+                        SUPPORT
+                      </span>
+                    </div>
+                    <h2 className="text-xl sm:text-2xl font-serif font-bold text-[#151515] uppercase tracking-wide">
+                      FREQUENTLY ASKED QUESTIONS
+                    </h2>
+                    <p className="text-xs sm:text-sm text-[#777] mt-1.5">
+                      Quick answers to help you get the most out of this article.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-4 items-start">
+                  {activeFaqs.map((faq, idx) => {
+                    if (!faq.question?.trim()) return null;
+                    const isOpen = openFaqIndex === idx;
+
+                    return (
+                      <div
+                        key={idx}
+                        className={`border rounded-xl transition-all duration-200 overflow-hidden ${
+                          isOpen
+                            ? "border-[#e9b9b9] bg-white shadow-[0_10px_24px_rgba(215,39,39,0.08)]"
+                            : "border-[#ececec] bg-white hover:border-[#e3c6c6]"
+                        }`}
+                      >
+                        <button
+                          type="button"
+                          onClick={() => setOpenFaqIndex(isOpen ? -1 : idx)}
+                          className="w-full text-left p-4 sm:p-5 flex items-center justify-between gap-4 cursor-pointer"
+                        >
+                          <span className="text-[14px] sm:text-[15px] font-semibold text-[#181818] leading-snug">
+                            {faq.question}
+                          </span>
+                          <span
+                            className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-base font-bold transition-all ${
+                              isOpen
+                                ? "bg-[#d72828] text-white"
+                                : "bg-[#f4f4f4] text-[#d72828]"
+                            }`}
+                          >
+                            {isOpen ? "−" : "+"}
+                          </span>
+                        </button>
+
+                        {isOpen && faq.answer && (
+                          <div className="px-4 pb-5 sm:px-5 sm:pb-5 text-xs sm:text-sm text-gray-600 leading-relaxed border-t border-[#f2f2f2] pt-3.5 mt-[-2px]">
+                            {faq.answer}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </section>
+            )}
+
             {/* Article Footer: Social Share & Return Link */}
             <div className="mt-12 pt-6 border-t border-gray-200 flex flex-col sm:flex-row items-center justify-between gap-4">
               <Link
@@ -412,70 +477,7 @@ export default function BlogDetailPage() {
           </aside>
         </div>
 
-        {/* ── Frequently Asked Questions (FAQ) Section — Full Width 2-Column Below Article (Matching Screenshot 1) ── */}
-        {activeFaqs && activeFaqs.length > 0 && (
-          <section className="mt-14 rounded-2xl border border-[#ececec] bg-white p-6 sm:p-10 shadow-[0_16px_40px_rgba(17,17,17,0.04)]">
-            <div className="flex flex-col sm:flex-row sm:items-end justify-between pb-6 mb-7 border-b border-[#eee] gap-4">
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="w-4 h-0.5 bg-[#d72828] inline-block" />
-                  <span className="text-xs font-bold uppercase tracking-wider text-[#d72828]">
-                    SUPPORT
-                  </span>
-                </div>
-                <h2 className="text-2xl sm:text-3xl lg:text-[32px] font-serif font-bold text-[#151515] uppercase tracking-wide">
-                  FREQUENTLY ASKED QUESTIONS
-                </h2>
-                <p className="text-xs sm:text-sm text-[#777] mt-2">
-                  Quick answers to help you get the most out of this article.
-                </p>
-              </div>
-            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
-              {activeFaqs.map((faq, idx) => {
-                if (!faq.question?.trim()) return null;
-                const isOpen = openFaqIndex === idx;
-
-                return (
-                  <div
-                    key={idx}
-                    className={`border rounded-xl transition-all duration-200 overflow-hidden ${
-                      isOpen
-                        ? "border-[#e9b9b9] bg-white shadow-[0_10px_24px_rgba(215,39,39,0.08)]"
-                        : "border-[#ececec] bg-white hover:border-[#e3c6c6]"
-                    }`}
-                  >
-                    <button
-                      type="button"
-                      onClick={() => setOpenFaqIndex(isOpen ? -1 : idx)}
-                      className="w-full text-left p-4 sm:p-5 flex items-center justify-between gap-4 cursor-pointer"
-                    >
-                      <span className="text-[14px] sm:text-[15px] font-semibold text-[#181818] leading-snug">
-                        {faq.question}
-                      </span>
-                      <span
-                        className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-base font-bold transition-all ${
-                          isOpen
-                            ? "bg-[#d72828] text-white"
-                            : "bg-[#f4f4f4] text-[#d72828]"
-                        }`}
-                      >
-                        {isOpen ? "−" : "+"}
-                      </span>
-                    </button>
-
-                    {isOpen && faq.answer && (
-                      <div className="px-4 pb-5 sm:px-5 sm:pb-5 text-xs sm:text-sm text-gray-600 leading-relaxed border-t border-[#f2f2f2] pt-3.5 mt-[-2px]">
-                        {faq.answer}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </section>
-        )}
       </main>
 
       {/* ── Custom CSS for Rich HTML Blog Body (Matching Old Sathya Stores) ── */}

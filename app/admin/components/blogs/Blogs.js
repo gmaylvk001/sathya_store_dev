@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { Icon } from "@iconify/react";
 import ReactPaginate from "react-paginate";
-import CustomQuill from "../blog/CustomQuill";
+import CustomJodit from "../blog/CustomJodit";
 
 export default function Blogs() {
   const [blogs, setBlogs] = useState([]);
@@ -44,6 +44,54 @@ export default function Blogs() {
 
   const [currentPage, setCurrentPage] = useState(0);
   const itemsPerPage = 20;
+
+  // Bulk Delete State
+  const [selectedBlogs, setSelectedBlogs] = useState([]);
+
+  const handleBulkDelete = async () => {
+    if (selectedBlogs.length === 0) return;
+    if (!window.confirm(`Are you sure you want to delete ${selectedBlogs.length} selected blog(s)?`)) return;
+
+    try {
+      setIsLoading(true);
+      const res = await fetch("/api/blogs-new/bulk-delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: selectedBlogs }),
+      });
+      const result = await res.json();
+      if (res.ok && result.success) {
+        setSuccessMessage(result.message || "Blogs Deleted Successfully");
+        setShowSuccessModal(true);
+        setSelectedBlogs([]);
+        fetchBlogs();
+      } else {
+        alert(result.error || "Failed to delete blogs");
+      }
+    } catch (err) {
+      console.error("Error bulk deleting blogs:", err);
+    } finally {
+      setIsLoading(false);
+      setTimeout(() => setShowSuccessModal(false), 2000);
+    }
+  };
+
+  const handleSelectAll = (e) => {
+    if (e.target.checked) {
+      const currentPageIds = filteredBlogs
+        .slice(currentPage * itemsPerPage, (currentPage + 1) * itemsPerPage)
+        .map((b) => b._id);
+      setSelectedBlogs(currentPageIds);
+    } else {
+      setSelectedBlogs([]);
+    }
+  };
+
+  const handleSelectBlog = (id) => {
+    setSelectedBlogs((prev) =>
+      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
+    );
+  };
 
   // Bulk Upload States
   const [showExcelModal, setShowExcelModal] = useState(false);
@@ -522,6 +570,15 @@ export default function Blogs() {
               </span>
             </div>
             <div className="flex items-center gap-2">
+              {selectedBlogs.length > 0 && (
+                <button
+                  onClick={handleBulkDelete}
+                  className="border border-red-200 px-3 py-1.5 rounded bg-red-50 text-red-700 hover:bg-red-100 flex items-center gap-1 text-sm font-medium transition-colors"
+                  title="Delete Selected Blogs"
+                >
+                  <Icon icon="mingcute:delete-2-line" className="text-base" /> Bulk Delete ({selectedBlogs.length})
+                </button>
+              )}
               <button
                 onClick={() => {
                   setExcelUploadResult(null);
@@ -568,7 +625,18 @@ export default function Blogs() {
           <table className="w-full border border-gray-200">
             <thead>
               <tr className="bg-gray-50 border-b border-gray-200 text-gray-700">
-                <th className="p-3 text-left pl-4 font-semibold w-16">#</th>
+                <th className="p-3 text-left pl-4 font-semibold w-12">
+                  <input
+                    type="checkbox"
+                    className="rounded border-gray-300"
+                    onChange={handleSelectAll}
+                    checked={
+                      filteredBlogs.slice(currentPage * itemsPerPage, (currentPage + 1) * itemsPerPage).length > 0 &&
+                      selectedBlogs.length === filteredBlogs.slice(currentPage * itemsPerPage, (currentPage + 1) * itemsPerPage).length
+                    }
+                  />
+                </th>
+                <th className="p-3 text-left font-semibold w-16">#</th>
                 <th className="p-3 text-left font-semibold w-20">Exist ID</th>
                 <th className="p-3 text-left font-semibold">Blog Title</th>
                 <th className="p-3 text-left font-semibold">Slug</th>
@@ -581,18 +649,26 @@ export default function Blogs() {
             <tbody>
               {isLoading ? (
                 <tr>
-                  <td colSpan="8" className="text-center py-6 text-gray-500">Loading...</td>
+                  <td colSpan="9" className="text-center py-6 text-gray-500">Loading...</td>
                 </tr>
               ) : filteredBlogs.length === 0 ? (
                 <tr>
-                  <td colSpan="8" className="text-center py-6 text-gray-500">No blogs found.</td>
+                  <td colSpan="9" className="text-center py-6 text-gray-500">No blogs found.</td>
                 </tr>
               ) : (
                 filteredBlogs
                   .slice(currentPage * itemsPerPage, (currentPage + 1) * itemsPerPage)
                   .map((b, idx) => (
                     <tr key={b._id} className="border-b hover:bg-gray-50">
-                      <td className="p-3 pl-4">{totalEntries - (currentPage * itemsPerPage + idx)}</td>
+                      <td className="p-3 pl-4">
+                        <input
+                          type="checkbox"
+                          className="rounded border-gray-300"
+                          checked={selectedBlogs.includes(b._id)}
+                          onChange={() => handleSelectBlog(b._id)}
+                        />
+                      </td>
+                      <td className="p-3 text-gray-500 text-sm">{totalEntries - (currentPage * itemsPerPage + idx)}</td>
                       <td className="p-3 text-gray-600 font-mono text-xs">{b.existId || "-"}</td>
                       <td className="p-3 text-blue-500 cursor-pointer hover:underline" onClick={() => handleOpenEdit(b)}>
                         {b.blogTitle}
@@ -648,7 +724,10 @@ export default function Blogs() {
                 pageCount={pageCount}
                 marginPagesDisplayed={2}
                 pageRangeDisplayed={5}
-                onPageChange={handlePageClick}
+                onPageChange={(e) => {
+                  handlePageClick(e);
+                  setSelectedBlogs([]); // Clear selection on page change
+                }}
                 containerClassName={"flex items-center space-x-1"}
                 activeClassName={"bg-blue-500 text-white border-blue-500"}
                 pageClassName={"page-item"}
@@ -736,7 +815,7 @@ export default function Blogs() {
             <div className="grid grid-cols-[200px_1fr] gap-4 items-start">
               <label className="font-semibold text-gray-700 mt-2">Description</label>
               <div className="bg-white">
-                <CustomQuill
+                <CustomJodit
                   value={formData.description}
                   onChange={(val) => setFormData({ ...formData, description: val })}
                   placeholder="Enter blog description..."

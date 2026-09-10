@@ -12,6 +12,50 @@ export default function BlogFaqComponent() {
   const [currentPage, setCurrentPage] = useState(0);
   const itemsPerPage = 15;
 
+  // Bulk Delete State
+  const [selectedFaqs, setSelectedFaqs] = useState([]);
+
+  const handleBulkDelete = async () => {
+    if (selectedFaqs.length === 0) return;
+    if (!window.confirm(`Are you sure you want to delete ${selectedFaqs.length} selected FAQ(s)?`)) return;
+
+    try {
+      setLoading(true);
+      const res = await fetch("/api/blogs-faq/bulk-delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: selectedFaqs }),
+      });
+      const json = await res.json();
+      if (res.ok && json.success) {
+        notify(json.message || "FAQs deleted successfully");
+        setSelectedFaqs([]);
+        fetchFaqs();
+      } else {
+        alert(json.error || "Failed to delete FAQs");
+      }
+    } catch (err) {
+      console.error("Error bulk deleting FAQs:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSelectAll = (e) => {
+    if (e.target.checked) {
+      const allIds = filteredFaqs.map((f) => f._id);
+      setSelectedFaqs(allIds);
+    } else {
+      setSelectedFaqs([]);
+    }
+  };
+
+  const handleSelectFaq = (id) => {
+    setSelectedFaqs((prev) =>
+      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
+    );
+  };
+
   // Modals
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -299,13 +343,15 @@ export default function BlogFaqComponent() {
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            {/* <button
-              onClick={downloadSampleCsv}
-              className="border px-3 py-1.5 rounded bg-white text-gray-600 hover:bg-gray-50 flex items-center gap-1 text-sm"
-              title="Download CSV Template matching SQL format"
-            >
-              <Icon icon="lucide:download" className="text-base" /> Sample CSV
-            </button> */}
+            {selectedFaqs.length > 0 && (
+              <button
+                onClick={handleBulkDelete}
+                className="border border-red-200 px-3 py-1.5 rounded bg-red-50 text-red-700 hover:bg-red-100 flex items-center gap-1 text-sm font-medium transition-colors"
+                title="Delete Selected FAQs"
+              >
+                <Icon icon="mingcute:delete-2-line" className="text-base" /> Bulk Delete ({selectedFaqs.length})
+              </button>
+            )}
 
             {/* Match Button */}
             <button
@@ -343,7 +389,17 @@ export default function BlogFaqComponent() {
         <table className="w-full border border-gray-200 text-sm">
           <thead>
             <tr className="bg-gray-50 border-b border-gray-200 text-gray-700">
-              <th className="p-3 text-left pl-4 font-semibold w-12">#</th>
+              <th className="p-3 text-left pl-4 font-semibold w-12">
+                <input
+                  type="checkbox"
+                  className="rounded border-gray-300"
+                  onChange={handleSelectAll}
+                  checked={
+                    filteredFaqs.length > 0 && selectedFaqs.length === filteredFaqs.length
+                  }
+                />
+              </th>
+              <th className="p-3 text-left font-semibold w-16">#</th>
               <th className="p-3 text-left font-semibold w-24">Exist ID</th>
               <th className="p-3 text-left font-semibold w-56">Matched Blog</th>
               <th className="p-3 text-left font-semibold w-80">Question</th>
@@ -354,7 +410,7 @@ export default function BlogFaqComponent() {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan="6" className="text-center py-8 text-gray-500">
+                <td colSpan="7" className="text-center py-8 text-gray-500">
                   <div className="flex justify-center items-center gap-2">
                     <Icon icon="line-md:loading-loop" className="text-xl text-blue-600" />
                     Loading FAQs from blogs_faq collection...
@@ -363,7 +419,7 @@ export default function BlogFaqComponent() {
               </tr>
             ) : currentItems.length === 0 ? (
               <tr>
-                <td colSpan="6" className="text-center py-8 text-gray-400">
+                <td colSpan="7" className="text-center py-8 text-gray-400">
                   No FAQs found in blogs_faq table. Upload a CSV or create one.
                 </td>
               </tr>
@@ -374,7 +430,15 @@ export default function BlogFaqComponent() {
 
                 return (
                   <tr key={item._id} className="border-b border-gray-100 hover:bg-gray-50/80 transition-colors">
-                    <td className="p-3 pl-4 text-gray-500 font-mono text-xs">
+                    <td className="p-3 pl-4">
+                      <input
+                        type="checkbox"
+                        className="rounded border-gray-300"
+                        checked={selectedFaqs.includes(item._id)}
+                        onChange={() => handleSelectFaq(item._id)}
+                      />
+                    </td>
+                    <td className="p-3 text-gray-500 font-mono text-xs">
                       {currentPage * itemsPerPage + index + 1}
                     </td>
                     <td className="p-3 font-mono text-xs text-purple-700 font-bold">
@@ -448,7 +512,10 @@ export default function BlogFaqComponent() {
               pageCount={pageCount}
               marginPagesDisplayed={2}
               pageRangeDisplayed={3}
-              onPageChange={({ selected }) => setCurrentPage(selected)}
+              onPageChange={({ selected }) => {
+                setCurrentPage(selected);
+                setSelectedFaqs([]); // Clear selection on page change
+              }}
               containerClassName={"flex gap-1 items-center"}
               pageClassName={"border rounded px-2.5 py-1 text-gray-600 hover:bg-gray-100"}
               activeClassName={"bg-blue-600 text-white font-bold border-blue-600"}
