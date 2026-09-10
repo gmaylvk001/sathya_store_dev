@@ -36,7 +36,14 @@ const menuItems = [
     ]
   },
   { icon: 'mdi:note-text-outline', label: 'Blog', link: 'blog' },
-  { icon: 'mdi:post-outline', label: 'Blogs', link: 'blogs' },
+  {
+    icon: 'mdi:post-outline',
+    label: 'Blogs',
+    submenu: [
+      { icon: 'mdi:format-list-bulleted', label: 'Blog List', link: 'blogs', dotColor: 'bg-green-500' },
+      { icon: 'mdi:frequently-asked-questions', label: 'Blog FAQ', link: 'blogs-faq', dotColor: 'bg-purple-500' },
+    ]
+  },
 
   {
     icon: 'mdi:cog-outline',
@@ -57,6 +64,7 @@ const menuItems = [
       { icon: 'mdi:shield-key-outline', label: 'Permissions', link: 'permissions', dotColor: 'bg-purple-500' },
       { icon: 'mdi:account-group-outline', label: 'Roles', link: 'roles', dotColor: 'bg-blue-500' },
       { icon: 'mdi:account-group-outline', label: 'Sathya Exist Users', link: 'exist_sathya_users', dotColor: 'bg-blue-500' },
+      { icon: 'mdi:account-cancel-outline', label: 'Sathya Exist User Skipped', link: 'exist_sathya_user_skipped', dotColor: 'bg-orange-500' },
       { icon: 'mdi:card-account-details-outline', label: 'Sathya Exist User Details', link: 'exist_sathya_user_details', dotColor: 'bg-blue-500' },
     ]
   },
@@ -121,11 +129,8 @@ export default function AdminSider({ collapsed }) {
       setActiveMenu('Unilet Products');
       return;
     }
+    // Check submenus first (more specific paths like /admin/blogs-faq before /admin/blog)
     for (const item of menuItems) {
-      if (item.link && pathname.includes(`/admin/${item.link}`)) {
-        setActiveMenu(item.label);
-        return;
-      }
       if (item.submenu) {
         const sub = item.submenu.find((s) => pathname.includes(`/admin/${s.link}`));
         if (sub) {
@@ -133,6 +138,13 @@ export default function AdminSider({ collapsed }) {
           setOpenMenus((prev) => (prev.includes(item.label) ? prev : [...prev, item.label]));
           return;
         }
+      }
+    }
+    // Then check top-level items with exact segment match
+    for (const item of menuItems) {
+      if (item.link && (pathname === `/admin/${item.link}` || pathname.startsWith(`/admin/${item.link}/`))) {
+        setActiveMenu(item.label);
+        return;
       }
     }
   }, [pathname]);

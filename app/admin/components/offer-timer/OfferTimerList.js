@@ -98,7 +98,7 @@ export default function OfferTimerList() {
                 <th className="p-2 font-semibold">Offer End</th>
                 <th className="p-2 font-semibold">Timer Display Status</th>
                 <th className="p-2 font-semibold">Offer View States</th>
-                <th className="p-2 font-semibold w-24">Action</th>
+                <th className="p-2 font-semibold w-48">Action</th>
               </tr>
             </thead>
             <tbody>
@@ -130,7 +130,15 @@ export default function OfferTimerList() {
                     <td className="p-2">{timer.timerDisplayStatus === "Yes" ? "active" : "inactive"}</td>
                     <td className="p-2">{formatOfferStates(timer.offerViewStates)}</td>
                     <td className="p-2">
-                      <div className="flex items-center gap-2 justify-center">
+                      <div className="flex items-center gap-1.5 justify-center">
+                        <button
+                          onClick={() => router.push(`/admin/offer-timer/card-offer/${timer._id}`)}
+                          className="px-2.5 py-1 text-xs border border-blue-500 text-blue-600 hover:bg-blue-50 rounded flex items-center gap-1 font-medium transition-colors shadow-xs"
+                          title="View Card Offer"
+                        >
+                          <Icon icon="mdi:credit-card-outline" className="w-3.5 h-3.5" />
+                          View Card Offer
+                        </button>
                         <button
                           onClick={() => router.push(`/admin/offer-timer/edit/${timer._id}`)}
                           className="px-2 py-1 border rounded text-gray-600 hover:bg-gray-100"

@@ -32,6 +32,8 @@ export default function SystemUsersComponent() {
   const [currentUserId, setCurrentUserId] = useState(null);
   const [loggedInName, setLoggedInName] = useState("");
   const [fetchingUserId, setFetchingUserId] = useState(null);
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
 
   useEffect(() => {
     fetchUsers();
@@ -95,6 +97,13 @@ export default function SystemUsersComponent() {
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleToggleSelect = (userId) => {
+    const id = String(userId);
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
   };
 
   const handleEdit = (user) => {
@@ -171,6 +180,7 @@ export default function SystemUsersComponent() {
       const response = await axios.delete("/api/system_users/delete", {
         data: { userId },
       });
+      setSelectedIds((prev) => prev.filter((id) => id !== String(userId)));
 
       if (response.data.success) {
         setAlertMessage("✅ User deleted successfully!");
@@ -186,6 +196,39 @@ export default function SystemUsersComponent() {
       setAlertMessage(error.response?.data?.error || "❌ Error deleting user");
       setShowAlert(true);
       setTimeout(() => setShowAlert(false), 3000);
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (!selectedIds.length) {
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Delete ${selectedIds.length} selected system user(s)? This cannot be undone.`
+    );
+    if (!confirmed) {
+      return;
+    }
+
+    setIsBulkDeleting(true);
+    try {
+      const response = await axios.delete("/api/system_users/delete", {
+        data: { userIds: selectedIds },
+      });
+
+      setAlertMessage(`✅ ${response.data.message || "Users deleted successfully!"}`);
+      setShowAlert(true);
+      setTimeout(() => setShowAlert(false), 3000);
+      setSelectedIds([]);
+      setCurrentPage(1);
+      fetchUsers();
+    } catch (error) {
+      setAlertMessage(error.response?.data?.error || "❌ Error deleting users");
+      setShowAlert(true);
+      setTimeout(() => setShowAlert(false), 3000);
+    } finally {
+      setIsBulkDeleting(false);
     }
   };
 
@@ -288,6 +331,26 @@ export default function SystemUsersComponent() {
   const currentUsers = filteredUsers.slice(indexOfFirstUser, indexOfLastUser);
   const startEntry = indexOfFirstUser + 1;
   const endEntry = Math.min(indexOfLastUser, totalEntries);
+  const currentPageIds = currentUsers.map((user) => String(user._id));
+  const allCurrentSelected =
+    currentPageIds.length > 0 && currentPageIds.every((id) => selectedIds.includes(id));
+  const filteredExistUsers = filteredUsers.filter((user) => String(user.exist_id || "").trim());
+
+  const toggleSelectCurrentPage = () => {
+    if (allCurrentSelected) {
+      setSelectedIds((prev) => prev.filter((id) => !currentPageIds.includes(id)));
+      return;
+    }
+    setSelectedIds((prev) => [...new Set([...prev, ...currentPageIds])]);
+  };
+
+  const selectAllFiltered = () => {
+    setSelectedIds(filteredUsers.map((user) => String(user._id)));
+  };
+
+  const selectExistUsers = () => {
+    setSelectedIds(filteredExistUsers.map((user) => String(user._id)));
+  };
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
@@ -432,9 +495,51 @@ export default function SystemUsersComponent() {
             {showAlert && !isModalOpen && (
               <div className="bg-green-500 text-white px-4 py-2 rounded-md mb-4 text-center">{alertMessage}</div>
             )}
-            <div className="flex justify-end mb-3">
+            <div className="flex flex-wrap items-center gap-2 mb-3">
+              {selectedIds.length > 0 && (
+                <>
+                  <span className="text-sm text-gray-700">{selectedIds.length} selected</span>
+                  <button
+                    onClick={handleBulkDelete}
+                    disabled={isBulkDeleting}
+                    className="p-2 bg-red-500 hover:bg-red-600 text-white rounded-md transition disabled:opacity-50"
+                  >
+                    {isBulkDeleting ? "Deleting..." : "Delete selected"}
+                  </button>
+                </>
+              )}
+              {filteredExistUsers.length > 0 && (
+                <button
+                  type="button"
+                  onClick={selectExistUsers}
+                  disabled={isBulkDeleting}
+                  className="p-2 border border-yellow-500 text-yellow-800 hover:bg-yellow-50 rounded-md transition text-sm disabled:opacity-50"
+                >
+                  Select exist users ({filteredExistUsers.length})
+                </button>
+              )}
+              {filteredUsers.length > 0 && selectedIds.length !== filteredUsers.length && (
+                <button
+                  type="button"
+                  onClick={selectAllFiltered}
+                  disabled={isBulkDeleting}
+                  className="p-2 border border-gray-300 hover:bg-gray-50 rounded-md transition text-sm disabled:opacity-50"
+                >
+                  Select all {filteredUsers.length}
+                </button>
+              )}
+              {selectedIds.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setSelectedIds([])}
+                  disabled={isBulkDeleting}
+                  className="p-2 border border-gray-300 hover:bg-gray-50 rounded-md transition text-sm disabled:opacity-50"
+                >
+                  Clear
+                </button>
+              )}
               <span
-                className="inline-flex items-center rounded px-2 py-1 text-xs font-semibold text-yellow-900"
+                className="ml-auto inline-flex items-center rounded px-2 py-1 text-xs font-semibold text-yellow-900"
                 style={{ backgroundColor: "#fff59d" }}
               >
                 Exist users: {existUsersCount}
@@ -444,6 +549,14 @@ export default function SystemUsersComponent() {
             <table className="w-full border border-gray-300">
               <thead>
                 <tr className="bg-gray-200">
+                  <th className="p-2 w-10">
+                    <input
+                      type="checkbox"
+                      checked={allCurrentSelected}
+                      onChange={toggleSelectCurrentPage}
+                      disabled={currentUsers.length === 0 || isBulkDeleting}
+                    />
+                  </th>
                   <th className="p-2">Exist ID</th>
                   <th className="p-2">Email Address</th>
                   <th className="p-2">Display Name</th>
@@ -461,7 +574,15 @@ export default function SystemUsersComponent() {
               <tbody>
                 {currentUsers.length > 0 ? (
                   currentUsers.map((user, index) => (
-                    <tr key={index} className="text-center border-b">
+                    <tr key={user._id || index} className="text-center border-b">
+                      <td className="p-2">
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.includes(String(user._id))}
+                          onChange={() => handleToggleSelect(user._id)}
+                          disabled={isBulkDeleting}
+                        />
+                      </td>
                       <td className="p-2">{user.exist_id || '-'}</td>
                       <td className="p-2 font-bold">{user.email || '-'}</td>
                       <td className="p-2">{user.name || '-'}</td>
@@ -543,7 +664,7 @@ export default function SystemUsersComponent() {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="12" className="p-2 text-center text-gray-500">No users found.</td>
+                    <td colSpan="13" className="p-2 text-center text-gray-500">No users found.</td>
                   </tr>
                 )}
               </tbody>

@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
+
 import Category from "@/models/ecom_category_info";
+import CategoryFilter from "@/models/ecom_categoryfilters_infos";
+import Filter from "@/models/ecom_filter_infos";
+import FilterGroup from "@/models/ecom_filter_group_infos";
+
 import * as XLSX from "xlsx";
 
 export async function GET(req) {
@@ -13,19 +18,23 @@ export async function GET(req) {
     const startDate = searchParams.get("startDate")?.trim() || "";
     const endDate = searchParams.get("endDate")?.trim() || "";
 
-    // Fetch all categories to reconstruct full hierarchy
+    // 1. Fetch all categories for lookup and hierarchy reconstruction
     const allCategories = await Category.find({}).lean();
     if (!allCategories || allCategories.length === 0) {
       throw new Error("No categories found in database");
     }
 
-    // Build lookup maps for fast parent resolution
+    const allCategoryMap = {};
     const byId = new Map();
     const byMd5 = new Map();
     const byName = new Map();
 
     for (const cat of allCategories) {
-      if (cat._id) byId.set(String(cat._id), cat);
+      const idStr = cat._id ? String(cat._id) : "";
+      if (idStr) {
+        byId.set(idStr, cat);
+        allCategoryMap[idStr] = cat;
+      }
       if (cat.md5_cat_name) byMd5.set(String(cat.md5_cat_name), cat);
       if (cat.category_name) byName.set(cat.category_name.trim().toLowerCase(), cat);
     }
@@ -83,7 +92,7 @@ export async function GET(req) {
       return chain;
     };
 
-    // Track children count to identify leaf nodes if needed
+    // Track children count to identify leaf nodes
     const childrenCount = new Map();
     for (const cat of allCategories) {
       const parent = findParent(cat);
@@ -93,11 +102,11 @@ export async function GET(req) {
       }
     }
 
-    // Collect child categories
+    // Collect child categories hierarchy:
     // 1st column: Child Category
     // 2nd column: Sub Category
     // 3rd column: Parent Category
-    const rows = [];
+    const hierarchyRows = [];
 
     for (const cat of allCategories) {
       const chain = getAncestors(cat);
@@ -132,7 +141,7 @@ export async function GET(req) {
           }
         }
 
-        rows.push({
+        hierarchyRows.push({
           "Child Category": cat.category_name || "-",
           "Sub Category": subCategory.category_name || "-",
           "Parent Category": parentCategory.category_name || "-",
@@ -141,13 +150,13 @@ export async function GET(req) {
     }
 
     // Fallback: If no Level 2 categories found, include Level 1 leaf categories
-    if (rows.length === 0) {
+    if (hierarchyRows.length === 0) {
       for (const cat of allCategories) {
         const chain = getAncestors(cat);
         const hasChildren = (childrenCount.get(String(cat._id)) || 0) > 0;
         if (chain.length === 1 && !hasChildren) {
           const parentCategory = chain[0];
-          rows.push({
+          hierarchyRows.push({
             "Child Category": cat.category_name || "-",
             "Sub Category": "-",
             "Parent Category": parentCategory.category_name || "-",
@@ -156,8 +165,8 @@ export async function GET(req) {
       }
     }
 
-    // Sort rows alphabetically: Parent Category -> Sub Category -> Child Category
-    rows.sort((a, b) => {
+    // Sort hierarchy rows alphabetically: Parent Category -> Sub Category -> Child Category
+    hierarchyRows.sort((a, b) => {
       const p = (a["Parent Category"] || "").localeCompare(b["Parent Category"] || "");
       if (p !== 0) return p;
       const s = (a["Sub Category"] || "").localeCompare(b["Sub Category"] || "");
@@ -165,37 +174,185 @@ export async function GET(req) {
       return (a["Child Category"] || "").localeCompare(b["Child Category"] || "");
     });
 
-    const excelData = rows.length > 0 ? rows : [
+    // 2. Fetch Category Filters for detailed sheet
+    const categoryIds = allCategories.map((c) => String(c._id));
+    const categoryFilters =
+      categoryIds.length > 0
+        ? await CategoryFilter.find({
+            category_id: { $in: categoryIds },
+          }).lean()
+        : [];
+
+    const filterIds = [
+      ...new Set(categoryFilters.map((cf) => cf.filter_id).filter(Boolean)),
+    ];
+    const filters =
+      filterIds.length > 0
+        ? await Filter.find({ _id: { $in: filterIds } }).lean()
+        : [];
+    const filterMap = {};
+    filters.forEach((f) => {
+      filterMap[f._id.toString()] = f;
+    });
+
+    const filterGroupIds = [
+      ...new Set(filters.map((f) => f.filter_group).filter(Boolean)),
+    ];
+    const filterGroups =
+      filterGroupIds.length > 0
+        ? await FilterGroup.find({ _id: { $in: filterGroupIds } }).lean()
+        : [];
+    const filterGroupMap = {};
+    filterGroups.forEach((g) => {
+      filterGroupMap[g._id.toString()] = g.filtergroup_name || "";
+    });
+
+    // Group assigned filters per category
+    const categoryAssignedFilters = {};
+    categoryFilters.forEach((cf) => {
+      const filter = filterMap[cf.filter_id];
+      if (!filter) return;
+      const groupName = filterGroupMap[filter.filter_group] || "Filter";
+      if (!categoryAssignedFilters[cf.category_id]) {
+        categoryAssignedFilters[cf.category_id] = [];
+      }
+      categoryAssignedFilters[cf.category_id].push(
+        `${groupName}: ${filter.filter_name}`
+      );
+    });
+
+    // Build filter query for Category list
+    const query = {};
+    if (search) {
+      query.$or = [
+        { category_name: { $regex: search, $options: "i" } },
+        { category_slug: { $regex: search, $options: "i" } },
+      ];
+    }
+    if (status) {
+      query.status = { $regex: `^${status}$`, $options: "i" };
+    }
+    if (startDate && endDate) {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      end.setHours(23, 59, 59, 999);
+      query.createdAt = { $gte: start, $lte: end };
+    }
+
+    const filteredCategories = await Category.find(query)
+      .sort({ position: 1, createdAt: -1 })
+      .lean();
+
+    const categoryRows = filteredCategories.map((cat) => {
+      let parentName = "None";
+      let categoryType = "Main Category";
+
+      if (cat.parentid && cat.parentid !== "none") {
+        const parent = allCategoryMap[cat.parentid];
+        parentName = parent?.category_name || cat.parentid;
+        categoryType = "Sub Category";
+      }
+
+      const assignedFilters = (
+        categoryAssignedFilters[cat._id.toString()] || []
+      ).join(" | ");
+
+      return {
+        "Category Name": cat.category_name || "",
+        "Category Slug": cat.category_slug || "",
+        "Parent Category": parentName,
+        "Type": categoryType,
+        "Status": cat.status || "Active",
+        "Position": cat.position ?? 0,
+        "Image": cat.image || "",
+        "Nav Image": cat.navImage || "",
+        "Icon Image": cat.icon_url || "",
+        "Meta Title":
+          cat.meta_title && cat.meta_title !== "none" ? cat.meta_title : "",
+        "Meta Description":
+          cat.meta_description && cat.meta_description !== "none"
+            ? cat.meta_description
+            : "",
+        "Meta Keyword":
+          cat.meta_keyword && cat.meta_keyword !== "none"
+            ? cat.meta_keyword
+            : "",
+        "Content": cat.content || "",
+        "Assigned Filters": assignedFilters,
+        "Created Date": cat.createdAt
+          ? new Date(cat.createdAt).toISOString().split("T")[0]
+          : "",
+      };
+    });
+
+    const filterRows = [];
+    categoryFilters.forEach((cf) => {
+      const category = allCategoryMap[cf.category_id];
+      const filter = filterMap[cf.filter_id];
+      if (!category || !filter) return;
+
+      let categoryName = "-";
+      let subCategoryName = "-";
+
+      if (category.parentid && category.parentid !== "none") {
+        const parent = allCategoryMap[category.parentid];
+        categoryName = parent?.category_name || "-";
+        subCategoryName = category.category_name;
+      } else {
+        categoryName = category.category_name;
+        subCategoryName = "-";
+      }
+
+      filterRows.push({
+        "Category": categoryName,
+        "Sub Category": subCategoryName,
+        "Filter Group": filterGroupMap[filter.filter_group] || "-",
+        "Filter Value": filter.filter_name || "-",
+      });
+    });
+
+    const workbook = XLSX.utils.book_new();
+
+    // Sheet 1: Child Categories (1st col: Child, 2nd col: Sub, 3rd col: Parent)
+    const excelHierarchyData = hierarchyRows.length > 0 ? hierarchyRows : [
       {
         "Child Category": "No child categories found",
         "Sub Category": "",
         "Parent Category": "",
       }
     ];
-
-    const worksheet = XLSX.utils.json_to_sheet(excelData);
-
-    // Set column widths for readability
-    worksheet["!cols"] = [
+    const hierarchySheet = XLSX.utils.json_to_sheet(excelHierarchyData);
+    hierarchySheet["!cols"] = [
       { wch: 35 }, // Child Category
       { wch: 30 }, // Sub Category
       { wch: 30 }, // Parent Category
     ];
+    XLSX.utils.book_append_sheet(workbook, hierarchySheet, "Child Categories");
 
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Child Categories");
+    // Sheet 2: All Categories
+    if (categoryRows.length > 0) {
+      const categorySheet = XLSX.utils.json_to_sheet(categoryRows);
+      XLSX.utils.book_append_sheet(workbook, categorySheet, "All Categories");
+    }
+
+    // Sheet 3: Category Filters
+    if (filterRows.length > 0) {
+      const filterSheet = XLSX.utils.json_to_sheet(filterRows);
+      XLSX.utils.book_append_sheet(workbook, filterSheet, "Category Filters");
+    }
 
     const buffer = XLSX.write(workbook, { type: "buffer", bookType: "xlsx" });
+    const today = new Date().toISOString().slice(0, 10);
 
     return new NextResponse(buffer, {
       headers: {
-        "Content-Disposition": "attachment; filename=categories.xlsx",
+        "Content-Disposition": `attachment; filename="categories_export_${today}.xlsx"`,
         "Content-Type":
           "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
       },
     });
   } catch (error) {
-    console.error("Category export error:", error);
+    console.error("Export error:", error);
     return NextResponse.json(
       { success: false, message: `Export failed: ${error.message}` },
       { status: 500 }

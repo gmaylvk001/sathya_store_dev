@@ -1,5 +1,6 @@
 import dbConnect from "@/lib/db";
 import Blogs from "@/models/Blogs";
+import BlogFaq from "@/models/BlogFaq";
 import { NextResponse } from "next/server";
 
 export async function POST(req) {
@@ -17,7 +18,25 @@ export async function POST(req) {
       return NextResponse.json({ success: false, error: "Slug already exists" }, { status: 400 });
     }
 
-    const newBlog = await Blogs.create(body);
+    const { faqs, stores, isAllStores, store_id, store_ids, ...blogData } = body;
+    const newBlog = await Blogs.create(blogData);
+
+    // Save FAQs to separate blogs_faq collection linked by blogId foreign key
+    if (Array.isArray(faqs) && faqs.length > 0) {
+      const faqDocs = faqs
+        .filter((f) => f.question && f.question.trim() && f.answer && f.answer.trim())
+        .map((f) => ({
+          blogId: newBlog._id,
+          existId: newBlog.existId || "",
+          question: f.question.trim(),
+          answer: f.answer.trim(),
+        }));
+
+      if (faqDocs.length > 0) {
+        await BlogFaq.insertMany(faqDocs);
+      }
+    }
+
     return NextResponse.json({ success: true, data: newBlog });
   } catch (error) {
     console.error("Error creating blog:", error);

@@ -8,7 +8,6 @@ import CustomQuill from "../blog/CustomQuill";
 export default function Blogs() {
   const [blogs, setBlogs] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [stores, setStores] = useState([]);
   
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -16,10 +15,9 @@ export default function Blogs() {
   
   const [formData, setFormData] = useState({
     _id: null,
+    existId: "",
     blogTitle: "",
     slug: "",
-    stores: [],
-    isAllStores: false,
     category: "",
     shortDescription: "",
     description: "",
@@ -35,6 +33,9 @@ export default function Blogs() {
     status: "Active",
   });
 
+  const [isMatchingBlogFaqs, setIsMatchingBlogFaqs] = useState(false);
+  const [faqMatchMessage, setFaqMatchMessage] = useState("");
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
   const [blogToDelete, setBlogToDelete] = useState(null);
@@ -43,6 +44,173 @@ export default function Blogs() {
 
   const [currentPage, setCurrentPage] = useState(0);
   const itemsPerPage = 20;
+
+  // Bulk Upload States
+  const [showExcelModal, setShowExcelModal] = useState(false);
+  const [showZipModal, setShowZipModal] = useState(false);
+  const [showFaqModal, setShowFaqModal] = useState(false);
+  const [excelFile, setExcelFile] = useState(null);
+  const [zipFile, setZipFile] = useState(null);
+  const [faqFile, setFaqFile] = useState(null);
+  const [isUploadingExcel, setIsUploadingExcel] = useState(false);
+  const [isUploadingZip, setIsUploadingZip] = useState(false);
+  const [isUploadingFaq, setIsUploadingFaq] = useState(false);
+  const [excelUploadResult, setExcelUploadResult] = useState(null);
+  const [zipUploadResult, setZipUploadResult] = useState(null);
+  const [faqUploadResult, setFaqUploadResult] = useState(null);
+
+  const handleExcelUpload = async (e) => {
+    e.preventDefault();
+    if (!excelFile) {
+      alert("Please select an Excel or CSV file");
+      return;
+    }
+    const fd = new FormData();
+    fd.append("file", excelFile);
+    try {
+      setIsUploadingExcel(true);
+      setExcelUploadResult(null);
+      const res = await fetch("/api/blogs-new/bulk-upload", {
+        method: "POST",
+        body: fd,
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setExcelUploadResult(data);
+        await fetchBlogs();
+      } else {
+        alert(data.error || "Bulk upload failed");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Error uploading file");
+    } finally {
+      setIsUploadingExcel(false);
+    }
+  };
+
+  const handleZipUpload = async (e) => {
+    e.preventDefault();
+    if (!zipFile) {
+      alert("Please select a ZIP file");
+      return;
+    }
+    const fd = new FormData();
+    fd.append("zip", zipFile);
+    try {
+      setIsUploadingZip(true);
+      setZipUploadResult(null);
+      const res = await fetch("/api/blogs-new/zip-upload", {
+        method: "POST",
+        body: fd,
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setZipUploadResult(data);
+      } else {
+        alert(data.error || "ZIP upload failed");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Error uploading ZIP file");
+    } finally {
+      setIsUploadingZip(false);
+    }
+  };
+
+  const handleFaqUpload = async (e) => {
+    e.preventDefault();
+    if (!faqFile) {
+      alert("Please select an FAQ CSV or Excel file");
+      return;
+    }
+    const fd = new FormData();
+    fd.append("file", faqFile);
+    try {
+      setIsUploadingFaq(true);
+      setFaqUploadResult(null);
+      const res = await fetch("/api/blogs-new/faq-bulk-upload", {
+        method: "POST",
+        body: fd,
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setFaqUploadResult(data);
+        await fetchBlogs();
+      } else {
+        alert(data.error || "FAQ bulk upload failed");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Error uploading FAQ file");
+    } finally {
+      setIsUploadingFaq(false);
+    }
+  };
+
+  const downloadSampleFaqCsv = () => {
+    const headers = ["id", "exist id", "question", "answer", "timestamp"];
+    const sampleRows = [
+      `"1","19","Is 6GB RAM enough for everyday smartphone use?","Yes. For most users, 6GB RAM is sufficient for social media and browsing.","2026-07-08 11:14:51"`,
+      `"2","19","Should I buy a 5G smartphone in 2026?","Yes. With 5G expanding across India, it offers future readiness.","2026-07-08 11:14:51"`,
+      `"3","26","Is MacBook Air enough for students?","Yes, MacBook Air is ideal for students due to lightweight design and battery life.","2026-07-08 11:14:51"`,
+    ];
+    const csvContent = "data:text/csv;charset=utf-8," + headers.join(",") + "\n" + sampleRows.join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "blogs_faq_sample_template.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const downloadSampleCsv = () => {
+    const headers = [
+      "title",
+      "slug",
+      "banner_image",
+      "featured_image",
+      "short_description",
+      "description",
+      "author",
+      "reading_time",
+      "publish_date",
+      "views",
+      "category",
+      "category_id",
+      "meta_title",
+      "meta_keywords",
+      "meta_description",
+      "status",
+    ];
+    const sampleRow = [
+      `"Choosing the Right Cooling Solution"`,
+      `"choosing-the-right-cooling-solution"`,
+      `"ac_banner.png"`,
+      `"ac_featured.png"`,
+      `"Guide to choosing between inverter and non-inverter ACs."`,
+      `"<h2>Understanding AC Technology</h2><p>Here are key factors to consider when buying a split AC...</p>"`,
+      `"Admin"`,
+      `"6"`,
+      `"2024-08-28"`,
+      `"0"`,
+      `"Air Conditioner"`,
+      `""`,
+      `"Best AC Buying Guide"`,
+      `"air conditioner, split ac, inverter ac"`,
+      `"Compare inverter and non inverter ACs for your home."`,
+      `"active"`,
+    ];
+    const csvContent = "data:text/csv;charset=utf-8," + headers.join(",") + "\\n" + sampleRow.join(",");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "sathya_blogs_sample_template.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   // Fetch Data
   const fetchBlogs = async () => {
@@ -72,22 +240,9 @@ export default function Blogs() {
     }
   };
 
-  const fetchStores = async () => {
-    try {
-      const res = await fetch("/api/stores");
-      const data = await res.json();
-      if (data.success && Array.isArray(data.data)) {
-        setStores(data.data);
-      }
-    } catch (err) {
-      console.error("Error fetching stores:", err);
-    }
-  };
-
   useEffect(() => {
     fetchBlogs();
     fetchCategories();
-    fetchStores();
   }, []);
 
   // Form handling
@@ -112,10 +267,9 @@ export default function Blogs() {
   const handleOpenCreate = () => {
     setFormData({
       _id: null,
+      existId: "",
       blogTitle: "",
       slug: "",
-      stores: [],
-      isAllStores: false,
       category: "",
       shortDescription: "",
       description: "",
@@ -130,20 +284,20 @@ export default function Blogs() {
       metaDescription: "",
       status: "Active",
     });
+    setFaqMatchMessage("");
     setView("create");
   };
 
-  const handleOpenEdit = (item) => {
+  const handleOpenEdit = async (item) => {
     setFormData({
       _id: item._id,
+      existId: item.existId || "",
       blogTitle: item.blogTitle || "",
       slug: item.slug || "",
-      stores: item.stores || [],
-      isAllStores: item.isAllStores || false,
       category: item.category || "",
       shortDescription: item.shortDescription || "",
       description: item.description || "",
-      faqs: item.faqs || [],
+      faqs: [],
       author: item.author || "",
       readingTime: item.readingTime || "",
       publishDate: item.publishDate ? new Date(item.publishDate).toISOString().split('T')[0] : "",
@@ -154,12 +308,69 @@ export default function Blogs() {
       metaDescription: item.metaDescription || "",
       status: item.status || "Active",
     });
+    setFaqMatchMessage("");
     setView("edit");
+
+    // Fetch matched FAQs from standalone blogs_faq database table for this blog
+    try {
+      const existParam = item.existId ? `&existId=${encodeURIComponent(item.existId)}` : "";
+      const res = await fetch(`/api/blogs-faq?blogId=${item._id}${existParam}`);
+      const json = await res.json();
+      if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+        setFormData((prev) => ({
+          ...prev,
+          faqs: json.data.map((f) => ({
+            _id: f._id,
+            question: f.question,
+            answer: f.answer,
+            existId: f.existId || item.existId || "",
+          })),
+        }));
+      }
+    } catch (err) {
+      console.error("Error loading FAQs for blog:", err);
+    }
   };
 
-  const handleStoreSelection = (e) => {
-    const selectedOptions = Array.from(e.target.selectedOptions).map((opt) => opt.value);
-    setFormData({ ...formData, stores: selectedOptions });
+  // Match and reload FAQs directly on the blog form
+  const handleMatchBlogFaqs = async () => {
+    if (!formData._id && !formData.existId) {
+      alert("Please provide an Exist ID (SQL ID) or save the blog first to match FAQs.");
+      return;
+    }
+    try {
+      setIsMatchingBlogFaqs(true);
+      setFaqMatchMessage("");
+
+      // Fetch FAQs for this specific blog from blogs_faq collection
+      const existParam = formData.existId ? `&existId=${encodeURIComponent(formData.existId)}` : "";
+      const blogIdParam = formData._id ? `&blogId=${formData._id}` : "";
+      const res = await fetch(`/api/blogs-faq?${blogIdParam}${existParam}`);
+      const json = await res.json();
+
+      if (json.success && Array.isArray(json.data)) {
+        if (json.data.length > 0) {
+          setFormData((prev) => ({
+            ...prev,
+            faqs: json.data.map((f) => ({
+              _id: f._id,
+              question: f.question,
+              answer: f.answer,
+              existId: f.existId || formData.existId || "",
+            })),
+          }));
+          setFaqMatchMessage(`Loaded ${json.data.length} matched FAQ(s) from blogs_faq table`);
+        } else {
+          setFaqMatchMessage("No FAQs found for this blog in blogs_faq table");
+        }
+      }
+    } catch (err) {
+      console.error("Error matching FAQs:", err);
+      alert("Failed to match FAQs");
+    } finally {
+      setIsMatchingBlogFaqs(false);
+      setTimeout(() => setFaqMatchMessage(""), 5000);
+    }
   };
 
   // FAQ Handling
@@ -310,10 +521,44 @@ export default function Blogs() {
                 <Icon icon="ic:baseline-search" />
               </span>
             </div>
-            <div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => {
+                  setExcelUploadResult(null);
+                  setShowExcelModal(true);
+                }}
+                className="border px-3 py-1.5 rounded bg-white text-gray-700 hover:bg-gray-50 flex items-center gap-1 text-sm font-medium"
+              >
+                <Icon icon="vscode-icons:file-type-excel" className="text-base" /> Bulk Upload (Excel/CSV)
+              </button>
+              <button
+                onClick={() => {
+                  setZipUploadResult(null);
+                  setShowZipModal(true);
+                }}
+                className="border px-3 py-1.5 rounded bg-white text-gray-700 hover:bg-gray-50 flex items-center gap-1 text-sm font-medium"
+              >
+                <Icon icon="vscode-icons:file-type-zip" className="text-base" /> Upload Images (ZIP)
+              </button>
+              <button
+                onClick={() => {
+                  setFaqUploadResult(null);
+                  setShowFaqModal(true);
+                }}
+                className="border px-3 py-1.5 rounded bg-white text-gray-700 hover:bg-gray-50 flex items-center gap-1 text-sm font-medium"
+              >
+                <Icon icon="fluent:chat-help-24-filled" className="text-base text-purple-600" /> Upload FAQs (CSV)
+              </button>
+              <a
+                href="/admin/blogs-faq"
+                className="border border-purple-200 px-3 py-1.5 rounded bg-purple-50 text-purple-700 hover:bg-purple-100 flex items-center gap-1.5 text-sm font-medium transition-colors"
+                title="Open standalone Blog FAQ table"
+              >
+                <Icon icon="mdi:frequently-asked-questions" className="text-base text-purple-600" /> Blog FAQ Table
+              </a>
               <button
                 onClick={handleOpenCreate}
-                className="border px-3 py-1.5 rounded bg-white text-gray-600 hover:bg-gray-50 flex items-center gap-1"
+                className="border px-3 py-1.5 rounded bg-blue-600 text-white hover:bg-blue-700 flex items-center gap-1 text-sm font-medium shadow-sm"
               >
                 <Icon icon="ic:baseline-add" className="text-lg" /> New Blog
               </button>
@@ -324,21 +569,23 @@ export default function Blogs() {
             <thead>
               <tr className="bg-gray-50 border-b border-gray-200 text-gray-700">
                 <th className="p-3 text-left pl-4 font-semibold w-16">#</th>
+                <th className="p-3 text-left font-semibold w-20">Exist ID</th>
                 <th className="p-3 text-left font-semibold">Blog Title</th>
                 <th className="p-3 text-left font-semibold">Slug</th>
+                <th className="p-3 text-center font-semibold w-20">FAQs</th>
                 <th className="p-3 text-left font-semibold w-32">Status</th>
-                <th className="p-3 text-left font-semibold w-32">Created</th>
+                <th className="p-3 text-left font-semibold w-36">Published Date</th>
                 <th className="p-3 text-center font-semibold w-40">Actions</th>
               </tr>
             </thead>
             <tbody>
               {isLoading ? (
                 <tr>
-                  <td colSpan="6" className="text-center py-6 text-gray-500">Loading...</td>
+                  <td colSpan="8" className="text-center py-6 text-gray-500">Loading...</td>
                 </tr>
               ) : filteredBlogs.length === 0 ? (
                 <tr>
-                  <td colSpan="6" className="text-center py-6 text-gray-500">No blogs found.</td>
+                  <td colSpan="8" className="text-center py-6 text-gray-500">No blogs found.</td>
                 </tr>
               ) : (
                 filteredBlogs
@@ -346,16 +593,22 @@ export default function Blogs() {
                   .map((b, idx) => (
                     <tr key={b._id} className="border-b hover:bg-gray-50">
                       <td className="p-3 pl-4">{totalEntries - (currentPage * itemsPerPage + idx)}</td>
+                      <td className="p-3 text-gray-600 font-mono text-xs">{b.existId || "-"}</td>
                       <td className="p-3 text-blue-500 cursor-pointer hover:underline" onClick={() => handleOpenEdit(b)}>
                         {b.blogTitle}
                       </td>
                       <td className="p-3">{b.slug}</td>
+                      <td className="p-3 text-center">
+                        <span className={`inline-flex items-center justify-center min-w-[28px] px-2 py-0.5 rounded-full text-xs font-semibold ${b.faqCount > 0 ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-400'}`}>
+                          {b.faqCount || 0}
+                        </span>
+                      </td>
                       <td className="p-3">
                         <span className={`px-2 py-1 rounded text-xs ${b.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
                           {b.status}
                         </span>
                       </td>
-                      <td className="p-3">{formatDate(b.createdAt)}</td>
+                      <td className="p-3">{formatDate(b.publishDate)}</td>
                       <td className="p-3">
                         <div className="flex items-center gap-2 justify-center">
                           <button
@@ -441,29 +694,17 @@ export default function Blogs() {
             </div>
 
             <div className="grid grid-cols-[200px_1fr] gap-4 items-start">
-              <label className="font-semibold text-gray-700 mt-2">Stores</label>
+              <label className="font-semibold text-gray-700 mt-2">Exist ID (SQL ID)</label>
               <div>
-                <label className="flex items-center gap-2 mb-2">
-                  <input
-                    type="checkbox"
-                    checked={formData.isAllStores}
-                    onChange={(e) => setFormData({ ...formData, isAllStores: e.target.checked })}
-                  />
-                  <span>All Stores</span>
-                </label>
-                <select
-                  multiple
-                  disabled={formData.isAllStores}
-                  value={formData.stores}
-                  onChange={handleStoreSelection}
-                  className={`w-full border rounded p-2 h-48 focus:outline-none ${formData.isAllStores ? 'bg-gray-100 text-gray-400' : 'bg-white focus:border-blue-400'}`}
-                >
-                  {stores.map((s) => (
-                    <option key={s._id} value={s.organisation_name}>{s.organisation_name}</option>
-                  ))}
-                </select>
+                <input
+                  type="text"
+                  className="w-full border rounded p-2 focus:outline-none focus:border-blue-400"
+                  placeholder="e.g. 19, 21, 26"
+                  value={formData.existId}
+                  onChange={(e) => setFormData({ ...formData, existId: e.target.value })}
+                />
                 <p className="text-xs text-gray-500 mt-1">
-                  Use Ctrl/Cmd to select multiple stores. If "All Stores" is checked, manual selection is ignored.
+                  Foreign key matching legacy SQL <code className="bg-gray-100 px-1 rounded font-bold">blogs.id</code>. Used by the Match button to link with <code className="bg-gray-100 px-1 rounded font-bold">blogs_faq</code>.
                 </p>
               </div>
             </div>
@@ -505,42 +746,88 @@ export default function Blogs() {
 
             <hr className="my-6" />
 
-            <div className="space-y-4">
-              <h3 className="text-xl font-light text-gray-700">Frequently Asked Questions</h3>
-              <p className="text-sm text-gray-500">These will be shown as an FAQ accordion on the blog detail page. Leave a row's question/answer empty to skip it.</p>
-              
-              {formData.faqs.map((faq, index) => (
-                <div key={index} className="flex gap-4 items-start">
-                  <input
-                    type="text"
-                    placeholder="Question"
-                    className="flex-1 border rounded p-2 focus:outline-none focus:border-blue-400"
-                    value={faq.question}
-                    onChange={(e) => updateFaq(index, "question", e.target.value)}
-                  />
-                  <textarea
-                    rows="2"
-                    placeholder="Answer"
-                    className="flex-1 border rounded p-2 focus:outline-none focus:border-blue-400"
-                    value={faq.answer}
-                    onChange={(e) => updateFaq(index, "answer", e.target.value)}
-                  ></textarea>
+            <div className="space-y-4 bg-gray-50/70 p-5 rounded-lg border border-gray-200">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-gray-200">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                    <Icon icon="fluent:chat-help-24-filled" className="text-xl text-purple-600" />
+                    Frequently Asked Questions ({formData.faqs.length})
+                  </h3>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    FAQs are stored in the separate <code className="bg-purple-100 text-purple-800 px-1 rounded font-semibold">blogs_faq</code> table (not stored in DB as a subfield in Blogs).
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2">
                   <button
                     type="button"
-                    onClick={() => removeFaq(index)}
-                    className="bg-red-500 text-white p-2 rounded hover:bg-red-600 mt-1"
+                    onClick={handleMatchBlogFaqs}
+                    disabled={isMatchingBlogFaqs}
+                    className="border border-purple-300 bg-purple-50 hover:bg-purple-100 text-purple-700 px-3 py-1.5 rounded text-xs font-semibold flex items-center gap-1.5 transition-colors disabled:opacity-50"
+                    title="Match and fetch FAQs from blogs_faq table using Exist ID or Blog ID"
                   >
-                    <Icon icon="mingcute:close-line" className="text-xl" />
+                    <Icon icon={isMatchingBlogFaqs ? "line-md:loading-loop" : "mdi:link-variant"} className="text-base text-purple-600" />
+                    {isMatchingBlogFaqs ? "Matching..." : "Match / Load FAQs"}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={addFaq}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded text-xs font-semibold flex items-center gap-1 transition-colors"
+                  >
+                    <Icon icon="ic:baseline-add" className="text-base" /> Add FAQ
                   </button>
                 </div>
-              ))}
-              <button
-                type="button"
-                onClick={addFaq}
-                className="border px-3 py-1.5 rounded bg-white text-gray-600 hover:bg-gray-50 flex items-center gap-1"
-              >
-                + Add FAQ
-              </button>
+              </div>
+
+              {faqMatchMessage && (
+                <div className="p-2.5 bg-green-50 border border-green-200 text-green-800 rounded text-xs flex items-center gap-2">
+                  <Icon icon="lucide:check-circle" className="text-base text-green-600 flex-shrink-0" />
+                  <span>{faqMatchMessage}</span>
+                </div>
+              )}
+
+              {formData.faqs.length === 0 ? (
+                <div className="text-center py-6 border border-dashed rounded-lg bg-white text-gray-500 text-xs">
+                  <Icon icon="mdi:frequently-asked-questions" className="text-3xl text-gray-400 mx-auto mb-1" />
+                  <p className="font-medium text-gray-700">No FAQs loaded for this blog yet.</p>
+                  <p className="text-gray-400 mt-0.5">
+                    Click <span className="font-semibold text-purple-700">Match / Load FAQs</span> to fetch FAQs linked by Exist ID, or click <span className="font-semibold text-blue-700">Add FAQ</span> to create one.
+                  </p>
+                </div>
+              ) : (
+                formData.faqs.map((faq, index) => (
+                  <div key={index} className="flex flex-col sm:flex-row gap-3 items-start bg-white p-3 rounded border border-gray-200 shadow-sm">
+                    <div className="w-7 h-7 rounded-full bg-purple-100 text-purple-700 font-bold text-xs flex items-center justify-center flex-shrink-0 mt-1">
+                      {index + 1}
+                    </div>
+                    <div className="flex-1 w-full space-y-2">
+                      <input
+                        type="text"
+                        placeholder="FAQ Question"
+                        className="w-full border rounded p-2 text-sm focus:outline-none focus:border-blue-400"
+                        value={faq.question}
+                        onChange={(e) => updateFaq(index, "question", e.target.value)}
+                      />
+                      <textarea
+                        rows="2"
+                        placeholder="FAQ Answer"
+                        className="w-full border rounded p-2 text-sm focus:outline-none focus:border-blue-400"
+                        value={faq.answer}
+                        onChange={(e) => updateFaq(index, "answer", e.target.value)}
+                      ></textarea>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => removeFaq(index)}
+                      className="bg-red-50 hover:bg-red-100 text-red-600 p-2 rounded transition-colors flex-shrink-0 mt-1"
+                      title="Remove FAQ"
+                    >
+                      <Icon icon="lucide:trash-2" className="text-base" />
+                    </button>
+                  </div>
+                ))
+              )}
             </div>
 
             <hr className="my-6" />
@@ -704,6 +991,254 @@ export default function Blogs() {
               <Icon icon="mdi:check" className="h-6 w-6 text-green-600" />
             </div>
             <p className="text-lg font-medium text-gray-900">{successMessage}</p>
+          </div>
+        </div>
+      )}
+
+      {/* Bulk Excel/CSV Upload Modal */}
+      {showExcelModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+          <div className="bg-white rounded-xl max-w-lg w-full p-6 shadow-2xl">
+            <div className="flex justify-between items-center pb-3 border-b">
+              <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+                <Icon icon="vscode-icons:file-type-excel" className="text-2xl" />
+                Bulk Upload Blogs (Excel / CSV)
+              </h3>
+              <button
+                onClick={() => setShowExcelModal(false)}
+                className="text-gray-400 hover:text-gray-600 text-xl font-bold"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleExcelUpload} className="mt-4 space-y-4">
+              <div className="p-3 bg-blue-50 border border-blue-100 rounded-lg text-xs text-blue-800 space-y-1">
+                <p className="font-semibold">Format notes:</p>
+                <p>• Compatible with Sathya Stores SQL table schema (title, slug, banner_image, featured_image, short_description, description, author, reading_time, publish_date, views, category, status, etc.).</p>
+                <p>• Image filenames will automatically be prefixed with <code className="bg-blue-100 px-1 rounded">/uploads/blogs/</code>.</p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Select .xlsx, .xls, or .csv file:
+                </label>
+                <input
+                  type="file"
+                  accept=".xlsx, .xls, .csv"
+                  onChange={(e) => setExcelFile(e.target.files?.[0] || null)}
+                  className="w-full text-sm border rounded p-2 focus:outline-none"
+                  required
+                />
+              </div>
+
+              {excelUploadResult && (
+                <div className={`p-3 rounded-lg text-xs ${excelUploadResult.success ? "bg-green-50 border border-green-200 text-green-800" : "bg-red-50 border border-red-200 text-red-800"}`}>
+                  <p className="font-bold">Upload Result:</p>
+                  <p>• Total rows: {excelUploadResult.totalRows || 0}</p>
+                  <p>• Inserted (new): {excelUploadResult.inserted || 0}</p>
+                  <p>• Updated (existing): {excelUploadResult.updated || 0}</p>
+                  {excelUploadResult.errorsCount > 0 && (
+                    <div className="mt-1 text-red-700">
+                      <p className="font-semibold">Errors ({excelUploadResult.errorsCount}):</p>
+                      <ul className="list-disc pl-4 space-y-0.5">
+                        {excelUploadResult.errors?.map((err, i) => (
+                          <li key={i}>{err}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <div className="flex justify-end items-center pt-2">
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowExcelModal(false)}
+                    className="px-4 py-2 text-gray-600 border rounded hover:bg-gray-100 text-sm"
+                  >
+                    Close
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isUploadingExcel || !excelFile}
+                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 text-sm font-semibold flex items-center gap-1.5"
+                  >
+                    {isUploadingExcel ? (
+                      <>
+                        <Icon icon="line-md:loading-loop" className="text-lg" /> Uploading...
+                      </>
+                    ) : (
+                      "Upload & Import"
+                    )}
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Bulk Images ZIP Upload Modal */}
+      {showZipModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+          <div className="bg-white rounded-xl max-w-lg w-full p-6 shadow-2xl">
+            <div className="flex justify-between items-center pb-3 border-b">
+              <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+                <Icon icon="vscode-icons:file-type-zip" className="text-2xl" />
+                Upload Images Archive (ZIP)
+              </h3>
+              <button
+                onClick={() => setShowZipModal(false)}
+                className="text-gray-400 hover:text-gray-600 text-xl font-bold"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleZipUpload} className="mt-4 space-y-4">
+              <div className="p-3 bg-amber-50 border border-amber-100 rounded-lg text-xs text-amber-800 space-y-1">
+                <p className="font-semibold">Image extraction info:</p>
+                <p>• All image files in the ZIP (.png, .jpg, .webp, etc.) will be extracted into <code className="bg-amber-100 px-1 rounded">public/uploads/blogs/</code>.</p>
+                <p>• In the Excel/CSV file, match the image filenames (e.g. <code className="bg-amber-100 px-1 rounded">imgname_banner.png</code> or <code className="bg-amber-100 px-1 rounded">imgname_featured.png</code>).</p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Select .zip archive:
+                </label>
+                <input
+                  type="file"
+                  accept=".zip"
+                  onChange={(e) => setZipFile(e.target.files?.[0] || null)}
+                  className="w-full text-sm border rounded p-2 focus:outline-none"
+                  required
+                />
+              </div>
+
+              {zipUploadResult && (
+                <div className={`p-3 rounded-lg text-xs ${zipUploadResult.success ? "bg-green-50 border border-green-200 text-green-800" : "bg-red-50 border border-red-200 text-red-800"}`}>
+                  <p className="font-bold">Result:</p>
+                  <p>{zipUploadResult.message || `Extracted ${zipUploadResult.count} images.`}</p>
+                  {zipUploadResult.savedFiles?.length > 0 && (
+                    <div className="mt-2 max-h-32 overflow-y-auto bg-white border p-2 rounded">
+                      <p className="font-semibold mb-1">Extracted Files ({zipUploadResult.savedFiles.length}):</p>
+                      <ul className="list-disc pl-4 space-y-0.5 text-[11px] text-gray-600">
+                        {zipUploadResult.savedFiles.map((f, i) => (
+                          <li key={i}>{f}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowZipModal(false)}
+                  className="px-4 py-2 text-gray-600 border rounded hover:bg-gray-100 text-sm"
+                >
+                  Close
+                </button>
+                <button
+                  type="submit"
+                  disabled={isUploadingZip || !zipFile}
+                  className="px-4 py-2 bg-amber-600 text-white rounded hover:bg-amber-700 disabled:opacity-50 text-sm font-semibold flex items-center gap-1.5"
+                >
+                  {isUploadingZip ? (
+                    <>
+                      <Icon icon="line-md:loading-loop" className="text-lg" /> Extracting...
+                    </>
+                  ) : (
+                    "Upload & Extract"
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Bulk FAQs Upload Modal */}
+      {showFaqModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+          <div className="bg-white rounded-xl max-w-lg w-full p-6 shadow-2xl">
+            <div className="flex justify-between items-center pb-3 border-b">
+              <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+                <Icon icon="fluent:chat-help-24-filled" className="text-2xl text-purple-600" />
+                Upload Blog FAQs (CSV / Excel)
+              </h3>
+              <button
+                onClick={() => setShowFaqModal(false)}
+                className="text-gray-400 hover:text-gray-600 text-xl font-bold"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleFaqUpload} className="mt-4 space-y-4">
+              <div className="p-3 bg-purple-50 border border-purple-100 rounded-lg text-xs text-purple-900 space-y-1">
+                <p className="font-semibold">SQL Foreign Key Matching:</p>
+                <p>• Matches each FAQ row using <code className="bg-purple-100 px-1 rounded font-bold">exist id</code> to the blog's existing SQL ID (existId) or slug.</p>
+                <p>• Supported SQL columns: <code className="bg-purple-100 px-1 rounded font-bold">id</code>, <code className="bg-purple-100 px-1 rounded font-bold">exist id</code> (or blog_id), <code className="bg-purple-100 px-1 rounded font-bold">question</code>, <code className="bg-purple-100 px-1 rounded font-bold">answer</code>, <code className="bg-purple-100 px-1 rounded">timestamp</code>.</p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Select FAQs file (.csv, .xlsx, .xls, or MySQL TSV dump):
+                </label>
+                <input
+                  type="file"
+                  accept=".csv,.xlsx,.xls,.tsv,.txt"
+                  onChange={(e) => setFaqFile(e.target.files?.[0] || null)}
+                  className="w-full text-sm border rounded p-2 focus:outline-none"
+                  required
+                />
+              </div>
+
+              {faqUploadResult && (
+                <div className={`p-3 rounded-lg text-xs ${faqUploadResult.success ? "bg-green-50 border border-green-200 text-green-800" : "bg-red-50 border border-red-200 text-red-800"}`}>
+                  <p className="font-bold">Upload Results:</p>
+                  <p>• Total FAQs processed: {faqUploadResult.totalFaqsProcessed ?? faqUploadResult.totalRows ?? 0}</p>
+                  <p>• Matched and updated blogs: {faqUploadResult.matchedBlogs ?? 0}</p>
+                  {faqUploadResult.notFoundBlogIds?.length > 0 && (
+                    <p className="text-amber-700 mt-1">
+                      ⚠️ Unmatched blog IDs: {faqUploadResult.notFoundBlogIds.join(", ")}
+                    </p>
+                  )}
+                  {faqUploadResult.errors?.length > 0 && (
+                    <p className="text-red-700 mt-1">
+                      Errors: {faqUploadResult.errors.join("; ")}
+                    </p>
+                  )}
+                </div>
+              )}
+
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowFaqModal(false)}
+                  className="px-4 py-2 text-gray-600 border rounded hover:bg-gray-100 text-sm"
+                >
+                  Close
+                </button>
+                <button
+                  type="submit"
+                  disabled={isUploadingFaq || !faqFile}
+                  className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 disabled:opacity-50 text-sm font-semibold flex items-center gap-1.5"
+                >
+                  {isUploadingFaq ? (
+                    <>
+                      <Icon icon="line-md:loading-loop" className="text-lg" /> Uploading...
+                    </>
+                  ) : (
+                    "Upload FAQs"
+                  )}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
