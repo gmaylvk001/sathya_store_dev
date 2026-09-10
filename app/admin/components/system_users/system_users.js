@@ -32,6 +32,7 @@ export default function SystemUsersComponent() {
   const [currentUserId, setCurrentUserId] = useState(null);
   const [loggedInName, setLoggedInName] = useState("");
   const [fetchingUserId, setFetchingUserId] = useState(null);
+  const [fetchingOrdersUserId, setFetchingOrdersUserId] = useState(null);
   const [selectedIds, setSelectedIds] = useState([]);
   const [isBulkDeleting, setIsBulkDeleting] = useState(false);
 
@@ -120,6 +121,36 @@ export default function SystemUsersComponent() {
     setCurrentUserId(user._id);
     setIsEditMode(true);
     setIsModalOpen(true);
+  };
+
+  const handleFetchOrders = async (user) => {
+    if (!user?._id) return;
+    if (!String(user.exist_id || "").trim()) {
+      setAlertMessage("❌ This user has no Exist ID");
+      setShowAlert(true);
+      setTimeout(() => setShowAlert(false), 4000);
+      return;
+    }
+
+    const confirmed = window.confirm(
+      "Fetch exist orders for this user into live Orders?"
+    );
+    if (!confirmed) return;
+
+    setFetchingOrdersUserId(user._id);
+    try {
+      const response = await axios.post("/api/system_users/fetch-orders", { userId: user._id }, { timeout: 300000 });
+      setAlertMessage(`✅ ${response.data.message || "Orders fetched successfully"}`);
+      setShowAlert(true);
+      setTimeout(() => setShowAlert(false), 4000);
+      fetchUsers();
+    } catch (error) {
+      setAlertMessage(error.response?.data?.error || "❌ Failed to fetch orders");
+      setShowAlert(true);
+      setTimeout(() => setShowAlert(false), 4000);
+    } finally {
+      setFetchingOrdersUserId(null);
+    }
   };
 
   const handleFetchDetails = async (user) => {
@@ -632,12 +663,15 @@ export default function SystemUsersComponent() {
                             Fetched
                           </span>
                         ) : (
-                          <span
-                            className="inline-flex items-center justify-center text-gray-400"
-                            title="Not fetched"
+                          <button
+                            type="button"
+                            onClick={() => handleFetchOrders(user)}
+                            disabled={fetchingOrdersUserId === user._id || isBulkDeleting}
+                            className="inline-flex items-center justify-center text-gray-400 disabled:opacity-50"
+                            title={fetchingOrdersUserId === user._id ? "Fetching orders..." : "Fetch exist orders"}
                           >
                             <Icon icon="mdi:close-circle-outline" width="20" />
-                          </span>
+                          </button>
                         )}
                       </td>
                       <td className="p-2">
