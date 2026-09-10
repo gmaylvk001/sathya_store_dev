@@ -1,4 +1,4 @@
- "use client";
+"use client";
 import { useState, useEffect, useRef } from "react";
 import { useCart } from '@/context/CartContext';
 import { ToastContainer, toast } from 'react-toastify';
@@ -107,31 +107,31 @@ const DeliveryOptions = ({
     }
   }, [formData.postCode, formData.deliveryType]);
 
-const findNearestStores = async (pincode) => {
-  setLoadingStores(true);
-  try {
-    const res = await fetch(`/api/pincode/check?pincode=${pincode}`);
-    const data = await res.json();
+  const findNearestStores = async (pincode) => {
+    setLoadingStores(true);
+    try {
+      const res = await fetch(`/api/pincode/check?pincode=${pincode}`);
+      const data = await res.json();
 
-    if (!data.success || !data.stores?.length) {
+      if (!data.success || !data.stores?.length) {
+        setNearestStores(stores.slice(0, 3).map(s => ({ ...s, distanceKm: null })));
+        return;
+      }
+
+
+      const matchedStores = data.stores;
+
+      setNearestStores(matchedStores);
+      setSelectedPickupStore(matchedStores[0]._id);
+      handleChange({ target: { name: "selectedStore", value: matchedStores[0]._id } });
+
+    } catch (err) {
+      console.error("Pincode check error:", err);
       setNearestStores(stores.slice(0, 3).map(s => ({ ...s, distanceKm: null })));
-      return;
+    } finally {
+      setLoadingStores(false);
     }
-
-    
-    const matchedStores = data.stores;
-
-    setNearestStores(matchedStores);
-    setSelectedPickupStore(matchedStores[0]._id);
-    handleChange({ target: { name: "selectedStore", value: matchedStores[0]._id } });
-
-  } catch (err) {
-    console.error("Pincode check error:", err);
-    setNearestStores(stores.slice(0, 3).map(s => ({ ...s, distanceKm: null })));
-  } finally {
-    setLoadingStores(false);
-  }
-};
+  };
 
   const displayedStores = showAllStores ? nearestStores : nearestStores.slice(0, 3);
 
@@ -256,18 +256,18 @@ const findNearestStores = async (pincode) => {
                           <span>Call and check the product availability</span>
                         </p>
                         <div className="flex items-center gap-2 mt-1.5">
-                        <a href={`tel:${BEA_CONTACT_PHONE}`} title="Call store"
-                          className="w-7 h-7 flex items-center justify-center rounded-full bg-green-50 border border-green-200 text-green-700 hover:bg-green-100 transition">
-                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                          </svg>
-                        </a>
-                        <a href={mailLink} title="Email store"
-                          className="w-7 h-7 flex items-center justify-center rounded-full bg-red-50 border border-red-200 text-red-700 hover:bg-red-100 transition">
-                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                          </svg>
-                        </a>
+                          <a href={`tel:${BEA_CONTACT_PHONE}`} title="Call store"
+                            className="w-7 h-7 flex items-center justify-center rounded-full bg-green-50 border border-green-200 text-green-700 hover:bg-green-100 transition">
+                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                            </svg>
+                          </a>
+                          <a href={mailLink} title="Email store"
+                            className="w-7 h-7 flex items-center justify-center rounded-full bg-red-50 border border-red-200 text-red-700 hover:bg-red-100 transition">
+                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                            </svg>
+                          </a>
                         </div>
                       </div>
                     </div>
@@ -352,7 +352,7 @@ export default function CheckoutPage() {
   const [touched, setTouched] = useState({});
   const [shippingMethod, setShippingMethod] = useState('standard');
 
-  const extraCities = ["Ariyalur","Chennai","Coimbatore","Cuddalore","Dharmapuri","Dindigul","Erode","Kanchipuram","Kanyakumari","Karur","Krishnagiri","Madurai","Nagapattinam","Namakkal","Nilgiris","Perambalur","Pudukkottai","Ramanathapuram","Salem","Sivaganga","Thanjavur","Theni","Thoothukudi","Tirunelveli","Tiruvallur","Tiruvannamalai","Tiruvarur","Vellore","Viluppuram","Virudhunagar","Singanallur","Sivananthapuram","Vadavalli","Annur","Mettupalayam","Thennur","Ariyamangalam","Komarapalayam","Kattur"];
+  const extraCities = ["Ariyalur", "Chennai", "Coimbatore", "Cuddalore", "Dharmapuri", "Dindigul", "Erode", "Kanchipuram", "Kanyakumari", "Karur", "Krishnagiri", "Madurai", "Nagapattinam", "Namakkal", "Nilgiris", "Perambalur", "Pudukkottai", "Ramanathapuram", "Salem", "Sivaganga", "Thanjavur", "Theni", "Thoothukudi", "Tirunelveli", "Tiruvallur", "Tiruvannamalai", "Tiruvarur", "Vellore", "Viluppuram", "Virudhunagar", "Singanallur", "Sivananthapuram", "Vadavalli", "Annur", "Mettupalayam", "Thennur", "Ariyamangalam", "Komarapalayam", "Kattur"];
 
   useEffect(() => {
     const fetchStores = async () => {
@@ -373,22 +373,22 @@ export default function CheckoutPage() {
   useEffect(() => {
     const buyNowData = localStorage.getItem('buyNowData');
     const checkoutData = localStorage.getItem('checkoutData');
-     console.log("DEBUG raw checkoutData:", checkoutData);  
+    console.log("DEBUG raw checkoutData:", checkoutData);
     let skipCartFetch = false;
     if (buyNowData) {
       const p = JSON.parse(buyNowData);
       setCartItems(p.cart.items);
       setOrderSummary({ discount: 0, subtotal: p.total || 0, total: p.total || 0 });
-       setAppliedCoupon(p.coupon || null); 
-      localStorage.setItem('checkoutData', JSON.stringify({ cart: p.cart,  coupon: appliedCoupon, discount: 0, subtotal: p.total || 0, total: p.total || 0 }));
+      setAppliedCoupon(p.coupon || null);
+      localStorage.setItem('checkoutData', JSON.stringify({ cart: p.cart, coupon: appliedCoupon, discount: 0, subtotal: p.total || 0, total: p.total || 0 }));
       localStorage.removeItem('buyNowData');
       skipCartFetch = true;
     } else if (checkoutData) {
       const p = JSON.parse(checkoutData);
-      
+
       setCartItems(p.cart.items);
       setOrderSummary({ discount: p.discount || 0, subtotal: p.subtotal || 0, total: p.total || 0 });
-      setAppliedCoupon(p.coupon || null); 
+      setAppliedCoupon(p.coupon || null);
       skipCartFetch = true;
     }
     fetchData(skipCartFetch);
@@ -582,22 +582,22 @@ export default function CheckoutPage() {
     : "Brand warranty";
 
   const mrpTotal = cartItems.reduce((sum, item) => sum + ((item.actual_price ?? item.price ?? 0) * item.quantity), 0);
- const itemDiscountTotal = cartItems.reduce((sum, item) => {
-  const mrp = (item.actual_price ?? item.price ?? 0) * item.quantity;
-  const selling = (item.price > 0 ? item.price : item.actual_price) * item.quantity;
-  return sum + (mrp - selling);
-}, 0);
-const sellingPrice = mrpTotal - itemDiscountTotal;
+  const itemDiscountTotal = cartItems.reduce((sum, item) => {
+    const mrp = (item.actual_price ?? item.price ?? 0) * item.quantity;
+    const selling = (item.price > 0 ? item.price : item.actual_price) * item.quantity;
+    return sum + (mrp - selling);
+  }, 0);
+  const sellingPrice = mrpTotal - itemDiscountTotal;
 
   const uniqueCities = [...new Set(stores.map(s => s.city))];
   const finalCities = [...new Set([...uniqueCities, ...extraCities])].sort();
 
   const handleSubmit = async (e) => {
     e?.preventDefault();
-   
+
     if (isSubmitting) return;
     setError('');
-    console.log("Applied coupon at order time:", appliedCoupon); 
+    console.log("Applied coupon at order time:", appliedCoupon);
     try {
       const token = localStorage.getItem('token');
       if (!token) { setShowAuthModal(true); return; }
@@ -676,29 +676,29 @@ const sellingPrice = mrpTotal - itemDiscountTotal;
         paymentId = 'PAS_' + Date.now(); paymentStatus = 'pending'; paymentMode = 'Pay at Store';
       } else if (paymentMethod === 'online' || paymentMethod === 'emi') {
         try {
-         const orderRes = await fetch('/api/orders/add', {
-  method: 'POST', headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    user_id: userId,
-    user_adddeliveryid: useSavedAddress && selectedAddress !== null ? useraddress[selectedAddress]._id : savedAddressId || useraddress[0]?._id,
-    order_username: `${addressData.firstName} ${addressData.lastName}`,
-    order_phonenumber: addressData.phonenumber, email_address: addressData.email,
-    order_item: cartItems.map(item => ({ ...item, warrantyData: item.warrantyData || null, store_id: formData.deliveryType === 'store' ? formData.selectedStore : null, coupondetails: Array.isArray(item.coupondetails) && item.coupondetails.length > 0 ? item.coupondetails.map(c => c.offer_code || String(c)) : [] })),
-    order_amount: totalAmount, order_deliveryaddress: deliveryAddress,
-      promotion_code_applied: appliedCoupon?.offer_code || null,
-      promotion_discount_applied: appliedCoupon ? (orderSummary.discount || 0) : 0,
-    
-    customer_comments: comments, payment_method: paymentMethod, payment_type: paymentMode,
-    order_status: 'pending',
-    delivery_type: formData.deliveryType === 'store' ? 'store_pickup' : 'home',
-    pickup_store: pickupStoreName,
-    store_id: formData.deliveryType === 'store' ? formData.selectedStore : null,
-    gst_number: gstNumber,
-    payment_id: '', payment_status: 'payment_initialized', 
-    order_number: order_number || 'ORD' + Date.now(),
-    order_details: cartItems.map(item => ({ item_code: `ITEM${item.item_code}`, product_id: item.id, product_name: item.name, product_price: item.price, model: 'N/A', user_id: userId, coupondiscount: 0, created_at: new Date(), updated_at: new Date(), quantity: item.quantity, store_id: formData.deliveryType === 'store' ? formData.selectedStore : 'STORE01', orderNumber: 'ORD' + Date.now() })),
-  }),
-});
+          const orderRes = await fetch('/api/orders/add', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              user_id: userId,
+              user_adddeliveryid: useSavedAddress && selectedAddress !== null ? useraddress[selectedAddress]._id : savedAddressId || useraddress[0]?._id,
+              order_username: `${addressData.firstName} ${addressData.lastName}`,
+              order_phonenumber: addressData.phonenumber, email_address: addressData.email,
+              order_item: cartItems.map(item => ({ ...item, warrantyData: item.warrantyData || null, store_id: formData.deliveryType === 'store' ? formData.selectedStore : null, coupondetails: Array.isArray(item.coupondetails) && item.coupondetails.length > 0 ? item.coupondetails.map(c => c.offer_code || String(c)) : [] })),
+              order_amount: totalAmount, order_deliveryaddress: deliveryAddress,
+              promotion_code_applied: appliedCoupon?.offer_code || null,
+              promotion_discount_applied: appliedCoupon ? (orderSummary.discount || 0) : 0,
+
+              customer_comments: comments, payment_method: paymentMethod, payment_type: paymentMode,
+              order_status: 'pending',
+              delivery_type: formData.deliveryType === 'store' ? 'store_pickup' : 'home',
+              pickup_store: pickupStoreName,
+              store_id: formData.deliveryType === 'store' ? formData.selectedStore : null,
+              gst_number: gstNumber,
+              payment_id: '', payment_status: 'payment_initialized',
+              order_number: order_number || 'ORD' + Date.now(),
+              order_details: cartItems.map(item => ({ item_code: `ITEM${item.item_code}`, product_id: item.id, product_name: item.name, product_price: item.price, model: 'N/A', user_id: userId, coupondiscount: 0, created_at: new Date(), updated_at: new Date(), quantity: item.quantity, store_id: formData.deliveryType === 'store' ? formData.selectedStore : 'STORE01', orderNumber: 'ORD' + Date.now() })),
+            }),
+          });
           const orderData = await orderRes.json();
           order_number = orderData?.order?.order_number;
           let result = await handleOnlinePayment(totalAmount, paymentMethod === 'emi');
@@ -722,7 +722,7 @@ const sellingPrice = mrpTotal - itemDiscountTotal;
           order_phonenumber: addressData.phonenumber, email_address: addressData.email,
           order_item: cartItems.map(item => ({ ...item, warrantyData: item.warrantyData || null, store_id: formData.deliveryType === 'store' ? formData.selectedStore : null, coupondetails: Array.isArray(item.coupondetails) && item.coupondetails.length > 0 ? item.coupondetails.map(c => c.offer_code || String(c)) : [] })),
           order_amount: totalAmount, order_deliveryaddress: deliveryAddress,
-         promotion_code_applied: appliedCoupon?.offer_code || null,
+          promotion_code_applied: appliedCoupon?.offer_code || null,
           promotion_discount_applied: appliedCoupon ? (orderSummary.discount || 0) : 0,
 
           customer_comments: comments, payment_method: paymentMethod, payment_type: paymentMode,
@@ -748,14 +748,14 @@ const sellingPrice = mrpTotal - itemDiscountTotal;
       if (cartDelete.status === 200) {
         localStorage.removeItem('checkoutData'); localStorage.removeItem('appliedCoupon');
         const orderData = await orderRes.json();
-        ga4Purchase({ orderId: orderData.order.order_number, value: orderSummary.total, items: cartItems });
+        // ga4Purchase({ orderId: orderData.order.order_number, value: orderSummary.total, items: cartItems });
 
-        // SAP sync disabled for live — uncomment to send order data to SAP
-        await fetch('/api/send-order-detail-to-sap', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ order_number: orderData.order.order_number }),
-        });
+        // // SAP sync disabled for live — uncomment to send order data to SAP
+        // await fetch('/api/send-order-detail-to-sap', {
+        //   method: 'POST',
+        //   headers: { 'Content-Type': 'application/json' },
+        //   body: JSON.stringify({ order_number: orderData.order.order_number }),
+        // });
 
         try {
           const name = `${addressData.firstName} ${addressData.lastName}`;
@@ -769,13 +769,14 @@ const sellingPrice = mrpTotal - itemDiscountTotal;
           });
 
           const adminEmails = [
-            "arunkarthik@sathya.store",
-            "ecom@sathya.store",
-            "itadmin@sathya.store",
-            "telemarketing@sathya.store",
-            "sekarcorp@sathya.store",
-            "abu@sathya.store",
-            "customercare@sathya.store",
+            // "arunkarthik@sathya.store",
+            // "ecom@sathya.store",
+            // "itadmin@sathya.store",
+            // "telemarketing@sathya.store",
+            // "sekarcorp@sathya.store",
+            // "abu@sathya.store",
+            // "customercare@sathya.store",
+            "hariharann2026@gmail.com"
           ];
 
           const emailRes = await fetch("/api/send-order-email", {
@@ -844,7 +845,7 @@ const sellingPrice = mrpTotal - itemDiscountTotal;
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2 text-xs sm:text-sm font-semibold">
             <a href="/cart" className="text-gray-500 hover:text-[#d72828] transition-colors flex items-center gap-1">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="15 18 9 12 15 6"/></svg>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="15 18 9 12 15 6" /></svg>
               <span>Back to Cart</span>
             </a>
             <span className="text-gray-300">/</span>
@@ -1077,17 +1078,17 @@ const sellingPrice = mrpTotal - itemDiscountTotal;
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {[
                   { value: 'standard', label: 'Standard delivery', sub: '3–5 working days', price: 'FREE', free: true },
-                  { value: 'express', label: 'Express delivery', sub: '1–2 working days', price: '₹299', free: false, disabled: true  },
+                  { value: 'express', label: 'Express delivery', sub: '1–2 working days', price: '₹299', free: false, disabled: true },
                 ].map(opt => (
-                <label key={opt.value}
-  className={`flex items-center gap-3 p-3.5 rounded-xl border-2 transition-all
+                  <label key={opt.value}
+                    className={`flex items-center gap-3 p-3.5 rounded-xl border-2 transition-all
     ${opt.disabled ? 'cursor-not-allowed opacity-50 border-gray-200 bg-gray-50' : shippingMethod === opt.value ? 'cursor-pointer border-red-600 bg-red-50' : 'cursor-pointer border-gray-200 bg-white hover:border-gray-300'}`}
->
-  <input type="radio" name="shippingMethod" value={opt.value}
-    checked={shippingMethod === opt.value}
-    onChange={() => !opt.disabled && setShippingMethod(opt.value)}
-    disabled={opt.disabled}
-    className="sr-only" />
+                  >
+                    <input type="radio" name="shippingMethod" value={opt.value}
+                      checked={shippingMethod === opt.value}
+                      onChange={() => !opt.disabled && setShippingMethod(opt.value)}
+                      disabled={opt.disabled}
+                      className="sr-only" />
                     <div className={`w-4 h-4 rounded-full border-2 flex-shrink-0 flex items-center justify-center
                       ${shippingMethod === opt.value ? 'border-red-600' : 'border-gray-300'}`}>
                       {shippingMethod === opt.value && <div className="w-2 h-2 rounded-full bg-red-600" />}
@@ -1115,26 +1116,34 @@ const sellingPrice = mrpTotal - itemDiscountTotal;
               </h2>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 {[
-                  { value: 'online', icon: (
-                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                    </svg>
-                  ), label: 'Online payment', sub: 'UPI, Cards, Netbanking' },
-                  { value: 'emi', icon: (
-                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                    </svg>
-                  ), label: 'EMI options', sub: 'Easy EMI from leading banks' },
-                  ...(formData.deliveryType !== 'store' ? [{ value: 'Cash on Delivery', icon: (
-                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
-                    </svg>
-                  ), label: 'Cash on delivery', sub: 'Pay when you receive' }] : []),
-                  { value: 'pay_at_store', icon: (
-                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                    </svg>
-                  ), label: 'Pay at store', sub: 'Pay at the time of pickup' },
+                  {
+                    value: 'online', icon: (
+                      <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                      </svg>
+                    ), label: 'Online payment', sub: 'UPI, Cards, Netbanking'
+                  },
+                  {
+                    value: 'emi', icon: (
+                      <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                      </svg>
+                    ), label: 'EMI options', sub: 'Easy EMI from leading banks'
+                  },
+                  ...(formData.deliveryType !== 'store' ? [{
+                    value: 'Cash on Delivery', icon: (
+                      <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                      </svg>
+                    ), label: 'Cash on delivery', sub: 'Pay when you receive'
+                  }] : []),
+                  {
+                    value: 'pay_at_store', icon: (
+                      <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                      </svg>
+                    ), label: 'Pay at store', sub: 'Pay at the time of pickup'
+                  },
                 ].map(opt => (
                   <button
                     key={opt.value}
@@ -1254,7 +1263,7 @@ const sellingPrice = mrpTotal - itemDiscountTotal;
                 </div>
                 <a href="/cart" className="text-xs font-bold text-[#d72828] hover:text-[#b91c1c] transition-colors flex items-center gap-1">
                   <span>Edit cart</span>
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
                 </a>
               </div>
               {/* Cart items list (Luxury Card System) */}
@@ -1289,7 +1298,7 @@ const sellingPrice = mrpTotal - itemDiscountTotal;
                         <h4 className="text-xs font-bold text-gray-900 line-clamp-2 leading-snug group-hover:text-[#d72828] transition-colors">
                           {item.name}
                         </h4>
-                        
+
                         {item.warrantyData && (
                           <span className="mt-1 inline-flex items-center gap-1 text-[10px] font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded-full border border-purple-100">
                             <svg className="w-3 h-3 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -1325,49 +1334,49 @@ const sellingPrice = mrpTotal - itemDiscountTotal;
 
               {/* Price details */}
               <div className="px-5 py-4 border-b border-gray-200 space-y-2">
-             <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wide mb-3">Price details</p>
+                <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wide mb-3">Price details</p>
 
-{/* MRP */}
-<div className="flex justify-between text-sm text-gray-700">
-  <span>product price</span>
-  <span>₹{mrpTotal.toLocaleString('en-IN')}</span>
-</div>
+                {/* MRP */}
+                <div className="flex justify-between text-sm text-gray-700">
+                  <span>product price</span>
+                  <span>₹{mrpTotal.toLocaleString('en-IN')}</span>
+                </div>
 
-{/* Item discount (MRP - selling) */}
-{itemDiscountTotal > 0 && (
-  <div className="flex justify-between text-sm text-green-600">
-    <span>Discount</span>
-    <span>−₹{itemDiscountTotal.toLocaleString('en-IN')}</span>
-  </div>
-)}
+                {/* Item discount (MRP - selling) */}
+                {itemDiscountTotal > 0 && (
+                  <div className="flex justify-between text-sm text-green-600">
+                    <span>Discount</span>
+                    <span>−₹{itemDiscountTotal.toLocaleString('en-IN')}</span>
+                  </div>
+                )}
 
 
-{/* Warranty */}
-{warrantyTotal > 0 && (
-  <div className="flex justify-between text-sm">
-    <span className="flex items-center gap-1 text-purple-700">
-      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-      </svg>
-      {cartItems.find(i => i.warrantyData)?.warrantyData?.name || 'Extended warranty'}
-    </span>
-    <span className="text-red-600 font-medium">₹{warrantyTotal.toLocaleString('en-IN')}</span>
-  </div>
-)}
-{cartItems.some(item => item.warranty > 0) && (
-  <div className="flex justify-between text-sm">
-    <span className="text-purple-700">Sathya Stores Care warranty</span>
-    <span className="text-red-600 font-medium">
-      ₹{cartItems.reduce((s, i) => s + (i.warranty || 0), 0).toLocaleString('en-IN')}
-    </span>
-  </div>
-)}
+                {/* Warranty */}
+                {warrantyTotal > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span className="flex items-center gap-1 text-purple-700">
+                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                      </svg>
+                      {cartItems.find(i => i.warrantyData)?.warrantyData?.name || 'Extended warranty'}
+                    </span>
+                    <span className="text-red-600 font-medium">₹{warrantyTotal.toLocaleString('en-IN')}</span>
+                  </div>
+                )}
+                {cartItems.some(item => item.warranty > 0) && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-purple-700">Sathya Stores Care warranty</span>
+                    <span className="text-red-600 font-medium">
+                      ₹{cartItems.reduce((s, i) => s + (i.warranty || 0), 0).toLocaleString('en-IN')}
+                    </span>
+                  </div>
+                )}
 
-{/* Subtotal */}
-<div className="flex justify-between text-sm text-gray-700 font-medium border-t border-gray-100 pt-2">
-  <span>Subtotal</span>
-  <span>₹{orderSummary.subtotal.toLocaleString('en-IN')}</span>
-</div>
+                {/* Subtotal */}
+                <div className="flex justify-between text-sm text-gray-700 font-medium border-t border-gray-100 pt-2">
+                  <span>Subtotal</span>
+                  <span>₹{orderSummary.subtotal.toLocaleString('en-IN')}</span>
+                </div>
                 <div className="flex justify-between text-sm text-gray-700">
                   <span>Delivery</span>
                   {shippingCost === 0
@@ -1389,22 +1398,28 @@ const sellingPrice = mrpTotal - itemDiscountTotal;
               {/* Trust badges */}
               <div className="grid grid-cols-3 gap-2 px-5 py-4 border-b border-gray-200">
                 {[
-                  { icon: (
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                    </svg>
-                  ), label: warrantyBadgeLabel },
-                  { icon: (
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                  ), label: 'Free installation' },
-                  { icon: (
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                    </svg>
-                  ), label: '10 days replacement' },
+                  {
+                    icon: (
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                      </svg>
+                    ), label: warrantyBadgeLabel
+                  },
+                  {
+                    icon: (
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                    ), label: 'Free installation'
+                  },
+                  {
+                    icon: (
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                      </svg>
+                    ), label: '10 days replacement'
+                  },
                 ].map(b => (
                   <div key={b.label} className="flex flex-col items-center gap-1 text-center">
                     <span className="text-red-600">{b.icon}</span>
@@ -1475,32 +1490,42 @@ const sellingPrice = mrpTotal - itemDiscountTotal;
                 <p className="text-xs font-semibold text-gray-700 mb-3">Sathya Stores Promise —</p>
                 <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
                   {[
-                    { icon: (
-                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                    ), label: '100% genuine products' },
-                    { icon: (
-                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                      </svg>
-                    ), label: 'Brand warranty' },
-                    { icon: (
-                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                      </svg>
-                    ), label: 'Safe & secure delivery' },
-                    { icon: (
-                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                      </svg>
-                    ), label: 'Professional installation' },
-                    { icon: (
-                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                      </svg>
-                    ), label: '47+ showrooms support network' },
+                    {
+                      icon: (
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      ), label: '100% genuine products'
+                    },
+                    {
+                      icon: (
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                        </svg>
+                      ), label: 'Brand warranty'
+                    },
+                    {
+                      icon: (
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                        </svg>
+                      ), label: 'Safe & secure delivery'
+                    },
+                    {
+                      icon: (
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                      ), label: 'Professional installation'
+                    },
+                    {
+                      icon: (
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                        </svg>
+                      ), label: '47+ showrooms support network'
+                    },
                   ].map(b => (
                     <div key={b.label} className="flex flex-col items-center gap-1 text-center">
                       <span className="text-red-600">{b.icon}</span>
