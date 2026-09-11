@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { FaEdit } from "react-icons/fa";
 import { Icon } from "@iconify/react";
 import Image from "next/image";
+import CardOffersExcelUploadModal from "./CardOffersExcelUploadModal";
 
 function formatDisplayDate(val) {
   if (!val) return "-";
@@ -33,6 +34,7 @@ export default function CardOffersView({ timerId }) {
   const [selectedIds, setSelectedIds] = useState([]);
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [isExcelUploadOpen, setIsExcelUploadOpen] = useState(false);
 
   // Sub-modal states for Add / Edit
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -263,14 +265,24 @@ export default function CardOffersView({ timerId }) {
             </p>
           )}
         </div>
-        <button
-          type="button"
-          onClick={() => router.push("/admin/offer-timer")}
-          className="border px-4 py-1.5 rounded bg-white text-gray-700 hover:bg-gray-50 shadow-sm flex items-center gap-1.5 text-sm font-medium transition-colors"
-        >
-          <Icon icon="ic:baseline-arrow-back" className="w-4 h-4" />
-          Back to Offer Timers
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => router.push("/admin/offer-timer")}
+            className="border px-3.5 py-1.5 rounded bg-white text-gray-700 hover:bg-gray-50 shadow-sm flex items-center gap-1.5 text-sm font-medium transition-colors cursor-pointer"
+          >
+            <Icon icon="ic:baseline-arrow-back" className="w-4 h-4" />
+            Back
+          </button>
+          <button
+            type="button"
+            onClick={() => setIsExcelUploadOpen(true)}
+            className="border border-gray-700 bg-white text-gray-800 hover:bg-gray-50 px-3.5 py-1.5 rounded text-sm font-medium transition-colors flex items-center gap-1.5 shadow-sm cursor-pointer"
+          >
+            <Icon icon="mdi:file-excel-outline" className="w-4 h-4 text-green-700" />
+            <span>Excel upload</span>
+          </button>
+        </div>
       </div>
 
       {/* Main Container */}
@@ -647,6 +659,18 @@ export default function CardOffersView({ timerId }) {
           </div>
         </div>
       )}
+      {/* Excel & Images ZIP Upload Modal */}
+      <CardOffersExcelUploadModal
+        isOpen={isExcelUploadOpen}
+        onClose={() => setIsExcelUploadOpen(false)}
+        currentTimerId={timer?._id || timerId}
+        currentTimerTitle={timer?.offerTitle || timer?.offer_title || ""}
+        onSuccess={() => {
+          fetchCardOffers();
+          setSuccessMessage("Card offers imported successfully from Excel & ZIP!");
+          setTimeout(() => setSuccessMessage(""), 3500);
+        }}
+      />
     </div>
   );
 }
