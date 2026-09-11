@@ -151,58 +151,73 @@ export default function HomePageBuilder() {
 
   const renderConfigForm = () => {
     if (!configType) {
-      return (
-        <div className="py-8 text-center text-sm text-gray-500">
-          Select a component screenshot on the left to configure inputs.
-          <div className="mt-4 text-xs text-gray-400">
-            On this page: {components.length} component instance(s)
+      return components.length === 0 ? (
+        <div className="py-16 text-center text-sm text-gray-500">
+          <Icon
+            icon="mdi:view-dashboard-outline"
+            className="mx-auto text-4xl text-gray-300 mb-2"
+          />
+          <p className="text-gray-600 font-medium">
+            Select a component screenshot on the left to configure inputs.
+          </p>
+          <p className="mt-1 text-xs text-gray-400">
+            On this page: 0 component instance(s)
+          </p>
+        </div>
+      ) : (
+        <div className="w-full">
+          <div className="text-center pb-4 mb-4 border-b border-gray-100">
+            <p className="text-sm font-medium text-gray-600">
+              Select a component screenshot on the left to configure inputs.
+            </p>
+            <p className="mt-1 text-xs text-gray-400">
+              On this page: {components.length} component instance(s)
+            </p>
           </div>
-          {components.length > 0 && (
-            <ul className="mt-6 space-y-2 text-left w-full">
-              {[...components]
-                .sort((a, b) => a.order - b.order)
-                .map((c) => (
-                  <li
-                    key={c.instanceId}
-                    className="flex items-center justify-between text-sm border rounded-lg px-3 py-2"
-                  >
-                    <span>
-                      {instanceLabels[c.instanceId] ||
-                        getComponentMeta(c.type)?.label ||
-                        c.type}
+          <ul className="space-y-2 w-full">
+            {[...components]
+              .sort((a, b) => a.order - b.order)
+              .map((c) => (
+                <li
+                  key={c.instanceId}
+                  className="flex items-center justify-between gap-3 text-sm border border-gray-200 rounded-xl px-4 py-3 bg-gray-50/60 hover:bg-gray-50 transition"
+                >
+                  <span className="font-medium text-gray-800">
+                    {instanceLabels[c.instanceId] ||
+                      getComponentMeta(c.type)?.label ||
+                      c.type}
+                  </span>
+                  <div className="flex items-center gap-3 shrink-0">
+                    <span
+                      className={`text-[10px] font-semibold px-2 py-0.5 rounded ${
+                        c.isActive !== false
+                          ? "bg-green-100 text-green-700"
+                          : "bg-red-100 text-red-600"
+                      }`}
+                    >
+                      {c.isActive !== false ? "ON" : "OFF"}
                     </span>
-                    <div className="flex items-center gap-3">
-                      <span
-                        className={`text-[10px] px-1.5 py-0.5 rounded ${
-                          c.isActive !== false
-                            ? "bg-green-100 text-green-700"
-                            : "bg-red-100 text-red-600"
-                        }`}
-                      >
-                        {c.isActive !== false ? "ON" : "OFF"}
-                      </span>
-                      <button
-                        type="button"
-                        className="text-[#ED1C24] text-xs font-medium"
-                        onClick={() => openEditInstance(c)}
-                      >
-                        Edit
-                      </button>
-                      <button
-                        type="button"
-                        className="text-red-600 text-xs font-medium disabled:cursor-not-allowed disabled:opacity-50"
-                        onClick={() => deleteInstance(c)}
-                        disabled={deletingInstanceId === c.instanceId}
-                      >
-                        {deletingInstanceId === c.instanceId
-                          ? "Deleting..."
-                          : "Delete"}
-                      </button>
-                    </div>
-                  </li>
-                ))}
-            </ul>
-          )}
+                    <button
+                      type="button"
+                      className="text-[#ED1C24] text-xs font-semibold hover:underline"
+                      onClick={() => openEditInstance(c)}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      className="text-red-600 text-xs font-semibold hover:underline disabled:cursor-not-allowed disabled:opacity-50"
+                      onClick={() => deleteInstance(c)}
+                      disabled={deletingInstanceId === c.instanceId}
+                    >
+                      {deletingInstanceId === c.instanceId
+                        ? "Deleting..."
+                        : "Delete"}
+                    </button>
+                  </div>
+                </li>
+              ))}
+          </ul>
         </div>
       );
     }
