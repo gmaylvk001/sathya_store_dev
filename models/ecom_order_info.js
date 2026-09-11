@@ -18,6 +18,8 @@ const OrderHistorySchema = new mongoose.Schema(
 
 const OrderSchema = new mongoose.Schema(
   {
+    exist_id: { type: String, required: false, default: null },
+    cart_id: { type: String, required: false, default: null },
     user_id: { type: String, required: true },
     order_username: { type: String, required: true },
     order_phonenumber: { type: String, required: true },
@@ -48,6 +50,7 @@ const OrderSchema = new mongoose.Schema(
       updated_at: { type: Date, default: Date.now }
     }],
     order_details: [{
+      exist_id: { type: String, required: false, default: null },
       item_code: String,
       product_id: Number,
       product_name: String,
@@ -55,11 +58,35 @@ const OrderSchema = new mongoose.Schema(
       model: String,
       user_id: String,
       coupondiscount: Number,
+      coupon_discount: { type: Number, required: false, default: null },
       created_at: Date,
       updated_at: Date,
       quantity: Number,
       store_id: String,
-      orderNumber: String
+      orderNumber: String,
+      is_gift: { type: Number, required: false, default: null },
+      gift_Price_to_apply: { type: Number, required: false, default: null },
+      is_combo: { type: Number, required: false, default: null },
+      warranty_product_code: { type: String, required: false, default: null },
+      is_warranty: { type: Number, required: false, default: null },
+      is_view: { type: Number, required: false, default: null },
+      type: { type: String, required: false, default: null },
+      is_exchange_offer: { type: Number, required: false, default: null },
+      eo_amount: { type: Number, required: false, default: null },
+      exchange_off_type: { type: String, required: false, default: null },
+      exchange_off_brand: { type: String, required: false, default: null },
+      exchange_off_cond: { type: String, required: false, default: null },
+      exchange_off_pin: { type: Number, required: false, default: null },
+      exchange_off_amount: { type: Number, required: false, default: null },
+      special_offer_id: { type: Number, required: false, default: null },
+      special_discount_id: { type: Number, required: false, default: null },
+      special_discount_type: { type: String, required: false, default: null },
+      special_offer_discount: { type: Number, required: false, default: null },
+      is_special_offer: { type: Number, required: false, default: null },
+      is_checkout_offer: { type: Number, required: false, default: null },
+      checkout_offer_type: { type: String, required: false, default: null },
+      checkout_offer_id: { type: Number, required: false, default: null },
+      checkout_offer_discount: { type: Number, required: false, default: null },
     }],
     order_amount: { type: String, required: true },
     order_deliveryaddress: { type: String },
@@ -84,7 +111,7 @@ const OrderSchema = new mongoose.Schema(
     delivery_date: { type: Date },
     order_status: {
       type: String,
-      enum: ["pending", "cancelled", "shipped", "Order Placed", "Failure", "payment_initialized"],
+      enum: ["pending", "cancelled", "shipped", "Order Placed", "Failure", "payment_initialized","Order Accepted","Complete","ordered","Billed"],
       default: "pending",
     },
     payment_status: {
