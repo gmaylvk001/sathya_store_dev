@@ -46,7 +46,13 @@ export default function Order() {
         }
         const data = await response.json();
         console.log('datareta n my',data?.orders);
-        const filtered = data?.orders.filter(order => order.payment_status !== "payment_initialized");
+        const visible = (data?.orders || []).filter(order => order.payment_status !== "payment_initialized");
+        // All tab: show only pending, shipped, Billed.
+        // Hidden for now: Order Placed, Failure, payment_initialized, Order Accepted, Complete, ordered, cancelled.
+        const allTabStatuses = new Set(["pending", "shipped", "billed"]);
+        const filtered = activeFilter === "all"
+          ? visible.filter((order) => allTabStatuses.has(String(order.order_status || "").toLowerCase()))
+          : visible;
         setFilteredOrders(filtered || []);
       } catch (error) {
         toast.error("Failed to load orders data");
@@ -100,8 +106,7 @@ export default function Order() {
       }
 
       // Update local state
-      if (activeFilter === 'pending') {
-        // Remove from pending view
+      if (activeFilter === 'pending' || activeFilter === 'all') {
         setFilteredOrders(prev => prev.filter(order => order._id !== selectedOrder._id));
       } else {
         // Update status in all/cancelled view
@@ -194,9 +199,10 @@ export default function Order() {
           {/* Main Content */}
           <div className="flex-1">
             <div className="bg-white p-4 sm:p-6 rounded-xl border border-gray-200 hover:border-red-600 transition-all duration-300 shadow-sm">
-              {/* Order Filters */}
+              {/* Order Filters — All + Cancelled only.
+                  To restore Pending / Shipped / Delivered tabs, uncomment them in the array below. */}
               <div className="flex flex-wrap gap-2 sm:gap-3 mb-4 sm:mb-6 pb-2 sm:pb-4 border-b border-gray-100 overflow-x-auto pb-2">
-                {['all', 'pending', 'shipped', 'delivered', 'cancelled'].map((filter) => (
+                {['all', /* 'pending', 'shipped', 'delivered', */ 'cancelled'].map((filter) => (
                   <button
                     key={filter}
                     onClick={() => setActiveFilter(filter)}
@@ -214,9 +220,9 @@ export default function Order() {
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
                   >
-                    {filter === 'pending' && <FiClock className="mr-1" />}
-                    {filter === 'shipped' && <FiTruck className="mr-1" />}
-                    {filter === 'delivered' && <FiCheckCircle className="mr-1" />}
+                    {/* {filter === 'pending' && <FiClock className="mr-1" />} */}
+                    {/* {filter === 'shipped' && <FiTruck className="mr-1" />} */}
+                    {/* {filter === 'delivered' && <FiCheckCircle className="mr-1" />} */}
                     {filter === 'cancelled' && <FiXCircle className="mr-1" />}
                     {filter.charAt(0).toUpperCase() + filter.slice(1)}
                   </button>
@@ -289,37 +295,31 @@ export default function Order() {
                               <p className="text-base sm:text-lg font-semibold text-gray-900 mb-2 sm:mb-3">₹{order.order_amount}</p>
                             </div>
 
-                            {/* Status Badge */}
+                            {/* Status Badge — pending / shipped / Billed (+ cancelled on Cancelled tab) */}
                             <div className={`px-2 py-1 sm:px-3 sm:py-1 rounded-full text-xs font-medium self-start ${
-                              statusKey === 'delivered'
-                                ? 'bg-green-100 text-green-800'
-                                : statusKey === 'shipped'
-                                ? 'bg-red-100 text-[#d72828]'
-                                : statusKey === 'cancelled'
-                                ? 'bg-red-100 text-red-800'
+                              statusKey === 'shipped'
+                                ? 'bg-indigo-100 text-indigo-800'
                                 : statusKey === 'billed'
-                                ? 'bg-blue-100 text-blue-800'
+                                ? 'bg-emerald-100 text-emerald-800'
+                                : statusKey === 'cancelled'
+                                ? 'bg-rose-100 text-rose-800'
                                 : 'bg-amber-100 text-amber-800'
                             }`}>
-                              {statusKey === 'delivered' ? (
+                              {statusKey === 'shipped' ? (
                                 <span className="flex items-center">
-                                  <FiCheckCircle className="mr-1 text-xs" /> Delivered
-                                </span>
-                              ) : statusKey === 'shipped' ? (
-                                <span className="flex items-center">
-                                  <FiTruck className="mr-1 text-xs" /> Shipped
-                                </span>
-                              ) : statusKey === 'cancelled' ? (
-                                <span className="flex items-center">
-                                  <FiXCircle className="mr-1 text-xs" /> Cancelled
+                                  <FiTruck className="mr-1 text-xs" /> shipped
                                 </span>
                               ) : statusKey === 'billed' ? (
                                 <span className="flex items-center">
                                   <FiCheckCircle className="mr-1 text-xs" /> Billed
                                 </span>
+                              ) : statusKey === 'cancelled' ? (
+                                <span className="flex items-center">
+                                  <FiXCircle className="mr-1 text-xs" /> cancelled
+                                </span>
                               ) : (
                                 <span className="flex items-center">
-                                  <FiClock className="mr-1 text-xs" /> Pending
+                                  <FiClock className="mr-1 text-xs" /> pending
                                 </span>
                               )}
                             </div>
