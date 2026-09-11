@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import Offertimer from "@/models/Offertimer";
+import StateDeal from "@/models/StateDeal";
 import { normalizeRegion } from "@/lib/regionHelper";
 
 export const dynamic = "force-dynamic";
@@ -60,31 +61,90 @@ export async function GET(req) {
       );
     }
 
-    // 1. Try to find currently active live timer
-    let activeTimer = await Offertimer.findOne({
-      $and: [
-        {
-          $or: [
-            { timerDisplayStatus: "Yes" },
-            { status: "active" },
-          ],
-        },
-        {
-          $or: [
-            { startDate: { $lte: now }, endDate: { $gt: now } },
-            { offer_start: { $lte: now }, offer_end: { $gt: now } },
-          ],
-        },
-        {
-          $or: stateMatchOr,
-        },
-      ],
-    })
-      .sort({ startDate: -1, offer_start: -1, createdAt: -1 })
-      .lean();
-
+    let activeTimer = null;
     let isUpcoming = false;
-    // 2. If no live timer, find next upcoming timer (e.g. tomorrow's offer)
+
+    // =========================================================================
+    // 1st PRIORITY: "States Deals Offer Show" mapped timer for this state
+    // (Latest added or edited state deal has first priority: updatedAt: -1, createdAt: -1)
+    // =========================================================================
+    try {
+      const stateAliases = {
+        tamilnadu: ["tamilnadu", "tamil nadu", "tn"],
+        andhra: ["andhra", "andhra pradesh", "ap"],
+        kerala: ["kerala", "kl"],
+        karnataka: ["karnataka", "ka"],
+        telangana: ["telangana", "ts", "tg"],
+      };
+      const aliases = stateAliases[region.toLowerCase()] || [region.toLowerCase()];
+      if (friendlyName) aliases.push(friendlyName.toLowerCase());
+
+      const stateDeal = await StateDeal.findOne({
+        state: { $in: aliases },
+        status: { $ne: "inactive" },
+      })
+        .sort({ updatedAt: -1, createdAt: -1 })
+        .lean();
+
+      if (stateDeal) {
+        let mappedTimer = null;
+        if (stateDeal.offerTimerRef) {
+          mappedTimer = await Offertimer.findById(stateDeal.offerTimerRef).lean();
+        }
+        if (!mappedTimer && stateDeal.offerTimerId) {
+          mappedTimer = await Offertimer.findOne({ timerId: Number(stateDeal.offerTimerId) }).lean();
+        }
+
+        if (mappedTimer) {
+          const isDisplay =
+            (mappedTimer.timerDisplayStatus ? mappedTimer.timerDisplayStatus === "Yes" : true) &&
+            (mappedTimer.status ? mappedTimer.status === "active" : true);
+
+          const end = mappedTimer.endDate || mappedTimer.offer_end;
+          const isNotExpired = !end || new Date(end).getTime() > now.getTime();
+
+          if (isDisplay && isNotExpired) {
+            activeTimer = mappedTimer;
+            const start = mappedTimer.startDate || mappedTimer.offer_start;
+            if (start && new Date(start).getTime() > now.getTime()) {
+              isUpcoming = true;
+            }
+          }
+        }
+      }
+    } catch (dealErr) {
+      console.error("Error checking StateDeal priority:", dealErr);
+    }
+
+    // =========================================================================
+    // 2nd PRIORITY (Fallback): Latest added / edited active offer timer for this state
+    // =========================================================================
+    if (!activeTimer) {
+      // 1. Try to find currently active live timer (latest added/edited first)
+      activeTimer = await Offertimer.findOne({
+        $and: [
+          {
+            $or: [
+              { timerDisplayStatus: "Yes" },
+              { status: "active" },
+            ],
+          },
+          {
+            $or: [
+              { startDate: { $lte: now }, endDate: { $gt: now } },
+              { offer_start: { $lte: now }, offer_end: { $gt: now } },
+            ],
+          },
+          {
+            $or: stateMatchOr,
+          },
+        ],
+      })
+        .sort({ updatedAt: -1, startDate: -1, offer_start: -1, createdAt: -1 })
+        .lean();
+    }
+
+    // 2. If still no live timer, find next upcoming timer (e.g. tomorrow's offer)
     if (!activeTimer) {
       activeTimer = await Offertimer.findOne({
         $and: [
@@ -105,7 +165,7 @@ export async function GET(req) {
           },
         ],
       })
-        .sort({ startDate: 1, offer_start: 1, createdAt: 1 })
+        .sort({ updatedAt: -1, startDate: 1, offer_start: 1, createdAt: 1 })
         .lean();
 
       if (activeTimer) {
