@@ -129,7 +129,6 @@ const OrderSchema = new mongoose.Schema(
       required: false,
       default: null,
     },
-
     loyalty_points_awarded: { type: Number, default: 0 },
     truco_transaction_id: { type: String, default: null },
     loyalty_points_redeemed: { type: Number, default: 0 },

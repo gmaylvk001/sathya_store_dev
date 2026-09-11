@@ -64,6 +64,8 @@ export default function Order() {
     return new Date(dateString).toLocaleDateString(undefined, options);
   };
 
+  const getStatusKey = (status) => String(status || "").toLowerCase();
+
   const handleBuyAgain = () => {
     router.push('/');
   };
@@ -242,7 +244,9 @@ export default function Order() {
                 </div>
               ) : (
                 <div className="space-y-4 sm:space-y-6">
-                  {filteredOrders.map((order) => (
+                  {filteredOrders.map((order) => {
+                    const statusKey = getStatusKey(order.order_status);
+                    return (
                     <div key={order._id} className="p-3 sm:p-5 border border-gray-200 rounded-xl hover:shadow-md transition-shadow">
                       <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
                         {/* Product Image */}
@@ -287,25 +291,31 @@ export default function Order() {
 
                             {/* Status Badge */}
                             <div className={`px-2 py-1 sm:px-3 sm:py-1 rounded-full text-xs font-medium self-start ${
-                              order.order_status === 'delivered'
+                              statusKey === 'delivered'
                                 ? 'bg-green-100 text-green-800'
-                                : order.order_status === 'shipped'
+                                : statusKey === 'shipped'
                                 ? 'bg-red-100 text-[#d72828]'
-                                : order.order_status === 'cancelled'
+                                : statusKey === 'cancelled'
                                 ? 'bg-red-100 text-red-800'
+                                : statusKey === 'billed'
+                                ? 'bg-blue-100 text-blue-800'
                                 : 'bg-amber-100 text-amber-800'
                             }`}>
-                              {order.order_status === 'delivered' ? (
+                              {statusKey === 'delivered' ? (
                                 <span className="flex items-center">
                                   <FiCheckCircle className="mr-1 text-xs" /> Delivered
                                 </span>
-                              ) : order.order_status === 'shipped' ? (
+                              ) : statusKey === 'shipped' ? (
                                 <span className="flex items-center">
                                   <FiTruck className="mr-1 text-xs" /> Shipped
                                 </span>
-                              ) : order.order_status === 'cancelled' ? (
+                              ) : statusKey === 'cancelled' ? (
                                 <span className="flex items-center">
                                   <FiXCircle className="mr-1 text-xs" /> Cancelled
+                                </span>
+                              ) : statusKey === 'billed' ? (
+                                <span className="flex items-center">
+                                  <FiCheckCircle className="mr-1 text-xs" /> Billed
                                 </span>
                               ) : (
                                 <span className="flex items-center">
@@ -320,12 +330,14 @@ export default function Order() {
                             <div className="flex items-center text-gray-600">
                               <FiTruck className="mr-2 text-gray-400 text-xs sm:text-sm" />
                               <span>
-                                {order.order_status === 'delivered'
+                                {statusKey === 'delivered'
                                   ? `Delivered on ${formatDate(order.updatedAt)}`
-                                  : order.order_status === 'shipped'
+                                  : statusKey === 'shipped'
                                   ? `Shipped on ${formatDate(order.updatedAt)}`
-                                  : order.order_status === 'cancelled'
+                                  : statusKey === 'cancelled'
                                   ? `Cancelled on ${formatDate(order.cancelled_at || order.updatedAt)}`
+                                  : statusKey === 'billed'
+                                  ? `Billed on ${formatDate(order.updatedAt || order.createdAt)}`
                                   : `Order placed on ${formatDate(order.createdAt)}`}
                               </span>
                             </div>
@@ -350,7 +362,7 @@ export default function Order() {
                               <FiShoppingBag className="mr-1 sm:mr-2 text-xs sm:text-sm" />
                               Buy Again
                             </button>
-                            {order.order_status === 'pending' && (
+                            {statusKey === 'pending' && (
                               <button 
                                 onClick={() => handleCancelClick(order)}
                                 className="px-3 sm:px-4 py-1 sm:py-2 border border-gray-300 text-gray-600 rounded-md hover:bg-gray-50 transition-colors text-xs sm:text-sm"
@@ -359,7 +371,7 @@ export default function Order() {
                               </button>
                             )}
 
-                            {order.order_status === "shipped" && (
+                            {statusKey === "shipped" && (
                               <a href={`/product/${order.order_item[0].slug}#reviews`} target='_blank'>
                                 <button className="px-3 sm:px-4 py-1 sm:py-2 bg-green-100 text-green-600 rounded-md hover:bg-green-200 transition-colors text-xs sm:text-sm">
                                   Write Review
@@ -370,7 +382,8 @@ export default function Order() {
                         </div>
                       </div>
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>
