@@ -25,6 +25,7 @@ const emptyBanner = () => ({
  */
 export default function TopBannerConfigForm({
   categoryId,
+  pageId,
   pageType,
   categoryName,
   onSaved,
@@ -97,6 +98,7 @@ export default function TopBannerConfigForm({
     try {
       const fd = new FormData();
       fd.append(ownerIdKey, categoryId);
+      if (pageId) fd.append("pageId", pageId);
       fd.append("pageType", pageType);
       fd.append("status", status);
       fd.append(

@@ -167,31 +167,100 @@ export async function POST(req) {
       categoryId = page.categoryId;
       categoryName = page.categoryName || "";
       categorySlug = page.categorySlug || "";
+    } else if (!categoryId && pageId) {
+      const page = await CategoryPage.findById(pageId).lean();
+      if (page) {
+        categoryId = page.categoryId || page._id;
+        categoryName = page.categoryName || "";
+        categorySlug = page.categorySlug || "";
+      } else {
+        return NextResponse.json(
+          { success: false, message: "categoryId is required" },
+          { status: 400 }
+        );
+      }
     } else if (!categoryId) {
       return NextResponse.json(
         { success: false, message: "categoryId is required" },
         { status: 400 }
       );
     } else if (pageType === "brand") {
-      const brand = await ecom_brand_info.findById(categoryId).lean();
+      let brand = await ecom_brand_info.findById(categoryId).lean();
+      if (!brand) {
+        const page =
+          (await CategoryPage.findById(categoryId).lean()) ||
+          (await CategoryPage.findOne({ categoryId }).lean());
+        if (page) {
+          categoryName = page.categoryName || page.brandName || "";
+          categorySlug = page.categorySlug || page.brandSlug || "";
+          brand = page;
+        }
+      } else {
+        categoryName = brand.brand_name;
+        categorySlug = brand.brand_slug;
+      }
       if (!brand) {
         return NextResponse.json(
           { success: false, message: "Brand not found" },
           { status: 404 }
         );
       }
-      categoryName = brand.brand_name;
-      categorySlug = brand.brand_slug;
     } else {
-      const category = await ecom_category_info.findById(categoryId).lean();
+      let category = await ecom_category_info.findById(categoryId).lean();
+      if (!category) {
+        // Fallback 1: Check if categoryId is a CategoryPage ID
+        const page = await CategoryPage.findById(categoryId).lean();
+        if (page) {
+          categoryName = page.categoryName || "";
+          categorySlug = page.categorySlug || "";
+          if (page.categorySlug) {
+            const catBySlug = await ecom_category_info
+              .findOne({ category_slug: page.categorySlug })
+              .lean();
+            if (catBySlug) {
+              categoryId = catBySlug._id;
+              categoryName = catBySlug.category_name;
+              categorySlug = catBySlug.category_slug;
+            }
+          }
+          category = page;
+        } else {
+          // Fallback 2: Check if CategoryPage exists with this categoryId
+          const pageByCat = await CategoryPage.findOne({ categoryId }).lean();
+          if (pageByCat) {
+            categoryName = pageByCat.categoryName || "";
+            categorySlug = pageByCat.categorySlug || "";
+            if (pageByCat.categorySlug) {
+              const catBySlug = await ecom_category_info
+                .findOne({ category_slug: pageByCat.categorySlug })
+                .lean();
+              if (catBySlug) {
+                categoryId = catBySlug._id;
+                categoryName = catBySlug.category_name;
+                categorySlug = catBySlug.category_slug;
+              }
+            }
+            category = pageByCat;
+          } else if (pageId) {
+            const pageById = await CategoryPage.findById(pageId).lean();
+            if (pageById) {
+              categoryName = pageById.categoryName || "";
+              categorySlug = pageById.categorySlug || "";
+              category = pageById;
+            }
+          }
+        }
+      } else {
+        categoryName = category.category_name;
+        categorySlug = category.category_slug;
+      }
+
       if (!category) {
         return NextResponse.json(
           { success: false, message: "Category not found" },
           { status: 404 }
         );
       }
-      categoryName = category.category_name;
-      categorySlug = category.category_slug;
     }
 
     const payload = {

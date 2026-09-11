@@ -617,6 +617,7 @@ export default function PageBuilder({
             ) : configType === COMPONENT_TYPES.TOP_BANNER ? (
               <TopBannerConfigForm
                 key={configInstanceId}
+                pageId={page._id}
                 categoryId={
                   isCategoryBrandPage ? page._id : page.categoryId
                 }
