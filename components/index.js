@@ -963,7 +963,7 @@ export default function HomeComponent() {
   useEffect(() => {
     fetchSingleBannerTwoData();
   }, []);
-  console.log(categoryBanner);
+  // console.log(categoryBanner);
   const renderSection = (sectionName) => {
     switch (sectionName) {
       case 'category_banner':
@@ -1385,7 +1385,7 @@ export default function HomeComponent() {
             initial="hidden"
             animate="visible"
             variants={containerVariants}
-            className="overflow-hidden pt-1 px-4 sm:px-6 md:px-6"
+            className="overflow-hidden pt-1"
           >
             <div className="relative">
               {isSingleBannerNewLoading ? (
@@ -1439,7 +1439,7 @@ export default function HomeComponent() {
             initial="hidden"
             animate="visible"
             variants={containerVariants}
-            className="overflow-hidden pt-7 px-4 sm:px-6 md:px-6"
+            className="overflow-hidden pt-7"
           >
             <div className="relative">
               {isSingleBannerTwoLoading ? (

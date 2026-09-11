@@ -34,13 +34,13 @@ export default function CategorySplitBanner({ config }) {
   if (bannerCount === 1 || banners.length === 1) {
     const banner = banners[0];
     return (
-      <div className="w-full px-4 sm:px-6 mb-6">
+      <div className="w-full mb-6">
         <BannerLink href={banner.url}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={banner.image}
             alt="Banner"
-            className="w-full h-auto object-cover rounded-lg"
+            className="w-full h-auto object-cover"
           />
         </BannerLink>
       </div>

@@ -995,7 +995,7 @@ const Header = () => {
           if (searchInputRef.current) {
             const rect = searchInputRef.current.getBoundingClientRect();
             setSearchDropdownLeft(rect.left);
-            setSearchDropdownTop(rect.bottom + window.scrollY);
+            setSearchDropdownTop(rect.bottom + 4);
             setSearchDropdownWidth(rect.width);
           }
           return;
@@ -1017,7 +1017,7 @@ const Header = () => {
         if (searchInputRef.current) {
           const rect = searchInputRef.current.getBoundingClientRect();
           setSearchDropdownLeft(rect.left);
-          setSearchDropdownTop(rect.bottom + window.scrollY);
+          setSearchDropdownTop(rect.bottom + 4);
           setSearchDropdownWidth(rect.width);
         }
       } else {
@@ -1673,7 +1673,7 @@ const Header = () => {
 
   return (
     <>
-      <header className="sticky top-0 z-50 w-full max-w-[100vw] overflow-x-hidden">
+      <header className="sticky top-0 z-50 w-full bg-white shadow-xs">
         <style jsx global>{`
               :root{
                 --search-h:42px;
@@ -1778,7 +1778,7 @@ const Header = () => {
         <div className={`${isMobileMenuOpen
           ? "fixed inset-0 mt-0 pt-0 z-50 overflow-y-auto overflow-x-hidden"
           : `${currentBannerUrl ? "bg-cover bg-center" : "bg-white"
-          } px-3 sm:px-6 md:px-6 py-1 sticky top-0 z-40 overflow-x-hidden transition-all duration-300`
+          } px-3 sm:px-6 md:px-6 py-1 relative z-40 transition-all duration-300`
           }`}
           style={
             !isMobileMenuOpen && currentBannerUrl
@@ -1985,7 +1985,7 @@ const Header = () => {
                     if (searchInputRef.current) {
                       const rect = searchInputRef.current.getBoundingClientRect();
                       setSearchDropdownLeft(rect.left);
-                      setSearchDropdownTop(rect.bottom + window.scrollY);
+                      setSearchDropdownTop(rect.bottom + 4);
                       setSearchDropdownWidth(rect.width);
                     }
                     if (searchQuery.trim().length >= 2) fetchSuggestions(searchQuery);

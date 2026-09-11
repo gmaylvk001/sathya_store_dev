@@ -38,24 +38,53 @@ function ContactForm() {
   const [responseMsg, setResponseMsg] = useState("");
   const [touched, setTouched] = useState({});
 
-  const handleBlur = (e) =>
-    setTouched((prev) => ({ ...prev, [e.target.name]: true }));
+  const handleBlur = (e) => {
+    const { name, value } = e.target;
+    setTouched((prev) => ({ ...prev, [name]: true }));
+    if (name === "mobile_number") {
+      if (!value.trim()) {
+        setErrors((prev) => ({ ...prev, mobile_number: "Phone number is required" }));
+      } else if (!/^[6-9]\d{9}$/.test(value.trim())) {
+        setErrors((prev) => ({ ...prev, mobile_number: "Please enter a valid 10-digit mobile number" }));
+      } else {
+        setErrors((prev) => {
+          const { mobile_number: _, ...rest } = prev;
+          return rest;
+        });
+      }
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     if (name === "mobile_number") {
       const digits = value.replace(/\D/g, "").slice(0, 10);
       setForm((prev) => ({ ...prev, [name]: digits }));
-      setTouched((prev) => ({ ...prev, mobile_number: true }));
-      if (!digits) {
-        setErrors((prev) => ({ ...prev, mobile_number: "" }));
-      } else if (!/^[6-9]\d{9}$/.test(digits)) {
-        setErrors((prev) => ({ ...prev, mobile_number: "Invalid Mobile Number" }));
-      } else {
-        setErrors((prev) => { const { mobile_number: _, ...rest } = prev; return rest; });
+      if (touched.mobile_number) {
+        if (!digits) {
+          setErrors((prev) => ({ ...prev, mobile_number: "Phone number is required" }));
+        } else if (digits.length === 10) {
+          if (/^[6-9]\d{9}$/.test(digits)) {
+            setErrors((prev) => {
+              const { mobile_number: _, ...rest } = prev;
+              return rest;
+            });
+          } else {
+            setErrors((prev) => ({
+              ...prev,
+              mobile_number: "Mobile number must start with 6, 7, 8, or 9",
+            }));
+          }
+        }
       }
     } else {
       setForm((prev) => ({ ...prev, [name]: value }));
+      if (errors[name]) {
+        setErrors((prev) => {
+          const { [name]: _, ...rest } = prev;
+          return rest;
+        });
+      }
     }
   };
 
@@ -64,8 +93,11 @@ function ContactForm() {
     if (!form.name.trim()) e.name = "Name is required";
     if (!form.email_address.trim()) e.email_address = "Email is required";
     else if (!/\S+@\S+\.\S+/.test(form.email_address)) e.email_address = "Email is invalid";
-    if (form.mobile_number && !/^[6-9]\d{9}$/.test(form.mobile_number))
-      e.mobile_number = "Invalid Mobile Number";
+    if (!form.mobile_number || !form.mobile_number.trim()) {
+      e.mobile_number = "Phone number is required";
+    } else if (!/^[6-9]\d{9}$/.test(form.mobile_number.trim())) {
+      e.mobile_number = "Please enter a valid 10-digit mobile number";
+    }
     if (!form.city.trim()) e.city = "City is required";
     if (!form.enquiry_type) e.enquiry_type = "Please select enquiry type";
     if (!form.message.trim()) e.message = "Message is required";
