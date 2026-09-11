@@ -63,8 +63,7 @@ export default function OldLoginPage() {
       if (data.token) {
         localStorage.setItem("token", data.token);
         localStorage.removeItem("guestCartId");
-        router.push("/");
-        setTimeout(() => location.reload(), 100);
+        window.location.href = "/";
       } else if (activeTab === "register") {
         // Registration successful, switch to login
         setActiveTab("login");

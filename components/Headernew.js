@@ -515,7 +515,7 @@ const Header = () => {
     try {
       localStorage.removeItem('categories_raw_cache_v2');
       localStorage.removeItem('categories_nested_cache_v2');
-    } catch {}
+    } catch { }
 
     const buildNestedAndCache = (rawData) => {
       const rawArr = extractCategoryArray(rawData);
@@ -995,7 +995,7 @@ const Header = () => {
           if (searchInputRef.current) {
             const rect = searchInputRef.current.getBoundingClientRect();
             setSearchDropdownLeft(rect.left);
-            setSearchDropdownTop(rect.bottom + 4);
+            setSearchDropdownTop(rect.bottom + window.scrollY);
             setSearchDropdownWidth(rect.width);
           }
           return;
@@ -2963,6 +2963,12 @@ const Header = () => {
                   Admin Panel
                 </Link>
               )}
+              <Link href="/profile" onClick={() => setDropdownOpen(false)} className="block px-3 py-2 text-xs hover:bg-red-50">
+                My Profile
+              </Link>
+              <Link href="/address" onClick={() => setDropdownOpen(false)} className="block px-3 py-2 text-xs hover:bg-red-50">
+                My Addresses
+              </Link>
               <Link href="/orders" onClick={() => setDropdownOpen(false)} className="block px-3 py-2 text-xs hover:bg-red-50">
                 My Orders
               </Link>
@@ -2971,26 +2977,23 @@ const Header = () => {
               </button>
             </>
           ) : (
-            <div className="py-2 px-2">
+            <div className="py-2 px-1">
               {isAdmin && (
-                <Link href="/admin/dashboard" onClick={() => setDropdownOpen(false)} className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm text-gray-700 hover:bg-red-50 transition-colors">
-                  <span className="w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center rounded-full bg-brandRed text-white">
-                    <FaUserShield className="w-3 h-3 sm:w-4 sm:h-4" />
-                  </span>
+                <Link href="/admin/dashboard" onClick={() => setDropdownOpen(false)} className="block px-4 py-2 rounded-md text-sm text-gray-700 hover:bg-red-50 hover:text-brandRed transition-colors">
                   Admin Panel
                 </Link>
               )}
-              <Link href="/orders" onClick={() => setDropdownOpen(false)} className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm text-gray-700 hover:bg-red-50 transition-colors">
-                <span className="w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center rounded-full bg-brandRed text-white">
-                  <FaShoppingBag className="w-3 h-3 sm:w-4 sm:h-4" />
-                </span>
+              <Link href="/profile" onClick={() => setDropdownOpen(false)} className="block px-4 py-2 rounded-md text-sm text-gray-700 hover:bg-red-50 hover:text-brandRed transition-colors">
+                My Profile
+              </Link>
+              <Link href="/address" onClick={() => setDropdownOpen(false)} className="block px-4 py-2 rounded-md text-sm text-gray-700 hover:bg-red-50 hover:text-brandRed transition-colors">
+                My Addresses
+              </Link>
+              <Link href="/orders" onClick={() => setDropdownOpen(false)} className="block px-4 py-2 rounded-md text-sm text-gray-700 hover:bg-red-50 hover:text-brandRed transition-colors">
                 My Orders
               </Link>
-              <hr className="my-2 border-gray-200" />
-              <button onClick={handleLogout} className="flex items-center gap-2 sm:gap-3 w-full text-left px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm text-gray-700 hover:bg-red-50 transition-colors">
-                <span className="w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center rounded-full bg-brandRed text-white">
-                  <IoLogOut className="w-3 h-3 sm:w-4 sm:h-4" />
-                </span>
+              <hr className="my-1 border-gray-200" />
+              <button onClick={handleLogout} className="block w-full text-left px-4 py-2 rounded-md text-sm text-gray-700 hover:bg-red-50 hover:text-brandRed transition-colors">
                 Logout
               </button>
             </div>

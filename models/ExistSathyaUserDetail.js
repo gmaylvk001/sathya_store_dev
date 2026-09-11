@@ -32,6 +32,8 @@ const ExistSathyaUserDetailSchema = new mongoose.Schema({
   gst_pncd: optionalString,
   gst_lg: optionalString,
   live_user_id: optionalString,
+  is_default_shipping: { type: Boolean, default: false },
+  is_default_billing: { type: Boolean, default: false },
   created_at: { type: Date, required: false, default: null },
   updated_at: { type: Date, required: false, default: null },
 }, {
@@ -87,6 +89,8 @@ export const EXIST_SATHYA_USER_DETAIL_FIELDS = [
   "gst_lt",
   "gst_pncd",
   "gst_lg",
+  "is_default_shipping",
+  "is_default_billing",
   "created_at",
   "updated_at",
 ];

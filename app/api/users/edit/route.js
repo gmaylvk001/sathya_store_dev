@@ -6,7 +6,7 @@ export async function PUT(req) {
   await dbConnect();
 
   try {
-    const { userId, name, mobile, email, status } = await req.json();
+    const { userId, name, last_name, mobile, email, store_id, status } = await req.json();
 
     if (!userId) {
       return NextResponse.json({ error: "User ID is required" }, { status: 400 });
@@ -36,7 +36,7 @@ export async function PUT(req) {
     // Update the user
     const updatedUser = await User.findByIdAndUpdate(
       userId,
-      { name, mobile, email, status },
+      { name, last_name, mobile, email, store_id, status },
       { new: true , runValidators: true}
     );
 

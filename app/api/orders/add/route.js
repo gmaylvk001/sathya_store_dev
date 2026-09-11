@@ -38,6 +38,8 @@ export async function POST(req) {
       pickup_store,
       store_id,
       gst_number,
+      order_billingaddress,
+      user_addbillingid,
     } = body;
 
     // Validate required fields
@@ -92,6 +94,8 @@ export async function POST(req) {
       store_id: resolvedStoreId,
       region: resolvedRegion,
       gst_number: gst_number || null,
+      order_billingaddress: order_billingaddress || null,
+      user_addbillingid: user_addbillingid || null,
     };
 
     // Check if order already exists (match by order_number if provided, else user + pending order)

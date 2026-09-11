@@ -342,6 +342,13 @@ export default function CheckoutPage() {
   const [useraddress, setUseraddress] = useState([]);
   const [selectedAddress, setSelectedAddress] = useState(null);
   const [useSavedAddress, setUseSavedAddress] = useState(false);
+  const [savedAddresses, setSavedAddresses] = useState([]);
+  const [shippingAddressId, setShippingAddressId] = useState(null);
+  const [billingAddressId, setBillingAddressId] = useState(null);
+  const [billingSameAsShipping, setBillingSameAsShipping] = useState(true);
+  const [showAddressModal, setShowAddressModal] = useState(false);
+  const [addressModalType, setAddressModalType] = useState('shipping');
+  const [editAddressId, setEditAddressId] = useState(null);
   const [paymentMethod, setPaymentMethod] = useState('online');
   const [error, setError] = useState('');
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -412,27 +419,28 @@ export default function CheckoutPage() {
         const cartData = await cartRes.json();
         setCartItems(cartData.cart.items);
       }
-      const addrRes = await fetch(`/api/useraddress?user_id=${userId}`);
+      const addrRes = await fetch(`/api/saved-address`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
       if (addrRes.ok) {
         try {
           const addrData = await addrRes.json();
-          const addresses = addrData?.userAddress || [];
-          setUseraddress(addresses);
+          const addresses = addrData?.addresses || [];
+          setSavedAddresses(addresses);
           if (addresses.length > 0) {
-            const addr = addresses[0];
-            setFormData(prev => ({
-              ...prev,
-              firstName: addr.firstName || '', lastName: addr.lastName || '',
-              country: 'India', address: addr.address || '',
-              city: addr.city || '', state: addr.state || 'Tamilnadu',
-              postCode: addr.postCode || '', phonenumber: addr.phonenumber || '',
-              landmark: addr.landmark || '', email: addr.email || '',
-              businessName: addr.businessName || '', additionalInfo: addr.additionalInfo || '',
-            }));
-            setSelectedAddress(0);
+            const defaultShip = addresses.find(a => a.is_default_shipping) || addresses[0];
+            const defaultBill = addresses.find(a => a.is_default_billing) || addresses[0];
+            setShippingAddressId(defaultShip._id);
+            if (defaultShip._id !== defaultBill._id) {
+              setBillingSameAsShipping(false);
+              setBillingAddressId(defaultBill._id);
+            } else {
+              setBillingSameAsShipping(true);
+              setBillingAddressId(defaultShip._id);
+            }
           }
         } catch (parseErr) {
-          setUseraddress([]);
+          setSavedAddresses([]);
         }
       }
     } catch (err) {
@@ -446,13 +454,6 @@ export default function CheckoutPage() {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-    if (selectedAddress !== null) {
-      setUseraddress(prev => {
-        const updated = [...prev];
-        updated[selectedAddress] = { ...updated[selectedAddress], [name]: value };
-        return updated;
-      });
-    }
     // Visual-only convenience: when switching to store pickup, surface "Pay at store" as the
     // highlighted payment option to match the in-store collection flow shown in the design.
     if (name === 'deliveryType') {
@@ -603,19 +604,30 @@ export default function CheckoutPage() {
       if (!token) { setShowAuthModal(true); return; }
       const decoded = jwtDecode(token);
       const userId = decoded.userId;
-      const addressData = useSavedAddress && selectedAddress !== null
-        ? { ...useraddress[selectedAddress], state: useraddress[selectedAddress].state || 'Tamilnadu', country: 'India' }
-        : { ...formData, state: formData.state || 'Tamilnadu', country: 'India' };
+      const shippingAddress = savedAddresses.find(a => a._id === shippingAddressId);
+      const billingAddress = billingSameAsShipping ? shippingAddress : savedAddresses.find(a => a._id === billingAddressId);
 
-      if (!useSavedAddress || selectedAddress === null) {
-        setTouched({ firstName: true, lastName: true, email: true, phonenumber: true, country: true, address: true, city: true, postCode: true });
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        const phoneRegex = /^[0-9]{10}$/;
-        const postCodeRegex = /^[0-9]{4,6}$/;
-        if (!addressData.firstName || !addressData.lastName || !addressData.email || !addressData.phonenumber || !addressData.postCode || !addressData.state) { toast.error('Please fill in all required fields.'); return; }
-        if (!emailRegex.test(addressData.email)) { toast.error('Please enter a valid email address.'); return; }
-        if (!phoneRegex.test(addressData.phonenumber)) { toast.error('Please enter a valid 10-digit phone number.'); return; }
-        if (!postCodeRegex.test(addressData.postCode)) { toast.error('Please enter a valid postal code.'); return; }
+      if (formData.deliveryType === 'home' && !shippingAddress) {
+        toast.error('Please select a shipping address.');
+        return;
+      }
+      if (formData.deliveryType === 'home' && !billingAddress) {
+        toast.error('Please select a billing address.');
+        return;
+      }
+
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!formData.email || !emailRegex.test(formData.email)) {
+        setTouched(prev => ({ ...prev, email: true }));
+        toast.error('Please enter a valid email address.');
+        return;
+      }
+
+      if (formData.deliveryType === 'store') {
+        if (!formData.firstName || !formData.address || !formData.city || !formData.phonenumber) {
+          toast.error('Please fill in all required store pickup fields.');
+          return;
+        }
       }
 
       if (formData.needGstInvoice && !formData.gst_number?.trim()) {
@@ -628,40 +640,26 @@ export default function CheckoutPage() {
 
       setIsSubmitting(true);
       const totalAmount = orderSummary.total;
-      let savedAddressId = null;
+      let savedAddressId = shippingAddress?._id;
+      let savedBillingId = billingAddress?._id;
 
-      if (!useSavedAddress || selectedAddress === null) {
-        const formDataToSend = new FormData();
-        formDataToSend.append('userId', userId);
-        formDataToSend.append('firstname', addressData.firstName);
-        formDataToSend.append('lastName', addressData.lastName);
-        formDataToSend.append('businessName', addressData.businessName || '');
-        formDataToSend.append('country', addressData.country);
-        formDataToSend.append('email', addressData.email);
-        formDataToSend.append('address', addressData.address);
-        formDataToSend.append('postCode', addressData.postCode);
-        formDataToSend.append('city', addressData.city);
-        formDataToSend.append('state', addressData.state);
-        formDataToSend.append('landmark', addressData.landmark || '');
-        formDataToSend.append('phonenumber', addressData.phonenumber);
-        formDataToSend.append('additionalInfo', addressData.additionalInfo || '');
-        formDataToSend.append('gst_number', gstNumber);
-        const addressRes = await fetch('/api/useraddress/add', { method: 'POST', body: formDataToSend });
-        if (!addressRes.ok) throw new Error('Failed to save address');
-        const newAddressData = await addressRes.json();
-        setUseraddress(prev => [...prev, newAddressData.userAddress]);
-        savedAddressId = newAddressData.userAddress?._id;
-      }
+      const deliveryAddress = formData.deliveryType === 'home' && shippingAddress ? [
+        shippingAddress.address1, shippingAddress.address2,
+        shippingAddress.locality, shippingAddress.landmark,
+        shippingAddress.city, shippingAddress.state, "India", shippingAddress.pincode,
+      ].filter(Boolean).join(', ') : [formData.address, formData.landmark, formData.city, formData.state, "India", formData.postCode].filter(Boolean).join(', ');
 
-      const deliveryAddress = [
-        addressData.address, addressData.landmark,
-        addressData.businessName, addressData.city,
-        addressData.state, addressData.country, addressData.postCode,
-      ].filter(Boolean).join(', ');
+      const billingAddressStr = formData.deliveryType === 'home' && billingAddress ? [
+        billingAddress.address1, billingAddress.address2,
+        billingAddress.locality, billingAddress.landmark,
+        billingAddress.city, billingAddress.state, "India", billingAddress.pincode,
+      ].filter(Boolean).join(', ') : deliveryAddress;
 
-      const comments = useSavedAddress && selectedAddress !== null
-        ? (useraddress[selectedAddress]?.additionalInfo || '')
-        : (addressData.additionalInfo || '');
+      const comments = formData.additionalInfo || '';
+
+      const orderUserName = formData.deliveryType === 'home' && shippingAddress ? shippingAddress.username : formData.firstName;
+      const orderPhone = formData.deliveryType === 'home' && shippingAddress ? shippingAddress.phonenumber : formData.phonenumber;
+      const orderEmail = formData.email;
 
       const pickupStoreName = formData.deliveryType === 'store'
         ? stores.find(s => s._id === formData.selectedStore)?.organisation_name
@@ -680,11 +678,13 @@ export default function CheckoutPage() {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               user_id: userId,
-              user_adddeliveryid: useSavedAddress && selectedAddress !== null ? useraddress[selectedAddress]._id : savedAddressId || useraddress[0]?._id,
-              order_username: `${addressData.firstName} ${addressData.lastName}`,
-              order_phonenumber: addressData.phonenumber, email_address: addressData.email,
+              user_adddeliveryid: savedAddressId,
+              user_addbillingid: savedBillingId,
+              order_username: orderUserName,
+              order_phonenumber: orderPhone, email_address: orderEmail,
               order_item: cartItems.map(item => ({ ...item, warrantyData: item.warrantyData || null, store_id: formData.deliveryType === 'store' ? formData.selectedStore : null, coupondetails: Array.isArray(item.coupondetails) && item.coupondetails.length > 0 ? item.coupondetails.map(c => c.offer_code || String(c)) : [] })),
               order_amount: totalAmount, order_deliveryaddress: deliveryAddress,
+              order_billingaddress: billingAddressStr,
               promotion_code_applied: appliedCoupon?.offer_code || null,
               promotion_discount_applied: appliedCoupon ? (orderSummary.discount || 0) : 0,
 
@@ -717,11 +717,13 @@ export default function CheckoutPage() {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           user_id: userId,
-          user_adddeliveryid: useSavedAddress && selectedAddress !== null ? useraddress[selectedAddress]._id : savedAddressId || useraddress[0]?._id,
-          order_username: `${addressData.firstName} ${addressData.lastName}`,
-          order_phonenumber: addressData.phonenumber, email_address: addressData.email,
+          user_adddeliveryid: savedAddressId,
+          user_addbillingid: savedBillingId,
+          order_username: orderUserName,
+          order_phonenumber: orderPhone, email_address: orderEmail,
           order_item: cartItems.map(item => ({ ...item, warrantyData: item.warrantyData || null, store_id: formData.deliveryType === 'store' ? formData.selectedStore : null, coupondetails: Array.isArray(item.coupondetails) && item.coupondetails.length > 0 ? item.coupondetails.map(c => c.offer_code || String(c)) : [] })),
           order_amount: totalAmount, order_deliveryaddress: deliveryAddress,
+          order_billingaddress: billingAddressStr,
           promotion_code_applied: appliedCoupon?.offer_code || null,
           promotion_discount_applied: appliedCoupon ? (orderSummary.discount || 0) : 0,
 
@@ -758,7 +760,7 @@ export default function CheckoutPage() {
         // });
 
         try {
-          const name = `${addressData.firstName} ${addressData.lastName}`;
+          const name = orderUserName;
           const orderDate = new Date().toLocaleString("en-IN", {
             day: "2-digit",
             month: "long",
@@ -783,7 +785,7 @@ export default function CheckoutPage() {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              customerEmail: addressData.email,
+              customerEmail: orderEmail,
               adminEmails,
               orderDetails: {
                 order_id: String(orderData.order._id || ""),
@@ -792,7 +794,7 @@ export default function CheckoutPage() {
                 order_amount: orderData.order.order_amount,
                 payment_method: orderData.order.payment_method,
                 order_deliveryaddress: deliveryAddress,
-                order_phonenumber: addressData.phonenumber,
+                order_phonenumber: orderPhone,
                 order_date: orderDate,
                 order_item: cartItems.map((item) => ({
                   name: item.name,
@@ -921,58 +923,80 @@ export default function CheckoutPage() {
                 cartItems={cartItems}
               />
 
-              {/* Delivery address — shown when home delivery */}
+              {/* Address Selection UI (replaces inline form) */}
               {formData.deliveryType === 'home' && (
-                <div className="mt-4 space-y-3">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <FloatInput label="First name" name="firstName" required
-                      value={formData.firstName} onChange={handleChange} onBlur={handleBlur}
-                      error={getFieldError('firstName')} />
-                    <FloatInput label="Last name" name="lastName" required
-                      value={formData.lastName} onChange={handleChange} onBlur={handleBlur}
-                      error={getFieldError('lastName')} />
-                  </div>
-                  <FloatInput label="Company name (optional)" name="businessName"
-                    value={formData.businessName} onChange={handleChange} onBlur={handleBlur}
-                    error={getFieldError('businessName')} />
-                  <FloatInput label="House number and street name" name="address" required
-                    value={formData.address} onChange={handleChange} onBlur={handleBlur}
-                    error={getFieldError('address')} />
-                  <FloatInput label="Landmark, suite, unit, etc. (optional)" name="landmark"
-                    value={formData.landmark} onChange={handleChange} onBlur={handleBlur}
-                    error={getFieldError('landmark')} />
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <FloatInput label="State" name="state" readOnly
-                      value={formData.state} onChange={handleChange} onBlur={handleBlur}
-                      error={getFieldError('state')} />
-                    <div className="relative">
-                      <select
-                        name="city" value={formData.city}
-                        onChange={handleChange} onBlur={handleBlur}
-                        className={`peer w-full border rounded-lg pt-5 pb-1.5 px-3 text-sm outline-none transition appearance-none bg-white
-                          ${getFieldError('city') ? 'border-red-400 focus:border-red-500' : 'border-gray-300 focus:border-[#d72828]'}`}
-                      >
-                        <option value="" disabled hidden />
-                        {finalCities.map((city, i) => <option key={i} value={city}>{city}</option>)}
-                      </select>
-                      <label className={`absolute left-3 transition-all duration-150 pointer-events-none
-                        ${formData.city ? 'top-1 text-[10px] text-gray-500' : 'top-3.5 text-sm text-gray-400'}`}>
-                        City*
-                      </label>
-                      {getFieldError('city') && <p className="text-red-500 text-xs mt-0.5">{getFieldError('city')}</p>}
+                <div className="mt-6 space-y-6">
+                  {/* Shipping Address Box */}
+                  <div className="border border-gray-200 rounded-xl p-5 bg-white shadow-sm">
+                    <div className="flex justify-between items-start mb-4">
+                      <h3 className="font-semibold text-gray-800 flex items-center gap-2">
+                        Shipping Address
+                      </h3>
+                      <button type="button" onClick={() => { setAddressModalType('shipping'); setShowAddressModal(true); }} className="text-red-600 text-sm font-medium hover:underline">
+                        Change
+                      </button>
                     </div>
-                    <FloatInput label="Pincode" name="postCode" required
-                      value={formData.postCode} onChange={handleChange} onBlur={handleBlur}
-                      error={getFieldError('postCode')}
-                      inputMode="numeric" maxLength={6} />
+
+                    {shippingAddressId && savedAddresses.find(a => a._id === shippingAddressId) ? (() => {
+                      const addr = savedAddresses.find(a => a._id === shippingAddressId);
+                      const cleanVal = (val) => (!val || String(val).toUpperCase() === 'NULL') ? '' : val;
+                      return (
+                        <div className="text-sm text-gray-600">
+                          <p className="font-semibold text-gray-800">{cleanVal(addr.username)}</p>
+                          <p>{cleanVal(addr.address1)} {cleanVal(addr.address2) ? `, ${cleanVal(addr.address2)}` : ''}</p>
+                          <p>{cleanVal(addr.city)}, {cleanVal(addr.state)} {cleanVal(addr.pincode)}</p>
+                          <p className="mt-1">Phone: {cleanVal(addr.phonenumber)}</p>
+                        </div>
+                      );
+                    })() : (
+                      <div className="py-4 text-center border-2 border-dashed border-gray-200 rounded-lg">
+                        <p className="text-sm text-gray-500 mb-2">Kindly add a Shipping Address</p>
+                        <button type="button" onClick={() => { setAddressModalType('new'); setShowAddressModal(true); }} className="text-red-600 text-sm font-medium hover:underline">+ Add Address</button>
+                      </div>
+                    )}
                   </div>
-                  <FloatInput label="Country" name="country" required readOnly showLock
-                    value={formData.country || 'India'} onChange={handleChange} onBlur={handleBlur}
-                    error={getFieldError('country')}
-                    hint="Only available for delivery within India" />
-                  <FloatInput label="Phone" name="phonenumber" type="tel" required
-                    value={formData.phonenumber} onChange={handleChange} onBlur={handleBlur}
-                    error={getFieldError('phonenumber')} />
+
+                  <label className="flex items-center gap-2 cursor-pointer pl-1">
+                    <input type="checkbox" className="rounded text-red-600 focus:ring-red-600 w-4 h-4"
+                      checked={billingSameAsShipping}
+                      onChange={(e) => {
+                        setBillingSameAsShipping(e.target.checked);
+                        if (e.target.checked) setBillingAddressId(shippingAddressId);
+                      }} />
+                    <span className="text-sm font-medium text-gray-700">Billing same as shipping</span>
+                  </label>
+
+                  {/* Billing Address Box */}
+                  {!billingSameAsShipping && (
+                    <div className="border border-gray-200 rounded-xl p-5 bg-white shadow-sm">
+                      <div className="flex justify-between items-start mb-4">
+                        <h3 className="font-semibold text-gray-800 flex items-center gap-2">
+                          Billing Address
+                        </h3>
+                        <button type="button" onClick={() => { setAddressModalType('billing'); setShowAddressModal(true); }} className="text-red-600 text-sm font-medium hover:underline">
+                          Change
+                        </button>
+                      </div>
+
+                      {billingAddressId && savedAddresses.find(a => a._id === billingAddressId) ? (() => {
+                        const addr = savedAddresses.find(a => a._id === billingAddressId);
+                        const cleanVal = (val) => (!val || String(val).toUpperCase() === 'NULL') ? '' : val;
+                        return (
+                          <div className="text-sm text-gray-600">
+                            <p className="font-semibold text-gray-800">{cleanVal(addr.username)}</p>
+                            <p>{cleanVal(addr.address1)} {cleanVal(addr.address2) ? `, ${cleanVal(addr.address2)}` : ''}</p>
+                            <p>{cleanVal(addr.city)}, {cleanVal(addr.state)} {cleanVal(addr.pincode)}</p>
+                            <p className="mt-1">Phone: {cleanVal(addr.phonenumber)}</p>
+                          </div>
+                        );
+                      })() : (
+                        <div className="py-4 text-center border-2 border-dashed border-gray-200 rounded-lg">
+                          <p className="text-sm text-gray-500 mb-2">Kindly add a Billing Address</p>
+                          <button type="button" onClick={() => { setAddressModalType('new'); setShowAddressModal(true); }} className="text-red-600 text-sm font-medium hover:underline">+ Add Address</button>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -1177,48 +1201,7 @@ export default function CheckoutPage() {
               )}
             </section>
 
-            {/* Billing / Saved addresses */}
-            {useraddress && useraddress.length > 0 && (
-              <section className="mb-8">
-                <h2 className="text-base font-semibold text-gray-800 mb-3">Billing address</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {useraddress.map((item, index) => (
-                    <div
-                      key={`addr-${index}`}
-                      onClick={() => {
-                        setSelectedAddress(index);
-                        const addr = useraddress[index];
-                        setFormData(prev => ({ ...prev, firstName: addr.firstName || '', lastName: addr.lastName || '', businessName: addr.businessName || '', country: 'India', address: addr.address || '', landmark: addr.landmark || '', city: addr.city || '', state: addr.state || 'Tamilnadu', postCode: addr.postCode || '', phonenumber: addr.phonenumber || '', email: addr.email || '', additionalInfo: addr.additionalInfo || '' }));
-                      }}
-                      className={`border-2 rounded-xl p-4 cursor-pointer transition-all
-                        ${selectedAddress === index ? 'border-orange-500 bg-orange-50' : 'border-gray-200 hover:border-gray-300'}`}
-                    >
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <p className="text-sm font-medium text-gray-800">{item.firstName} {item.lastName}</p>
-                          <p className="text-xs text-gray-500 mt-1">{item.address}</p>
-                          <p className="text-xs text-gray-500">{item.city}, {item.state}, {item.postCode}</p>
-                          <p className="text-xs text-gray-500">{item.phonenumber}</p>
-                        </div>
-                        {selectedAddress === index && (
-                          <span className="text-orange-500 text-xs font-medium flex items-center gap-1">
-                            <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
-                            Selected
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setUseSavedAddress(!useSavedAddress)}
-                  className="mt-3 text-sm text-orange-500 underline"
-                >
-                  {useSavedAddress ? 'Use new address instead' : 'Use saved address'}
-                </button>
-              </section>
-            )}
+
 
             {/* Comments */}
             <section className="mb-8">
@@ -1572,6 +1555,184 @@ export default function CheckoutPage() {
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-red-600 mx-auto mb-4" />
             <h3 className="text-base font-semibold text-gray-900">Processing your order</h3>
             <p className="mt-2 text-sm text-gray-500">Please wait while we process your payment and order details.</p>
+          </div>
+        </div>
+      )}
+
+      {/* Address Selection Modal */}
+      {showAddressModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 px-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center p-5 border-b border-gray-100">
+              <h3 className="text-xl font-bold text-gray-800">
+                {addressModalType === 'new' ? 'Add New Address' : addressModalType === 'edit' ? 'Edit Address' : `Select ${addressModalType === 'shipping' ? 'Shipping' : 'Billing'} Address`}
+              </h3>
+              <button type="button" onClick={() => setShowAddressModal(false)} className="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
+            </div>
+            <div className="p-5">
+              {addressModalType !== 'new' && addressModalType !== 'edit' && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                  {savedAddresses.map(addr => {
+                    const cleanVal = (val) => (!val || String(val).toUpperCase() === 'NULL') ? '' : val;
+                    return (
+                      <div key={addr._id}
+                        onClick={() => {
+                          if (addressModalType === 'shipping') setShippingAddressId(addr._id);
+                          if (addressModalType === 'billing') setBillingAddressId(addr._id);
+                          setShowAddressModal(false);
+                        }}
+                        className={`relative border-2 rounded-xl p-4 cursor-pointer hover:border-red-500 transition-colors ${(addressModalType === 'shipping' ? shippingAddressId === addr._id : billingAddressId === addr._id) ? 'border-red-500 bg-red-50' : 'border-gray-200'}`}>
+                        <p className="font-semibold text-gray-800">{cleanVal(addr.username)}</p>
+                        <p className="text-sm text-gray-600 mt-1">{cleanVal(addr.address1)} {cleanVal(addr.address2) ? `, ${cleanVal(addr.address2)}` : ''}</p>
+                        <p className="text-sm text-gray-600">{cleanVal(addr.city)}, {cleanVal(addr.state)} {cleanVal(addr.pincode)}</p>
+                        <p className="text-sm text-gray-600 mt-1">{cleanVal(addr.phonenumber)}</p>
+                        <button
+                          type="button"
+                          className="absolute top-4 right-4 text-xs font-medium text-blue-600 hover:underline bg-white/80 px-2 py-1 rounded"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setEditAddressId(addr._id);
+                            setAddressModalType('edit');
+                          }}
+                        >
+                          Edit
+                        </button>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+              {addressModalType !== 'new' && addressModalType !== 'edit' && (
+                <button type="button" onClick={() => { setEditAddressId(null); setAddressModalType('new'); }} className="text-red-600 font-medium hover:underline mb-4 inline-block">+ Add New Address</button>
+              )}
+
+              {(addressModalType === 'new' || addressModalType === 'edit') && (() => {
+                let defaultVals = { firstName: '', lastName: '', phone: '', alternate_phone: '', pincode: '', locality: '', address_line1: '', address_line2: '', city: '', state: 'Tamilnadu', landmark: '' };
+                if (addressModalType === 'edit' && editAddressId) {
+                  const addr = savedAddresses.find(a => a._id === editAddressId);
+                  if (addr) {
+                    const cleanVal = (val) => (!val || String(val).toUpperCase() === 'NULL') ? '' : val;
+                    const parts = cleanVal(addr.username).split(' ');
+                    defaultVals = {
+                      firstName: parts[0] || '',
+                      lastName: parts.slice(1).join(' ') || '',
+                      phone: cleanVal(addr.phonenumber),
+                      alternate_phone: cleanVal(addr.altnumber),
+                      pincode: cleanVal(addr.pincode),
+                      locality: cleanVal(addr.locality),
+                      address_line1: cleanVal(addr.address1),
+                      address_line2: cleanVal(addr.address2),
+                      city: cleanVal(addr.city),
+                      state: cleanVal(addr.state) || 'Tamilnadu',
+                      landmark: cleanVal(addr.landmark)
+                    };
+                  }
+                }
+                return (
+                  <form onSubmit={async (e) => {
+                    e.preventDefault();
+                    const fd = new FormData(e.target);
+                    const payload = {
+                      full_name: fd.get('firstName') + ' ' + fd.get('lastName'),
+                      phone: fd.get('phone'),
+                      alternate_phone: fd.get('alternate_phone') || '',
+                      pincode: fd.get('pincode'),
+                      locality: fd.get('locality') || '',
+                      address_line1: fd.get('address_line1'),
+                      address_line2: fd.get('address_line2') || '',
+                      city: fd.get('city'),
+                      state: fd.get('state') || 'Tamilnadu',
+                      landmark: fd.get('landmark') || '',
+                      is_default_shipping: false,
+                      is_default_billing: false
+                    };
+                    const token = localStorage.getItem('token');
+                    const url = addressModalType === 'edit' ? `/api/saved-address/${editAddressId}` : '/api/saved-address';
+                    const method = addressModalType === 'edit' ? 'PUT' : 'POST';
+                    const res = await fetch(url, {
+                      method,
+                      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                      body: JSON.stringify(payload)
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                      if (addressModalType === 'edit') {
+                        setSavedAddresses(prev => prev.map(a => a._id === editAddressId ? data.address : a));
+                        setAddressModalType('shipping');
+                        toast.success('Address updated successfully');
+                      } else {
+                        setSavedAddresses(prev => [data.address, ...prev]);
+                        if (!shippingAddressId) setShippingAddressId(data.address._id);
+                        if (!billingAddressId) setBillingAddressId(data.address._id);
+                        setShowAddressModal(false);
+                        toast.success('Address added successfully');
+                      }
+                    } else {
+                      toast.error('Failed to save address');
+                    }
+                  }} className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">First Name *</label>
+                        <input name="firstName" defaultValue={defaultVals.firstName} required className="w-full px-3 py-2 border border-gray-300 rounded focus:border-red-500 outline-none" />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">Last Name</label>
+                        <input name="lastName" defaultValue={defaultVals.lastName} className="w-full px-3 py-2 border border-gray-300 rounded focus:border-red-500 outline-none" />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">Phone Number *</label>
+                        <input name="phone" defaultValue={defaultVals.phone} required type="tel" pattern="[0-9]{10}" maxLength="10" className="w-full px-3 py-2 border border-gray-300 rounded focus:border-red-500 outline-none" />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">Alternate Phone</label>
+                        <input name="alternate_phone" defaultValue={defaultVals.alternate_phone} type="tel" pattern="[0-9]{10}" maxLength="10" className="w-full px-3 py-2 border border-gray-300 rounded focus:border-red-500 outline-none" />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">Pincode *</label>
+                        <input name="pincode" defaultValue={defaultVals.pincode} required pattern="[0-9]{6}" maxLength="6" className="w-full px-3 py-2 border border-gray-300 rounded focus:border-red-500 outline-none" />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">Locality</label>
+                        <input name="locality" defaultValue={defaultVals.locality} className="w-full px-3 py-2 border border-gray-300 rounded focus:border-red-500 outline-none" />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 gap-4">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">Address Line 1 *</label>
+                        <textarea name="address_line1" defaultValue={defaultVals.address_line1} required className="w-full px-3 py-2 border border-gray-300 rounded focus:border-red-500 outline-none" rows="2"></textarea>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">Address Line 2</label>
+                        <textarea name="address_line2" defaultValue={defaultVals.address_line2} className="w-full px-3 py-2 border border-gray-300 rounded focus:border-red-500 outline-none" rows="2"></textarea>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">City *</label>
+                        <input name="city" defaultValue={defaultVals.city} required className="w-full px-3 py-2 border border-gray-300 rounded focus:border-red-500 outline-none" />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">State *</label>
+                        <input name="state" required defaultValue={defaultVals.state} className="w-full px-3 py-2 border border-gray-300 rounded focus:border-red-500 outline-none" />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">Landmark</label>
+                        <input name="landmark" defaultValue={defaultVals.landmark} className="w-full px-3 py-2 border border-gray-300 rounded focus:border-red-500 outline-none" />
+                      </div>
+                    </div>
+                    <div className="pt-4 flex justify-end gap-3 border-t border-gray-100">
+                      <button type="button" onClick={() => savedAddresses.length > 0 ? setAddressModalType('shipping') : setShowAddressModal(false)} className="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-600 hover:bg-gray-50">Cancel</button>
+                      <button type="submit" className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700">Save Address</button>
+                    </div>
+                  </form>
+                )
+              })()}
+            </div>
           </div>
         </div>
       )}
