@@ -33,6 +33,8 @@ const menuItems = [
       { icon: 'mdi:truck-delivery-outline', label: 'Shipped Order', link: 'shippedorder', dotColor: 'bg-green-500' },
       { icon: 'mdi:clipboard-list-outline', label: 'Sathya Exist Orders', link: 'sathya-exist-orders', dotColor: 'bg-yellow-500' },
       { icon: 'mdi:clipboard-list-outline', label: 'Sathya Exist Orders Details', link: 'sathya-exist-orders-details', dotColor: 'bg-yellow-500' },
+      { icon: 'mdi:credit-card-outline', label: 'Sathya Exist Payments', link: 'sathya-exist-payments', dotColor: 'bg-yellow-500' },
+      { icon: 'mdi:history', label: 'Sathya Exist Order History', link: 'sathya-exist-order-history', dotColor: 'bg-yellow-500' },
     ]
   },
   { icon: 'mdi:note-text-outline', label: 'Blog', link: 'blog' },
