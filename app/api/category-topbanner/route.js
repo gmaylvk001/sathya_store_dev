@@ -29,8 +29,14 @@ export async function GET(req) {
       const filter = pageId
         ? { pageId }
         : categoryId
-          ? { categoryId, pageId: { $exists: false } }
-          : { categorySlug: slug, pageId: { $exists: false } };
+          ? {
+              categoryId,
+              $or: [{ pageId: { $exists: false } }, { pageId: null }],
+            }
+          : {
+              categorySlug: slug,
+              $or: [{ pageId: { $exists: false } }, { pageId: null }],
+            };
 
       const doc = await CategoryTopBanner.findOne(filter).lean();
       if (!doc) {
@@ -275,7 +281,10 @@ export async function POST(req) {
     const query =
       pageType === PAGE_TYPES.CATEGORY_BRAND && pageId
         ? { pageId }
-        : { categoryId, pageId: { $exists: false } };
+        : {
+            categoryId,
+            $or: [{ pageId: { $exists: false } }, { pageId: null }],
+          };
 
     if (pageType === PAGE_TYPES.CATEGORY_BRAND && pageId) {
       payload.pageId = pageId;

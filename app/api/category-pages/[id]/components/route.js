@@ -292,7 +292,9 @@ export async function DELETE(req, { params }) {
     };
 
     if (instance.type === COMPONENT_TYPES.TOP_BANNER) {
-      await CategoryTopBanner.deleteOne({ categoryId: page.categoryId });
+      await CategoryTopBanner.deleteOne({
+        $or: [{ pageId: page._id }, { categoryId: page.categoryId }],
+      });
     } else {
       const ConfigModel = configModels[instance.type];
       if (ConfigModel) {

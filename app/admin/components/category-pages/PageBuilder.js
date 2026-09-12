@@ -85,7 +85,14 @@ export default function PageBuilder({
   const selectComponent = (type) => {
     setMessage("");
     setConfigType(type);
-    setConfigInstanceId(null);
+    if (type === COMPONENT_TYPES.TOP_BANNER) {
+      const topInst = components.find(
+        (c) => c.type === COMPONENT_TYPES.TOP_BANNER
+      );
+      setConfigInstanceId(topInst ? topInst.instanceId : null);
+    } else {
+      setConfigInstanceId(null);
+    }
   };
 
   const addNewTopBanner = async () => {
@@ -616,7 +623,7 @@ export default function PageBuilder({
               </div>
             ) : configType === COMPONENT_TYPES.TOP_BANNER ? (
               <TopBannerConfigForm
-                key={configInstanceId}
+                key={configInstanceId || "top-banner"}
                 pageId={page._id}
                 categoryId={
                   isCategoryBrandPage ? page._id : page.categoryId
@@ -633,7 +640,6 @@ export default function PageBuilder({
                 }}
                 onSaved={() => {
                   setMessage("Top Banner carousel saved.");
-                  setConfigInstanceId(null);
                   load();
                 }}
               />

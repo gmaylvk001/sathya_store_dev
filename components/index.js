@@ -331,27 +331,31 @@ export default function HomeComponent() {
         const res = await response.json();
 
         if (res.success && res.categoryBanners && res.categoryBanners.banners) {
-          const formatted = res.categoryBanners.banners
-            .filter(banner => res.categoryBanners.status === "Active") // 👈 only if whole doc is Active
-            .map((banner, index) => {
-              let obj = {
-                imageUrl: banner.banner_image,
-                redirectUrl: banner.redirect_url,
-              };
+          const isDocActive =
+            !res.categoryBanners.status ||
+            String(res.categoryBanners.status).toLowerCase() === "active";
+          const formatted = isDocActive
+            ? res.categoryBanners.banners
+                .filter((banner) => banner && banner.banner_image)
+                .map((banner, index) => {
+                  let obj = {
+                    imageUrl: banner.banner_image,
+                    redirectUrl: banner.redirect_url || "",
+                  };
 
-              // ✅ add extra field only for 1st (index 0) and 3rd (index 2)
-              if (index === 0) {
-                obj.categoryname = "SMART PHONE";
-              } else if (index === 1) {
-                obj.categoryname = "AIR CONDITIONER";
-              } else if (index === 2) {
-                obj.categoryname = "REFRIGERATOR";
-              } else if (index === 3) {
-                obj.categoryname = "WASHING MACHINE";
-              }
+                  if (index === 0) {
+                    obj.categoryname = "SMART PHONE";
+                  } else if (index === 1) {
+                    obj.categoryname = "AIR CONDITIONER";
+                  } else if (index === 2) {
+                    obj.categoryname = "REFRIGERATOR";
+                  } else if (index === 3) {
+                    obj.categoryname = "WASHING MACHINE";
+                  }
 
-              return obj;
-            });
+                  return obj;
+                })
+            : [];
 
           setCategoryBanner(formatted);
           console.log("formatted", formatted);
@@ -368,7 +372,7 @@ export default function HomeComponent() {
 
         if (data.success && data.banners?.length > 0) {
           const singleBannerItems = data.banners
-            .filter((banner) => banner.status === "Active") // ✅ only Active
+            .filter((banner) => !banner.status || String(banner.status).toLowerCase() === "active") // ✅ only Active
             .map((banner) => ({
               id: banner._id,
               redirect_url: banner.redirect_url || "/shop",
@@ -420,7 +424,7 @@ export default function HomeComponent() {
 
         if (data.success && data.banners?.length > 0) {
           const singleBannerItems = data.banners
-            .filter((banner) => banner.status === "Active")
+            .filter((banner) => !banner.status || String(banner.status).toLowerCase() === "active")
             .map((banner) => ({
               id: banner._id,
               redirect_url: banner.redirect_url || "/shop",

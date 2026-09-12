@@ -13,8 +13,11 @@ const poppins = Poppins({
 });
 
 export const metadata = {
-  title: "localhost:3000",
-  description: "localhost:300",
+  title: {
+    default: "SATHYA Store - Best Online Shopping for Home Appliances & Electronics",
+    template: "%s | SATHYA Store",
+  },
+  description: "Shop online for home appliances, electronics, mobile phones, televisions, refrigerators, air conditioners, washing machines and more at best prices from SATHYA Store.",
   icons: {
     icon: "/favicon.webp",
   },

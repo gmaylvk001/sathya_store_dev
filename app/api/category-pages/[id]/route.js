@@ -85,8 +85,13 @@ export async function DELETE(_req, { params }) {
       await CategoryTopBanner.deleteMany({ pageId: page._id });
     } else {
       await CategoryTopBanner.deleteOne({
-        categoryId: page.categoryId,
-        pageId: { $exists: false },
+        $or: [
+          { pageId: page._id },
+          {
+            categoryId: page.categoryId,
+            $or: [{ pageId: { $exists: false } }, { pageId: null }],
+          },
+        ],
       });
     }
     await CategoryImageCarousel.deleteMany({ pageId: page._id });

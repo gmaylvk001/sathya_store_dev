@@ -85,9 +85,12 @@ export default function TopBannerConfigForm({
     );
   };
 
+  const [successMsg, setSuccessMsg] = useState("");
+
   const handleSave = async (e) => {
     e.preventDefault();
     setError("");
+    setSuccessMsg("");
     for (let i = 0; i < banners.length; i++) {
       if (!banners[i].desktopFile && !banners[i].desktopImage) {
         setError(`Banner #${i + 1}: desktop image required.`);
@@ -125,6 +128,27 @@ export default function TopBannerConfigForm({
       });
       const data = await res.json();
       if (!data.success) throw new Error(data.message || "Save failed");
+
+      if (data.data) {
+        setStatus(data.data.status || "active");
+        const rows = data.data.banners || [];
+        setBanners(
+          rows.length
+            ? rows.map((b) => ({
+                desktopImage: b.desktopImage || "",
+                mobileImage: b.mobileImage || "",
+                desktopFile: null,
+                mobileFile: null,
+                desktopPreview: b.desktopImage || "",
+                mobilePreview: b.mobileImage || "",
+                url: b.url || "",
+                state: b.state || "all",
+                isActive: b.isActive !== false,
+              }))
+            : [emptyBanner()]
+        );
+      }
+      setSuccessMsg("Top Banner saved successfully!");
       onSaved?.(data);
     } catch (err) {
       setError(err.message);
@@ -149,6 +173,19 @@ export default function TopBannerConfigForm({
           Inputs for {categoryName || "this category"}
         </p>
       </div>
+
+      {successMsg && (
+        <div className="rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700 flex items-center justify-between">
+          <span>{successMsg}</span>
+          <button
+            type="button"
+            onClick={() => setSuccessMsg("")}
+            className="text-xs text-green-700 hover:text-green-900 font-semibold"
+          >
+            ✕
+          </button>
+        </div>
+      )}
 
       {error && (
         <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
@@ -195,9 +232,9 @@ export default function TopBannerConfigForm({
                 onClick={() =>
                   setBanners((p) => p.filter((_, i) => i !== index))
                 }
-                className="text-xs text-red-600"
+                className="text-xs text-red-600 font-medium hover:underline"
               >
-                Remove
+                Remove Banner #{index + 1}
               </button>
             )}
           </div>
@@ -231,12 +268,27 @@ export default function TopBannerConfigForm({
                 {CATEGORY_PAGE_IMAGE_ACCEPT_HINT}
               </p>
               {banner.desktopPreview && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={banner.desktopPreview}
-                  alt=""
-                  className="mt-2 h-20 w-full object-cover rounded border"
-                />
+                <div className="relative mt-2">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={banner.desktopPreview}
+                    alt=""
+                    className="h-24 w-full object-cover rounded border"
+                  />
+                  <button
+                    type="button"
+                    onClick={() =>
+                      updateBanner(index, {
+                        desktopFile: null,
+                        desktopImage: "",
+                        desktopPreview: "",
+                      })
+                    }
+                    className="absolute top-1 right-1 rounded bg-red-600/80 hover:bg-red-600 text-white text-[10px] px-1.5 py-0.5"
+                  >
+                    Clear Image
+                  </button>
+                </div>
               )}
             </div>
             <div>
@@ -268,12 +320,27 @@ export default function TopBannerConfigForm({
                 {CATEGORY_PAGE_IMAGE_ACCEPT_HINT}
               </p>
               {banner.mobilePreview && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={banner.mobilePreview}
-                  alt=""
-                  className="mt-2 h-20 w-full object-cover rounded border"
-                />
+                <div className="relative mt-2">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={banner.mobilePreview}
+                    alt=""
+                    className="h-24 w-full object-cover rounded border"
+                  />
+                  <button
+                    type="button"
+                    onClick={() =>
+                      updateBanner(index, {
+                        mobileFile: null,
+                        mobileImage: "",
+                        mobilePreview: "",
+                      })
+                    }
+                    className="absolute top-1 right-1 rounded bg-red-600/80 hover:bg-red-600 text-white text-[10px] px-1.5 py-0.5"
+                  >
+                    Clear Image
+                  </button>
+                </div>
               )}
             </div>
           </div>
