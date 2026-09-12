@@ -5,6 +5,23 @@ import { ToastContainer, toast } from "react-toastify";
 import DateRangePicker from "@/components/DateRangePicker";
 import "react-toastify/dist/ReactToastify.css";
 
+const ORDER_STATUSES = [
+  "Billed",
+  "Cancelled",
+  "Complete",
+  "failure",
+  "Order Accepted",
+  "Order Placed",
+  "ordered",
+  "Payment Initiated",
+  "pending",
+];
+
+const DELIVERY_TYPES = [
+  { value: "home", label: "Home" },
+  { value: "store", label: "Store" },
+];
+
 const OrdersTable = () => {
   const [orders, setOrders] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -12,7 +29,6 @@ const OrdersTable = () => {
   const [deliveryType, setDeliveryType] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(0);
-  const [paymentMethod, setPaymentMethod] = useState("");
   const [filtered, setFiltered] = useState([]);
   const itemsPerPage = 20;
   const router = useRouter();
@@ -32,11 +48,11 @@ const OrdersTable = () => {
 
   useEffect(() => {
     const fetchOrders = async () => {
-      const res = await fetch("/api/allorders");
+      const res = await fetch("/api/orders_new");
       const data = await res.json();
-      const filtered = data.filter(order => order.payment_status !== "payment_initialized");
-      setOrders(filtered);
-      setFiltered(filtered);
+      const list = Array.isArray(data) ? data : [];
+      setOrders(list);
+      setFiltered(list);
       setIsLoading(false);
     };
     fetchOrders();
@@ -48,21 +64,11 @@ const OrdersTable = () => {
       let updated = [...orders];
 
       if (status) {
-        updated = updated.filter(
-          (o) => o.order_status?.toLowerCase() === status.toLowerCase()
-        );
+        updated = updated.filter((o) => o.order_status === status);
       }
 
       if (deliveryType) {
-        updated = updated.filter(
-          (o) => o.delivery_type?.toLowerCase() === deliveryType.toLowerCase()
-        );
-      }
-
-      if (paymentMethod) {
-        updated = updated.filter(
-          (o) => o.payment_method?.toLowerCase() === paymentMethod.toLowerCase()
-        );
+        updated = updated.filter((o) => o.delivery_type === deliveryType);
       }
 
       if (searchTerm.trim()) {
@@ -80,7 +86,7 @@ const OrdersTable = () => {
         endDate.setHours(23, 59, 59, 999);
 
         updated = updated.filter((o) => {
-          const orderDate = new Date(o.createdAt);
+          const orderDate = new Date(o.created_at || o.createdAt);
           return orderDate >= startDate && orderDate <= endDate;
         });
       }
@@ -92,7 +98,6 @@ const OrdersTable = () => {
   }, [
     status,
     deliveryType,
-    paymentMethod,
     searchTerm,
     orders,
     dateFilter?.startDate,
@@ -242,11 +247,11 @@ const OrdersTable = () => {
     setIsProcessing(true); // 🚀 Disable button immediately
 
     try {
-      const res = await fetch(`/api/orders/${orderToUpdate._id}`, {
+      const res = await fetch(`/api/orders_new/${orderToUpdate._id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          status: "shipped",
+          status: "Order Accepted",
           delivery_date: deliveryDate
         }),
       });
@@ -258,7 +263,7 @@ const OrdersTable = () => {
       setOrders((prev) =>
         prev.map((ord) =>
           ord._id === orderToUpdate._id
-            ? { ...ord, order_status: "shipped", delivery_date: deliveryDate }
+            ? { ...ord, order_status: "Order Accepted", delivery_date: deliveryDate }
             : ord
         )
       );
@@ -348,7 +353,7 @@ const OrdersTable = () => {
 
   useEffect(() => {
     setCurrentPage(0);
-  }, [status, deliveryType, paymentMethod, searchTerm, orders, dateFilter]);
+  }, [status, deliveryType, searchTerm, orders, dateFilter]);
 
   return (
     <div className="container mx-auto">
@@ -363,7 +368,7 @@ const OrdersTable = () => {
       ) : (
         <div className="bg-white shadow-md rounded-lg p-5 h-auto overflow-x-auto border border-gray-200">
           {/* 🔍 Filters */}
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-6 items-end mb-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 items-end mb-4">
             {/* Search */}
             <div className="w-full">
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -389,13 +394,9 @@ const OrdersTable = () => {
                 className="w-full p-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500 text-sm"
               >
                 <option value="">All</option>
-                <option value="pending">Pending</option>
-                <option value="order placed">Order Placed</option>
-                <option value="invoiced">Invoiced</option>
-                <option value="cancelled">Cancelled</option>
-                <option value="rejected">Rejected</option>
-                <option value="completed">Completed</option>
-                <option value="shipped">Shipped</option>
+                {ORDER_STATUSES.map((value) => (
+                  <option key={value} value={value}>{value}</option>
+                ))}
               </select>
             </div>
 
@@ -410,24 +411,9 @@ const OrdersTable = () => {
                 className="w-full p-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500 text-sm"
               >
                 <option value="">All</option>
-                <option value="home">Home Delivery</option>
-                <option value="store_pickup">Store Pickup</option>
-              </select>
-            </div>
-
-            {/* Payment */}
-            <div className="w-full">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Payment Method
-              </label>
-              <select
-                value={paymentMethod}
-                onChange={(e) => setPaymentMethod(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500 text-sm"
-              >
-                <option value="">All</option>
-                <option value="online">Online</option>
-                <option value="cash">COD</option>
+                {DELIVERY_TYPES.map((type) => (
+                  <option key={type.value} value={type.value}>{type.label}</option>
+                ))}
               </select>
             </div>
 
@@ -479,20 +465,8 @@ const OrdersTable = () => {
                             const newStatus = e.target.value;
                             const prevStatus = o.order_status;
 
-                            // If changing from pending to shipped, show delivery date modal
-                            if (prevStatus.toLowerCase() === "pending" &&
-                              newStatus.toLowerCase() === "shipped") {
-                              setOrderToUpdate(o);
-                              setOldStatus(prevStatus);
-                              setShowDeliveryDateModal(true);
-                              e.target.value = prevStatus; // Reset dropdown until confirmed
-                              console.log("hai");
-                              return;
-                            }
-
-                            // For other status changes (like cancelled)
                             try {
-                              const res = await fetch(`/api/orders/${o._id}`, {
+                              const res = await fetch(`/api/orders_new/${o._id}`, {
                                 method: "PUT",
                                 headers: { "Content-Type": "application/json" },
                                 body: JSON.stringify({ status: newStatus }),
@@ -511,7 +485,7 @@ const OrdersTable = () => {
                               );
 
                               // Send cancellation email if status changed to cancelled
-                              if (newStatus.toLowerCase() === "cancelled") {
+                              if (newStatus === "Cancelled") {
                                 try {
                                   await sendCancellationEmail(o);
                                   toast.success("Cancellation email sent successfully!");
@@ -533,9 +507,9 @@ const OrdersTable = () => {
                           }}
                           className="border px-2 py-1 rounded-md text-sm"
                         >
-                          <option value="pending">Pending</option>
-                          <option value="shipped">Shipped</option>
-                          <option value="cancelled">Cancelled</option>
+                          {ORDER_STATUSES.map((value) => (
+                            <option key={value} value={value}>{value}</option>
+                          ))}
                         </select>
                       </td>
 
@@ -549,7 +523,7 @@ const OrdersTable = () => {
                       <td className="p-2 border">{o.order_username}</td>
                       <td className="p-2 border">₹{o.order_amount}</td>
                       <td className="p-2 border">
-                        {new Date(o.createdAt).toLocaleDateString()}
+                        {new Date(o.created_at || o.createdAt).toLocaleDateString()}
                       </td>
                     </tr>
                   ))
