@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { Icon } from "@iconify/react";
 import DateRangePicker from "@/components/DateRangePicker";
+import { formatExistDateYmd } from "@/lib/existSheetDateFormat";
 
 const emptyForm = {
   exist_id: "",
@@ -768,7 +769,7 @@ export default function ExistSathyaUsersComponent() {
                       <td className="p-2">{user.role_id || "-"}</td>
                       <td className="p-2">{user.notify_status ?? 0}</td>
                       <td className="p-2">
-                        {user.created_at ? new Date(user.created_at).toLocaleDateString() : "-"}
+                        {formatExistDateYmd(user.created_at)}
                       </td>
                       <td className="p-2">
                         <div className="flex items-center gap-2 justify-center">

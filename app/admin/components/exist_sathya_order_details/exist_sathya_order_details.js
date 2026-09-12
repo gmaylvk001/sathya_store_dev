@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Icon } from "@iconify/react";
 import DateRangePicker from "@/components/DateRangePicker";
+import { formatExistDateYmd } from "@/lib/existSheetDateFormat";
 
 const FIELD_LABELS = [
   ["exist_id", "Exist ID"],
@@ -50,9 +51,7 @@ function formatValue(value) {
 }
 
 function formatDateTime(value) {
-  if (!value) return "-";
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? String(value) : date.toLocaleString();
+  return formatExistDateYmd(value);
 }
 
 export default function ExistSathyaOrderDetailsComponent() {
@@ -519,6 +518,7 @@ export default function ExistSathyaOrderDetailsComponent() {
             <p className="text-sm text-gray-600 mt-4 mb-2">
               Import old SQL order-detail records. Column <b>id</b> is saved as <b>exist_id</b>.
               Duplicate <b>id</b> rows are skipped. Empty cells are stored as null.
+              Sheet dates use <b>day-month-year</b> (example <b>22-04-2020 14:55:00</b>) and are saved as <b>year-month-day</b> (example <b>2020-04-22 14:55:00</b>).
               If <b>created_at</b> / <b>updated_at</b> is empty, today&apos;s date is used.
             </p>
             <a

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Icon } from "@iconify/react";
+import { formatExistDateYmd } from "@/lib/existSheetDateFormat";
 
 const FIELD_LABELS = [
   ["exist_id", "Exist ID"],
@@ -27,9 +28,7 @@ function formatValue(value) {
 }
 
 function formatDateTime(value) {
-  if (!value) return "-";
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? String(value) : date.toLocaleString();
+  return formatExistDateYmd(value);
 }
 
 export default function ExistSathyaPaymentsComponent() {
@@ -414,7 +413,7 @@ export default function ExistSathyaPaymentsComponent() {
                   <tr key={key} className="border-b">
                     <td className="p-2 font-medium bg-gray-50 w-48">{label}</td>
                     <td className="p-2 break-all">
-                      {key === "created_at" || key === "updated_at" || key === "ReferenceDate"
+                      {key === "created_at" || key === "updated_at" || key === "ReferenceDate" || key === "payment_date"
                         ? formatDateTime(viewRow[key])
                         : formatValue(viewRow[key])}
                     </td>
@@ -446,6 +445,7 @@ export default function ExistSathyaPaymentsComponent() {
             <p className="text-sm text-gray-600 mt-4 mb-2">
               Import old SQL payment records into <b>payments_new</b>. Column <b>id</b> is saved as <b>exist_id</b>.
               Duplicate <b>id</b> rows are skipped. Live website payments are not listed here.
+              Sheet dates use <b>day-month-year</b> (example <b>22-04-2020 14:55:00</b>) and are saved as <b>year-month-day</b> (example <b>2020-04-22 14:55:00</b>).
             </p>
             <a
               href="/api/exist_sathya_payments/import/sample"

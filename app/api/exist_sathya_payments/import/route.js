@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import * as XLSX from "xlsx";
 import dbConnect from "@/lib/db";
+import { formatExistDateYmd, parseExistUserSheetDate, readExistUserSheetRows } from "@/lib/existUserSheetDates";
 import PaymentsNew from "@/models/payments_new";
 
 export const maxDuration = 300;
@@ -22,7 +22,8 @@ const PAYMENT_FIELDS = [
   "pinelab_payment_id",
 ];
 
-const DATE_FIELDS = new Set(["ReferenceDate", "created_at", "updated_at"]);
+const DATE_FIELDS = new Set(["ReferenceDate", "created_at", "updated_at", "payment_date"]);
+const STRING_DATE_FIELDS = new Set(["payment_date"]);
 
 function emptyToNull(value) {
   if (value === undefined || value === null) return null;
@@ -30,25 +31,8 @@ function emptyToNull(value) {
   return value;
 }
 
-function excelSerialToDate(serial) {
-  const n = Number(serial);
-  if (!Number.isFinite(n) || n <= 0) return null;
-  const date = new Date(Math.round((n - 25569) * 86400 * 1000));
-  return Number.isNaN(date.getTime()) ? null : date;
-}
-
 function parseDateValue(value) {
-  if (value === undefined || value === null || value === "") return null;
-  if (value instanceof Date) {
-    return Number.isNaN(value.getTime()) ? null : value;
-  }
-  if (typeof value === "number") return excelSerialToDate(value);
-  const text = String(value).trim().replace("T", " ");
-  if (!text) return null;
-  if (/^\d+(\.\d+)?$/.test(text)) return excelSerialToDate(text);
-  const normalized = text.includes(" ") && !text.includes("T") ? text.replace(" ", "T") : text;
-  const parsed = new Date(normalized);
-  return Number.isNaN(parsed.getTime()) ? null : parsed;
+  return parseExistUserSheetDate(value);
 }
 
 function parseExistId(value) {
@@ -65,28 +49,38 @@ function stringifyValue(value) {
   return String(cleaned).trim();
 }
 
+function compactKey(name) {
+  return String(name || "").toLowerCase().trim().replace(/[\s_]/g, "");
+}
+
 function buildHeaderMap(row) {
   const map = {};
   for (const header of Object.keys(row || {})) {
-    map[String(header).toLowerCase().trim().replace(/\s+/g, "_")] = header;
+    const normalized = String(header).toLowerCase().trim().replace(/\s+/g, "_");
+    map[normalized] = header;
+    map[normalized.replace(/_/g, "")] = header;
   }
   return map;
 }
 
 function fieldAliases(field) {
   const lower = field.toLowerCase();
-  const aliases = [lower, field];
+  const aliases = [lower, field, compactKey(field)];
   if (field === "ModeType") aliases.push("mode_type");
   if (field === "PaymentMode") aliases.push("payment_mode");
   if (field === "ModeReference") aliases.push("mode_reference");
-  if (field === "ReferenceDate") aliases.push("reference_date");
+  if (field === "ReferenceDate") aliases.push("reference_date", "referencedate");
   if (field === "ModeValue") aliases.push("mode_value");
+  if (field === "created_at") aliases.push("created", "createdat", "created_on");
+  if (field === "updated_at") aliases.push("updated", "updatedat", "updated_on");
+  if (field === "payment_date") aliases.push("paymentdate", "payment_on");
   return aliases;
 }
 
 function getCell(row, headerMap, keys) {
   for (const key of keys) {
-    const match = headerMap[String(key).toLowerCase().trim().replace(/\s+/g, "_")];
+    const match = headerMap[String(key).toLowerCase().trim().replace(/\s+/g, "_")]
+      || headerMap[compactKey(key)];
     if (match !== undefined && row[match] !== undefined && row[match] !== null && row[match] !== "") {
       return row[match];
     }
@@ -103,7 +97,10 @@ function mapRowToPayment(row) {
   for (const field of PAYMENT_FIELDS) {
     const raw = getCell(row, headerMap, fieldAliases(field));
     if (DATE_FIELDS.has(field)) {
-      payment[field] = parseDateValue(raw);
+      const parsed = parseDateValue(raw);
+      payment[field] = STRING_DATE_FIELDS.has(field)
+        ? (parsed ? formatExistDateYmd(parsed) : null)
+        : parsed;
       continue;
     }
     payment[field] = stringifyValue(raw);
@@ -163,14 +160,11 @@ export async function POST(req) {
         return NextResponse.json({ error: "Invalid JSON file" }, { status: 400 });
       }
     } else {
-      const workbook = isCsv
-        ? XLSX.read(buffer.toString("utf-8"), { type: "string", cellDates: true })
-        : XLSX.read(buffer, { type: "buffer", cellDates: true });
-      const sheetName = workbook.SheetNames[0];
-      if (!sheetName) {
-        return NextResponse.json({ error: "File has no sheets" }, { status: 400 });
+      const sheet = readExistUserSheetRows(buffer, isCsv, DATE_FIELDS);
+      if (sheet.error) {
+        return NextResponse.json({ error: sheet.error }, { status: 400 });
       }
-      rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { defval: "" });
+      rows = sheet.rows;
     }
 
     if (!rows.length) {
@@ -190,6 +184,8 @@ export async function POST(req) {
     const existingIds = new Set(existing.map((item) => String(item.exist_id || "").trim()).filter(Boolean));
     const idsInFile = new Set();
     const toInsert = [];
+    const dateUpdates = [];
+    let datesUpdatedCount = 0;
 
     for (let index = 0; index < rows.length; index++) {
       const excelRow = index + 2;
@@ -213,6 +209,25 @@ export async function POST(req) {
       }
 
       if (existingIds.has(existId) || idsInFile.has(existId)) {
+        const dateUpdate = {};
+        for (const field of DATE_FIELDS) {
+          if (STRING_DATE_FIELDS.has(field)) {
+            if (payment[field]) dateUpdate[field] = payment[field];
+          } else if (payment[field] instanceof Date) {
+            dateUpdate[field] = payment[field];
+          }
+        }
+        if (Object.keys(dateUpdate).length) {
+          const idVariants = [existId, /^\d+$/.test(existId) ? Number(existId) : null].filter(
+            (item) => item !== null && item !== ""
+          );
+          dateUpdates.push({
+            updateOne: {
+              filter: { exist_id: { $in: idVariants } },
+              update: { $set: dateUpdate },
+            },
+          });
+        }
         skippedCount += 1;
         skippedExistingCount += 1;
         if (skippedRows.length < 50) {
@@ -227,6 +242,11 @@ export async function POST(req) {
 
       idsInFile.add(existId);
       toInsert.push(payment);
+    }
+
+    if (dateUpdates.length) {
+      const result = await PaymentsNew.bulkWrite(dateUpdates, { ordered: false });
+      datesUpdatedCount = result.modifiedCount || 0;
     }
 
     const batchSize = 250;
@@ -253,8 +273,9 @@ export async function POST(req) {
 
     return NextResponse.json({
       success: true,
-      message: `Import completed. Added ${addedCount}, skipped existing ${skippedExistingCount}, other skipped ${skippedCount - skippedExistingCount}.`,
+      message: `Import completed. Added ${addedCount}, dates updated ${datesUpdatedCount}, skipped existing ${skippedExistingCount}, other skipped ${skippedCount - skippedExistingCount}.`,
       addedCount,
+      datesUpdatedCount,
       skippedCount,
       skippedExistingCount,
       skippedRows,

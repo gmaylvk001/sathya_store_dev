@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import * as XLSX from "xlsx";
 import bcrypt from "bcryptjs";
 import dbConnect from "@/lib/db";
+import { parseExistUserSheetDate, readExistUserSheetRows } from "@/lib/existUserSheetDates";
 import ExistSathyaUser, { ensureExistSathyaUserIndexes } from "@/models/ExistSathyaUser";
 import ExistSathyaUserSkipped from "@/models/ExistSathyaUserSkipped";
 
@@ -12,39 +12,8 @@ function emptyToNull(value) {
   return String(value).trim();
 }
 
-function excelSerialToDate(serial) {
-  const n = Number(serial);
-  if (!Number.isFinite(n) || n <= 0) {
-    return null;
-  }
-  const date = new Date(Math.round((n - 25569) * 86400 * 1000));
-  return Number.isNaN(date.getTime()) ? null : date;
-}
-
 function parseSheetDate(value) {
-  if (value === undefined || value === null || value === "") {
-    return null;
-  }
-
-  if (value instanceof Date) {
-    return Number.isNaN(value.getTime()) ? null : value;
-  }
-
-  if (typeof value === "number") {
-    return excelSerialToDate(value);
-  }
-
-  const text = String(value).trim();
-  if (!text) {
-    return null;
-  }
-
-  if (/^\d+(\.\d+)?$/.test(text)) {
-    return excelSerialToDate(text);
-  }
-
-  const parsed = new Date(text);
-  return Number.isNaN(parsed.getTime()) ? null : parsed;
+  return parseExistUserSheetDate(value);
 }
 
 function parseExistId(value) {
@@ -69,9 +38,11 @@ function normalizeExistIdKey(value) {
 
 function getCell(row, keys) {
   for (const key of keys) {
-    const match = Object.keys(row).find(
-      (header) => header.toLowerCase().trim().replace(/\s+/g, "_") === key
-    );
+    const compact = key.replace(/_/g, "");
+    const match = Object.keys(row).find((header) => {
+      const normalized = header.toLowerCase().trim().replace(/\s+/g, "_");
+      return normalized === key || normalized.replace(/_/g, "") === compact;
+    });
     if (match !== undefined && row[match] !== undefined && row[match] !== null) {
       return row[match];
     }
@@ -198,16 +169,11 @@ export async function POST(req) {
         return NextResponse.json({ error: "No valid data rows found in XML file" }, { status: 400 });
       }
     } else {
-      const workbook = fileName.endsWith(".csv")
-        ? XLSX.read(buffer.toString("utf-8"), { type: "string", cellDates: true })
-        : XLSX.read(buffer, { type: "buffer", cellDates: true });
-
-      const sheetName = workbook.SheetNames[0];
-      if (!sheetName) {
-        return NextResponse.json({ error: "File has no sheets" }, { status: 400 });
+      const sheet = readExistUserSheetRows(buffer, fileName.endsWith(".csv"));
+      if (sheet.error) {
+        return NextResponse.json({ error: sheet.error }, { status: 400 });
       }
-
-      rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { defval: "" });
+      rows = sheet.rows;
       if (!rows.length) {
         return NextResponse.json({ error: "File has no data rows" }, { status: 400 });
       }
@@ -254,7 +220,38 @@ export async function POST(req) {
     const existingExistIds = new Set(
       existingUsers.map((user) => normalizeExistIdKey(user.exist_id)).filter(Boolean)
     );
+    const existIdActual = new Map();
+    const pairToExistId = new Map();
+    for (const user of existingUsers) {
+      const normalized = normalizeExistIdKey(user.exist_id);
+      if (normalized && user.exist_id != null) {
+        existIdActual.set(normalized, String(user.exist_id).trim());
+      }
+      const pair = contactPairKey(user.email, user.phone);
+      if (pair && user.exist_id != null) {
+        pairToExistId.set(pair, String(user.exist_id).trim());
+      }
+    }
     const existIdsInFile = new Set();
+    const dateUpdates = [];
+    let datesUpdatedCount = 0;
+
+    const readUserDates = (row) => ({
+      created_at: parseSheetDate(getCell(row, ["created_at", "created", "createdat", "created_on"])),
+      updated_at: parseSheetDate(getCell(row, ["updated_at", "updated", "updatedat", "updated_on"])),
+      logged_in: parseSheetDate(getCell(row, ["logged_in"])),
+    });
+
+    const queueDateUpdate = (filter, dates) => {
+      const dateUpdate = {};
+      if (dates.created_at) dateUpdate.created_at = dates.created_at;
+      if (dates.updated_at) dateUpdate.updated_at = dates.updated_at;
+      if (dates.logged_in) dateUpdate.logged_in = dates.logged_in;
+      if (!filter || !Object.keys(dateUpdate).length) return;
+      dateUpdates.push({
+        updateOne: { filter, update: { $set: dateUpdate } },
+      });
+    };
 
     const passwordCache = new Map();
     const resolvePasswordCached = async (rawPassword) => {
@@ -285,6 +282,10 @@ export async function POST(req) {
       const existId = normalizeExistIdKey(getCell(row, ["exist_id", "id"]));
 
       if (existId && (existingExistIds.has(existId) || existIdsInFile.has(existId))) {
+        queueDateUpdate(
+          { exist_id: existIdActual.get(existId) || existId },
+          readUserDates(row)
+        );
         skippedExistIdCount += 1;
         continue;
       }
@@ -301,6 +302,14 @@ export async function POST(req) {
 
       const pairKey = contactPairKey(email, phone);
       if (pairKey && (existingPairs.has(pairKey) || pairsInFile.has(pairKey))) {
+        queueDateUpdate(
+          existId
+            ? { exist_id: existIdActual.get(existId) || existId }
+            : pairToExistId.get(pairKey)
+              ? { exist_id: pairToExistId.get(pairKey) }
+              : { email, phone },
+          readUserDates(row)
+        );
         skippedCount += 1;
         skippedExistingCount += 1;
         skippedEmails.push({ row: excelRow, email, phone });
@@ -321,8 +330,9 @@ export async function POST(req) {
       const notifyStatusValue = emptyToNull(getCell(row, ["notify_status"]));
 
       const now = new Date();
-      const created_at = parseSheetDate(getCell(row, ["created_at"])) || now;
-      const updated_at = parseSheetDate(getCell(row, ["updated_at"])) || now;
+      const sheetDates = readUserDates(row);
+      const created_at = sheetDates.created_at || now;
+      const updated_at = sheetDates.updated_at || now;
 
       usersToInsert.push({
         _excelRow: excelRow,
@@ -346,10 +356,15 @@ export async function POST(req) {
         avatar_original: emptyToNull(getCell(row, ["avatar_original"])),
         notify_pincode: emptyToNull(getCell(row, ["notify_pincode"])),
         notify_status: notifyStatusValue === null ? 0 : Number(notifyStatusValue),
-        logged_in: parseSheetDate(getCell(row, ["logged_in"])),
+        logged_in: sheetDates.logged_in,
         created_at,
         updated_at,
       });
+    }
+
+    if (dateUpdates.length) {
+      const result = await ExistSathyaUser.bulkWrite(dateUpdates, { ordered: false });
+      datesUpdatedCount = result.modifiedCount || 0;
     }
 
     if (usersToInsert.length > 0) {
@@ -407,8 +422,9 @@ export async function POST(req) {
 
     return NextResponse.json({
       success: true,
-      message: `Import completed. Added ${addedCount}, skipped existing exist_id ${skippedExistIdCount}, skipped existing email and phone ${skippedExistingCount}, other skipped ${skippedCount - skippedExistingCount}.`,
+      message: `Import completed. Added ${addedCount}, dates updated ${datesUpdatedCount}, skipped existing exist_id ${skippedExistIdCount}, skipped existing email and phone ${skippedExistingCount}, other skipped ${skippedCount - skippedExistingCount}.`,
       addedCount,
+      datesUpdatedCount,
       skippedCount,
       skippedExistingCount,
       skippedExistIdCount,

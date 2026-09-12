@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import * as XLSX from "xlsx";
 import dbConnect from "@/lib/db";
+import { parseExistUserSheetDate, readExistUserSheetRows } from "@/lib/existUserSheetDates";
 import ExistSathyaOrder, { EXIST_SATHYA_ORDER_FIELDS } from "@/models/ExistSathyaOrder";
 
 export const maxDuration = 300;
@@ -15,25 +15,8 @@ function emptyToNull(value) {
   return value;
 }
 
-function excelSerialToDate(serial) {
-  const n = Number(serial);
-  if (!Number.isFinite(n) || n <= 0) return null;
-  const date = new Date(Math.round((n - 25569) * 86400 * 1000));
-  return Number.isNaN(date.getTime()) ? null : date;
-}
-
 function parseDateValue(value) {
-  if (value === undefined || value === null || value === "") return null;
-  if (value instanceof Date) {
-    return Number.isNaN(value.getTime()) ? null : value;
-  }
-  if (typeof value === "number") return excelSerialToDate(value);
-  const text = String(value).trim().replace("T", " ");
-  if (!text) return null;
-  if (/^\d+(\.\d+)?$/.test(text)) return excelSerialToDate(text);
-  const normalized = text.includes(" ") && !text.includes("T") ? text.replace(" ", "T") : text;
-  const parsed = new Date(normalized);
-  return Number.isNaN(parsed.getTime()) ? null : parsed;
+  return parseExistUserSheetDate(value);
 }
 
 function parseExistId(value) {
@@ -50,9 +33,13 @@ function stringifyValue(value) {
   return String(cleaned).trim();
 }
 
+function compactKey(name) {
+  return String(name || "").toLowerCase().trim().replace(/[\s_]/g, "");
+}
+
 function getCell(row, headerMap, keys) {
   for (const key of keys) {
-    const match = headerMap[key];
+    const match = headerMap[key] || headerMap[compactKey(key)];
     if (match !== undefined && row[match] !== undefined && row[match] !== null && row[match] !== "") {
       return row[match];
     }
@@ -63,7 +50,9 @@ function getCell(row, headerMap, keys) {
 function buildHeaderMap(row) {
   const map = {};
   for (const header of Object.keys(row || {})) {
-    map[String(header).toLowerCase().trim().replace(/\s+/g, "_")] = header;
+    const normalized = String(header).toLowerCase().trim().replace(/\s+/g, "_");
+    map[normalized] = header;
+    map[normalized.replace(/_/g, "")] = header;
   }
   return map;
 }
@@ -76,7 +65,11 @@ function mapRowToOrder(row) {
 
   for (const field of EXIST_SATHYA_ORDER_FIELDS) {
     if (field === "exist_id") continue;
-    const aliases = field === "referrel_url" ? ["referrel_url", "referral_url"] : [field];
+    let aliases = [field];
+    if (field === "referrel_url") aliases = ["referrel_url", "referral_url"];
+    if (field === "created_at") aliases = ["created_at", "createdat", "created", "created_on"];
+    if (field === "updated_at") aliases = ["updated_at", "updatedat", "updated", "updated_on"];
+    if (field === "offline_order_date") aliases = ["offline_order_date", "offlineorderdate"];
     const raw = getCell(row, headerMap, aliases);
 
     if (DATE_FIELDS.has(field)) {
@@ -156,14 +149,11 @@ export async function POST(req) {
         return NextResponse.json({ error: "Invalid JSON file" }, { status: 400 });
       }
     } else {
-      const workbook = isCsv
-        ? XLSX.read(buffer.toString("utf-8"), { type: "string", cellDates: true })
-        : XLSX.read(buffer, { type: "buffer", cellDates: true });
-      const sheetName = workbook.SheetNames[0];
-      if (!sheetName) {
-        return NextResponse.json({ error: "File has no sheets" }, { status: 400 });
+      const sheet = readExistUserSheetRows(buffer, isCsv, DATE_FIELDS);
+      if (sheet.error) {
+        return NextResponse.json({ error: sheet.error }, { status: 400 });
       }
-      rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { defval: "" });
+      rows = sheet.rows;
     }
 
     if (!rows.length) {
@@ -182,6 +172,8 @@ export async function POST(req) {
     const idsInFile = new Set();
     const numbersInFile = new Set();
     const toInsert = [];
+    const dateUpdates = [];
+    let datesUpdatedCount = 0;
 
     for (let index = 0; index < rows.length; index++) {
       const excelRow = index + 2;
@@ -201,6 +193,23 @@ export async function POST(req) {
       const duplicateNumber = orderNumber && (existingNumbers.has(orderNumber) || numbersInFile.has(orderNumber));
 
       if (duplicateId || duplicateNumber) {
+        const dateUpdate = {};
+        for (const field of DATE_FIELDS) {
+          if (order[field] instanceof Date) dateUpdate[field] = order[field];
+        }
+        if (Object.keys(dateUpdate).length) {
+          const idVariants = existId
+            ? [existId, /^\d+$/.test(existId) ? Number(existId) : null].filter((item) => item !== null && item !== "")
+            : [];
+          dateUpdates.push({
+            updateOne: {
+              filter: existId
+                ? { exist_id: { $in: idVariants } }
+                : { order_number: orderNumber },
+              update: { $set: dateUpdate },
+            },
+          });
+        }
         skippedCount += 1;
         skippedExistingCount += 1;
         if (skippedOrders.length < 50) {
@@ -216,6 +225,11 @@ export async function POST(req) {
       if (existId) idsInFile.add(existId);
       if (orderNumber) numbersInFile.add(orderNumber);
       toInsert.push(order);
+    }
+
+    if (dateUpdates.length) {
+      const result = await ExistSathyaOrder.bulkWrite(dateUpdates, { ordered: false });
+      datesUpdatedCount = result.modifiedCount || 0;
     }
 
     const batchSize = 250;
@@ -242,8 +256,9 @@ export async function POST(req) {
 
     return NextResponse.json({
       success: true,
-      message: `Import completed. Added ${addedCount}, skipped existing ${skippedExistingCount}, other skipped ${skippedCount - skippedExistingCount}.`,
+      message: `Import completed. Added ${addedCount}, dates updated ${datesUpdatedCount}, skipped existing ${skippedExistingCount}, other skipped ${skippedCount - skippedExistingCount}.`,
       addedCount,
+      datesUpdatedCount,
       skippedCount,
       skippedExistingCount,
       skippedOrders,

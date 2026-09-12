@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Icon } from "@iconify/react";
 import DateRangePicker from "@/components/DateRangePicker";
+import { formatExistDateYmd } from "@/lib/existSheetDateFormat";
 
 const FIELD_LABELS = [
   ["exist_id", "Exist ID"],
@@ -63,9 +64,7 @@ function formatValue(value) {
 }
 
 function formatDateTime(value) {
-  if (!value) return "-";
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? String(value) : date.toLocaleString();
+  return formatExistDateYmd(value);
 }
 
 export default function ExistSathyaOrdersComponent() {

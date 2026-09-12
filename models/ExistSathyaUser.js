@@ -101,6 +101,16 @@ const ExistSathyaUserSchema = new mongoose.Schema({
     required: false,
     default: null,
   },
+  created_at: {
+    type: Date,
+    required: false,
+    default: null,
+  },
+  updated_at: {
+    type: Date,
+    required: false,
+    default: null,
+  },
 }, {
   timestamps: { createdAt: "created_at", updatedAt: "updated_at" },
 });
