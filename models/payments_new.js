@@ -5,6 +5,8 @@ const optionalDate = { type: Date, required: false, default: null };
 
 const PaymentsNewSchema = new mongoose.Schema({
   exist_id: optionalString,
+  order_id: optionalString,
+  order_number: optionalString,
   user_id: optionalString,
   ModeType: optionalString,
   PaymentMode: optionalString,
@@ -31,6 +33,16 @@ PaymentsNewSchema.index(
     partialFilterExpression: { exist_id: { $type: "string" } },
     name: "exist_id_unique_nonempty",
   }
+);
+
+PaymentsNewSchema.index(
+  { order_id: 1 },
+  { name: "order_id_relation" }
+);
+
+PaymentsNewSchema.index(
+  { order_number: 1 },
+  { name: "order_number_relation" }
 );
 
 PaymentsNewSchema.index(

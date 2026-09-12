@@ -6,13 +6,23 @@ const optionalDate = { type: Date, required: false, default: null };
 
 const OrderDetailsNewSchema = new mongoose.Schema({
   exist_id: optionalString,
-  order_id: optionalString,
+  order_id: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "orders_new",
+    required: false,
+    default: null,
+  },
   item_code: optionalString,
   product_id: optionalString,
   product_name: optionalString,
   product_price: optionalString,
   model: optionalString,
-  user_id: optionalString,
+  user_id: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "ecom_users_info",
+    required: false,
+    default: null,
+  },
   created_at: optionalDate,
   updated_at: optionalDate,
   quantity: optionalNumber,
@@ -60,6 +70,11 @@ OrderDetailsNewSchema.index(
 OrderDetailsNewSchema.index(
   { order_id: 1 },
   { name: "order_id_relation" }
+);
+
+OrderDetailsNewSchema.index(
+  { user_id: 1 },
+  { name: "user_id_relation" }
 );
 
 OrderDetailsNewSchema.index(
