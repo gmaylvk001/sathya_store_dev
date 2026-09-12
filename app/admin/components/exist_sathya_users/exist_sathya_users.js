@@ -338,15 +338,15 @@ export default function ExistSathyaUsersComponent() {
   const handleImportSubmit = async (e) => {
     e.preventDefault();
     if (!importFile) {
-      setAlertMessage("❌ Please choose an Excel (.xlsx) or CSV (.csv) file");
+      setAlertMessage("❌ Please choose an Excel (.xlsx), CSV (.csv), SQL (.sql), or XML (.xml) file");
       setShowAlert(true);
       setTimeout(() => setShowAlert(false), 3000);
       return;
     }
 
     const name = importFile.name.toLowerCase();
-    if (!name.endsWith(".xlsx") && !name.endsWith(".csv")) {
-      setAlertMessage("❌ Only .xlsx and .csv files are allowed");
+    if (!name.endsWith(".xlsx") && !name.endsWith(".csv") && !name.endsWith(".sql") && !name.endsWith(".xml")) {
+      setAlertMessage("❌ Only .xlsx, .csv, .sql, and .xml files are allowed");
       setShowAlert(true);
       setTimeout(() => setShowAlert(false), 3000);
       return;
@@ -611,7 +611,7 @@ export default function ExistSathyaUsersComponent() {
                   }}
                   className="p-2 border border-red-500 text-red-500 hover:bg-red-50 rounded-md transition"
                 >
-                  Import Excel/CSV
+                  Import Excel/CSV/SQL/XML
                 </button>
                 <button
                   onClick={() => {
@@ -863,7 +863,7 @@ export default function ExistSathyaUsersComponent() {
       {isImportOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
           <div className="bg-white p-5 rounded-lg w-[28rem] relative max-h-[90vh] overflow-y-auto">
-            <h2 className="text-lg font-bold text-center">Import Excel / CSV</h2>
+            <h2 className="text-lg font-bold text-center">Import Excel / CSV / SQL / XML</h2>
             <button
               onClick={() => {
                 setIsImportOpen(false);
@@ -891,7 +891,7 @@ export default function ExistSathyaUsersComponent() {
             <form onSubmit={handleImportSubmit}>
               <input
                 type="file"
-                accept=".xlsx,.csv"
+                accept=".xlsx,.csv,.sql,.xml"
                 onChange={(e) => setImportFile(e.target.files?.[0] || null)}
                 className="w-full border p-2 mb-3 rounded"
                 required

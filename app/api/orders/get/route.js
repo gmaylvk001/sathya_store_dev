@@ -41,7 +41,8 @@
 
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
-import Order from "@/models/ecom_order_info";
+import OrderNew from "@/models/orders_new";
+import OrderDetailsNew from "@/models/order_details_new";
 import product from "@/models/product";
 import jwt from "jsonwebtoken";
 
@@ -49,7 +50,6 @@ export async function GET(req) {
   await dbConnect();
 
   try {
-    console.log("hai");
     const { searchParams } = new URL(req.url);
     const authHeader = req.headers.get('authorization');
     const token = authHeader && authHeader.split(' ')[1];
@@ -66,7 +66,7 @@ export async function GET(req) {
     const userId = decoded.userId;
     const status = searchParams.get("status");
     const order_number = searchParams.get("order_number");
-    console.log(order_number);
+    
     let query = {};
 
     if (status && status !== "all") {
@@ -80,27 +80,46 @@ export async function GET(req) {
       query.user_id = userId;
     }
 
-    const orders        = await Order.find(query).sort({ createdAt: -1 });
+    const orders = await OrderNew.find(query).sort({ created_at: -1 });
 
     const updatedOrders = [];
     for (let order of orders) {
+      // Find line items from order_details_new linked to this order
+      const details = await OrderDetailsNew.find({
+        $or: [
+          { order_id: order._id },
+          { orderNumber: order.order_number } // fallback for imported orders
+        ]
+      });
+
       const itemsWithSlug = [];
 
-      for (let item of order.order_item) {
-        const productDoc = await product.findOne(
-          { item_code: item.item_code },
-          "slug"
-        );
+      // If the new table doesn't have details, fallback to order.order_item array if it exists
+      const lineItems = details.length > 0 ? details : (order.order_item || []);
 
+      for (let item of lineItems) {
+        const itemCode = item.item_code;
+        let productDoc = null;
+        if (itemCode) {
+          productDoc = await product.findOne({ item_code: itemCode }, "slug");
+        }
+
+        const itemObj = item.toObject ? item.toObject() : item;
         itemsWithSlug.push({
-          ...item.toObject?.() || item,
+          ...itemObj,
+          name: itemObj.product_name || itemObj.name,
+          price: itemObj.product_price || itemObj.price,
           slug: productDoc?.slug || null
         });
       }
 
+      const orderObj = order.toObject();
       updatedOrders.push({
-        ...order.toObject(),
-        order_item: itemsWithSlug
+        ...orderObj,
+        order_item: itemsWithSlug,
+        // Map created_at to createdAt for frontend backwards compatibility
+        createdAt: orderObj.created_at || orderObj.createdAt,
+        updatedAt: orderObj.updated_at || orderObj.updatedAt,
       });
     }
     
@@ -111,7 +130,7 @@ export async function GET(req) {
       );
     }
 
-    return NextResponse.json({ success: true, orders:updatedOrders }, { status: 200 });
+    return NextResponse.json({ success: true, orders: updatedOrders }, { status: 200 });
   } catch (error) {
     console.error("Error fetching orders:", error);
     return NextResponse.json(

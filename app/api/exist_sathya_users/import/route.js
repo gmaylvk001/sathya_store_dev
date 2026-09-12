@@ -133,23 +133,84 @@ export async function POST(req) {
     }
 
     const fileName = (file.name || "").toLowerCase();
-    if (!fileName.endsWith(".xlsx") && !fileName.endsWith(".csv")) {
-      return NextResponse.json({ error: "Only .xlsx and .csv files are allowed" }, { status: 400 });
+    if (!fileName.endsWith(".xlsx") && !fileName.endsWith(".csv") && !fileName.endsWith(".sql") && !fileName.endsWith(".xml")) {
+      return NextResponse.json({ error: "Only .xlsx, .csv, .sql, and .xml files are allowed" }, { status: 400 });
     }
 
+    let rows = [];
     const buffer = Buffer.from(await file.arrayBuffer());
-    const workbook = fileName.endsWith(".csv")
-      ? XLSX.read(buffer.toString("utf-8"), { type: "string", cellDates: true })
-      : XLSX.read(buffer, { type: "buffer", cellDates: true });
 
-    const sheetName = workbook.SheetNames[0];
-    if (!sheetName) {
-      return NextResponse.json({ error: "File has no sheets" }, { status: 400 });
-    }
+    if (fileName.endsWith(".sql")) {
+      const sqlText = buffer.toString("utf-8");
+      const insertRegex = /INSERT INTO .*?\((.*?)\)\s+VALUES\s+(.*);/gi;
+      let match;
+      while ((match = insertRegex.exec(sqlText)) !== null) {
+        const columnsStr = match[1];
+        const valuesStr = match[2];
+        const columns = columnsStr.split(',').map(c => c.trim().replace(/['"`]/g, ''));
+        
+        const valGroupRegex = /\(([^)]+)\)/g;
+        let valMatch;
+        while ((valMatch = valGroupRegex.exec(valuesStr)) !== null) {
+          const rawVals = valMatch[1];
+          const vals = rawVals.match(/('(?:[^'\\]|\\.)*'|[^,]+)/g);
+          if (vals && columns.length === vals.length) {
+            const rowObj = {};
+            columns.forEach((col, i) => {
+              let val = vals[i].trim();
+              if (val.toUpperCase() === 'NULL') {
+                rowObj[col] = null;
+              } else {
+                rowObj[col] = val.replace(/^'|'$/g, '').replace(/\\'/g, "'");
+              }
+            });
+            rows.push(rowObj);
+          }
+        }
+      }
+      if (!rows.length) {
+        return NextResponse.json({ error: "No valid INSERT statements found in SQL file" }, { status: 400 });
+      }
+    } else if (fileName.endsWith(".xml")) {
+      const xmlText = buffer.toString("utf-8");
+      const { XMLParser } = require("fast-xml-parser");
+      const parser = new XMLParser({ ignoreAttributes: false, parseAttributeValue: true });
+      const jsonObj = parser.parse(xmlText);
+      
+      const allObjects = [];
+      const findRows = (obj) => {
+        if (Array.isArray(obj)) {
+          obj.forEach(findRows);
+        } else if (typeof obj === 'object' && obj !== null) {
+          const lowerKeys = Object.keys(obj).map(k => k.toLowerCase());
+          if (lowerKeys.includes("phone") || lowerKeys.includes("exist_id") || lowerKeys.includes("email")) {
+            allObjects.push(obj);
+          } else {
+            for (let key in obj) {
+              findRows(obj[key]);
+            }
+          }
+        }
+      };
+      findRows(jsonObj);
+      rows = allObjects;
+      if (!rows.length) {
+        return NextResponse.json({ error: "No valid data rows found in XML file" }, { status: 400 });
+      }
+    } else {
+      const workbook = fileName.endsWith(".csv")
+        ? XLSX.read(buffer.toString("utf-8"), { type: "string", cellDates: true })
+        : XLSX.read(buffer, { type: "buffer", cellDates: true });
 
-    const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { defval: "" });
-    if (!rows.length) {
-      return NextResponse.json({ error: "File has no data rows" }, { status: 400 });
+      const sheetName = workbook.SheetNames[0];
+      if (!sheetName) {
+        return NextResponse.json({ error: "File has no sheets" }, { status: 400 });
+      }
+
+      rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { defval: "" });
+      if (!rows.length) {
+        return NextResponse.json({ error: "File has no data rows" }, { status: 400 });
+      }
     }
 
     let addedCount = 0;
@@ -195,6 +256,23 @@ export async function POST(req) {
     );
     const existIdsInFile = new Set();
 
+    const passwordCache = new Map();
+    const resolvePasswordCached = async (rawPassword) => {
+      const password = emptyToNull(rawPassword);
+      if (!password) return null;
+      if (password.startsWith("$2a$") || password.startsWith("$2b$") || password.startsWith("$2y$")) {
+        return password;
+      }
+      if (passwordCache.has(password)) {
+        return passwordCache.get(password);
+      }
+      const hash = await bcrypt.hash(password, 10);
+      passwordCache.set(password, hash);
+      return hash;
+    };
+
+    const usersToInsert = [];
+
     for (let index = 0; index < rows.length; index++) {
       const row = rows[index];
       const excelRow = index + 2;
@@ -237,7 +315,7 @@ export async function POST(req) {
         existIdsInFile.add(existId);
       }
 
-      const hashedPassword = await resolvePassword(rawPassword);
+      const hashedPassword = await resolvePasswordCached(rawPassword);
 
       const confirmedValue = emptyToNull(getCell(row, ["confirmed"]));
       const notifyStatusValue = emptyToNull(getCell(row, ["notify_status"]));
@@ -246,60 +324,71 @@ export async function POST(req) {
       const created_at = parseSheetDate(getCell(row, ["created_at"])) || now;
       const updated_at = parseSheetDate(getCell(row, ["updated_at"])) || now;
 
+      usersToInsert.push({
+        _excelRow: excelRow,
+        _pairKey: pairKey,
+        _existId: existId,
+        exist_id: existId,
+        first_name,
+        last_name: emptyToNull(getCell(row, ["last_name"])),
+        store_id: emptyToNull(getCell(row, ["store_id"])),
+        role_id: emptyToNull(getCell(row, ["role_id"])),
+        zone_id: emptyToNull(getCell(row, ["zone_id"])),
+        email,
+        phone,
+        password: hashedPassword,
+        remember_token: emptyToNull(getCell(row, ["remember_token"])),
+        confirmed: confirmedValue === null ? null : Number(confirmedValue),
+        confirmation_code: emptyToNull(getCell(row, ["confirmation_code"])),
+        provider: emptyToNull(getCell(row, ["provider"])),
+        provider_id: emptyToNull(getCell(row, ["provider_id"])),
+        avatar: emptyToNull(getCell(row, ["avatar"])),
+        avatar_original: emptyToNull(getCell(row, ["avatar_original"])),
+        notify_pincode: emptyToNull(getCell(row, ["notify_pincode"])),
+        notify_status: notifyStatusValue === null ? 0 : Number(notifyStatusValue),
+        logged_in: parseSheetDate(getCell(row, ["logged_in"])),
+        created_at,
+        updated_at,
+      });
+    }
+
+    if (usersToInsert.length > 0) {
       try {
-        const newUser = new ExistSathyaUser({
-          exist_id: existId,
-          first_name,
-          last_name: emptyToNull(getCell(row, ["last_name"])),
-          store_id: emptyToNull(getCell(row, ["store_id"])),
-          role_id: emptyToNull(getCell(row, ["role_id"])),
-          zone_id: emptyToNull(getCell(row, ["zone_id"])),
-          email,
-          phone,
-          password: hashedPassword,
-          remember_token: emptyToNull(getCell(row, ["remember_token"])),
-          confirmed: confirmedValue === null ? null : Number(confirmedValue),
-          confirmation_code: emptyToNull(getCell(row, ["confirmation_code"])),
-          provider: emptyToNull(getCell(row, ["provider"])),
-          provider_id: emptyToNull(getCell(row, ["provider_id"])),
-          avatar: emptyToNull(getCell(row, ["avatar"])),
-          avatar_original: emptyToNull(getCell(row, ["avatar_original"])),
-          notify_pincode: emptyToNull(getCell(row, ["notify_pincode"])),
-          notify_status: notifyStatusValue === null ? 0 : Number(notifyStatusValue),
-          logged_in: parseSheetDate(getCell(row, ["logged_in"])),
-          created_at,
-          updated_at,
+        const result = await ExistSathyaUser.insertMany(usersToInsert, { ordered: false });
+        addedCount += result.length;
+        result.forEach(user => {
+          const pairKey = contactPairKey(user.email, user.phone);
+          if (pairKey) existingPairs.add(pairKey);
+          if (user.exist_id) existingExistIds.add(normalizeExistIdKey(user.exist_id));
         });
-        await newUser.save({ timestamps: false });
-        await ExistSathyaUser.collection.updateOne(
-          { _id: newUser._id },
-          { $set: { created_at, updated_at } }
-        );
-        addedCount += 1;
-        if (pairKey) {
-          existingPairs.add(pairKey);
-        }
-        if (existId) {
-          existingExistIds.add(existId);
-        }
       } catch (error) {
-        skippedCount += 1;
-        if (pairKey) {
-          pairsInFile.delete(pairKey);
-        }
-        if (existId) {
-          existIdsInFile.delete(existId);
-        }
-        if (error.code === 11000) {
-          skippedExistingCount += 1;
-          skippedEmails.push({ row: excelRow, email, phone });
-          queueSkippedUser(existId, "existing email and phone", email, phone);
-        } else {
-          queueSkippedUser(existId, error.message || "other skipped", email, phone);
-          errors.push({
-            row: excelRow,
-            error: error.message,
+        if (error.code === 11000 || (error.writeErrors && error.writeErrors.length > 0)) {
+          const insertedDocs = error.insertedDocs || [];
+          addedCount += insertedDocs.length;
+          insertedDocs.forEach(user => {
+            const pairKey = contactPairKey(user.email, user.phone);
+            if (pairKey) existingPairs.add(pairKey);
+            if (user.exist_id) existingExistIds.add(normalizeExistIdKey(user.exist_id));
           });
+          
+          const writeErrors = error.writeErrors || [];
+          writeErrors.forEach(err => {
+            const failedDoc = err.err.op || usersToInsert[err.index];
+            if (failedDoc) {
+              skippedCount += 1;
+              if (err.code === 11000) {
+                skippedExistingCount += 1;
+                skippedEmails.push({ row: failedDoc._excelRow, email: failedDoc.email, phone: failedDoc.phone });
+                queueSkippedUser(failedDoc.exist_id, "existing email and phone", failedDoc.email, failedDoc.phone);
+              } else {
+                queueSkippedUser(failedDoc.exist_id, err.errmsg || "other skipped", failedDoc.email, failedDoc.phone);
+                errors.push({ row: failedDoc._excelRow, error: err.errmsg });
+              }
+            }
+          });
+        } else {
+          console.error("Exist sathya users bulk insert error:", error);
+          throw error;
         }
       }
     }
