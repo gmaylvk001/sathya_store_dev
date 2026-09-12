@@ -220,7 +220,11 @@ let query = {
     -------------------------------------------------- */
     const skip = (page - 1) * limit;
 
-    const products = await productsQuery.skip(skip).limit(limit).lean();
+    const products = await productsQuery
+      .sort({ createdAt: -1, _id: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean();
 
     const totalProducts = await Product.countDocuments(query);
     const totalPages = Math.ceil(totalProducts / limit);

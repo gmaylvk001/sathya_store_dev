@@ -124,6 +124,7 @@ export async function GET(req) {
     // Apply pagination
     const skip = (page - 1) * limit;
     const products = await productsQuery
+      .sort({ createdAt: -1, _id: -1 })
       .skip(skip)
       .limit(limit)
       .lean();

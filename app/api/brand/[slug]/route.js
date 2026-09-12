@@ -60,7 +60,7 @@ export async function GET(request, { params }) {
     const products = await Product.find({
       status: "Active",
       ...brandMatch,
-    });
+    }).sort({ createdAt: -1, _id: -1 });
     
     if (!products || products.length === 0) {
       return Response.json({ brand, products: [], categories: [], filters: [] });

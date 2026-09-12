@@ -74,4 +74,6 @@ warranty_ids: {
   updatedAt: { type: Date, default: Date.now },
 });
 
+ProductSchema.index({ createdAt: -1, _id: -1 });
+
 export default mongoose.models.Product || mongoose.model("Product", ProductSchema);

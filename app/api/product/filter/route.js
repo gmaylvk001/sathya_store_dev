@@ -144,7 +144,7 @@ query.$or = [
         sort === 'name-z-a' ? { name: -1, _id: -1 } :
         sort === 'quantity-low-to-high' ? { quantity: 1, _id: -1 } :
         sort === 'quantity-high-to-low' ? { quantity: -1, _id: -1 } :
-        { quantity: -1, _id: -1 };
+        { createdAt: -1, _id: -1 };
 
       products = await productsQuery
         .sort(sortObj)
