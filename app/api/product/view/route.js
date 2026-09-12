@@ -16,7 +16,7 @@ export async function GET(req) {
       // query = { category };
     }
 
-    const products = await Product.find(query).lean();
+    const products = await Product.find(query).sort({ createdAt: -1, _id: -1 }).lean();
 
     return Response.json({ success: true, products });
   } catch (error) {

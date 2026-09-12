@@ -167,7 +167,7 @@ export async function GET() {
       ]
     })
       .select("name slug images price special_price quantity stock_status brand category sub_category")
-      .sort({ quantity: -1, createdAt: -1 })
+      .sort({ createdAt: -1, _id: -1 })
       .lean();
 
     const categoryFallbackProducts = {};

@@ -48,8 +48,9 @@ export async function GET(req) {
 
     const products = await Product.find(findQuery)
       .select(
-        "_id name item_code images price special_price slug search_keywords sub_category_new_name category_new brand"
+        "_id name item_code images price special_price slug search_keywords sub_category_new_name category_new brand createdAt"
       )
+      .sort({ createdAt: -1, _id: -1 })
       .limit(limit)
       .lean();
 
@@ -59,7 +60,12 @@ export async function GET(req) {
         _score: scoreProductMatch(product, q, { brands }),
       }))
       .filter((product) => product._score > 0)
-      .sort((a, b) => b._score - a._score)
+      .sort((a, b) => {
+        if (b._score !== a._score) return b._score - a._score;
+        const timeA = new Date(a.createdAt || 0).getTime();
+        const timeB = new Date(b.createdAt || 0).getTime();
+        return timeB - timeA;
+      })
       .slice(0, 12)
       .map(({ _score, ...product }) => product);
 

@@ -255,7 +255,10 @@ searchFilter.$and = [
 
     if (query) {
       const candidateLimit = query.length <= 3 ? 500 : 250;
-      const candidates = await productsQuery.limit(candidateLimit).lean();
+      const candidates = await productsQuery
+        .sort({ createdAt: -1, _id: -1 })
+        .limit(candidateLimit)
+        .lean();
 
       const ranked = candidates
         .map((product) => ({
@@ -263,7 +266,12 @@ searchFilter.$and = [
           score: scoreProductMatch(product, query, { brands: allBrands }),
         }))
         .filter(({ score }) => score > 0)
-        .sort((a, b) => b.score - a.score);
+        .sort((a, b) => {
+          if (b.score !== a.score) return b.score - a.score;
+          const timeA = new Date(a.product.createdAt || 0).getTime();
+          const timeB = new Date(b.product.createdAt || 0).getTime();
+          return timeB - timeA;
+        });
 
       total = ranked.length;
       products = ranked.slice(skip, skip + limit).map(({ product }) => product);

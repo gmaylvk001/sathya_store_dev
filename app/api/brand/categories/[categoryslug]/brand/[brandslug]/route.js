@@ -83,7 +83,7 @@ export async function GET(request, { params }) {
           ],
         },
       ],
-    });
+    }).sort({ createdAt: -1, _id: -1 });
    
     if (!products || products.length === 0) {
       return Response.json({
