@@ -31,20 +31,10 @@ export default function CancelledOrders() {
   const fetchOrders = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem("token");
-      const response = await fetch(`/api/orders/getorder?status=${activeTab}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
+      const response = await fetch("/api/orders_new");
       const data = await response.json();
-      if (data.success) {
-        setOrders(data.orders);
-      } else {
-        console.error("API Error:", data.error);
-        setAlertMessage("Failed to fetch orders");
-      }
+      const list = Array.isArray(data) ? data : [];
+      setOrders(list.filter((order) => order.order_status === "Cancelled"));
     } catch (error) {
       console.error("Error fetching orders:", error);
       setAlertMessage("Error fetching orders");
@@ -69,8 +59,8 @@ export default function CancelledOrders() {
 
     // Apply date filter
     let matchesDate = true;
-    if (dateFilter.startDate && dateFilter.endDate && order.createdAt) {
-      const orderDate = new Date(order.createdAt);
+    if (dateFilter.startDate && dateFilter.endDate && (order.created_at || order.createdAt)) {
+      const orderDate = new Date(order.created_at || order.createdAt);
       const startDate = new Date(dateFilter.startDate);
       const endDate = new Date(dateFilter.endDate);
       matchesDate = orderDate >= startDate && orderDate <= endDate;

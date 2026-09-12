@@ -41,7 +41,7 @@ const OrderDetails = () => {
 
   useEffect(() => {
     if (orderId) {
-      fetch(`/api/allorders/${orderId}`)
+      fetch(`/api/orders_new/${orderId}`)
         .then(res => res.json())
         .then(data => setOrder(data))
         .catch(err => console.error("Fetch error:", err));
@@ -81,7 +81,7 @@ const OrderDetails = () => {
           <td className="p-2 flex items-center gap-2 font-semibold text-gray-700">
             <MdDateRange className="bg-red-500 text-white p-1 rounded-md w-6 h-6" />
             Date: </td>
-          <td className="p-2 ">{new Date(order.createdAt).toLocaleDateString()}</td>
+          <td className="p-2 ">{new Date(order.created_at || order.createdAt).toLocaleDateString()}</td>
         </tr>
        
         <tr className="border-b">
@@ -125,7 +125,7 @@ const OrderDetails = () => {
           <td className="p-2 flex items-center gap-2 font-semibold text-gray-700">
             <FaStore className="bg-red-500 text-white p-1 rounded-md w-6 h-6" />
             store:</td>
-         <td className="p-2">{order.order_details[0]?.store_id}</td>
+         <td className="p-2">{order.order_details?.[0]?.store_id}</td>
 
         </tr>
         <tr>
@@ -212,11 +212,11 @@ const OrderDetails = () => {
       href={`/product/${item.slug}`} 
       className="text-[#d72828] hover:underline"
     >
-      {item.product_name} - ({item.item_code.replace(/^ITEM/, "")})
+      {item.product_name} - ({(item.item_code || "").replace(/^ITEM/, "")})
     </a>
   ) : (
     <span>
-      {item.product_name} - ({item.item_code.replace(/^ITEM/, "")})
+      {item.product_name} - ({(item.item_code || "").replace(/^ITEM/, "")})
     </span>
   )}
 </td>
@@ -228,7 +228,7 @@ const OrderDetails = () => {
   </tr>
 ))}
 
-{order.order_item.map((item, index) =>
+{(order.order_item || []).map((item, index) =>
   item.extendedWarranty > 0 && (
     <tr key={index} className="font-semibold">
       <td colSpan="4" className="p-2 text-right text-[#d72828]">

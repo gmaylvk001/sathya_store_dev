@@ -36,11 +36,12 @@ const OrdersTable_abon = () => {
   const [isCheckingPayment, setIsCheckingPayment] = useState(false);
 
   const fetchOrders = async () => {
-    const res = await fetch("/api/allorders");
+    const res = await fetch("/api/orders_new");
     const data = await res.json();
-    const filtered = data.filter(order => order.payment_status == "payment_initialized");
-    setOrders(filtered);
-    setFiltered(filtered);
+    const list = Array.isArray(data) ? data : [];
+    const abandoned = list.filter((order) => order.order_status === "Payment Initiated");
+    setOrders(abandoned);
+    setFiltered(abandoned);
     setIsLoading(false);
   };
   useEffect(() => {
@@ -53,15 +54,11 @@ const OrdersTable_abon = () => {
       let updated = [...orders];
 
       if (status) {
-        updated = updated.filter(
-          (o) => o.order_status?.toLowerCase() === status.toLowerCase()
-        );
+        updated = updated.filter((o) => o.order_status === status);
       }
 
       if (deliveryType) {
-        updated = updated.filter(
-          (o) => o.delivery_type?.toLowerCase() === deliveryType.toLowerCase()
-        );
+        updated = updated.filter((o) => o.delivery_type === deliveryType);
       }
 
       if (paymentMethod) {
@@ -85,7 +82,7 @@ const OrdersTable_abon = () => {
         endDate.setHours(23, 59, 59, 999);
 
         updated = updated.filter((o) => {
-          const orderDate = new Date(o.createdAt);
+          const orderDate = new Date(o.created_at || o.createdAt);
           return orderDate >= startDate && orderDate <= endDate;
         });
       }
@@ -178,14 +175,11 @@ const OrdersTable_abon = () => {
       }
 
       // ✅ If valid → update order status
-      await fetch(`/api/orders/update/`, {
-        method: "POST",
+      await fetch(`/api/orders_new/${orderToUpdate._id}`, {
+        method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          order_id: orderToUpdate._id,
-          order_status: "pending",
-          payment_status: "paid",
-          payment_id: razorpayId,
+          status: "pending",
         }),
       });
 
@@ -460,14 +454,7 @@ const OrdersTable_abon = () => {
                 className="w-full p-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500 text-sm"
               >
                 <option value="">All</option>
-                {/* <option value="pending">Pending</option>
-                <option value="order placed">Order Placed</option>
-                <option value="invoiced">Invoiced</option>
-                <option value="cancelled">Cancelled</option>
-                <option value="rejected">Rejected</option>
-                <option value="completed">Completed</option>
-                <option value="shipped">Shipped</option> */}
-                <option value="payment_initialized">payment_initialized</option>
+                <option value="Payment Initiated">Payment Initiated</option>
 
               </select>
             </div>
@@ -483,8 +470,8 @@ const OrdersTable_abon = () => {
                 className="w-full p-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500 text-sm"
               >
                 <option value="">All</option>
-                <option value="home">Home Delivery</option>
-                <option value="store_pickup">Store Pickup</option>
+                <option value="home">Home</option>
+                <option value="store">Store</option>
               </select>
             </div>
 
@@ -553,8 +540,8 @@ const OrdersTable_abon = () => {
                             const prevStatus = o.order_status;
 
                             // If changing from pending to shipped, show delivery date modal
-                            if (prevStatus.toLowerCase() === "payment_initialized" &&
-                              newStatus.toLowerCase() === "pending") {
+                            if (prevStatus === "Payment Initiated" &&
+                              newStatus === "pending") {
                               setOrderToUpdate(o);
                               setOldStatus(prevStatus);
                               // setShowDeliveryDateModal(true);
@@ -566,7 +553,7 @@ const OrdersTable_abon = () => {
 
                             // For other status changes (like cancelled)
                             try {
-                              const res = await fetch(`/api/orders/${o._id}`, {
+                              const res = await fetch(`/api/orders_new/${o._id}`, {
                                 method: "PUT",
                                 headers: { "Content-Type": "application/json" },
                                 body: JSON.stringify({ status: newStatus }),
@@ -597,8 +584,8 @@ const OrdersTable_abon = () => {
                           }}
                           className="border px-2 py-1 rounded-md text-sm"
                         >
-                          <option value="pending">Pending</option>
-                          <option value="payment_initialized">payment_initialized</option>
+                          <option value="pending">pending</option>
+                          <option value="Payment Initiated">Payment Initiated</option>
                         </select>
                       </td>
 
@@ -612,7 +599,7 @@ const OrdersTable_abon = () => {
                       <td className="p-2 border">{o.order_username}</td>
                       <td className="p-2 border">₹{o.order_amount}</td>
                       <td className="p-2 border">
-                        {new Date(o.createdAt).toLocaleDateString()}
+                        {new Date(o.created_at || o.createdAt).toLocaleDateString()}
                       </td>
                     </tr>
                   ))

@@ -4,6 +4,18 @@ import { useRouter } from 'next/navigation'; // ← use this in App Router
 import { useEffect, useState } from 'react';
 import DateRangePicker from '@/components/DateRangePicker';
 
+const ORDER_STATUSES = [
+  "Billed",
+  "Cancelled",
+  "Complete",
+  "failure",
+  "Order Accepted",
+  "Order Placed",
+  "ordered",
+  "Payment Initiated",
+  "pending",
+];
+
 const OrdersTable = () => {
   const [orders, setOrders] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -18,14 +30,11 @@ const OrdersTable = () => {
 
 useEffect(() => {
   const fetchOrders = async () => {
-    const res = await fetch('/api/allorders');
+    const res = await fetch('/api/orders_new');
     const data = await res.json();
+    const list = Array.isArray(data) ? data : [];
 
-    // 👇 Only include orders with delivery_type: 'home'
-       const homeOrders = data.filter(order => 
-     order.delivery_type === 'home' && 
-       order.order_status?.toLowerCase() !== 'payment_initialized'
-      );
+    const homeOrders = list.filter((order) => order.delivery_type === 'home');
 
     setOrders(homeOrders);
     setFiltered(homeOrders);
@@ -45,15 +54,11 @@ useEffect(() => {
     let updated = [...orders];
 
     if (status) {
-      updated = updated.filter(o =>
-        o.order_status?.toLowerCase() === status.toLowerCase()
-      );
+      updated = updated.filter(o => o.order_status === status);
     }
 
     if (deliveryType) {
-      updated = updated.filter(o =>
-        o.delivery_type?.toLowerCase() === deliveryType.toLowerCase()
-      );
+      updated = updated.filter(o => o.delivery_type === deliveryType);
     }
 
     if (paymentMethod) {
@@ -78,7 +83,7 @@ useEffect(() => {
       endDate.setHours(23, 59, 59, 999); // Include full end date
 
       updated = updated.filter(o => {
-        const orderDate = new Date(o.createdAt);
+        const orderDate = new Date(o.created_at || o.createdAt);
         return orderDate >= startDate && orderDate <= endDate;
       });
     }
@@ -195,12 +200,9 @@ useEffect(() => {
       className="w-full p-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500 text-sm"
     >
       <option value="">All Statuses</option>
-          <option value="pending">Pending</option>
-          <option value="order placed">Order Placed</option>
-          <option value="invoiced">Order Invoiced</option>
-          <option value="cancelled">Cancelled</option>
-          <option value="rejected">Rejected</option>
-          <option value="completed">Completed</option>
+          {ORDER_STATUSES.map((value) => (
+            <option key={value} value={value}>{value}</option>
+          ))}
     </select>
   </div>
   {/* Status Filter */}
@@ -280,7 +282,7 @@ useEffect(() => {
       <td className="p-2 border capitalize">{o.order_status}</td>
       <td className="p-2 border">{o.order_username}</td>
       <td className="p-2 border">₹{o.order_amount}</td>
-      <td className="p-2 border">{new Date(o.createdAt).toLocaleDateString()}</td>
+      <td className="p-2 border">{new Date(o.created_at || o.createdAt).toLocaleDateString()}</td>
     </tr>
   ))
 ) : (
