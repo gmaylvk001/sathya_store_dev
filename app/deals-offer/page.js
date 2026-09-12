@@ -9,47 +9,11 @@ import AddToWishlistButton from "@/components/ProductCard";
 import { useRegion } from "@/context/RegionContext";
 import { useHeaderdetails } from "@/context/HeaderContext";
 import DealsOfferModal from "@/components/deals-offer/DealsOfferModal";
+import { getCardOfferCategoryHref } from "@/lib/cardOffers/cardOfferNavigationHelper";
 
 // Helper to determine destination URL for any card offer
 export function getCardOfferHref(card) {
-  if (!card) return "/category/kitchen-appliances";
-
-  // 1. Explicit link if set
-  if (card.link && card.link !== "#") return card.link;
-  if (card.url && card.url !== "#") return card.url;
-  if (card.redirect_url && card.redirect_url !== "#") return card.redirect_url;
-  if (card.category_slug) return `/category/${card.category_slug}`;
-
-  // 2. Intelligent matching based on card title / keywords
-  const title = (card.title || "").trim().toLowerCase();
-
-  // Kitchen appliances (Gas stove, chimney, mixie, oven, fryer, etc.)
-  if (/gas\s*stove|stove|hob|burner|chimney|mixie|mixer|grinder|blender|kitchen|cooker|cooktop|fryer|microwave|toaster|kettle|purifier|otg|flask/i.test(title)) {
-    return "/category/kitchen-appliances";
-  }
-
-  // Televisions & Audio
-  if (/tv|television|audio|soundbar|speaker|qled|oled|led/i.test(title)) {
-    return "/category/televisions";
-  }
-
-  // Large Appliances
-  if (/refrigerator|fridge|washing|ac|air\s*conditioner|cooler|dishwasher|freezer/i.test(title)) {
-    return "/category/large-appliances";
-  }
-
-  // Mobiles & Accessories
-  if (/mobile|phone|tablet|wearable|smartwatch|earphone|headphone/i.test(title)) {
-    return "/category/mobiles-accessories";
-  }
-
-  // Laptops & Computers
-  if (/laptop|computer|monitor|pc|desktop/i.test(title)) {
-    return "/category/computers-laptops";
-  }
-
-  // Default fallback matching reference (e.g. for "RINA" or custom admin cards)
-  return "/category/kitchen-appliances";
+  return getCardOfferCategoryHref(card);
 }
 
 // Map subcategory slug / ID to broad category section order

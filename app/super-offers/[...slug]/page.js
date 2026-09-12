@@ -7,6 +7,7 @@ import { useParams, useSearchParams } from "next/navigation";
 import { useRegion } from "@/context/RegionContext";
 import Addtocart from "@/components/AddToCart";
 import AddToWishlistButton from "@/components/ProductCard";
+import { getCardOfferCategoryHref } from "@/lib/cardOffers/cardOfferNavigationHelper";
 
 // Format date into ordinal format e.g. "Sep 8th to 10th, 2026"
 function formatOfferDateRange(startVal, endVal) {
@@ -90,29 +91,7 @@ const FALLBACK_CARD_OFFERS = [
 
 // Helper to determine destination URL for any card offer
 function getCardOfferHref(card) {
-  if (!card) return "/category/kitchen-appliances";
-  if (card.link && card.link !== "#") return card.link;
-  if (card.url && card.url !== "#") return card.url;
-  if (card.redirect_url && card.redirect_url !== "#") return card.redirect_url;
-  if (card.category_slug) return `/category/${card.category_slug}`;
-
-  const title = (card.title || "").trim().toLowerCase();
-  if (/gas\s*stove|stove|hob|burner|chimney|mixie|mixer|grinder|blender|kitchen|cooker|cooktop|fryer|microwave|toaster|kettle|purifier|otg|flask/i.test(title)) {
-    return "/category/kitchen-appliances";
-  }
-  if (/tv|television|audio|soundbar|speaker|qled|oled|led/i.test(title)) {
-    return "/category/televisions";
-  }
-  if (/refrigerator|fridge|washing|ac|air\s*conditioner|cooler|dishwasher|freezer/i.test(title)) {
-    return "/category/large-appliances";
-  }
-  if (/mobile|phone|tablet|wearable|smartwatch|earphone|headphone/i.test(title)) {
-    return "/category/mobiles-accessories";
-  }
-  if (/laptop|computer|monitor|pc|desktop/i.test(title)) {
-    return "/category/computers-laptops";
-  }
-  return "/category/kitchen-appliances";
+  return getCardOfferCategoryHref(card);
 }
 
 // Card Offer Banner Component with solid red bottom bar
