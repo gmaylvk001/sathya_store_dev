@@ -89,7 +89,7 @@ export default function CardOffersView({ timerId }) {
     if (isAllSelected) {
       setSelectedIds([]);
     } else {
-      setSelectedIds(offers.map((o) => o.id));
+      setSelectedIds(offers.map((o) => o.id ?? o.Id));
     }
   };
 
@@ -196,20 +196,21 @@ export default function CardOffersView({ timerId }) {
   // Delete Single Offer
   const handleConfirmDeleteSingle = async () => {
     if (!offerToDelete) return;
+    const targetId = offerToDelete.id ?? offerToDelete.Id;
     try {
       const res = await fetch("/api/offer-timer/card-offer", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           timerId,
-          cardOfferId: offerToDelete.id,
+          cardOfferId: targetId,
         }),
       });
       const result = await res.json();
       if (res.ok && result.success) {
-        setSuccessMessage("Card offer deleted successfully");
+        setSuccessMessage(result.message || "Card offer and image file deleted successfully");
         fetchCardOffers();
-        setSelectedIds((prev) => prev.filter((id) => id !== offerToDelete.id));
+        setSelectedIds((prev) => prev.filter((id) => id !== targetId));
       } else {
         alert(result.error || "Failed to delete card offer");
       }
@@ -218,7 +219,7 @@ export default function CardOffersView({ timerId }) {
       alert("Failed to delete card offer");
     } finally {
       setOfferToDelete(null);
-      setTimeout(() => setSuccessMessage(""), 2000);
+      setTimeout(() => setSuccessMessage(""), 2500);
     }
   };
 
@@ -237,7 +238,7 @@ export default function CardOffersView({ timerId }) {
       });
       const result = await res.json();
       if (res.ok && result.success) {
-        setSuccessMessage(`Bulk deleted ${selectedIds.length} card offers successfully`);
+        setSuccessMessage(result.message || `Bulk deleted ${selectedIds.length} card offers successfully`);
         setSelectedIds([]);
         fetchCardOffers();
       } else {
@@ -249,7 +250,7 @@ export default function CardOffersView({ timerId }) {
     } finally {
       setIsBulkDeleting(false);
       setShowBulkDeleteConfirm(false);
-      setTimeout(() => setSuccessMessage(""), 2500);
+      setTimeout(() => setSuccessMessage(""), 3000);
     }
   };
 
@@ -282,6 +283,51 @@ export default function CardOffersView({ timerId }) {
             <Icon icon="mdi:file-excel-outline" className="w-4 h-4 text-green-700" />
             <span>Excel upload</span>
           </button>
+        </div>
+      </div>
+
+      {/* Offer Timer Summary Details Bar matching Reference Image */}
+      <div className="bg-white border border-gray-200 rounded-lg p-3.5 mb-5 shadow-xs">
+        <div className="flex flex-wrap items-center text-sm text-gray-700 leading-relaxed">
+          <span className="font-semibold text-gray-800">Offer Title:</span>&nbsp;
+          <span className="text-gray-600">{timer?.offerTitle || timer?.offer_title || "-"}</span>
+
+          <span className="text-gray-300 mx-3 font-light select-none">|</span>
+
+          <span className="font-semibold text-gray-800">State:</span>&nbsp;
+          <span className="text-gray-600">
+            {timer?.state === "selected" && timer?.offerViewStates?.length
+              ? timer.offerViewStates.join(", ")
+              : timer?.state || "all"}
+          </span>
+
+          <span className="text-gray-300 mx-3 font-light select-none">|</span>
+
+          <span className="font-semibold text-gray-800">Start:</span>&nbsp;
+          <span className="text-gray-600">
+            {timer?.startDate && !Number.isNaN(new Date(timer.startDate).getTime())
+              ? formatDisplayDate(timer.startDate)
+              : ""}
+          </span>
+
+          <span className="text-gray-300 mx-3 font-light select-none">|</span>
+
+          <span className="font-semibold text-gray-800">End:</span>&nbsp;
+          <span className="text-gray-600">
+            {timer?.endDate && !Number.isNaN(new Date(timer.endDate).getTime())
+              ? formatDisplayDate(timer.endDate)
+              : ""}
+          </span>
+
+          <span className="text-gray-300 mx-3 font-light select-none">|</span>
+
+          <span className="font-semibold text-gray-800">Status:</span>&nbsp;
+          <span className="text-gray-600 capitalize">{timer?.status || "active"}</span>
+
+          <span className="text-gray-300 mx-3 font-light select-none">|</span>
+
+          <span className="font-semibold text-gray-800">Total Cards:</span>&nbsp;
+          <span className="text-gray-600 font-medium">{offers.length}</span>
         </div>
       </div>
 
@@ -372,10 +418,11 @@ export default function CardOffersView({ timerId }) {
                 </tr>
               ) : offers.length > 0 ? (
                 offers.map((offer, index) => {
-                  const isChecked = selectedIds.includes(offer.id);
+                  const offerKeyId = offer.id ?? offer.Id;
+                  const isChecked = selectedIds.includes(offerKeyId);
                   return (
                     <tr
-                      key={offer.id || index}
+                      key={offerKeyId || index}
                       className={`border-b hover:bg-gray-50/80 transition-colors ${
                         isChecked ? "bg-blue-50/40" : ""
                       }`}
@@ -385,7 +432,7 @@ export default function CardOffersView({ timerId }) {
                         <input
                           type="checkbox"
                           checked={isChecked}
-                          onChange={() => handleToggleSelect(offer.id)}
+                          onChange={() => handleToggleSelect(offerKeyId)}
                           className="rounded text-blue-600 focus:ring-blue-500 w-4 h-4 cursor-pointer"
                         />
                       </td>

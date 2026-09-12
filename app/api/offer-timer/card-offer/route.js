@@ -3,6 +3,7 @@ import { writeFile, mkdir } from "fs/promises";
 import path from "path";
 import dbConnect from "@/lib/db";
 import OfferTimer from "@/models/Offertimer";
+import { deleteCardOfferImages } from "@/lib/cardOffers/cardOfferFileService";
 
 async function saveUpload(file, prefix = "card-offer") {
   if (!file || typeof file === "string" || !file.size) return null;
@@ -70,6 +71,7 @@ export async function GET(req) {
           endDate: timer.endDate || timer.offer_end,
           state: timer.state,
           offerViewStates: timer.offerViewStates,
+          status: timer.status || "active",
         },
       },
       { status: 200 }
@@ -199,6 +201,14 @@ export async function PUT(req) {
     const existing = timer.card_offers[index];
     const newImage = await saveUpload(formData.get("image"));
 
+    // If new image is uploaded or image is removed, safely cleanup old image file from disk
+    if (existing.image && (newImage || removeImage) && existing.image !== newImage) {
+      await deleteCardOfferImages([existing.image], {
+        targetTimerId: timer._id || timer.timerId || timerId,
+        deletingOfferIds: [targetIdNum],
+      });
+    }
+
     const updated = {
       ...existing,
       title: title || existing.title,
@@ -227,7 +237,7 @@ export async function PUT(req) {
   }
 }
 
-// DELETE: Delete single card offer or bulk delete multiple card offers
+// DELETE: Delete single card offer or bulk delete multiple card offers from DB and local disk
 export async function DELETE(req) {
   try {
     await dbConnect();
@@ -261,6 +271,33 @@ export async function DELETE(req) {
       return NextResponse.json({ success: false, error: "cardOfferId or cardOfferIds required" }, { status: 400 });
     }
 
+    // 1. Identify records matching the deletion criteria
+    const itemsToDelete = timer.card_offers.filter((item) => {
+      const match1 = idsToDelete.has(item.id);
+      const match2 = idsToDelete.has(String(item.id));
+      const match3 = idsToDelete.has(item.Id);
+      const match4 = idsToDelete.has(String(item.Id));
+      return match1 || match2 || match3 || match4;
+    });
+
+    if (itemsToDelete.length === 0) {
+      return NextResponse.json({
+        success: true,
+        message: "No matching card offers found to delete",
+        deletedCount: 0,
+        deletedFilesCount: 0,
+        data: timer.card_offers,
+      });
+    }
+
+    // 2. Collect image paths and IDs of deleted items
+    const imagePathsToDelete = itemsToDelete
+      .map((item) => item.image)
+      .filter((img) => img && typeof img === "string" && img.trim() !== "");
+
+    const deletingOfferIds = itemsToDelete.map((item) => item.id ?? item.Id);
+
+    // 3. Remove records from timer.card_offers in DB
     const beforeCount = timer.card_offers.length;
     timer.card_offers = timer.card_offers.filter((item) => {
       const match1 = idsToDelete.has(item.id);
@@ -274,11 +311,18 @@ export async function DELETE(req) {
     timer.markModified("card_offers");
     await timer.save();
 
+    // 4. Safely delete the physical image files from disk with strict isolation
+    const deletedFilesCount = await deleteCardOfferImages(imagePathsToDelete, {
+      targetTimerId: timer._id || timer.timerId || timerId,
+      deletingOfferIds,
+    });
+
     return NextResponse.json(
       {
         success: true,
-        message: `Deleted ${deletedCount} card offer(s) successfully`,
+        message: `Deleted ${deletedCount} card offer(s) and ${deletedFilesCount} file(s) successfully`,
         deletedCount,
+        deletedFilesCount,
         data: timer.card_offers,
       },
       { status: 200 }
@@ -288,3 +332,4 @@ export async function DELETE(req) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }
+
