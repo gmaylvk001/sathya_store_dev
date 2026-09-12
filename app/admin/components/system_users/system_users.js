@@ -132,8 +132,11 @@ export default function SystemUsersComponent() {
       return;
     }
 
+    const alreadyFetched = Number(user.orders_fetched) === 1;
     const confirmed = window.confirm(
-      "Fetch exist orders for this user into live Orders?"
+      alreadyFetched
+        ? "Fetch exist orders again? Already-copied order numbers will be skipped."
+        : "Fetch exist orders for this user into live Orders?"
     );
     if (!confirmed) return;
 
@@ -658,21 +661,34 @@ export default function SystemUsersComponent() {
                         )}
                       </td>
                       <td className="p-2">
-                        {Number(user.orders_fetched) === 1 ? (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
-                            Fetched
-                          </span>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() => handleFetchOrders(user)}
-                            disabled={fetchingOrdersUserId === user._id || isBulkDeleting}
-                            className="inline-flex items-center justify-center text-gray-400 disabled:opacity-50"
-                            title={fetchingOrdersUserId === user._id ? "Fetching orders..." : "Fetch exist orders"}
-                          >
-                            <Icon icon="mdi:close-circle-outline" width="20" />
-                          </button>
-                        )}
+                        <div className="inline-flex items-center gap-1 justify-center">
+                          {Number(user.orders_fetched) === 1 ? (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
+                              Fetched
+                            </span>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => handleFetchOrders(user)}
+                              disabled={fetchingOrdersUserId === user._id || isBulkDeleting}
+                              className="inline-flex items-center justify-center text-gray-400 disabled:opacity-50"
+                              title={fetchingOrdersUserId === user._id ? "Fetching orders..." : "Fetch exist orders"}
+                            >
+                              <Icon icon="mdi:close-circle-outline" width="20" />
+                            </button>
+                          )}
+                          {Number(user.orders_fetched) === 1 && String(user.exist_id || "").trim() ? (
+                            <button
+                              type="button"
+                              onClick={() => handleFetchOrders(user)}
+                              disabled={fetchingOrdersUserId === user._id || isBulkDeleting}
+                              className="px-2 h-6 bg-blue-100 text-blue-700 rounded-full text-xs font-medium disabled:opacity-50"
+                              title={fetchingOrdersUserId === user._id ? "Fetching orders..." : "Fetch exist orders again"}
+                            >
+                              {fetchingOrdersUserId === user._id ? "Fetching..." : "Fetch"}
+                            </button>
+                          ) : null}
+                        </div>
                       </td>
                       <td className="p-2">
                         <div className="flex items-center gap-2 justify-center">
