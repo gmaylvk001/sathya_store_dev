@@ -487,7 +487,7 @@ const OrdersTable_abon = () => {
               >
                 <option value="">All</option>
                 <option value="online">Online</option>
-                {/* <option value="cash">COD</option> */}
+                <option value="cod">COD</option>
               </select>
             </div>
 

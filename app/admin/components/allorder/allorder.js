@@ -27,6 +27,7 @@ const OrdersTable = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [status, setStatus] = useState("");
   const [deliveryType, setDeliveryType] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(0);
   const [filtered, setFiltered] = useState([]);
@@ -71,6 +72,12 @@ const OrdersTable = () => {
         updated = updated.filter((o) => o.delivery_type === deliveryType);
       }
 
+      if (paymentMethod) {
+        updated = updated.filter(
+          (o) => o.payment_method?.toLowerCase() === paymentMethod.toLowerCase()
+        );
+      }
+
       if (searchTerm.trim()) {
         const lower = searchTerm.toLowerCase();
         updated = updated.filter(
@@ -98,6 +105,7 @@ const OrdersTable = () => {
   }, [
     status,
     deliveryType,
+    paymentMethod,
     searchTerm,
     orders,
     dateFilter?.startDate,
@@ -353,7 +361,7 @@ const OrdersTable = () => {
 
   useEffect(() => {
     setCurrentPage(0);
-  }, [status, deliveryType, searchTerm, orders, dateFilter]);
+  }, [status, deliveryType, paymentMethod, searchTerm, orders, dateFilter]);
 
   return (
     <div className="container mx-auto">
@@ -368,7 +376,7 @@ const OrdersTable = () => {
       ) : (
         <div className="bg-white shadow-md rounded-lg p-5 h-auto overflow-x-auto border border-gray-200">
           {/* 🔍 Filters */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 items-end mb-4">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-6 items-end mb-4">
             {/* Search */}
             <div className="w-full">
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -414,6 +422,22 @@ const OrdersTable = () => {
                 {DELIVERY_TYPES.map((type) => (
                   <option key={type.value} value={type.value}>{type.label}</option>
                 ))}
+              </select>
+            </div>
+
+            {/* Payment method */}
+            <div className="w-full">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Payment method
+              </label>
+              <select
+                value={paymentMethod}
+                onChange={(e) => setPaymentMethod(e.target.value)}
+                className="w-full p-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500 text-sm"
+              >
+                <option value="">All Payment Methods</option>
+                <option value="online">Online</option>
+                <option value="cod">COD</option>
               </select>
             </div>
 

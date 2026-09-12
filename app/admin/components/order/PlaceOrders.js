@@ -12,6 +12,7 @@ export default function PlaceOrders() {
   const [alertMessage, setAlertMessage] = useState(null);
   const itemsPerPage = 20;
   const [searchQuery, setSearchQuery] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState("");
   const [dateFilter, setDateFilter] = useState({
     startDate: null,
     endDate: null,
@@ -53,7 +54,10 @@ export default function PlaceOrders() {
       matchesDate = orderDate >= startDate && orderDate <= endDate;
     }
 
-    return matchesSearch && matchesDate;
+    const matchesPayment = !paymentMethod
+      || order.payment_method?.toLowerCase() === paymentMethod.toLowerCase();
+
+    return matchesSearch && matchesDate && matchesPayment;
   });
 
   const pageCount = Math.ceil(filteredOrders.length / itemsPerPage);
@@ -95,6 +99,22 @@ export default function PlaceOrders() {
                 }}
                 className="w-full p-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500"
               />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Payment method</label>
+              <select
+                value={paymentMethod}
+                onChange={(e) => {
+                  setPaymentMethod(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="w-full p-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500"
+              >
+                <option value="">All Payment Methods</option>
+                <option value="online">Online</option>
+                <option value="cod">COD</option>
+              </select>
             </div>
 
             <div>

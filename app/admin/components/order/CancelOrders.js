@@ -16,6 +16,7 @@ export default function CancelledOrders() {
   const itemsPerPage = 20;
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
+  const [paymentMethod, setPaymentMethod] = useState("");
   const [dateFilter, setDateFilter] = useState({
     startDate: null,
     endDate: null
@@ -66,7 +67,10 @@ export default function CancelledOrders() {
       matchesDate = orderDate >= startDate && orderDate <= endDate;
     }
 
-    return matchesSearch && matchesStatus && matchesDate;
+    const matchesPayment = !paymentMethod
+      || order.payment_method?.toLowerCase() === paymentMethod.toLowerCase();
+
+    return matchesSearch && matchesStatus && matchesDate && matchesPayment;
   });
   // Calculate pagination variables
   const pageCount = Math.ceil(filteredOrders.length / itemsPerPage);
@@ -140,6 +144,23 @@ export default function CancelledOrders() {
                 <option value="unpaid">Unpaid</option>
               </select>
             </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Payment method</label>
+              <select
+                value={paymentMethod}
+                onChange={(e) => {
+                  setPaymentMethod(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="w-full p-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500"
+              >
+                <option value="">All Payment Methods</option>
+                <option value="online">Online</option>
+                <option value="cod">COD</option>
+              </select>
+            </div>
+
             {/* Date Range Filter */}
             <div>
               <div className="w-full col-span-1 md:col-span-2">

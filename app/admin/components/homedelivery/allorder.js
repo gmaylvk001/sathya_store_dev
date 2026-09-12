@@ -229,8 +229,7 @@ useEffect(() => {
     >
           <option value="">All Payment Methods</option>
           <option value="online">Online</option>
-          <option value="cash">COD</option>
-          {/* <option value="cod">COD</option> */}
+          <option value="cod">COD</option>
     </select>
   </div>
 
