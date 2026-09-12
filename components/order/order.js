@@ -18,6 +18,7 @@ export default function Order() {
   const [authError, setAuthError] = useState('');
   const [loading, setLoading] = useState(true);
   const [filteredOrders, setFilteredOrders] = useState([]);
+  const [orderCounts, setOrderCounts] = useState({ total: 0, exist: 0, newOrders: 0 });
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const router = useRouter();
@@ -35,7 +36,7 @@ export default function Order() {
         const decoded = jwtDecode(token);
         const userId = decoded.userId;
 
-        const response = await fetch(`/api/orders/get?status=${activeFilter === 'all' ? '' : activeFilter}`, {
+        const response = await fetch(`/api/orders/get`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -46,12 +47,18 @@ export default function Order() {
         }
         const data = await response.json();
         console.log('datareta n my',data?.orders);
-        const visible = (data?.orders || []).filter(order => order.payment_status !== "payment_initialized");
-        // All tab: show only pending, shipped, Billed.
-        // Hidden for now: Order Placed, Failure, payment_initialized, Order Accepted, Complete, ordered, cancelled.
-        const allTabStatuses = new Set(["pending", "shipped", "billed"]);
-        const filtered = activeFilter === "all"
-          ? visible.filter((order) => allTabStatuses.has(String(order.order_status || "").toLowerCase()))
+        const visible = data?.orders || [];
+        const existOrders = visible.filter((order) => {
+          const existId = order.exist_id;
+          return existId !== undefined && existId !== null && String(existId).trim() !== "" && String(existId).toLowerCase() !== "null";
+        });
+        setOrderCounts({
+          total: visible.length,
+          exist: existOrders.length,
+          newOrders: visible.length - existOrders.length,
+        });
+        const filtered = activeFilter === "cancelled"
+          ? visible.filter((order) => String(order.order_status || "").toLowerCase() === "cancelled")
           : visible;
         setFilteredOrders(filtered || []);
       } catch (error) {
@@ -71,6 +78,38 @@ export default function Order() {
   };
 
   const getStatusKey = (status) => String(status || "").toLowerCase();
+
+  const getStatusBadge = (status) => {
+    const key = getStatusKey(status);
+    const styles = {
+      pending: "bg-amber-100 text-amber-800",
+      cancelled: "bg-rose-100 text-rose-800",
+      shipped: "bg-indigo-100 text-indigo-800",
+      "order placed": "bg-cyan-100 text-cyan-800",
+      failure: "bg-red-100 text-red-800",
+      payment_initialized: "bg-slate-100 text-slate-800",
+      "order accepted": "bg-sky-100 text-sky-800",
+      complete: "bg-green-100 text-green-800",
+      ordered: "bg-blue-100 text-blue-800",
+      billed: "bg-emerald-100 text-emerald-800",
+    };
+    const labels = {
+      pending: "pending",
+      cancelled: "cancelled",
+      shipped: "shipped",
+      "order placed": "Order Placed",
+      failure: "Failure",
+      payment_initialized: "payment_initialized",
+      "order accepted": "Order Accepted",
+      complete: "Complete",
+      ordered: "ordered",
+      billed: "Billed",
+    };
+    return {
+      className: styles[key] || "bg-gray-100 text-gray-800",
+      label: labels[key] || status || "pending",
+    };
+  };
 
   const handleBuyAgain = () => {
     router.push('/');
@@ -106,16 +145,11 @@ export default function Order() {
       }
 
       // Update local state
-      if (activeFilter === 'pending' || activeFilter === 'all') {
-        setFilteredOrders(prev => prev.filter(order => order._id !== selectedOrder._id));
-      } else {
-        // Update status in all/cancelled view
-        setFilteredOrders(prev => 
-          prev.map(order => 
-            order._id === selectedOrder._id ? { ...order, order_status: 'cancelled' } : order
-          )
-        );
-      }
+      setFilteredOrders(prev =>
+        prev.map(order =>
+          order._id === selectedOrder._id ? { ...order, order_status: 'cancelled' } : order
+        )
+      );
 
       toast.success("Order cancelled successfully");
 
@@ -199,6 +233,20 @@ export default function Order() {
           {/* Main Content */}
           <div className="flex-1">
             <div className="bg-white p-4 sm:p-6 rounded-xl border border-gray-200 hover:border-red-600 transition-all duration-300 shadow-sm">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4 sm:mb-6">
+                <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
+                  <p className="text-xs text-gray-500">Total orders</p>
+                  <p className="text-xl font-semibold text-gray-900">{orderCounts.total}</p>
+                </div>
+                <div className="rounded-lg border border-blue-100 bg-blue-50 px-4 py-3">
+                  <p className="text-xs text-blue-700">Exist orders</p>
+                  <p className="text-xl font-semibold text-blue-800">{orderCounts.exist}</p>
+                </div>
+                <div className="rounded-lg border border-emerald-100 bg-emerald-50 px-4 py-3">
+                  <p className="text-xs text-emerald-700">New website orders</p>
+                  <p className="text-xl font-semibold text-emerald-800">{orderCounts.newOrders}</p>
+                </div>
+              </div>
               {/* Order Filters — All + Cancelled only.
                   To restore Pending / Shipped / Delivered tabs, uncomment them in the array below. */}
               <div className="flex flex-wrap gap-2 sm:gap-3 mb-4 sm:mb-6 pb-2 sm:pb-4 border-b border-gray-100 overflow-x-auto pb-2">
@@ -295,33 +343,14 @@ export default function Order() {
                               <p className="text-base sm:text-lg font-semibold text-gray-900 mb-2 sm:mb-3">₹{order.order_amount}</p>
                             </div>
 
-                            {/* Status Badge — pending / shipped / Billed (+ cancelled on Cancelled tab) */}
-                            <div className={`px-2 py-1 sm:px-3 sm:py-1 rounded-full text-xs font-medium self-start ${
-                              statusKey === 'shipped'
-                                ? 'bg-indigo-100 text-indigo-800'
-                                : statusKey === 'billed'
-                                ? 'bg-emerald-100 text-emerald-800'
-                                : statusKey === 'cancelled'
-                                ? 'bg-rose-100 text-rose-800'
-                                : 'bg-amber-100 text-amber-800'
-                            }`}>
-                              {statusKey === 'shipped' ? (
-                                <span className="flex items-center">
-                                  <FiTruck className="mr-1 text-xs" /> shipped
-                                </span>
-                              ) : statusKey === 'billed' ? (
-                                <span className="flex items-center">
-                                  <FiCheckCircle className="mr-1 text-xs" /> Billed
-                                </span>
-                              ) : statusKey === 'cancelled' ? (
-                                <span className="flex items-center">
-                                  <FiXCircle className="mr-1 text-xs" /> cancelled
-                                </span>
-                              ) : (
-                                <span className="flex items-center">
-                                  <FiClock className="mr-1 text-xs" /> pending
-                                </span>
-                              )}
+                            <div className={`px-2 py-1 sm:px-3 sm:py-1 rounded-full text-xs font-medium self-start ${getStatusBadge(order.order_status).className}`}>
+                              <span className="flex items-center">
+                                {statusKey === "shipped" ? <FiTruck className="mr-1 text-xs" /> : null}
+                                {statusKey === "cancelled" || statusKey === "failure" ? <FiXCircle className="mr-1 text-xs" /> : null}
+                                {statusKey === "billed" || statusKey === "complete" || statusKey === "order accepted" ? <FiCheckCircle className="mr-1 text-xs" /> : null}
+                                {statusKey === "pending" || statusKey === "payment_initialized" || statusKey === "order placed" || statusKey === "ordered" ? <FiClock className="mr-1 text-xs" /> : null}
+                                {getStatusBadge(order.order_status).label}
+                              </span>
                             </div>
                           </div>
 
