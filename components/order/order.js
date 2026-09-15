@@ -21,6 +21,8 @@ export default function Order() {
   const [orderCounts, setOrderCounts] = useState({ total: 0, exist: 0, newOrders: 0 });
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
   const router = useRouter();
 
   useEffect(() => {
@@ -61,6 +63,7 @@ export default function Order() {
           ? visible.filter((order) => String(order.order_status || "").toLowerCase() === "cancelled")
           : visible;
         setFilteredOrders(filtered || []);
+        setCurrentPage(1);
       } catch (error) {
         toast.error("Failed to load orders data");
         console.error(error);
@@ -72,9 +75,52 @@ export default function Order() {
     fetchData();
   }, [activeFilter]);
 
-  const formatDate = (dateString) => {
-    const options = { year: 'numeric', month: 'short', day: 'numeric' };
-    return new Date(dateString).toLocaleDateString(undefined, options);
+  const formatDateTime = (dateString) => {
+    if (!dateString) return "N/A";
+    const date = new Date(dateString);
+    if (Number.isNaN(date.getTime())) return "N/A";
+    return date.toLocaleString("en-IN", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    });
+  };
+
+  const getPaymentStatusLabel = (order) => {
+    const raw = String(order.payment_status || "").trim();
+    if (!raw) return "Not specified";
+    const key = raw.toLowerCase();
+    if (["paid", "captured", "success", "successful", "completed"].includes(key)) return "Paid";
+    if (["pending", "created", "authorized", "payment_initialized", "unpaid"].includes(key)) return "Pending";
+    if (["failed", "failure"].includes(key)) return "Failed";
+    if (["cancelled", "canceled"].includes(key)) return "Cancelled";
+    return raw;
+  };
+
+  const getPaymentMethodLabel = (order) => {
+    const raw = String(
+      order.payment_method || order.payment_type || order.payment_mode || ""
+    ).trim();
+    if (!raw) return "";
+    const key = raw.toLowerCase();
+    if (key === "cod" || key.includes("cash on delivery") || key.includes("cash on deliver")) {
+      return "Cash on Delivery";
+    }
+    if (key === "online") return "Online";
+    if (key === "emi") return "EMI";
+    if (key.includes("pay at store") || key === "pay_at_store") return "Pay at Store";
+    return raw;
+  };
+
+  const getPaymentStatusClass = (label) => {
+    const key = String(label || "").toLowerCase();
+    if (key === "paid") return "bg-green-100 text-green-800";
+    if (key === "pending") return "bg-amber-100 text-amber-800";
+    if (key === "failed" || key === "cancelled") return "bg-rose-100 text-rose-800";
+    return "bg-gray-100 text-gray-700";
   };
 
   const getStatusKey = (status) => String(status || "").toLowerCase();
@@ -190,6 +236,16 @@ export default function Order() {
     setSelectedOrder(null);
   };
 
+  const pageCount = Math.ceil(filteredOrders.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedOrders = filteredOrders.slice(startIndex, startIndex + itemsPerPage);
+
+  const paginate = (page) => {
+    if (page >= 1 && page <= pageCount) {
+      setCurrentPage(page);
+    }
+  };
+
   return (
     <div className="bg-gray-50 min-h-screen">
       
@@ -298,8 +354,10 @@ export default function Order() {
                 </div>
               ) : (
                 <div className="space-y-4 sm:space-y-6">
-                  {filteredOrders.map((order) => {
+                  {paginatedOrders.map((order) => {
                     const statusKey = getStatusKey(order.order_status);
+                    const paymentLabel = getPaymentStatusLabel(order);
+                    const paymentMethodLabel = getPaymentMethodLabel(order);
                     return (
                     <div key={order._id} className="p-3 sm:p-5 border border-gray-200 rounded-xl hover:shadow-md transition-shadow">
                       <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
@@ -360,25 +418,27 @@ export default function Order() {
                               <FiTruck className="mr-2 text-gray-400 text-xs sm:text-sm" />
                               <span>
                                 {statusKey === 'delivered'
-                                  ? `Delivered on ${formatDate(order.updatedAt)}`
+                                  ? `Delivered on ${formatDateTime(order.updatedAt)}`
                                   : statusKey === 'shipped'
-                                  ? `Shipped on ${formatDate(order.updatedAt)}`
+                                  ? `Shipped on ${formatDateTime(order.updatedAt)}`
                                   : statusKey === 'cancelled'
-                                  ? `Cancelled on ${formatDate(order.cancelled_at || order.updatedAt)}`
+                                  ? `Cancelled on ${formatDateTime(order.cancelled_at || order.updatedAt)}`
                                   : statusKey === 'billed'
-                                  ? `Billed on ${formatDate(order.updatedAt || order.createdAt)}`
-                                  : `Order placed on ${formatDate(order.createdAt)}`}
+                                  ? `Billed on ${formatDateTime(order.updatedAt || order.createdAt)}`
+                                  : `Order placed on ${formatDateTime(order.createdAt)}`}
                               </span>
                             </div>
-                            <div className="text-gray-600 flex items-center gap-1 sm:gap-2">
+                            <div className="text-gray-600 flex flex-wrap items-center gap-1 sm:gap-2">
                               <span>Payment:</span>
-                              {order.payment_type === 'online' ? (
-                                <span className="inline-flex items-center px-2 py-0.5 sm:py-1 bg-green-100 text-green-800 text-xs font-semibold rounded-full">
-                                  <FiCheckCircle className="mr-1 text-xs" /> Paid
+                              {paymentMethodLabel ? (
+                                <span className="inline-flex items-center px-2 py-0.5 sm:py-1 text-xs font-semibold rounded-full bg-slate-100 text-slate-800">
+                                  {paymentMethodLabel}
                                 </span>
-                              ) : (
-                                <span className="text-gray-700 capitalize">{order.payment_type || 'Not specified'}</span>
-                              )}
+                              ) : null}
+                              <span className={`inline-flex items-center px-2 py-0.5 sm:py-1 text-xs font-semibold rounded-full ${getPaymentStatusClass(paymentLabel)}`}>
+                                {paymentLabel === "Paid" ? <FiCheckCircle className="mr-1 text-xs" /> : <FiClock className="mr-1 text-xs" />}
+                                {paymentLabel}
+                              </span>
                             </div>
                           </div>
 
@@ -413,6 +473,60 @@ export default function Order() {
                     </div>
                     );
                   })}
+                </div>
+              )}
+
+              {!loading && filteredOrders.length > 0 && (
+                <div className="flex justify-between items-center mt-6 flex-wrap gap-3">
+                  <div className="text-sm text-gray-600">
+                    Showing {filteredOrders.length > 0 ? startIndex + 1 : 0} to{" "}
+                    {Math.min(startIndex + itemsPerPage, filteredOrders.length)} of{" "}
+                    {filteredOrders.length} entries
+                  </div>
+
+                  <div className="pagination flex items-center space-x-1">
+                    <button
+                      onClick={() => paginate(currentPage - 1)}
+                      disabled={currentPage === 1}
+                      className={`px-3 py-1.5 border border-gray-300 rounded-md ${
+                        currentPage === 1
+                          ? "text-gray-400 cursor-not-allowed"
+                          : "text-black bg-white hover:bg-gray-100"
+                      }`}
+                      aria-label="Previous page"
+                    >
+                      «
+                    </button>
+
+                    {Array.from({ length: pageCount }, (_, i) => i + 1).map((page) => (
+                      <button
+                        key={page}
+                        onClick={() => paginate(page)}
+                        className={`px-3 py-1.5 border border-gray-300 rounded-md ${
+                          currentPage === page
+                            ? "bg-red-500 text-white"
+                            : "text-black bg-white hover:bg-gray-100"
+                        }`}
+                        aria-label={`Page ${page}`}
+                        aria-current={currentPage === page ? "page" : undefined}
+                      >
+                        {page}
+                      </button>
+                    ))}
+
+                    <button
+                      onClick={() => paginate(currentPage + 1)}
+                      disabled={currentPage === pageCount || pageCount === 0}
+                      className={`px-3 py-1.5 border border-gray-300 rounded-md ${
+                        currentPage === pageCount || pageCount === 0
+                          ? "text-gray-400 cursor-not-allowed"
+                          : "text-black bg-white hover:bg-gray-100"
+                      }`}
+                      aria-label="Next page"
+                    >
+                      »
+                    </button>
+                  </div>
                 </div>
               )}
             </div>

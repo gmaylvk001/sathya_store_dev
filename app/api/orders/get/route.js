@@ -43,8 +43,10 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import OrderNew from "@/models/orders_new";
 import OrderDetailsNew from "@/models/order_details_new";
+import PaymentNewLive from "@/models/payment_new_live";
 import product from "@/models/product";
 import jwt from "jsonwebtoken";
+import mongoose from "mongoose";
 
 export async function GET(req) {
   await dbConnect();
@@ -82,6 +84,44 @@ export async function GET(req) {
 
     const orders = await OrderNew.find(query).sort({ created_at: -1 });
 
+    const paymentObjectIds = [];
+    const paymentStringIds = [];
+    for (const order of orders) {
+      if (!order.payment_id) continue;
+      const pid = String(order.payment_id);
+      paymentStringIds.push(pid);
+      if (mongoose.isValidObjectId(pid)) {
+        paymentObjectIds.push(new mongoose.Types.ObjectId(pid));
+      }
+    }
+
+    const paymentQuery = [];
+    if (paymentObjectIds.length) paymentQuery.push({ _id: { $in: paymentObjectIds } });
+    if (paymentStringIds.length) {
+      paymentQuery.push({ payment_id: { $in: paymentStringIds } });
+      paymentQuery.push({ exist_id: { $in: paymentStringIds } });
+    }
+    if (orders.length) paymentQuery.push({ orderId: { $in: orders.map((order) => order._id) } });
+    const orderNumbers = orders.map((order) => order.order_number).filter(Boolean);
+    if (orderNumbers.length) paymentQuery.push({ order_number: { $in: orderNumbers } });
+
+    const payments = paymentQuery.length
+      ? await PaymentNewLive.find({ $or: paymentQuery }).lean()
+      : [];
+
+    const findPaymentForOrder = (order) => {
+      const pid = order.payment_id ? String(order.payment_id) : "";
+      return (
+        payments.find((payment) =>
+          (pid && String(payment._id) === pid) ||
+          (pid && String(payment.payment_id) === pid) ||
+          (pid && String(payment.exist_id) === pid) ||
+          String(payment.orderId) === String(order._id) ||
+          (order.order_number && payment.order_number === order.order_number)
+        ) || null
+      );
+    };
+
     const updatedOrders = [];
     for (let order of orders) {
       // Find line items from order_details_new linked to this order
@@ -114,10 +154,13 @@ export async function GET(req) {
       }
 
       const orderObj = order.toObject();
+      const payment = findPaymentForOrder(order);
       updatedOrders.push({
         ...orderObj,
         order_item: itemsWithSlug,
-        // Map created_at to createdAt for frontend backwards compatibility
+        payment_status: payment?.status || orderObj.payment_status || null,
+        payment_type: payment?.PaymentMode || payment?.ModeType || orderObj.payment_type || orderObj.payment_method || null,
+        payment_mode: payment?.PaymentMode || orderObj.payment_mode || null,
         createdAt: orderObj.created_at || orderObj.createdAt,
         updatedAt: orderObj.updated_at || orderObj.updatedAt,
       });
