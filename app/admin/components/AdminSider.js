@@ -77,6 +77,7 @@ const menuItems = [
     submenu: [
       { icon: "mdi:percent-outline", label: "Offer", link: "offer", dotColor: "bg-yellow-500" },
       { icon: "mdi:percent-outline", label: "Offers", link: "offers", permission: "offers", dotColor: "bg-yellow-500" },
+      { icon: "mdi:swap-horizontal", label: "Exchange Offers", link: "exchange-offers-condition", dotColor: "bg-purple-500" },
       { icon: "mdi:tag-outline", label: "Offer Product", link: "offer-product", permission: "offer-product", dotColor: "bg-green-500" },
       { icon: "mdi:star-circle-outline", label: "Highlighted Products", link: "highlighted-products", permission: "highlighted-products", dotColor: "bg-blue-500" },
     ],
