@@ -3,6 +3,7 @@ import { useRouter } from 'next/navigation'; // ← use this in App Router
 
 import { useEffect, useState } from 'react';
 import DateRangePicker from '@/components/DateRangePicker';
+import OrderSourceCounts from "@/app/admin/components/OrderSourceCounts";
 
 const ORDER_STATUSES = [
   "Billed",
@@ -150,7 +151,7 @@ useEffect(() => {
 
       <div className="flex justify-between items-center mb-5">
         <h2 className="text-2xl font-bold">Home delivery</h2>
-       
+        <OrderSourceCounts orders={orders} />
       </div>
 
       {isLoading ? (

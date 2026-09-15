@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { MdCancel } from "react-icons/md";
 import { Icon } from '@iconify/react';
 import DateRangePicker from '@/components/DateRangePicker';
+import OrderSourceCounts from "@/app/admin/components/OrderSourceCounts";
 // import DatePicker from "react-datepicker";
 // import "react-datepicker/dist/react-datepicker.css";
 export default function CancelledOrders() {
@@ -104,6 +105,7 @@ export default function CancelledOrders() {
 
       <div className="flex justify-between items-center mb-5">
         <h2 className="text-2xl font-bold">Cancelled Order List</h2>
+        <OrderSourceCounts orders={orders} />
       </div>
 
       {loading ? (

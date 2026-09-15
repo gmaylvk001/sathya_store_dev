@@ -3,6 +3,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import DateRangePicker from "@/components/DateRangePicker";
+import OrderSourceCounts from "@/app/admin/components/OrderSourceCounts";
 import "react-toastify/dist/ReactToastify.css";
 
 const OrdersTable_abon = () => {
@@ -421,6 +422,7 @@ const OrdersTable_abon = () => {
 
       <div className="flex justify-between items-center mb-5">
         <h2 className="text-2xl font-bold">Abandoned Order</h2>
+        <OrderSourceCounts orders={orders} />
       </div>
 
       {isLoading ? (
