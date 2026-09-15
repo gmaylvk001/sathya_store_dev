@@ -2,9 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { jwtDecode } from 'jwt-decode';
 import { useRouter } from 'next/navigation';
-import { FiChevronRight, FiClock, FiCheckCircle, FiTruck, FiShoppingBag, FiXCircle } from 'react-icons/fi';
+import { FiChevronRight, FiClock, FiCheckCircle, FiTruck, FiShoppingBag, FiXCircle, FiRefreshCw } from 'react-icons/fi';
 import { RiAccountCircleFill } from "react-icons/ri";
 import { ToastContainer, toast } from 'react-toastify';
 import { FaAddressBook } from "react-icons/fa";
@@ -22,58 +21,87 @@ export default function Order() {
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [fetchingOrders, setFetchingOrders] = useState(false);
   const itemsPerPage = 5;
   const router = useRouter();
 
-  useEffect(() => {
-    const fetchData = async () => {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        setShowAuthModal(true);
-        setLoading(false);
-        return;
-      }
+  const loadOrders = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setShowAuthModal(true);
+      setLoading(false);
+      return;
+    }
 
-      try {
-        const decoded = jwtDecode(token);
-        const userId = decoded.userId;
-
-        const response = await fetch(`/api/orders/get`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-
-        if (!response.ok) {
-          throw new Error('Failed to fetch orders data');
+    try {
+      const response = await fetch(`/api/orders/get`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
         }
-        const data = await response.json();
-        console.log('datareta n my',data?.orders);
-        const visible = data?.orders || [];
-        const existOrders = visible.filter((order) => {
-          const existId = order.exist_id;
-          return existId !== undefined && existId !== null && String(existId).trim() !== "" && String(existId).toLowerCase() !== "null";
-        });
-        setOrderCounts({
-          total: visible.length,
-          exist: existOrders.length,
-          newOrders: visible.length - existOrders.length,
-        });
-        const filtered = activeFilter === "cancelled"
-          ? visible.filter((order) => String(order.order_status || "").toLowerCase() === "cancelled")
-          : visible;
-        setFilteredOrders(filtered || []);
-        setCurrentPage(1);
-      } catch (error) {
-        toast.error("Failed to load orders data");
-        console.error(error);
-      } finally {
-        setLoading(false);
-      }
-    };
+      });
 
-    fetchData();
+      if (!response.ok) {
+        throw new Error('Failed to fetch orders data');
+      }
+      const data = await response.json();
+      const visible = data?.orders || [];
+      const existOrders = visible.filter((order) => {
+        const existId = order.exist_id;
+        return existId !== undefined && existId !== null && String(existId).trim() !== "" && String(existId).toLowerCase() !== "null";
+      });
+      setOrderCounts({
+        total: visible.length,
+        exist: existOrders.length,
+        newOrders: visible.length - existOrders.length,
+      });
+      const filtered = activeFilter === "cancelled"
+        ? visible.filter((order) => String(order.order_status || "").toLowerCase() === "cancelled")
+        : visible;
+      setFilteredOrders(filtered || []);
+      setCurrentPage(1);
+    } catch (error) {
+      toast.error("Failed to load orders data");
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    setLoading(true);
+    loadOrders();
   }, [activeFilter]);
+
+  const handleFetchExistOrders = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setShowAuthModal(true);
+      return;
+    }
+
+    setFetchingOrders(true);
+    try {
+      const response = await fetch("/api/orders/fetch-exist", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || data.message || "Failed to fetch orders");
+      }
+      toast.success(data.message || "Orders fetched successfully");
+      setLoading(true);
+      await loadOrders();
+    } catch (error) {
+      toast.error(error.message || "Failed to fetch orders");
+      console.error(error);
+    } finally {
+      setFetchingOrders(false);
+    }
+  };
 
   const formatDateTime = (dateString) => {
     if (!dateString) return "N/A";
@@ -248,11 +276,21 @@ export default function Order() {
 
   return (
     <div className="bg-gray-50 min-h-screen">
+      <ToastContainer position="top-right" autoClose={5000} />
       
       
       {/* Mobile Header */}
-      <div className="lg:hidden bg-white py-4 px-4 shadow-sm">
+      <div className="lg:hidden bg-white py-4 px-4 shadow-sm flex items-center justify-between gap-3">
         <h2 className="text-xl font-bold text-gray-800">My Orders</h2>
+        <button
+          type="button"
+          onClick={handleFetchExistOrders}
+          disabled={fetchingOrders}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-100 text-blue-700 rounded-full text-xs font-medium disabled:opacity-50"
+        >
+          <FiRefreshCw className={fetchingOrders ? "animate-spin" : ""} />
+          {fetchingOrders ? "Fetching..." : "Fetch"}
+        </button>
       </div>
       
       {/* Desktop Header */}
@@ -289,6 +327,19 @@ export default function Order() {
           {/* Main Content */}
           <div className="flex-1">
             <div className="bg-white p-4 sm:p-6 rounded-xl border border-gray-200 hover:border-red-600 transition-all duration-300 shadow-sm">
+              <div className="flex items-center justify-between gap-3 mb-4 sm:mb-6">
+                <h3 className="text-lg font-semibold text-gray-800">Your orders</h3>
+                <button
+                  type="button"
+                  onClick={handleFetchExistOrders}
+                  disabled={fetchingOrders}
+                  className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-100 text-blue-700 rounded-full text-sm font-medium hover:bg-blue-200 disabled:opacity-50"
+                  title="Fetch exist orders"
+                >
+                  <FiRefreshCw className={fetchingOrders ? "animate-spin" : ""} />
+                  {fetchingOrders ? "Fetching..." : "Fetch"}
+                </button>
+              </div>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4 sm:mb-6">
                 <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
                   <p className="text-xs text-gray-500">Total orders</p>
