@@ -323,16 +323,43 @@ export async function POST(req) {
     const primaryOrder = savedOrders[0];
 
     if (payment_id && primaryOrder) {
-      await PaymentNewLive.findOneAndUpdate(
-        { payment_id: String(payment_id) },
+      const gatewayPaymentId = String(payment_id);
+      let paymentDoc = await PaymentNewLive.findOneAndUpdate(
+        { payment_id: gatewayPaymentId },
         {
           $set: {
             orderId: primaryOrder._id,
             order_number: primaryOrder.order_number || null,
             userId: toObjectId(user_id),
           },
-        }
+        },
+        { new: true }
       );
+
+      if (!paymentDoc && mongoose.isValidObjectId(gatewayPaymentId)) {
+        paymentDoc = await PaymentNewLive.findByIdAndUpdate(
+          gatewayPaymentId,
+          {
+            $set: {
+              orderId: primaryOrder._id,
+              order_number: primaryOrder.order_number || null,
+              userId: toObjectId(user_id),
+            },
+          },
+          { new: true }
+        );
+      }
+
+      if (paymentDoc?._id) {
+        const paymentObjectId = String(paymentDoc._id);
+        await OrderNew.updateMany(
+          { _id: { $in: savedOrders.map((order) => order._id) } },
+          { $set: { payment_id: paymentObjectId } }
+        );
+        savedOrders.forEach((order) => {
+          order.payment_id = paymentObjectId;
+        });
+      }
     }
 
     return Response.json(
