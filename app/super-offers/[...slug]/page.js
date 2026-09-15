@@ -7,7 +7,11 @@ import { useParams, useSearchParams } from "next/navigation";
 import { useRegion } from "@/context/RegionContext";
 import Addtocart from "@/components/AddToCart";
 import AddToWishlistButton from "@/components/ProductCard";
-import { getCardOfferCategoryHref } from "@/lib/cardOffers/cardOfferNavigationHelper";
+import {
+  getCardOfferCategoryHref,
+  groupCardOffersByCategory,
+} from "@/lib/cardOffers/cardOfferNavigationHelper";
+import CardOfferCategorySection from "@/components/cardOffers/CardOfferCategorySection";
 
 // Format date into ordinal format e.g. "Sep 8th to 10th, 2026"
 function formatOfferDateRange(startVal, endVal) {
@@ -456,6 +460,10 @@ function SuperOffersContent() {
       ? timer.card_offers.filter((c) => c.status !== "inactive")
       : FALLBACK_CARD_OFFERS;
 
+  const categorizedOfferGroups = useMemo(() => {
+    return groupCardOffersByCategory(cardOffersList);
+  }, [cardOffersList]);
+
   const dateRangeBadge = useMemo(() => {
     return formatOfferDateRange(
       timer?.startDate || timer?.offer_start,
@@ -464,7 +472,7 @@ function SuperOffersContent() {
   }, [timer]);
 
   return (
-    <div className="min-h-screen bg-white text-gray-800 pb-20">
+    <div className="min-h-screen bg-white text-gray-800 pb-20 overflow-x-clip">
       {/* Top Titles (Matching Reference Image 1) */}
       <div className="py-8 px-4 text-center">
         <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold uppercase tracking-wide text-gray-900">
@@ -662,23 +670,17 @@ function SuperOffersContent() {
 
       {/* Offers Showcase & Products Container */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 space-y-14">
-        {/* Card Offers Grid (with Solid Red Bottom Bar) */}
-        {cardOffersList.length > 0 && (
-          <section>
-            <div className="flex items-center justify-between pb-2 mb-6 border-b border-gray-300">
-              <h2 className="text-lg sm:text-xl md:text-2xl font-bold tracking-wide text-[#d72828] uppercase">
-                {displayTitle} - EXCLUSIVE OFFERS
-              </h2>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-              {cardOffersList.map((card, idx) => (
-                <SuperOfferCardItem
-                  key={card.id || card._id || idx}
-                  card={card}
-                />
-              ))}
-            </div>
-          </section>
+        {/* Category-Wise Card Offers Carousels matching Image 1 */}
+        {categorizedOfferGroups.length > 0 && (
+          <div className="space-y-6 sm:space-y-10">
+            {categorizedOfferGroups.map((group) => (
+              <CardOfferCategorySection
+                key={group.categoryName}
+                categoryName={group.categoryName}
+                cards={group.cards}
+              />
+            ))}
+          </div>
         )}
 
         {/* Featured Deals Products Grid */}
