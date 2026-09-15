@@ -44,7 +44,7 @@ export default function ProductCard({
     }
   };
 
-  const variantClasses = {
+  const variantMap = {
     default: {
       imageContainer: "h-[150px] sm:h-[170px] p-3",
       contentArea: "p-3 sm:p-4",
@@ -63,7 +63,8 @@ export default function ProductCard({
       title: "text-sm sm:text-base h-[3rem]",
       price: "text-base sm:text-lg",
     },
-  }[variant] || variantClasses.default; // Fallback to default
+  };
+  const variantClasses = variantMap[variant] || variantMap.default;
 
   return (
     <div
