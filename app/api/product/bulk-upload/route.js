@@ -308,12 +308,12 @@ export async function POST(req) {
           console.log(`[Bulk Upload] ✅ Row ${rowNum}: Successfully created product (Item Code: "${row[0]}", ID: ${newProduct._id})`);
         } else {
           // Update existing product
-          console.log(`[Bulk Upload] Row ${rowNum}: Updating EXISTING product (Item Code: "${row[0]}", ID: ${existingProduct._id})`);
+          updatedCount++;
+          console.log(`update ${updatedCount}: Product ${row[0]} already exists, updating product (Row ${rowNum}, ID: ${existingProduct._id})`);
           await Product.updateOne(
             { _id: existingProduct._id },
             { $set: productData }
           );
-          updatedCount++;
 
           const existingProductFilters = await ProductFilter.find({ product_id: existingProduct._id });
           const existingFilterIds = existingProductFilters.map(pf => pf.filter_id.toString());

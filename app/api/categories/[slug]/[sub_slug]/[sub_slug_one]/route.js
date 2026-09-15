@@ -22,20 +22,28 @@ export async function GET(req, { params }) {
       return Response.json({ error: "Category not found" }, { status: 404 });
     }
     
-    // Fetch products under this category
-    /*
+    const categoryIdStr = category._id.toString();
+    const catClauses = [
+      { sub_category: categoryIdStr },
+      { category: categoryIdStr },
+    ];
+    if (mongoose.Types.ObjectId.isValid(categoryIdStr)) {
+      const objId = new mongoose.Types.ObjectId(categoryIdStr);
+      catClauses.push({ sub_category: objId }, { category: objId });
+    }
+    if (category.md5_cat_name) {
+      catClauses.push({
+        sub_category_new: { $regex: category.md5_cat_name, $options: "i" },
+      });
+      catClauses.push({
+        category_new: category.md5_cat_name,
+      });
+    }
+
     const products = await Product.find({
-      sub_category: category._id,
-      status: "Active" 
-    });
-*/
-    const products = await Product.find({
-              status: "Active",
-              sub_category_new: { 
-                $regex: category.md5_cat_name,
-                $options: "i"
-              }, quantity: { $gt: 0 }
-            }).sort({ createdAt: -1, _id: -1 });
+      status: "Active",
+      $or: catClauses,
+    }).sort({ createdAt: -1, _id: -1 });
 
     if (!products || products.length === 0) {
       return Response.json({ category, products: [], brands: [], filters: [] });

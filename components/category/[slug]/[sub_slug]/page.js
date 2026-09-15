@@ -278,8 +278,12 @@ const scroll = (direction) => {
         ? activeFilters.categories
         : categoryData.allCategoryIds;
 
-      //query.set('categoryIds', categoryIds.join(','));
-      query.set('sub_category_new',  categoryData.main_category.md5_cat_name);
+      if (categoryIds && categoryIds.length > 0) {
+        query.set('categoryIds', categoryIds.join(','));
+      }
+      if (categoryData.main_category?.md5_cat_name) {
+        query.set('sub_category_new', categoryData.main_category.md5_cat_name);
+      }
        const activeChild = selectedChildCategoryRef.current;
         if (activeChild) {
            const node = childCategoryTree.find(c => c.category_name === activeChild);

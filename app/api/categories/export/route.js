@@ -92,54 +92,60 @@ export async function GET(req) {
       return chain;
     };
 
-    // Track children count to identify leaf nodes
-    const childrenCount = new Map();
-    for (const cat of allCategories) {
-      const parent = findParent(cat);
-      if (parent) {
-        const pId = String(parent._id);
-        childrenCount.set(pId, (childrenCount.get(pId) || 0) + 1);
-      }
-    }
+    // Helper filter functions
+    const matchesStatus = (cat) => {
+      if (!status) return true;
+      if (!cat?.status) return false;
+      return cat.status.toLowerCase() === status.toLowerCase();
+    };
 
-    // Collect child categories hierarchy:
+    const matchesDate = (cat) => {
+      if (!startDate || !endDate) return true;
+      if (!cat?.createdAt) return false;
+      const catDate = new Date(cat.createdAt);
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      end.setHours(23, 59, 59, 999);
+      return catDate >= start && catDate <= end;
+    };
+
+    const matchesSearch = (names) => {
+      if (!search) return true;
+      const s = search.toLowerCase();
+      return names.some((name) => name && name.toLowerCase().includes(s));
+    };
+
+    // Collect categories hierarchy:
     // 1st column: Child Category
     // 2nd column: Sub Category
     // 3rd column: Parent Category
+    // Export every category whether it has children or not into corresponding columns
     const hierarchyRows = [];
+    const coveredSubCategoryIds = new Set();
+    const coveredParentCategoryIds = new Set();
 
+    // 1. Level 2+ child categories (Main -> Sub -> Child)
     for (const cat of allCategories) {
       const chain = getAncestors(cat);
 
-      // Level 2+ child category: has sub category parent and parent category grandparent
       if (chain.length >= 2) {
         const parentCategory = chain[0];
-        const subCategory = chain[chain.length - 1];
+        const subCategory = chain[1] || chain[chain.length - 1];
 
-        // Apply filters if any
-        if (status && cat.status && cat.status.toLowerCase() !== status.toLowerCase()) {
+        if (!matchesStatus(cat)) continue;
+        if (!matchesDate(cat)) continue;
+        if (
+          !matchesSearch([
+            cat.category_name,
+            subCategory.category_name,
+            parentCategory.category_name,
+          ])
+        ) {
           continue;
         }
 
-        if (startDate && endDate && cat.createdAt) {
-          const catDate = new Date(cat.createdAt);
-          const start = new Date(startDate);
-          const end = new Date(endDate);
-          end.setHours(23, 59, 59, 999);
-          if (catDate < start || catDate > end) {
-            continue;
-          }
-        }
-
-        if (search) {
-          const s = search.toLowerCase();
-          const matchChild = cat.category_name?.toLowerCase().includes(s);
-          const matchSub = subCategory.category_name?.toLowerCase().includes(s);
-          const matchParent = parentCategory.category_name?.toLowerCase().includes(s);
-          if (!matchChild && !matchSub && !matchParent) {
-            continue;
-          }
-        }
+        coveredSubCategoryIds.add(String(subCategory._id));
+        coveredParentCategoryIds.add(String(parentCategory._id));
 
         hierarchyRows.push({
           "Child Category": cat.category_name || "-",
@@ -149,19 +155,62 @@ export async function GET(req) {
       }
     }
 
-    // Fallback: If no Level 2 categories found, include Level 1 leaf categories
-    if (hierarchyRows.length === 0) {
-      for (const cat of allCategories) {
-        const chain = getAncestors(cat);
-        const hasChildren = (childrenCount.get(String(cat._id)) || 0) > 0;
-        if (chain.length === 1 && !hasChildren) {
-          const parentCategory = chain[0];
-          hierarchyRows.push({
-            "Child Category": cat.category_name || "-",
-            "Sub Category": "-",
-            "Parent Category": parentCategory.category_name || "-",
-          });
+    // 2. Level 1 subcategories that were not covered by child categories
+    // (e.g. subcategory has no child, or all its children were filtered out)
+    for (const cat of allCategories) {
+      const chain = getAncestors(cat);
+
+      if (chain.length === 1) {
+        const catIdStr = String(cat._id);
+        if (coveredSubCategoryIds.has(catIdStr)) {
+          continue;
         }
+
+        const parentCategory = chain[0];
+
+        if (!matchesStatus(cat)) continue;
+        if (!matchesDate(cat)) continue;
+        if (
+          !matchesSearch([
+            cat.category_name,
+            parentCategory.category_name,
+          ])
+        ) {
+          continue;
+        }
+
+        coveredParentCategoryIds.add(String(parentCategory._id));
+
+        hierarchyRows.push({
+          "Child Category": "-",
+          "Sub Category": cat.category_name || "-",
+          "Parent Category": parentCategory.category_name || "-",
+        });
+      }
+    }
+
+    // 3. Level 0 main categories that were not covered by any subcategory or child category
+    // (e.g. main category has no subcategories, or all were filtered out)
+    for (const cat of allCategories) {
+      const chain = getAncestors(cat);
+
+      if (chain.length === 0) {
+        const catIdStr = String(cat._id);
+        if (coveredParentCategoryIds.has(catIdStr)) {
+          continue;
+        }
+
+        if (!matchesStatus(cat)) continue;
+        if (!matchesDate(cat)) continue;
+        if (!matchesSearch([cat.category_name])) {
+          continue;
+        }
+
+        hierarchyRows.push({
+          "Child Category": "-",
+          "Sub Category": "-",
+          "Parent Category": cat.category_name || "-",
+        });
       }
     }
 
@@ -247,10 +296,18 @@ export async function GET(req) {
       let parentName = "None";
       let categoryType = "Main Category";
 
-      if (cat.parentid && cat.parentid !== "none") {
-        const parent = allCategoryMap[cat.parentid];
-        parentName = parent?.category_name || cat.parentid;
+      const parent = findParent(cat);
+      if (parent) {
+        parentName = parent.category_name || "None";
+      }
+
+      const chain = getAncestors(cat);
+      if (chain.length === 0) {
+        categoryType = "Main Category";
+      } else if (chain.length === 1) {
         categoryType = "Sub Category";
+      } else {
+        categoryType = "Child Category";
       }
 
       const assignedFilters = (
@@ -291,15 +348,18 @@ export async function GET(req) {
       const filter = filterMap[cf.filter_id];
       if (!category || !filter) return;
 
+      const chain = getAncestors(category);
       let categoryName = "-";
       let subCategoryName = "-";
 
-      if (category.parentid && category.parentid !== "none") {
-        const parent = allCategoryMap[category.parentid];
-        categoryName = parent?.category_name || "-";
-        subCategoryName = category.category_name;
+      if (chain.length >= 2) {
+        categoryName = chain[0].category_name || "-";
+        subCategoryName = chain[1]?.category_name || chain[chain.length - 1]?.category_name || "-";
+      } else if (chain.length === 1) {
+        categoryName = chain[0].category_name || "-";
+        subCategoryName = category.category_name || "-";
       } else {
-        categoryName = category.category_name;
+        categoryName = category.category_name || "-";
         subCategoryName = "-";
       }
 
@@ -316,7 +376,7 @@ export async function GET(req) {
     // Sheet 1: Child Categories (1st col: Child, 2nd col: Sub, 3rd col: Parent)
     const excelHierarchyData = hierarchyRows.length > 0 ? hierarchyRows : [
       {
-        "Child Category": "No child categories found",
+        "Child Category": "No categories found",
         "Sub Category": "",
         "Parent Category": "",
       }

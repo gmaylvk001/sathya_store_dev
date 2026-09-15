@@ -62,9 +62,6 @@ export async function GET(req) {
     let query = {
       status: "Active",
       $and: [
-        { quantity: { $exists: true } },
-        { quantity: { $ne: null } },
-        { quantity: { $gt: 0 } },
         ...(categoryClauses.length
           ? [{ $or: categoryClauses }]
           : [{ _id: null }]), // no category ids → match nothing
@@ -172,7 +169,6 @@ if (sort === 'price-low-high' || sort === 'price-high-low') {
 
        const aggregateMatch = {
         status: "Active",
-        quantity: { $gt: 0 },
         ...(categoryClauses.length ? { $or: categoryClauses } : {}),
       };
 
@@ -245,7 +241,6 @@ const brandAgg = await Product.aggregate([
       {
         $match: {
           status: "Active",
-          quantity: { $gt: 0 },
           ...(categoryClauses.length ? { $or: categoryClauses } : {}),
         },
       },
@@ -283,9 +278,6 @@ const brandAgg = await Product.aggregate([
         let baseIds = await Product.distinct('_id', {
           status: "Active",
           $and: [
-            { quantity: { $exists: true } },
-            { quantity: { $ne: null } },
-            { quantity: { $gt: 0 } },
             ...(categoryClauses.length ? [{ $or: categoryClauses }] : []),
           ],
           ...(brandIds.length > 0 ? { brand: { $in: brandIds } } : {}),

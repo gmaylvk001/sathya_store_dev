@@ -67,13 +67,30 @@ async function buildCategoryResponse(main_category, getCategoryTree, models) {
       ...getAllCategoryIds(categoryTree),
     ];
 
+    const categoryIdStrings = allCategoryIds.map((id) => id.toString());
+    const objectIdCategoryIds = allCategoryIds
+      .filter((id) => mongoose.Types.ObjectId.isValid(id))
+      .map((id) => new mongoose.Types.ObjectId(id));
+
+    const categoryClauses = [
+      { category: { $in: [...categoryIdStrings, ...objectIdCategoryIds] } },
+      { sub_category: { $in: [...categoryIdStrings, ...objectIdCategoryIds] } },
+    ];
+    if (main_category.md5_cat_name) {
+      categoryClauses.push({
+        sub_category_new: {
+          $regex: main_category.md5_cat_name,
+          $options: "i",
+        },
+      });
+      categoryClauses.push({
+        category_new: main_category.md5_cat_name,
+      });
+    }
+
     const productMatch = {
       status: "Active",
-      sub_category_new: {
-        $regex: main_category.md5_cat_name,
-        $options: "i",
-      },
-      quantity: { $gt: 0 },
+      $or: categoryClauses,
     };
 
     // Only price + brand fields — never load full product docs for this endpoint

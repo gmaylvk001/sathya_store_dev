@@ -33,25 +33,28 @@ export async function GET(req) {
 
     // Build base query
     let query = { 
-  status: "Active",
-  quantity: { $gt: 0 } 
-};
+      status: "Active",
+    };
 
-if (sub_category_new && typeof sub_category_new === "string") {
-  query.sub_category_new = { 
-    $regex: sub_category_new,
-    $options: "i"
-  };
-}
-
-    // Category filter - try different possible category fields
-    
+    const categoryClauses = [];
     if (categoryIds.length > 0) {
-      query.$or = [
+      categoryClauses.push(
         { sub_category: { $in: categoryIds } },
         { category: { $in: categoryIds } },
         { main_category: { $in: categoryIds } }
-      ];
+      );
+    }
+    if (sub_category_new && typeof sub_category_new === "string") {
+      categoryClauses.push({
+        sub_category_new: { $regex: sub_category_new, $options: "i" },
+      });
+      categoryClauses.push({
+        category_new: sub_category_new,
+      });
+    }
+
+    if (categoryClauses.length > 0) {
+      query.$or = categoryClauses;
     }
       
 
@@ -182,19 +185,10 @@ const skip = (page - 1) * limit;
 
       const aggregateMatch = {
         status: "Active",
-        quantity: { $gt: 0 },
       };
 
-      if (sub_category_new) {
-        aggregateMatch.sub_category_new = { $regex: sub_category_new, $options: "i" };
-      }
-
-      if (categoryIds.length > 0) {
-        aggregateMatch.$or = [
-          { sub_category: { $in: categoryIds } },
-          { category: { $in: categoryIds } },
-          { main_category: { $in: categoryIds } }
-        ];
+      if (categoryClauses.length > 0) {
+        aggregateMatch.$or = categoryClauses;
       }
 
       if (brandIds.length > 0) {
@@ -250,71 +244,46 @@ const skip = (page - 1) * limit;
       
           
     const brandFilterQuery = {
-  status: "Active",
-  quantity: { $gt: 0 },
-};
+      status: "Active",
+    };
 
-// sub_category_new filter 
-if (sub_category_new) {
-  brandFilterQuery.sub_category_new = {
-    $regex: sub_category_new,
-    $options: "i",
-  };
-}
+    if (query.$or) {
+      brandFilterQuery.$or = query.$or;
+    }
 
-// category filter 
-if (query.$or) {
-  brandFilterQuery.$or = query.$or;
-}
+    const allProductsForBrand = await Product.find(
+      brandFilterQuery,
+      { brand: 1 }
+    ).lean();
 
-const allProductsForBrand = await Product.find(
-  brandFilterQuery,
-  { brand: 1 }
-).lean();
+    const brandCountMap = {};
+    allProductsForBrand.forEach((p) => {
+      if (p.brand) {
+        const key = p.brand.toString();
+        brandCountMap[key] = (brandCountMap[key] || 0) + 1;
+      }
+    });
 
-const brandCountMap = {};
-allProductsForBrand.forEach((p) => {
-  if (p.brand) {
-    const key = p.brand.toString();
-    brandCountMap[key] = (brandCountMap[key] || 0) + 1;
-  }
-});
+    const brandIdList = Object.keys(brandCountMap).filter(
+      (id) => id && id !== "undefined"
+    );
 
-const brandIdList = Object.keys(brandCountMap).filter(
-  (id) => id && id !== "undefined"
-);
+    const brandDocs = await Brand.find({ _id: { $in: brandIdList } }).lean();
 
-const brandDocs = await Brand.find({ _id: { $in: brandIdList } }).lean();
+    const brandsWithCount = brandDocs
+      .map((b) => ({
+        ...b,
+        count: brandCountMap[b._id.toString()] || 0,
+      }))
+      .sort((a, b) => a.brand_name.localeCompare(b.brand_name));
 
-const brandsWithCount = brandDocs
-  .map((b) => ({
-    ...b,
-    count: brandCountMap[b._id.toString()] || 0,
-  }))
-  .sort((a, b) => a.brand_name.localeCompare(b.brand_name));
+    const baseQuery = {
+      status: "Active",
+    };
 
-  const baseQuery = {
-  status: "Active",
-  quantity: { $gt: 0 },
-};
-
-if (sub_category_new) {
-  baseQuery.sub_category_new = {
-    $regex: sub_category_new,
-    $options: "i",
-  };
-}
-
-
-if (categoryIds.length > 0) {
-  baseQuery.$or = [
-    { sub_category: { $in: categoryIds } },
-    { category: { $in: categoryIds } },
-    { main_category: { $in: categoryIds } },
-  ];
-} else if (query.$or) {
-  baseQuery.$or = query.$or;
-}
+    if (query.$or) {
+      baseQuery.$or = query.$or;
+    }
 
 const finalFilteredProductIds = await Product.distinct('_id', query);
     const finalFilteredProductIdStrings = finalFilteredProductIds.map(id => id.toString());
