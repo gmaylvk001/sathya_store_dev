@@ -6,6 +6,8 @@ import { useParams, useRouter } from "next/navigation";
 import { FaSortAmountDown, FaSlidersH } from 'react-icons/fa';
 import { ChevronLeft, ChevronRight  } from "react-feather";
 import ProductCard from "@/components/ProductCard";
+import SharedProductCard from "@/components/product/ProductCard";
+import { normalizeProduct } from "@/lib/normalizeProduct";
 import Addtocart from "@/components/AddToCart";
 import ReactPaginate from "react-paginate";
 import { ToastContainer, toast } from 'react-toastify';
@@ -733,170 +735,10 @@ const handlePageChange = (page) => {
             <>
              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3">
                         {getSortedProducts().map((product, index) => (
-                          <div key={`${product._id}-${index}`} className="group relative bg-white rounded-lg border hover:border-red-200 transition-all shadow-sm hover:shadow-md flex flex-col h-full">
-                            {/* Product Image */}
-                            <div className="relative aspect-square bg-white">
-                              <Link
-                                href={`/product/${product.slug}`}
-                                className="block mb-2"
-                                onClick={() => handleProductClick(product)}
-                              >
-                              {product.images?.[0] && (
-                                <Image
-                                  // src={
-                                  //   product.images[0].startsWith("http")
-                                  //     ? product.images[0]
-                                  //     : `/uploads/products/${product.images[0]}`
-                                  // }
-                                  src={
-                                    product.images[0].startsWith("http")
-                                      ? product.images[0]
-                                      : `https://www.sathya.store/img/product/${product.images[0].replace(/^\/?(uploads\/products\/)?/, "").replace(/^\/+/, "")}`
-                                  }
-                                  alt={product.name}
-                                  fill
-                                  className="object-contain p-2 md:p-4 transition-transform duration-300 group-hover:scale-105"
-                                  sizes="(max-width: 640px) 50vw, 33vw, 25vw"
-                                  unoptimized
-                                />
-                              )}
-                              </Link>
-                             {/*  Clearance Sale Badge */}
-                              {(product.movement === "EOL" || product.movement === "FOCUS") && (
-                             <span className="absolute bottom-2 left-2 bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full z-10 animate-pulse tracking-wide uppercase">
-                                      🏷️ Clearance Sale
-                                  </span>
-                                 )}
-
-                              {/* Discount Badge */}
-                              {Number(product.special_price) > 0 &&
-                                Number(product.special_price) < Number(product.price) && (
-                                  <span className="absolute top-3 left-2 bg-orange-500 tracking-wider text-white text-xs font-bold px-2 py-0.5 rounded z-10">
-                                    -{Math.round(100 - (Number(product.special_price) / Number(product.price)) * 100)}%
-                                  </span>
-                              )}
-         
-         
-                              {/* Wishlist */}
-                              <div className="absolute top-2 right-2">
-                                <ProductCard productId={product._id} isOutOfStock={product.quantity === 0} />
-                              </div>
-                            </div>
-         
-                            {/* Product Info and Buttons */}
-                            <div className="p-2 md:p-4 flex flex-col h-full">
-                              <h4 className="text-xs text-gray-500 mb-2 uppercase">
-                              <Link
-                                href={`/brand/${brandMap[product.brand] ? brandMap[product.brand].toLowerCase().replace(/\s+/g, "-") : ""}`}
-                                className="hover:text-[#d72828]"
-                              >
-                                {brandMap[product.brand] || ""}
-                              </Link>
-                            </h4>
-        
-                              {/* Title with fixed height */}
-                              {/* <Link
-                                href={`/product/${product.slug}`}
-                                className="block mb-2"
-                                onClick={() => handleProductClick(product)}
-                              >
-                                <h3 className="text-xs sm:text-sm font-medium text-[#d72828] hover:text-[#c02020]  line-clamp-2 min-h-[3rem] sm:min-h-[2.5rem] leading-tight">
-                      
-                          {window.innerWidth < 540 && product.name.length > 140 ? product.name.slice(0, 100) + "..." : product.name}
-                        </h3>
-                              </Link> */}
-
-                                                                       
-                            <Link
-                                                href={`/product/${product.slug}`}
-                                                className="block mb-2 flex-1"
-                                                onClick={() => handleProductClick(product)}
-                                              >
-                                               <h3 className="text-xs sm:text-sm font-medium text-[#d72828] hover:text-[#c02020] min-h-[32px] sm:min-h-[40px]">
-                                            {(() => {
-                                              const model = product.model_number ? `(${product.model_number.trim()})` : "";
-                                              const name = product.name ? product.name.trim() : "";
-                                              const maxLen = 40;
-
-                                              if (model) {
-                                                const remaining = maxLen - model.length - 1; // 1 for space before model
-                                                const truncatedName =
-                                                  name.length > remaining ? name.slice(0, remaining - 3) + `${model}...` : name;
-                                                return `${truncatedName} `;
-                                              } else {
-                                                return name.length > maxLen ? name.slice(0, maxLen - 3) + "..." : name;
-                                              }
-                                            })()}
-                                          </h3>
-                                          {/* Tooltip */}
-                  <div className="absolute hidden group-hover:block left-3 -translate-y-full translate-y-[-1px] bg-[#d72828] text-white text-xs rounded px-2 py-1 max-w-[200px] whitespace-normal break-words shadow-md z-50">
-                    {product.name}
-                  </div>
-                                              </Link>
-                            
-
-         
-                              {/* Price Row (same level always) */}
-                               <div className="flex items-center gap-2 mb-3">
-                              {/* Display logic */}
-                              {Number(product.special_price) > Number(product.price) ? (
-                                // 🟢 Case 1: Special price > price → show only special price
-                                <span className="text-base font-semibold text-red-600">
-                                  ₹ {Math.round(product.special_price).toLocaleString()}
-                                </span>
-                              ) : (
-                                // 🔵 Case 2: Normal case → show both if special_price < price
-                                <>
-                                  <span className="text-base font-semibold text-red-600">
-                                    ₹ {(
-                                      product.special_price &&
-                                      product.special_price > 0 &&
-                                      product.special_price < product.price
-                                        ? Math.round(product.special_price)
-                                        : Math.round(product.price)
-                                    ).toLocaleString()}
-                                  </span>
-
-                                  {product.special_price > 0 &&
-                                    product.special_price < product.price && (
-                                      <span className="text-xs text-gray-500 line-through">
-                                        ₹ {Math.round(product.price).toLocaleString()}
-                                      </span>
-                                  )}
-                                </>
-                              )}
-                            </div>
-                              {/* <h4 className={`text-xs mb-3 ${product.stock_status === "In Stock" && product.quantity ? "text-green-600" : "text-red-600"}`}>
-                                {product.stock_status === "In Stock" && product.quantity ? ` ${product.stock_status}` : "Out Of Stock"}
-                                {product.stock_status === "In Stock" && product.quantity ? `, ${product.quantity} units` : ""}
-                              </h4> */}
-
-                       <h4 className={`text-xs mb-3 ${product.quantity > 0 ? "text-green-600" : "text-red-600"}`}>
-                        {product.quantity > 0
-                          ? `In Stock, ${product.quantity} units`
-                          : "Out Of Stock"}
-                      </h4>
-         
-                              {/* Bottom Buttons */}
-                              <div className="mt-auto flex items-center justify-between gap-2">
-                                <Addtocart
-                                  productId={product._id} stockQuantity={product.quantity}  special_price={product.special_price}
-                                  className="w-full text-xs sm:text-sm py-1.5"
-                                   movement={product.movement}
-                                 productName={product.name}
-                                  productSlug={product.slug}
-                                />
-                                 {/* <button
-                    type="button"
-                    onClick={() => handleShare(product)}
-                    className="bg-[#d72828] hover:bg-[#d72828] text-white p-1.5 rounded-full transition-colors duration-300 flex items-center justify-center flex-shrink-0"
-                    title="Share this product"
-                  >
-                    <FaShareAlt className="w-5 h-5" />
-                  </button> */}
-                              </div>
-                            </div>
-                          </div>
+                          <SharedProductCard 
+                            key={`${product._id}-${index}`} 
+                            product={normalizeProduct(product, brandMap)} 
+                          />
                         ))}
                     </div>
               {/* Pagination Controls */}

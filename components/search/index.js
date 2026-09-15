@@ -7,6 +7,8 @@ import Image from "next/image";
 import { FaSpinner, FaSlidersH } from "react-icons/fa";
 import Addtocart from "@/components/AddToCart";
 import ProductCard from "@/components/ProductCard";
+import SharedProductCard from "@/components/product/ProductCard";
+import { normalizeProduct } from "@/lib/normalizeProduct";
 import ProductFilters from "@/components/filters/ProductFilters";
 import { useCategoryFilterUrl } from "@/hooks/useCategoryFilterUrl";
 import {
@@ -476,111 +478,10 @@ export default function SearchPage() {
           ) : products.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
               {products.map((p, index) => (
-                <div
-                  key={`${p._id}-${index}`}
-                  className="group relative bg-white rounded-lg border hover:border-blue-200 transition-all shadow-sm hover:shadow-md flex flex-col h-full"
-                >
-                  <div className="relative aspect-square bg-white">
-                    <Link href={`/product/${p.slug}`} className="block mb-2">
-                      {p.images?.[0] && (
-                        <Image
-                          // src={
-                          //   p.images[0].startsWith("http")
-                          //     ? p.images[0]
-                          //     : `/uploads/products/${p.images[0]}`
-                          // }
-                          src={
-                            p.images[0].startsWith("http")
-                              ? p.images[0]
-                              : `https://www.sathya.store/img/product/${p.images[0].replace(/^\/?(uploads\/products\/)?/, "").replace(/^\/+/, "")}`
-                          }
-                          alt={p.name}
-                          fill
-                          className="object-contain p-2 md:p-4 transition-transform duration-300 group-hover:scale-105"
-                          sizes="(max-width: 640px) 50vw, 33vw, 25vw"
-                          unoptimized
-                        />
-                      )}
-                    </Link>
-                    {Number(p.special_price) > 0 &&
-                      Number(p.special_price) < Number(p.price) && (
-                        <span className="absolute top-3 left-2 bg-red-500 text-white text-xs font-bold px-3 py-0.5 rounded z-10">
-                          {Math.round(
-                            100 -
-                              (Number(p.special_price) / Number(p.price)) * 100
-                          )}
-                          % OFF
-                        </span>
-                      )}
-                    {(p.movement === "EOL" || p.movement === "FOCUS") && (
-                      <span className="absolute bottom-2 left-2 bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full z-10 animate-pulse tracking-wide uppercase">
-                        Clearance Sale
-                      </span>
-                    )}
-                    <div className="absolute top-2 right-2">
-                      <ProductCard productId={p._id} />
-                    </div>
-                  </div>
-                  <div className="p-3 flex flex-col h-full">
-                    <h4 className="text-xs text-gray-500 mb-2 uppercase">
-                      <Link
-                        href={`/brand/${(humanLabel(brandMap[String(p.brand)], p.brand_name) || "")
-                          .toLowerCase()
-                          .replace(/\s+/g, "-")}`}
-                        className="hover:text-blue-600"
-                      >
-                        {humanLabel(brandMap[String(p.brand)], p.brand_name)}
-                      </Link>
-                    </h4>
-                    <Link href={`/product/${p.slug}`} className="block mb-1">
-                      <h3 className="text-xs sm:text-sm font-medium text-[#0069c6] hover:text-[#00badb] min-h-[32px] sm:min-h-[40px]">
-                        {(p.name || "").length > 60
-                          ? (p.name || "").slice(0, 57) + "..."
-                          : p.name}
-                      </h3>
-                    </Link>
-                    <div className="mb-2">
-                      <div className="flex items-center gap-2">
-                        <span className="text-base font-semibold text-red-600">
-                          ₹
-                          {Number(p.special_price) > 0 &&
-                          Number(p.special_price) < Number(p.price)
-                            ? Math.round(p.special_price)
-                            : Math.round(p.price)}
-                        </span>
-                        {Number(p.special_price) > 0 &&
-                          Number(p.special_price) < Number(p.price) && (
-                            <span className="text-xs text-gray-500 line-through">
-                              ₹{Math.round(p.price)}
-                            </span>
-                          )}
-                      </div>
-                    </div>
-                    <h4
-                      className={`text-xs mb-3 ${
-                        p.stock_status === "In Stock"
-                          ? "text-green-600"
-                          : "text-red-600"
-                      }`}
-                    >
-                      {p.stock_status}
-                      {p.stock_status === "In Stock" && p.quantity
-                        ? `, ${p.quantity} units`
-                        : ""}
-                    </h4>
-                    <div className="mt-auto flex items-center justify-between gap-2">
-                      <Addtocart
-                        productId={p._id}
-                        stockQuantity={p.quantity}
-                        special_price={p.special_price}
-                        className="w-full text-xs sm:text-sm py-1.5"
-                        movement={p.movement}
-                        productName={p.name}
-                        productSlug={p.slug}
-                      />
-                    </div>
-                  </div>
-                </div>
+                <SharedProductCard 
+                  key={`${p._id}-${index}`} 
+                  product={normalizeProduct(p, brandMap)} 
+                />
               ))}
             </div>
           ) : (
