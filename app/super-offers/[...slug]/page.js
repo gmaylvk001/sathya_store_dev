@@ -93,45 +93,6 @@ const FALLBACK_CARD_OFFERS = [
   },
 ];
 
-// Helper to determine destination URL for any card offer
-function getCardOfferHref(card) {
-  return getCardOfferCategoryHref(card);
-}
-
-// Card Offer Banner Component with solid red bottom bar
-function SuperOfferCardItem({ card }) {
-  const initialImg = card.image
-    ? card.image.startsWith("/") || card.image.startsWith("http")
-      ? card.image
-      : `/uploads/cardoffers/${card.image}`
-    : "/uploads/sathya-header-logo.webp";
-
-  const [imgSrc, setImgSrc] = useState(initialImg);
-
-  const targetHref = getCardOfferHref(card);
-
-  return (
-    <Link
-      href={targetHref}
-      className="group flex flex-col bg-white border border-gray-200/90 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden rounded-sm"
-    >
-      <div className="relative w-full h-48 sm:h-56 bg-white flex items-center justify-center p-3 overflow-hidden">
-        <Image
-          src={imgSrc}
-          alt={card.title || "Offer Banner"}
-          fill
-          className="object-contain p-2 group-hover:scale-105 transition-transform duration-300"
-          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-          onError={() => setImgSrc("/uploads/sathya-header-logo.webp")}
-          unoptimized
-        />
-      </div>
-      <div className="bg-[#d72828] group-hover:bg-red-700 text-white font-bold text-xs sm:text-sm py-2.5 px-4 uppercase tracking-wider transition-colors text-left">
-        {card.title}
-      </div>
-    </Link>
-  );
-}
 
 // Product Card for Super Offers
 function SuperOfferProductCard({ product, brandMap }) {

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useState, useEffect, useCallback } from "react";
+import React, { useRef, useState, useEffect, useCallback, useId, memo } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { getCardOfferCategoryHref } from "@/lib/cardOffers/cardOfferNavigationHelper";
@@ -8,27 +8,34 @@ import { getCardOfferCategoryHref } from "@/lib/cardOffers/cardOfferNavigationHe
 /**
  * Individual Card Offer item matching Image 1 styling:
  * - White rounded container with subtle border & soft shadow
- * - Clean aspect ratio image container
+ * - Clean aspect ratio image container with zero CLS (Cumulative Layout Shift)
  * - Dark bottom bar with gold/amber text and subtle border accent
  * - Smooth hover elevation and scale effects
+ * - Memoized for peak rendering performance
  */
-function CardOfferItem({ card }) {
-  const initialImg = card.image
+const CardOfferItem = memo(function CardOfferItem({ card }) {
+  const initialImg = card?.image
     ? card.image.startsWith("/") || card.image.startsWith("http")
       ? card.image
       : `/uploads/cardoffers/${card.image}`
     : "/uploads/sathya-header-logo.webp";
 
   const [imgSrc, setImgSrc] = useState(initialImg);
+
+  // Sync state if card image prop changes
+  useEffect(() => {
+    setImgSrc(initialImg);
+  }, [initialImg]);
+
   const targetHref = getCardOfferCategoryHref(card);
-  const displayLabel = card.title || card.description || "Special Offer";
+  const displayLabel = card?.title || card?.description || "Special Offer";
 
   return (
     <Link
       href={targetHref}
-      className="group flex flex-col bg-white border border-gray-100 rounded-xl sm:rounded-2xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden w-full h-full"
+      className="group flex flex-col bg-white border border-gray-100 rounded-xl sm:rounded-2xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden w-full h-full focus:outline-none focus:ring-2 focus:ring-[#d72828]/50"
     >
-      {/* Card Image Area */}
+      {/* Card Image Area with Fixed Aspect Ratio to prevent CLS */}
       <div className="relative w-full h-44 sm:h-52 md:h-56 bg-white flex items-center justify-center p-4 overflow-hidden">
         <Image
           src={imgSrc}
@@ -38,6 +45,7 @@ function CardOfferItem({ card }) {
           sizes="(max-width: 640px) 75vw, (max-width: 1024px) 33vw, 25vw"
           onError={() => setImgSrc("/uploads/sathya-header-logo.webp")}
           unoptimized
+          loading="lazy"
         />
       </div>
 
@@ -49,17 +57,24 @@ function CardOfferItem({ card }) {
       </div>
     </Link>
   );
-}
+});
 
 /**
  * CardOfferCategorySection:
- * Renders a single category row with:
+ * Production-ready category row component:
  * - Clean bold category heading
  * - Horizontal 4-card carousel (responsive: 1-2 mobile, 2-3 tablet, 4 desktop)
  * - Circular left & right navigation arrows (pale pink/red circle with red arrow)
  * - Dot pagination indicators underneath
+ * - Full ResizeObserver integration for accurate sizing
+ * - Full ARIA accessibility support
+ * - Wrapped with React.memo to prevent unnecessary re-renders when parent timer ticks
  */
-export default function CardOfferCategorySection({ categoryName, cards = [] }) {
+const CardOfferCategorySection = memo(function CardOfferCategorySection({
+  categoryName,
+  cards = [],
+}) {
+  const carouselId = useId();
   const scrollContainerRef = useRef(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
@@ -72,14 +87,13 @@ export default function CardOfferCategorySection({ categoryName, cards = [] }) {
     if (!el) return;
 
     const { scrollLeft, scrollWidth, clientWidth } = el;
-    const maxScroll = scrollWidth - clientWidth;
+    const maxScroll = Math.max(0, scrollWidth - clientWidth);
 
-    setCanScrollLeft(scrollLeft > 10);
-    setCanScrollRight(scrollLeft < maxScroll - 10);
+    setCanScrollLeft(scrollLeft > 8);
+    setCanScrollRight(scrollLeft < maxScroll - 8);
 
-    // Calculate pages (typically clientWidth per page)
     if (clientWidth > 0 && maxScroll > 0) {
-      const calculatedPages = Math.max(1, Math.round(scrollWidth / clientWidth));
+      const calculatedPages = Math.max(1, Math.ceil(scrollWidth / clientWidth));
       setTotalPages(calculatedPages);
 
       const currentPage = Math.min(
@@ -93,21 +107,32 @@ export default function CardOfferCategorySection({ categoryName, cards = [] }) {
     }
   }, []);
 
+  // ResizeObserver + scroll listeners for robust dynamic updates
   useEffect(() => {
     const el = scrollContainerRef.current;
     if (!el) return;
 
     updateScrollState();
     el.addEventListener("scroll", updateScrollState, { passive: true });
+
+    let resizeObserver = null;
+    if (typeof ResizeObserver !== "undefined") {
+      resizeObserver = new ResizeObserver(() => {
+        updateScrollState();
+      });
+      resizeObserver.observe(el);
+    }
+
     window.addEventListener("resize", updateScrollState);
 
     return () => {
       el.removeEventListener("scroll", updateScrollState);
+      if (resizeObserver) resizeObserver.disconnect();
       window.removeEventListener("resize", updateScrollState);
     };
   }, [updateScrollState, cards]);
 
-  // Navigate left/right
+  // Navigate left/right smoothly
   const handleScroll = (direction) => {
     const el = scrollContainerRef.current;
     if (!el) return;
@@ -119,7 +144,7 @@ export default function CardOfferCategorySection({ categoryName, cards = [] }) {
     });
   };
 
-  // Click dot indicator to navigate directly to that page
+  // Direct page navigation via dots
   const handleDotClick = (pageIndex) => {
     const el = scrollContainerRef.current;
     if (!el) return;
@@ -130,12 +155,26 @@ export default function CardOfferCategorySection({ categoryName, cards = [] }) {
     });
   };
 
-  if (!cards || cards.length === 0) {
+  // Keyboard navigation for accessibility
+  const handleKeyDown = (e) => {
+    if (e.key === "ArrowLeft") {
+      handleScroll("left");
+    } else if (e.key === "ArrowRight") {
+      handleScroll("right");
+    }
+  };
+
+  if (!Array.isArray(cards) || cards.length === 0) {
     return null;
   }
 
   return (
-    <section className="w-full my-6 sm:my-10">
+    <section
+      role="region"
+      aria-roledescription="carousel"
+      aria-label={`${categoryName} Offers`}
+      className="w-full my-6 sm:my-10"
+    >
       {/* Category Heading matching Image 1 */}
       <div className="mb-4 sm:mb-5">
         <h2 className="text-base sm:text-lg md:text-xl font-black tracking-wider text-gray-900 uppercase">
@@ -150,12 +189,14 @@ export default function CardOfferCategorySection({ categoryName, cards = [] }) {
           <button
             type="button"
             onClick={() => handleScroll("left")}
-            aria-label="Previous offers"
+            aria-label={`Previous ${categoryName} offers`}
+            aria-controls={carouselId}
             className="absolute left-0 sm:-left-3 md:-left-5 top-1/2 -translate-y-1/2 z-20 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-[#fce8e8] hover:bg-[#f9d4d4] active:scale-95 text-[#d72828] shadow-md flex items-center justify-center transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-red-400"
           >
             <svg
               className="w-4 h-4 sm:w-5 sm:h-5 stroke-current fill-none stroke-[2.5]"
               viewBox="0 0 24 24"
+              aria-hidden="true"
             >
               <polyline points="15 18 9 12 15 6" />
             </svg>
@@ -164,16 +205,21 @@ export default function CardOfferCategorySection({ categoryName, cards = [] }) {
 
         {/* Scrollable Cards Container */}
         <div
+          id={carouselId}
           ref={scrollContainerRef}
-          className="flex items-stretch gap-4 sm:gap-6 overflow-x-auto scroll-smooth pb-2 pt-1 px-0.5 no-scrollbar snap-x snap-mandatory"
+          onKeyDown={handleKeyDown}
+          tabIndex={0}
+          aria-live="polite"
+          className="flex items-stretch gap-4 sm:gap-6 overflow-x-auto scroll-smooth pb-2 pt-1 px-0.5 no-scrollbar snap-x snap-mandatory focus:outline-none focus:ring-1 focus:ring-gray-200 rounded-lg"
           style={{
             scrollbarWidth: "none",
             msOverflowStyle: "none",
+            WebkitOverflowScrolling: "touch",
           }}
         >
           {cards.map((card, idx) => (
             <div
-              key={card.id || card._id || idx}
+              key={card.id || card._id || card.Id || `${categoryName}-${idx}`}
               className="flex-shrink-0 snap-start w-[240px] sm:w-[calc(50%-12px)] md:w-[calc(33.333%-16px)] lg:w-[calc(25%-18px)] flex"
             >
               <CardOfferItem card={card} />
@@ -186,12 +232,14 @@ export default function CardOfferCategorySection({ categoryName, cards = [] }) {
           <button
             type="button"
             onClick={() => handleScroll("right")}
-            aria-label="Next offers"
+            aria-label={`Next ${categoryName} offers`}
+            aria-controls={carouselId}
             className="absolute right-0 sm:-right-3 md:-right-5 top-1/2 -translate-y-1/2 z-20 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-[#fce8e8] hover:bg-[#f9d4d4] active:scale-95 text-[#d72828] shadow-md flex items-center justify-center transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-red-400"
           >
             <svg
               className="w-4 h-4 sm:w-5 sm:h-5 stroke-current fill-none stroke-[2.5]"
               viewBox="0 0 24 24"
+              aria-hidden="true"
             >
               <polyline points="9 18 15 12 9 6" />
             </svg>
@@ -201,16 +249,22 @@ export default function CardOfferCategorySection({ categoryName, cards = [] }) {
 
       {/* Carousel Dot Indicators matching Image 1 */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-1.5 sm:gap-2 mt-4 sm:mt-5">
+        <div
+          role="tablist"
+          aria-label={`${categoryName} pagination`}
+          className="flex items-center justify-center gap-1.5 sm:gap-2 mt-4 sm:mt-5"
+        >
           {Array.from({ length: totalPages }).map((_, dotIdx) => {
             const isActive = dotIdx === activePageIndex;
             return (
               <button
                 key={dotIdx}
                 type="button"
+                role="tab"
+                aria-selected={isActive}
                 onClick={() => handleDotClick(dotIdx)}
-                aria-label={`Go to slide ${dotIdx + 1}`}
-                className={`transition-all duration-300 rounded-full focus:outline-none ${
+                aria-label={`Go to ${categoryName} slide ${dotIdx + 1}`}
+                className={`transition-all duration-300 rounded-full focus:outline-none focus:ring-2 focus:ring-red-400 ${
                   isActive
                     ? "w-2.5 h-2.5 sm:w-3 sm:h-3 bg-[#d72828] shadow-xs"
                     : "w-2 h-2 sm:w-2.5 sm:h-2.5 bg-gray-300 hover:bg-gray-400"
@@ -222,4 +276,6 @@ export default function CardOfferCategorySection({ categoryName, cards = [] }) {
       )}
     </section>
   );
-}
+});
+
+export default CardOfferCategorySection;
