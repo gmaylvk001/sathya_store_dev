@@ -1,10 +1,39 @@
 import dbConnect from "@/lib/db";
-import EcomOrderInfo from "@/models/ecom_order_info";
+import OrderNew from "@/models/orders_new";
+import PaymentNewLive from "@/models/payment_new_live";
 import Product from "@/models/product";
 import mongoose from "mongoose";
 import Coupon from "@/models/ecom_offer_info";
 import Usedcoupon from "@/models/ecom_coupon_track_info";
 import Notification from "@/models/Notification.js";
+
+const ORDER_STATUS_ENUM = [
+  "Billed",
+  "Cancelled",
+  "Complete",
+  "failure",
+  "Order Accepted",
+  "Order Placed",
+  "ordered",
+  "Payment Initiated",
+  "pending",
+];
+
+function mapDeliveryType(value) {
+  if (value === "store_pickup" || value === "store") return "store";
+  return "home";
+}
+
+function mapOrderStatus(value) {
+  if (value && ORDER_STATUS_ENUM.includes(value)) return value;
+  if (String(value || "").toLowerCase() === "payment_initialized") return "Payment Initiated";
+  return "pending";
+}
+
+function toObjectId(value) {
+  if (!value) return null;
+  return mongoose.isValidObjectId(value) ? new mongoose.Types.ObjectId(value) : null;
+}
 
 export async function POST(req) {
   await dbConnect();
@@ -26,7 +55,6 @@ export async function POST(req) {
       delivery_type,
       payment_id,
       order_number,
-      order_details,
       payment_status,
       user_adddeliveryid,
       email_address,
@@ -42,7 +70,6 @@ export async function POST(req) {
       user_addbillingid,
     } = body;
 
-    // Validate required fields
     if (
       !user_id ||
       !email_address ||
@@ -68,22 +95,22 @@ export async function POST(req) {
     const resolvedStoreId = isKarnatakaOrder ? "unilet" : store_id || null;
 
     const orderFields = {
-      user_id,
+      user_id: String(user_id),
       order_username,
       order_phonenumber,
       order_item,
-      order_amount,
+      order_amount: String(order_amount),
       order_deliveryaddress,
       customer_comments,
       payment_method,
       payment_type,
-      delivery_type,
-      payment_id,
-      order_number,
-      order_details,
-      user_adddeliveryid,
+      payment_mode: payment_type || payment_method || null,
+      delivery_type: mapDeliveryType(delivery_type),
+      payment_id: payment_id || null,
+      order_number: order_number || null,
+      user_adddeliveryid: user_adddeliveryid || null,
       email_address,
-      order_status: order_status || "pending",
+      order_status: mapOrderStatus(order_status),
       payment_status: payment_status || "unpaid",
       loyalty_points_redeemed: loyalty_points_redeemed || 0,
       loyalty_discount: loyalty_discount || 0,
@@ -96,28 +123,38 @@ export async function POST(req) {
       gst_number: gst_number || null,
       order_billingaddress: order_billingaddress || null,
       user_addbillingid: user_addbillingid || null,
+      order_owner: isKarnatakaOrder ? "unilet" : "sathya",
     };
 
-    // Check if order already exists (match by order_number if provided, else user + pending order)
     const existingOrder = order_number
-      ? await EcomOrderInfo.findOne({ order_number })
+      ? await OrderNew.findOne({ order_number })
       : null;
 
     let savedOrder;
     let isNew = false;
 
     if (existingOrder) {
-      // Update existing order fields
       Object.assign(existingOrder, orderFields);
       savedOrder = await existingOrder.save();
     } else {
-      // Create new order
-      const newOrder = new EcomOrderInfo(orderFields);
+      const newOrder = new OrderNew(orderFields);
       savedOrder = await newOrder.save();
       isNew = true;
     }
 
-    // Only run side-effects (stock deduction, coupon tracking) for new orders
+    if (payment_id) {
+      await PaymentNewLive.findOneAndUpdate(
+        { payment_id: String(payment_id) },
+        {
+          $set: {
+            orderId: savedOrder._id,
+            order_number: savedOrder.order_number || null,
+            userId: toObjectId(user_id),
+          },
+        }
+      );
+    }
+
     if (isNew) {
       for (const item of order_item) {
         if (item.productId) {
@@ -152,7 +189,6 @@ export async function POST(req) {
         }
       }
 
-      // Create notification only for new orders
       try {
         const notification = new Notification({
           userId: user_id,
