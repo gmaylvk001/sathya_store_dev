@@ -588,6 +588,9 @@ export default function CheckoutPage() {
     const selling = (item.price > 0 ? item.price : item.actual_price) * item.quantity;
     return sum + (mrp - selling);
   }, 0);
+  const totalExchangeDiscount = cartItems.reduce((sum, item) => {
+    return sum + (Number(item.exchangeOffer?.price || 0) * item.quantity);
+  }, 0);
   const sellingPrice = mrpTotal - itemDiscountTotal;
 
   const uniqueCities = [...new Set(stores.map(s => s.city))];
@@ -1330,6 +1333,14 @@ export default function CheckoutPage() {
                   <div className="flex justify-between text-sm text-green-600">
                     <span>Discount</span>
                     <span>−₹{itemDiscountTotal.toLocaleString('en-IN')}</span>
+                  </div>
+                )}
+
+                {/* Exchange Discount */}
+                {totalExchangeDiscount > 0 && (
+                  <div className="flex justify-between text-sm text-green-600">
+                    <span>Exchange Value</span>
+                    <span>−₹{totalExchangeDiscount.toLocaleString('en-IN')}</span>
                   </div>
                 )}
 

@@ -4,6 +4,7 @@
 import ProductDetailsSection from "@/components/ProductDetailsSection";
 import FlixMediaLoader from "@/components/FlixMediaLoader";
 import ProductVariantSelector from "@/components/ProductVariantSelector";
+import ExchangeOfferSection from "@/components/ExchangeOfferSection";
 // import RelatedProducts from "@/components/RelatedProducts";
 import {  useEffect, useState, useRef,useMemo, useCallback } from "react";
 
@@ -261,8 +262,8 @@ const handleIncrease = () => {
 
 const { updateCartCount } = useCart();
   const { openAuthModal } = useModal();
-const handleBuyNow = async () => {
-  console.log("Buying now with warranty:", selectedWarranty, selectedExtendedWarranty);
+const handleBuyNow = async (exchangeOffer = null) => {
+  console.log("Buying now with warranty:", selectedWarranty, selectedExtendedWarranty, "exchange:", exchangeOffer);
   try {
     const token = localStorage.getItem("token");
 
@@ -415,8 +416,8 @@ const handleBuyNow = async () => {
         quantity,
         warranty: selectedWarranty || 0,
         extendedWarranty: selectedWarrantyAmount || 0, 
-          warrantyData: selectedWarrantyData || null,
-       
+        warrantyData: selectedWarrantyData || null,
+        exchangeOffer: exchangeOffer || null,
       },
       ...selectedFrequentProducts.map((p) => ({
         ...p,
@@ -431,16 +432,17 @@ const handleBuyNow = async () => {
     ];
 
     const total = items.reduce((sum, item) => {
-  const basePrice = item.price * item.quantity;
-  const warrantyCost = (item.warranty || 0) * item.quantity;
-  const extendedCost = (item.extendedWarranty || 0) * item.quantity;
-  const warrantyDataCost = (item.warrantyData?.price || 0) * item.quantity;
-  return sum + basePrice + warrantyCost + extendedCost + warrantyDataCost;
-}, 0);
+      const basePrice = item.price * item.quantity;
+      const warrantyCost = (item.warranty || 0) * item.quantity;
+      const extendedCost = (item.extendedWarranty || 0) * item.quantity;
+      const warrantyDataCost = (item.warrantyData?.price || 0) * item.quantity;
+      const exchangeDiscount = (item.exchangeOffer?.price || 0) * item.quantity;
+      return sum + basePrice + warrantyCost + extendedCost + warrantyDataCost - exchangeDiscount;
+    }, 0);
     // ✅ Save Buy Now state so checkout can read the correct price
     localStorage.setItem(
       "buyNowData",
-      JSON.stringify({ cart: { items }, total })
+      JSON.stringify({ cart: { items }, total: Math.max(0, total) })
     );
 
     // ✅ Redirect
@@ -485,6 +487,12 @@ const [selectedFrequentProducts, setSelectedFrequentProducts] = useState([]);
 const [cartTotal, setCartTotal] = useState(0);
 const [selectedWarranty, setSelectedWarranty] = useState(null);
 const [selectedExtendedWarranty, setSelectedExtendedWarranty] = useState(null);
+
+const handleExchangeApply = (offer) => {
+  if (offer) {
+    handleBuyNow(offer);
+  }
+};
 
   const [quantityWarning, setQuantityWarning] = useState(false);
 
@@ -1214,7 +1222,11 @@ const fetchBrand = async () => {
 <div className="w-full block">
   {!isDesktop && (
   <div className="mt-4 border border-gray-300 rounded-lg p-4 bg-white">
-    <h3 className="font-semibold text-gray-800 text-sm mb-3">Available Offers</h3>
+    <ExchangeOfferSection 
+      productCategory={product.sub_category_new_name ? product.sub_category_new_name.replace(/##/g, ",") : (product.categoryName || "")} 
+      onExchangeApply={handleExchangeApply} 
+    />
+    <h3 className="font-semibold text-gray-800 text-sm mb-3 mt-4">Available Offers</h3>
     <RazorpayOffers amount={Number(product.special_price) || Number(product.price)} />
   </div>
 )}
@@ -1629,8 +1641,12 @@ const fetchBrand = async () => {
     </div>
 
     {/* Available Offers Component */}
-    <div className="border border-gray-200 rounded-lg p-3 bg-white shadow-sm">
-      <h3 className="text-xs font-bold text-gray-900 flex items-center gap-1.5 mb-2">
+    <div className="border border-gray-200 rounded-lg p-3 bg-white shadow-sm mt-3">
+      <ExchangeOfferSection 
+        productCategory={product.sub_category_new_name ? product.sub_category_new_name.replace(/##/g, ",") : (product.categoryName || "")} 
+        onExchangeApply={handleExchangeApply} 
+      />
+      <h3 className="text-xs font-bold text-gray-900 flex items-center gap-1.5 mb-2 mt-3">
         <span className="text-[#d72828] font-black">%</span> Available Offers
       </h3>
       <RazorpayOffers amount={Number(product.special_price) || Number(product.price)} />
