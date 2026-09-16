@@ -15,6 +15,13 @@ const OrderDetails = () => {
   const orderId = params?.orderId;
   const [isUpdating, setIsUpdating] = useState(false);
   const [stores, setStores] = useState([]);
+  const [assignStoreId, setAssignStoreId] = useState("");
+  const [assignRoleId, setAssignRoleId] = useState("");
+  const [assignUserId, setAssignUserId] = useState("");
+  const [assigningSalesPerson, setAssigningSalesPerson] = useState(false);
+  const [roles, setRoles] = useState([]);
+  const [systemUsers, setSystemUsers] = useState([]);
+  const [remarks, setRemarks] = useState("");
   // FOR ORDER HISTORY
   const [status, setStatus] = useState("");
   const [comment, setComment] = useState("");
@@ -49,12 +56,19 @@ const OrderDetails = () => {
     fetch("/api/store/get")
       .then(res => res.json())
       .then(data => {
-        console.log("Store API Response:", data);
-
-        // IMPORTANT: change this if API returns {data: []}
         setStores(Array.isArray(data) ? data : data.data || []);
       })
       .catch(err => console.error("Store fetch error:", err));
+
+    fetch("/api/roles/get")
+      .then((res) => res.json())
+      .then((data) => setRoles(Array.isArray(data) ? data : []))
+      .catch((err) => console.error("Roles fetch error:", err));
+
+    fetch("/api/system_users/get")
+      .then((res) => res.json())
+      .then((data) => setSystemUsers(Array.isArray(data) ? data : []))
+      .catch((err) => console.error("System users fetch error:", err));
   }, []);
 
   const addHistory = async () => {
@@ -98,16 +112,60 @@ const OrderDetails = () => {
     if (orderId) {
       fetch(`/api/orders_new/${orderId}`)
         .then(res => res.json())
-        .then(data => setOrder(data))
+        .then((data) => {
+          setOrder(data);
+          setAssignRoleId(data?.sales_person_role != null && data.sales_person_role !== "" ? String(data.sales_person_role) : "");
+          setAssignUserId(data?.sales_person_id != null && data.sales_person_id !== "" ? String(data.sales_person_id) : "");
+        })
         .catch(err => console.error("Fetch error:", err));
     }
   }, [orderId]);
+
+  const handleAssignSalesPerson = async () => {
+    if (!assignRoleId || !assignUserId) {
+      toast.error("Please select a role and user");
+      return;
+    }
+
+    setAssigningSalesPerson(true);
+    try {
+      const res = await fetch(`/api/orders_new/${orderId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sales_person_role: assignRoleId,
+          sales_person_id: assignUserId,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        toast.error(data.message || "Failed to assign sales person");
+        return;
+      }
+      setOrder((prev) => ({
+        ...prev,
+        sales_person_role: assignRoleId,
+        sales_person_id: assignUserId,
+      }));
+      toast.success("Sales person assigned");
+    } catch (err) {
+      console.error(err);
+      toast.error("Network error occurred");
+    } finally {
+      setAssigningSalesPerson(false);
+    }
+  };
 
 
 
 
   if (!order) return <p className="text-center mt-10">Loading...</p>;
-  // console.log('Order:', order);
+
+  const currentOrderNumber = String(order.order_number || order.orderNumber || "").trim();
+  const roleUsers = systemUsers.filter((user) => {
+    const roleId = user.role?._id || user.role;
+    return assignRoleId && String(roleId) === String(assignRoleId);
+  });
 
 
   return (
@@ -256,6 +314,109 @@ const OrderDetails = () => {
               </tr>
             </tbody>
           </table>
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        <div className="border border-gray-200 rounded overflow-hidden bg-white">
+          <div className="bg-gray-50 border-b border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-700 flex items-center gap-2">
+            <span className="inline-flex items-center justify-center w-4 h-4 rounded-full border border-gray-400 text-[10px] text-gray-500">i</span>
+            Assign to store ({currentOrderNumber})
+          </div>
+          <div className="p-4">
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Select store</label>
+            <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+              <select
+                value={assignStoreId}
+                onChange={(e) => setAssignStoreId(e.target.value)}
+                className="flex-1 border border-gray-300 rounded px-3 py-2 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-gray-400"
+              >
+                <option value="">Choose</option>
+                {stores.map((store) => (
+                  <option key={store._id} value={store._id}>
+                    {store.organisation_name || store.store_name || store.name || "Store"}
+                  </option>
+                ))}
+              </select>
+              <button
+                type="button"
+                className="sm:w-56 bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded text-sm font-medium"
+              >
+                Assign
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="border border-gray-200 rounded overflow-hidden bg-white">
+          <div className="bg-gray-50 border-b border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-700 flex items-center gap-2">
+            <span className="inline-flex items-center justify-center w-4 h-4 rounded-full border border-gray-400 text-[10px] text-gray-500">i</span>
+            Assign Sales Person ({currentOrderNumber})
+          </div>
+          <div className="p-4">
+            <div className="flex flex-col lg:flex-row gap-3 items-stretch lg:items-end">
+              <div className="flex-1">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Select Role</label>
+                <select
+                  value={assignRoleId}
+                  onChange={(e) => {
+                    setAssignRoleId(e.target.value);
+                    setAssignUserId("");
+                  }}
+                  className="w-full border border-gray-300 rounded px-3 py-2 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-gray-400"
+                >
+                  <option value="">Choose</option>
+                  {roles.map((role) => (
+                    <option key={role._id} value={role._id}>
+                      {role.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex-1">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Select User</label>
+                <select
+                  value={assignUserId}
+                  onChange={(e) => setAssignUserId(e.target.value)}
+                  disabled={!assignRoleId}
+                  className="w-full border border-gray-300 rounded px-3 py-2 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-gray-400 disabled:bg-gray-100"
+                >
+                  <option value="">Choose</option>
+                  {roleUsers.map((user) => (
+                    <option key={user._id} value={user._id}>
+                      {[user.name, user.last_name].filter(Boolean).join(" ") || user.email || "User"}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <button
+                type="button"
+                onClick={handleAssignSalesPerson}
+                disabled={assigningSalesPerson}
+                className="lg:w-56 bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded text-sm font-medium disabled:opacity-50"
+              >
+                {assigningSalesPerson ? "Assigning..." : "Assign"}
+              </button>
+          </div>
+          <div className="p-4">
+            <div className="flex flex-col lg:flex-row gap-3 items-stretch lg:items-center">
+              <div className="flex-1">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Remarks</label>
+                <textarea
+                  value={remarks}
+                  onChange={(e) => setRemarks(e.target.value)}
+                  rows={4}
+                  className="w-full border border-gray-300 rounded px-3 py-2 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-gray-400 resize-y"
+                />
+              </div>
+              <button
+                type="button"
+                className="lg:w-56 bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded text-sm font-medium"
+              >
+                PlaceOrder
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
