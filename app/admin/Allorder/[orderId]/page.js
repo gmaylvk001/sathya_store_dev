@@ -397,6 +397,14 @@ const OrderDetails = () => {
               >
                 {assigningSalesPerson ? "Assigning..." : "Assign"}
               </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="border border-gray-200 rounded overflow-hidden bg-white">
+          <div className="bg-gray-50 border-b border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-700 flex items-center gap-2">
+            <span className="inline-flex items-center justify-center w-4 h-4 rounded-full border border-gray-400 text-[10px] text-gray-500">i</span>
+            Remarks ({currentOrderNumber})
           </div>
           <div className="p-4">
             <div className="flex flex-col lg:flex-row gap-3 items-stretch lg:items-center">
@@ -517,84 +525,6 @@ const OrderDetails = () => {
 
           </table>
         </div>
-
-
-        {/* Order History */}
-        {/* <div className="bg-white p-4 shadow rounded mt-6">
-  <h3 className="font-semibold text-gray-600 border-b pb-2">Order History</h3> */}
-
-        {/* Order History Table */}
-        {/* <table className="w-full text-sm mt-3 border text-gray-700">
-    <thead>
-      <tr className="bg-gray-100 border-b">
-        <th className="p-2">Date Added</th>
-        <th className="p-2">Comment</th>
-        <th className="p-2">Status</th>
-        <th className="p-2 text-center">Customer Notified</th>
-      </tr>
-    </thead>
-    <tbody>
-      {order.order_history?.map((entry, i) => (
-        <tr key={i} className="border-b">
-          <td className="p-2">{new Date(entry.date).toLocaleDateString()}</td>
-          <td className="p-2">{entry.comment}</td>
-          <td className="p-2">{entry.status}</td>
-          <td className="p-2 text-center">
-            {entry.customer_notified ? "Yes" : "No"}
-          </td>
-        </tr>
-      ))}
-    </tbody>
-  </table> */}
-
-        {/* Add Order History Form */}
-        {/* <div className="mt-6">
-    <h4 className="font-semibold text-gray-600 border-b pb-2">
-      Add Order History
-    </h4>
-
-    <div className="mt-4">
-      <label className="block text-sm font-medium text-gray-700 mb-1">
-        Order Status
-      </label>
-     <select
-  value={status}
-  onChange={(e) => setStatus(e.target.value)}
-  className="w-full border p-2 rounded text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500"
->
-  <option>Choose</option>
-  <option value="Cancelled">Cancelled</option>
-  <option value="Shipped">Shipped</option>
-  <option value="Accepted">Accepted</option>
-</select>
-    </div>
-
-    <div className="mt-4">
-      <label className="block text-sm font-medium text-gray-700 mb-1">
-        Comment
-      </label>
-      <textarea
-  value={comment}
-  onChange={(e) => setComment(e.target.value)}
-  className="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500"
-  rows={3}
-  placeholder="Enter comment here..."
-></textarea>
-    </div>
-
-
-    <div className="mt-4">
-      <button
-  onClick={addHistory}
-  disabled={isUpdating}
-  className="bg-red-500 text-white px-4 py-2 rounded text-sm hover:bg-red-600 disabled:bg-gray-400"
->
-  {isUpdating ? "Adding..." : "+ Add History"}
-</button>
-    </div>
-  </div> */}
-
-        {/* </div> */}
       </div>
     </div>
   );
