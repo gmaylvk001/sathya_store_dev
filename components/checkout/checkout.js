@@ -417,7 +417,15 @@ export default function CheckoutPage() {
         const cartRes = await fetch('/api/cart', { headers: { Authorization: `Bearer ${token}` } });
         if (!cartRes.ok) throw new Error('Failed to fetch cart');
         const cartData = await cartRes.json();
-        setCartItems(cartData.cart.items);
+        const items = cartData?.cart?.items || [];
+        setCartItems(items);
+        const sub = items.reduce((s, it) => s + ((it.price || 0) * (it.quantity || 1)), 0);
+        const total = cartData?.cart?.totalPrice ?? sub;
+        setOrderSummary({
+          discount: 0,
+          subtotal: total,
+          total: total,
+        });
       }
       const addrRes = await fetch(`/api/saved-address`, {
         headers: { 'Authorization': `Bearer ${token}` }
@@ -494,7 +502,7 @@ export default function CheckoutPage() {
   const createRazorpayOrder = async (amount) => {
     const res = await fetch('/api/create-razorpay-order', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ amount: amount * 100 }),
+      body: JSON.stringify({ amount: Math.round(amount * 100) }),
     });
     return await res.json();
   };
@@ -509,10 +517,16 @@ export default function CheckoutPage() {
     const razorpayLoaded = await initializeRazorpay();
     if (!razorpayLoaded) { toast.error('Razorpay SDK failed to load'); setIsSubmitting(false); return; }
     const orderResponse = await createRazorpayOrder(totalAmount);
+    if (!orderResponse || !orderResponse.order || !orderResponse.order.id) {
+      const errMsg = orderResponse?.error || 'Failed to initialize payment gateway';
+      toast.error(errMsg);
+      setIsSubmitting(false);
+      throw new Error(errMsg);
+    }
     const { order } = orderResponse;
     return new Promise((resolve, reject) => {
       const options = {
-        key: process.env.NEXT_PUBLIC_RAZORPAY_TEST_KEY,
+        key: RAZORPAY_KEY || process.env.NEXT_PUBLIC_RAZORPAY_TEST_KEY,
         amount: order.amount, currency: 'INR', name: 'Sathya Stores',
         description: isEmi ? 'EMI Payment' : 'Product Purchase', order_id: order.id,
         handler: async (response) => {
@@ -699,7 +713,7 @@ export default function CheckoutPage() {
               gst_number: gstNumber,
               payment_id: '', payment_status: 'payment_initialized',
               order_number: order_number || 'ORD' + Date.now(),
-              order_details: cartItems.map(item => ({ item_code: `ITEM${item.item_code}`, product_id: item.id, product_name: item.name, product_price: item.price, model: 'N/A', user_id: userId, coupondiscount: 0, created_at: new Date(), updated_at: new Date(), quantity: item.quantity, store_id: formData.deliveryType === 'store' ? formData.selectedStore : 'STORE01', orderNumber: 'ORD' + Date.now() })),
+              order_details: cartItems.map(item => ({ item_code: `ITEM${item.item_code}`, product_id: item.productId || item.id || item._id, product_name: item.name, product_price: item.price, model: 'N/A', user_id: userId, coupondiscount: 0, created_at: new Date(), updated_at: new Date(), quantity: item.quantity, store_id: formData.deliveryType === 'store' ? formData.selectedStore : 'STORE01', orderNumber: 'ORD' + Date.now() })),
             }),
           });
           const orderData = await orderRes.json();
@@ -738,7 +752,7 @@ export default function CheckoutPage() {
           gst_number: gstNumber,
           payment_id: paymentData.payment_id, payment_status: paymentData.status,
           order_number: order_number || 'ORD' + Date.now(),
-          order_details: cartItems.map(item => ({ item_code: `ITEM${item.item_code}`, product_id: item.id, product_name: item.name, product_price: item.price, model: 'N/A', user_id: userId, coupondiscount: 0, created_at: new Date(), updated_at: new Date(), quantity: item.quantity, store_id: formData.deliveryType === 'store' ? formData.selectedStore : 'STORE01', orderNumber: 'ORD' + Date.now() })),
+          order_details: cartItems.map(item => ({ item_code: `ITEM${item.item_code}`, product_id: item.productId || item.id || item._id, product_name: item.name, product_price: item.price, model: 'N/A', user_id: userId, coupondiscount: 0, created_at: new Date(), updated_at: new Date(), quantity: item.quantity, store_id: formData.deliveryType === 'store' ? formData.selectedStore : 'STORE01', orderNumber: 'ORD' + Date.now() })),
         }),
       });
       if (!orderRes.ok) throw new Error('Order creation failed');

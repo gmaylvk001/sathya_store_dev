@@ -11,6 +11,15 @@ import { HiShoppingBag } from "react-icons/hi2";
 import { FaHeart } from "react-icons/fa6";
 import { AuthModal } from '@/components/AuthModal';
 
+const getImageUrl = (img) => {
+  if (!img) return null;
+  const str = String(img).trim();
+  if (str.startsWith('http://') || str.startsWith('https://') || str.startsWith('data:')) return str;
+  if (str.startsWith('/uploads/products/')) return str;
+  if (str.startsWith('/')) return str;
+  return `/uploads/products/${str}`;
+};
+
 export default function Order() {
   const [activeFilter, setActiveFilter] = useState('all');
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -416,7 +425,7 @@ export default function Order() {
                         <div className="w-full sm:w-24 md:w-32 flex-shrink-0">
                           {order.order_item?.[0]?.image ? (
                             <img
-                              src={`/uploads/products/${order.order_item[0].image}`}
+                              src={getImageUrl(order.order_item[0].image)}
                               alt={order.order_item[0].product_name || 'Product'}
                               className="w-full h-24 sm:h-32 object-contain rounded-lg border border-gray-200"
                             />
