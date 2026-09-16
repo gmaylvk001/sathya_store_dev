@@ -207,7 +207,7 @@ export default function CategoryCircleImageCarousel({ config }) {
 
                     {/* Image name displaying in the bottom of the image in red color */}
                     {item.imageName && (
-                      <span className="mt-2.5 text-center text-xs sm:text-sm font-semibold text-[#BC2121] line-clamp-2 px-1 leading-snug tracking-tight transition-colors duration-200 group-hover/item:text-[#9E1B1B]">
+                      <span className="mt-2.5 text-center text-xs sm:text-sm font-semibold text-[#BC2121] whitespace-nowrap overflow-hidden text-ellipsis w-full px-1 leading-snug tracking-tight transition-colors duration-200 group-hover/item:text-[#9E1B1B]">
                         {item.imageName}
                       </span>
                     )}

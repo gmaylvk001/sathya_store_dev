@@ -1187,7 +1187,7 @@ export default function HomeComponent() {
         return (
           <section className="pt-7 px-4 sm:px-6 md:px-6" id="features">
             <div className="max-w-7xl mx-auto px-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 text-center">
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-8 text-center">
                 {features.map((feature, index) => (
                   <div
                     key={index}
@@ -1546,7 +1546,7 @@ export default function HomeComponent() {
                     <motion.div
                       key={video._id}
                       whileHover={{ scale: 1.05 }}
-                      className="min-w-[320px]  shadow-md bg-white overflow-hidden"
+                      className="min-w-[280px] sm:min-w-[320px] shrink-0 shadow-md bg-white overflow-hidden"
                     >
                       {/* 👉 Thumbnail click = same as title click */}
                       <div
@@ -1583,7 +1583,7 @@ export default function HomeComponent() {
               {/* ✅ Modal for YouTube video */}
               {activeVideo && (
                 <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
-                  <div className="bg-white  overflow-hidden relative w-[90%] md:w-[700px] h-[400px]">
+                  <div className="bg-white  overflow-hidden relative w-[90%] md:w-[700px] aspect-video h-auto">
                     {/* Close Button */}
                     <button
                       className="absolute top-2 right-2 bg-black text-white rounded-full p-1"
