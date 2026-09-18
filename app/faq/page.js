@@ -13,7 +13,7 @@ export default function Dashboard() {
 
   return (
     <div>
-      
+
       <FeedbackComponent /> {/* Use the Home component here */}
     </div>
   );
