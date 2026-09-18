@@ -3,7 +3,7 @@
 import React, { useRef, useState, useEffect, useCallback, useId, memo } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { getCardOfferCategoryHref } from "@/lib/cardOffers/cardOfferNavigationHelper";
+import { getCardOfferCategoryHref, isExternalUrl } from "@/lib/cardOffers/cardOfferNavigationHelper";
 
 /**
  * Individual Card Offer item matching Image 1 styling:
@@ -28,11 +28,13 @@ const CardOfferItem = memo(function CardOfferItem({ card }) {
   }, [initialImg]);
 
   const targetHref = getCardOfferCategoryHref(card);
+  const isExternal = isExternalUrl(targetHref);
   const displayLabel = card?.title || card?.description || "Special Offer";
 
   return (
     <Link
       href={targetHref}
+      {...(isExternal ? { target: "_blank", rel: "noopener noreferrer" } : {})}
       className="group flex flex-col bg-white border border-gray-100 rounded-xl sm:rounded-2xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden w-full h-full focus:outline-none focus:ring-2 focus:ring-[#d72828]/50"
     >
       {/* Card Image Area with Fixed Aspect Ratio to prevent CLS */}
@@ -89,10 +91,13 @@ const CardOfferCategorySection = memo(function CardOfferCategorySection({
     const { scrollLeft, scrollWidth, clientWidth } = el;
     const maxScroll = Math.max(0, scrollWidth - clientWidth);
 
-    setCanScrollLeft(scrollLeft > 8);
-    setCanScrollRight(scrollLeft < maxScroll - 8);
+    // Treat tiny values <= 16px as no scroll (sub-pixel rounding / container margin offset)
+    const hasMeaningfulScroll = maxScroll > 16;
 
-    if (clientWidth > 0 && maxScroll > 0) {
+    setCanScrollLeft(hasMeaningfulScroll && scrollLeft > 8);
+    setCanScrollRight(hasMeaningfulScroll && scrollLeft < maxScroll - 8);
+
+    if (hasMeaningfulScroll && clientWidth > 0) {
       const calculatedPages = Math.max(1, Math.ceil(scrollWidth / clientWidth));
       setTotalPages(calculatedPages);
 

@@ -13,9 +13,56 @@ import {
 } from "@/lib/cardOffers/cardOfferNavigationHelper";
 import CardOfferCategorySection from "@/components/cardOffers/CardOfferCategorySection";
 
+// Helper to determine if an offer timer is active for the specified region
+function isTimerActiveForRegion(timer, currentRegion) {
+  if (!timer) return false;
+  const isDisplay =
+    (timer.timerDisplayStatus ? timer.timerDisplayStatus === "Yes" : true) &&
+    (timer.status ? timer.status === "active" : true);
+  if (!isDisplay) return false;
+
+  const now = Date.now();
+  const end = timer.endDate || timer.offer_end;
+  if (end && new Date(end).getTime() <= now) return false;
+
+  if (!currentRegion || currentRegion === "all") return true;
+
+  const regNorm = currentRegion.toLowerCase().replace(/[^a-z0-9]/g, "");
+
+  const stateAliases = {
+    kerala: ["kerala", "kl"],
+    tamilnadu: ["tamilnadu", "tamil nadu", "tn"],
+    karnataka: ["karnataka", "ka"],
+    andhra: ["andhra", "andhra pradesh", "ap"],
+    telangana: ["telangana", "ts", "tg"],
+  };
+
+  const currentAliases = stateAliases[regNorm] || [regNorm];
+
+  if (
+    timer.state === "all" ||
+    (Array.isArray(timer.offerViewStates) &&
+      timer.offerViewStates.some((s) => s.toLowerCase() === "all")) ||
+    (Array.isArray(timer.states) &&
+      timer.states.some((s) => s.toLowerCase() === "all"))
+  ) {
+    return true;
+  }
+
+  const timerStates = [
+    ...(Array.isArray(timer.offerViewStates) ? timer.offerViewStates : []),
+    ...(Array.isArray(timer.states) ? timer.states : []),
+    ...(typeof timer.state === "string" ? [timer.state] : []),
+  ].map((s) => s.toLowerCase().replace(/[^a-z0-9]/g, ""));
+
+  return currentAliases.some((alias) =>
+    timerStates.some((ts) => ts === alias.replace(/[^a-z0-9]/g, ""))
+  );
+}
+
 // Format date into ordinal format e.g. "Sep 8th to 10th, 2026"
 function formatOfferDateRange(startVal, endVal) {
-  if (!startVal && !endVal) return "Sep 8th to 10th, 2026";
+  if (!startVal && !endVal) return "Limited Time Offer";
   const s = startVal ? new Date(startVal) : null;
   const e = endVal ? new Date(endVal) : null;
 
@@ -68,33 +115,10 @@ function formatOfferDateRange(startVal, endVal) {
     return `Starts ${months[validS.getMonth()]} ${getOrdinal(validS.getDate())}, ${validS.getFullYear()}`;
   }
 
-  return "Sep 8th to 10th, 2026";
+  return "Limited Time Offer";
 }
 
-// Fallback card offers if none are uploaded in admin
-const FALLBACK_CARD_OFFERS = [
-  {
-    id: "gas-stove",
-    title: "GAS STOVE",
-    image: "/uploads/cardoffers/card-offer-1788935251002-Capture.PNG",
-    link: "/category/kitchen-appliances",
-  },
-  {
-    id: "chimney-offer",
-    title: "CHIMNEY OFFER",
-    image: "/uploads/cardoffers/card-offer-1788935251002-Capture.PNG",
-    link: "/category/kitchen-appliances",
-  },
-  {
-    id: "mixie-offer",
-    title: "MIXIE OFFER",
-    image: "/uploads/cardoffers/card-offer-1788935251002-Capture.PNG",
-    link: "/category/kitchen-appliances",
-  },
-];
-
-
-// Product Card for Super Offers
+// Product Card for Super Offers with robust fallback image handling
 function SuperOfferProductCard({ product, brandMap }) {
   const price = Number(product.price) || 0;
   const specialPrice = Number(product.special_price) || 0;
@@ -104,18 +128,29 @@ function SuperOfferProductCard({ product, brandMap }) {
     : 0;
   const displayPrice = hasDiscount ? specialPrice : price;
 
-  // const initialImg = product.images?.[0]
-  //   ? product.images[0].startsWith("http")
-  //     ? product.images[0]
-  //     : `/uploads/products/${product.images[0]}`
-  //   : "/uploads/sathya-header-logo.webp";
-  const tempURL = "https://www.sathya.store/img/product/";
-  const imagepathname = product.images?.[0] || "";
-  const initialImg = imagepathname
-    ? (imagepathname.startsWith("http") ? imagepathname : `${tempURL}${imagepathname.replace(/^\/?(uploads\/products\/)?/, "").replace(/^\/+/, "")}`)
+  const rawImage = product.images?.[0] || product.image || "";
+  const initialImg = rawImage
+    ? rawImage.startsWith("http")
+      ? rawImage
+      : rawImage.startsWith("/")
+        ? rawImage
+        : `/uploads/products/${rawImage}`
     : "/uploads/sathya-header-logo.webp";
 
   const [imgSrc, setImgSrc] = useState(initialImg);
+
+  useEffect(() => {
+    setImgSrc(initialImg);
+  }, [initialImg]);
+
+  const handleImageError = () => {
+    if (rawImage && !imgSrc.includes("sathya.store")) {
+      const cleanPath = rawImage.replace(/^\/?(uploads\/products\/)?/, "").replace(/^\/+/, "");
+      setImgSrc(`https://www.sathya.store/img/product/${cleanPath}`);
+    } else {
+      setImgSrc("/uploads/sathya-header-logo.webp");
+    }
+  };
 
   return (
     <div className="bg-white rounded-2xl border border-gray-200/80 shadow-[0_2px_8px_rgba(0,0,0,0.06)] hover:shadow-xl hover:border-red-200 transition-all duration-300 flex flex-col p-3 sm:p-4 w-full relative group">
@@ -139,7 +174,7 @@ function SuperOfferProductCard({ product, brandMap }) {
           fill
           className="object-contain p-2 group-hover:scale-105 transition-transform duration-300"
           sizes="(max-width: 640px) 240px, 270px"
-          onError={() => setImgSrc("/uploads/sathya-header-logo.webp")}
+          onError={handleImageError}
           unoptimized
         />
       </Link>
@@ -175,7 +210,7 @@ function SuperOfferProductCard({ product, brandMap }) {
 
       <div className="text-[11px] font-medium mb-3">
         {product.stock_status === "In Stock" ||
-          (product.quantity && product.quantity > 0) ? (
+        (product.quantity && product.quantity > 0) ? (
           <span className="text-green-600 font-semibold">In Stock</span>
         ) : (
           <span className="text-red-500 font-semibold">Out of Stock</span>
@@ -203,9 +238,11 @@ function SuperOffersContent() {
   const { region, selectedRegion } = useRegion();
 
   const [timer, setTimer] = useState(null);
+  const [timerLoading, setTimerLoading] = useState(true);
+  const [timerError, setTimerError] = useState(null);
+
   const [products, setProducts] = useState([]);
   const [brandMap, setBrandMap] = useState({});
-  const [loading, setLoading] = useState(true);
   const [offerStatus, setOfferStatus] = useState({
     status: "loading", // "loading" | "upcoming" | "countdown" | "live" | "ended"
     isLive: false,
@@ -217,72 +254,141 @@ function SuperOffersContent() {
     seconds: 0,
   });
 
-  // Extract slug parameters
-  const slugArray = Array.isArray(params?.slug) ? params.slug : [params?.slug];
+  // Extract slug parameters safely
+  const slugArray = Array.isArray(params?.slug)
+    ? params.slug
+    : typeof params?.slug === "string"
+      ? [params.slug]
+      : [];
   const urlOfferSlug = slugArray[slugArray.length - 1] || "";
-  const queryTimerId = searchParams.get("offer_timer_id");
+  const urlRegionSlug = slugArray.length > 1 ? slugArray[0] : "";
+  const queryTimerId = searchParams?.get("offer_timer_id") || null;
+  const activeRegion = urlRegionSlug || region || selectedRegion?.id || "kerala";
 
-  // Load offer details
+  // Derive dynamic fallback title from URL slug (e.g. "dhoni" -> "DHONI")
+  const derivedSlugTitle = useMemo(() => {
+    if (!urlOfferSlug) return "SPECIAL SUPER OFFER";
+    try {
+      const decoded = decodeURIComponent(urlOfferSlug);
+      return decoded.replace(/[-_]+/g, " ").toUpperCase();
+    } catch {
+      return urlOfferSlug.replace(/[-_]+/g, " ").toUpperCase();
+    }
+  }, [urlOfferSlug]);
+
+  // 1. Independent & immediate fetch for offer timer (does not block on products)
+  useEffect(() => {
+    let isMounted = true;
+    setTimerLoading(true);
+    setTimerError(null);
+
+    // Timeout safety guard so hero never gets stuck in loading forever
+    const timeoutId = setTimeout(() => {
+      if (isMounted && timerLoading) {
+        setTimerLoading(false);
+      }
+    }, 6000);
+
+    async function loadTimerData() {
+      try {
+        const res = await fetch("/api/offer-timer");
+        if (!res.ok) throw new Error("Failed to fetch offer timer");
+        const tData = await res.json();
+        const timers = tData?.data || [];
+
+        let matchedTimer = null;
+
+        // A. Match by queryTimerId if present
+        if (queryTimerId) {
+          matchedTimer = timers.find(
+            (t) =>
+              String(t.timerId) === String(queryTimerId) ||
+              String(t.custom_id) === String(queryTimerId) ||
+              String(t._id) === String(queryTimerId)
+          );
+        }
+
+        // B. Match by URL offer slug if not matched by ID
+        if (!matchedTimer && urlOfferSlug) {
+          const normOfferSlug = urlOfferSlug.toLowerCase().replace(/[^a-z0-9]/g, "");
+          const matchingBySlug = timers.filter((t) => {
+            const title = (t.offerTitle || t.offer_title || "")
+              .toLowerCase()
+              .replace(/[^a-z0-9]/g, "");
+            return title === normOfferSlug;
+          });
+
+          // Prefer matching timer active for current region
+          matchedTimer =
+            matchingBySlug.find((t) => isTimerActiveForRegion(t, activeRegion)) ||
+            matchingBySlug[0] ||
+            null;
+        }
+
+        // C. If still not matched, check if any timer matches active region
+        if (!matchedTimer && timers.length > 0) {
+          const regionActiveTimers = timers.filter((t) =>
+            isTimerActiveForRegion(t, activeRegion)
+          );
+          // Only fallback if the URL slug is generic/unspecified
+          if (!urlOfferSlug || urlOfferSlug === "all" || urlOfferSlug === activeRegion) {
+            matchedTimer = regionActiveTimers[0] || timers[0];
+          }
+        }
+
+        if (isMounted) {
+          if (matchedTimer) {
+            setTimer(matchedTimer);
+            const title = matchedTimer.offerTitle || matchedTimer.offer_title;
+            if (title) {
+              document.title = `${title} | Sathya Store`;
+            }
+          } else {
+            setTimerError("Offer promotion not found or expired for this region.");
+          }
+        }
+      } catch (err) {
+        console.error("Error loading offer timer:", err);
+        if (isMounted) {
+          setTimerError("Unable to load offer details. Please try again.");
+        }
+      } finally {
+        if (isMounted) {
+          setTimerLoading(false);
+          clearTimeout(timeoutId);
+        }
+      }
+    }
+
+    loadTimerData();
+    return () => {
+      isMounted = false;
+      clearTimeout(timeoutId);
+    };
+  }, [queryTimerId, urlOfferSlug, activeRegion]);
+
+  // 2. Background fetch for category products and brands
   useEffect(() => {
     let isMounted = true;
 
-    async function loadData() {
+    async function loadProductsAndBrands() {
       try {
-        setLoading(true);
-
-        const [timersRes, productsRes, brandRes] = await Promise.allSettled([
-          fetch("/api/offer-timer"),
+        const [productsRes, brandRes] = await Promise.allSettled([
           fetch("/api/categoryproduct/settings"),
           fetch("/api/brand"),
         ]);
 
-        let matchedTimer = null;
-        if (timersRes.status === "fulfilled" && timersRes.value.ok) {
-          const tData = await timersRes.value.json();
-          const timers = tData?.data || [];
-
-          if (queryTimerId) {
-            matchedTimer = timers.find(
-              (t) =>
-                String(t.timerId) === String(queryTimerId) ||
-                String(t.custom_id) === String(queryTimerId) ||
-                String(t._id) === String(queryTimerId)
-            );
-          }
-
-          if (!matchedTimer && urlOfferSlug) {
-            matchedTimer = timers.find((t) => {
-              const s = (t.offerTitle || t.offer_title || "")
-                .toLowerCase()
-                .replace(/[^a-z0-9]+/g, "-");
-              return s === urlOfferSlug.toLowerCase();
-            });
-          }
-
-          if (!matchedTimer && timers.length > 0) {
-            matchedTimer = timers[0];
-          }
-        }
-
-        if (isMounted && matchedTimer) {
-          setTimer(matchedTimer);
-          const title = matchedTimer.offerTitle || matchedTimer.offer_title;
-          if (title) {
-            document.title = `${title} | Sathya Store`;
-          }
-        }
-
-        // Brands
-        let bMap = {};
+        // Brands map
         if (brandRes.status === "fulfilled" && brandRes.value.ok) {
           const bData = await brandRes.value.json();
           if (bData?.data && Array.isArray(bData.data)) {
+            const bMap = {};
             bData.data.forEach((b) => {
               if (b?._id) bMap[b._id] = b.brand_name;
             });
+            if (isMounted) setBrandMap(bMap);
           }
         }
-        if (isMounted) setBrandMap(bMap);
 
         // Products
         if (productsRes.status === "fulfilled" && productsRes.value.ok) {
@@ -293,19 +399,17 @@ function SuperOffersContent() {
           }
         }
       } catch (err) {
-        console.error("Error loading super offer:", err);
-      } finally {
-        if (isMounted) setLoading(false);
+        console.error("Error loading background products/brands:", err);
       }
     }
 
-    loadData();
+    loadProductsAndBrands();
     return () => {
       isMounted = false;
     };
-  }, [queryTimerId, urlOfferSlug]);
+  }, []);
 
-  // Live Countdown & Offer Status Calculator
+  // 3. Live Countdown & Offer Status Calculator
   useEffect(() => {
     if (!timer) return;
 
@@ -338,7 +442,10 @@ function SuperOffersContent() {
       }
 
       // 2. Active / Live (start time reached and not yet ended)
-      if ((startMs !== null && now >= startMs) || (startMs === null && endMs !== null && now < endMs)) {
+      if (
+        (startMs !== null && now >= startMs) ||
+        (startMs === null && endMs !== null && now < endMs)
+      ) {
         setOfferStatus({
           status: "live",
           isLive: true,
@@ -408,18 +515,21 @@ function SuperOffersContent() {
     return () => clearInterval(interval);
   }, [timer]);
 
+  // Clean title & subtitle without hardcoded fallback names
   const displayTitle =
-    timer?.offerTitle || timer?.offer_title || "FULL MOON SALE";
+    timer?.offerTitle || timer?.offer_title || derivedSlugTitle;
   const displaySubtitle =
     timer?.offerHeading ||
     timer?.offerDescription ||
-    timer?.offerTitle ||
-    "Full Moon Sale";
+    (timer ? (timer.offerTitle || timer.offer_title) : "Exclusive Limited Time Offer");
 
-  const cardOffersList =
-    Array.isArray(timer?.card_offers) && timer.card_offers.length > 0
-      ? timer.card_offers.filter((c) => c.status !== "inactive")
-      : FALLBACK_CARD_OFFERS;
+  // Filter valid active card offers; do not use fake hardcoded fallback offers
+  const cardOffersList = useMemo(() => {
+    if (Array.isArray(timer?.card_offers) && timer.card_offers.length > 0) {
+      return timer.card_offers.filter((c) => c.status !== "inactive");
+    }
+    return [];
+  }, [timer]);
 
   const categorizedOfferGroups = useMemo(() => {
     return groupCardOffersByCategory(cardOffersList);
@@ -434,7 +544,7 @@ function SuperOffersContent() {
 
   return (
     <div className="min-h-screen bg-white text-gray-800 pb-20 overflow-x-clip">
-      {/* Top Titles (Matching Reference Image 1) */}
+      {/* Top Titles */}
       <div className="py-8 px-4 text-center">
         <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold uppercase tracking-wide text-gray-900">
           {displayTitle}
@@ -444,11 +554,11 @@ function SuperOffersContent() {
         </p>
       </div>
 
-      {/* Main Hero Section (Black Background Matching Reference Image 1) */}
+      {/* Main Hero Section (Black Background) */}
       <section className="w-full bg-black py-10 sm:py-14 px-4 sm:px-8 text-center text-white relative overflow-hidden">
         <div className="max-w-4xl mx-auto flex flex-col items-center">
           {/* Brief loading state if timer is still fetching */}
-          {loading && !timer && (
+          {timerLoading && (
             <div className="py-6 flex flex-col items-center justify-center space-y-3">
               <div className="animate-spin rounded-full h-8 w-8 border-2 border-yellow-400 border-t-transparent" />
               <div className="text-gray-400 text-xs font-medium uppercase tracking-wider">
@@ -457,8 +567,32 @@ function SuperOffersContent() {
             </div>
           )}
 
+          {/* Fallback state if timer is not found / expired / API unavailable */}
+          {!timerLoading && !timer && (
+            <div className="max-w-xl mx-auto my-3 space-y-3">
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gray-800 border border-gray-700 text-gray-400 font-bold text-xs sm:text-sm uppercase tracking-widest mb-1">
+                <span>EXCLUSIVE DEALS</span>
+              </div>
+              <h2 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-white tracking-wide uppercase">
+                {derivedSlugTitle}
+              </h2>
+              <p className="text-gray-400 text-xs sm:text-sm max-w-md mx-auto leading-relaxed">
+                {timerError ||
+                  "This limited-time promotional campaign is currently not active in your selected region. Browse our wide range of category deals and special discounts below!"}
+              </p>
+              <div className="pt-2">
+                <Link
+                  href="/deals-offer"
+                  className="inline-block bg-[#d72828] hover:bg-red-700 active:scale-95 text-white font-bold text-xs sm:text-sm px-6 py-2 rounded-lg transition-all shadow-md"
+                >
+                  View All Deals
+                </Link>
+              </div>
+            </div>
+          )}
+
           {/* STATE 1: COUNTDOWN (Only within 5 hours before start) */}
-          {offerStatus.isCountdown && (
+          {!timerLoading && timer && offerStatus.isCountdown && (
             <>
               {/* Sale Status Pill */}
               <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-yellow-400/10 border border-yellow-400/30 text-yellow-400 font-bold text-xs sm:text-sm uppercase tracking-widest mb-4">
@@ -524,7 +658,7 @@ function SuperOffersContent() {
           )}
 
           {/* STATE 2: UPCOMING (> 5 hours before start) */}
-          {offerStatus.isUpcoming && (
+          {!timerLoading && timer && offerStatus.isUpcoming && (
             <>
               {/* Status Pill */}
               <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-yellow-400/10 border border-yellow-400/30 text-yellow-400 font-bold text-xs sm:text-sm uppercase tracking-widest mb-4">
@@ -538,7 +672,8 @@ function SuperOffersContent() {
                   {timer?.offerHeading || "GET READY FOR MEGA OFFERS!"}
                 </h2>
                 <p className="text-gray-300 text-xs sm:text-sm md:text-base font-normal max-w-lg mx-auto leading-relaxed">
-                  {timer?.offerDescription || "Exclusive discounts and limited-time savings will go live soon. Stay tuned!"}
+                  {timer?.offerDescription ||
+                    "Exclusive discounts and limited-time savings will go live soon. Stay tuned!"}
                 </p>
                 <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#131d33] border border-blue-900/50 text-gray-300 text-xs font-medium">
                   <span className="text-yellow-400">⏰</span>
@@ -556,7 +691,7 @@ function SuperOffersContent() {
           )}
 
           {/* STATE 3: LIVE / ACTIVE (From start time until end date) */}
-          {offerStatus.isLive && (
+          {!timerLoading && timer && offerStatus.isLive && (
             <>
               {/* Sale Status Pill */}
               <div className="inline-flex items-center gap-2.5 px-5 py-2 rounded-full bg-red-600/20 border border-red-500/40 text-yellow-400 font-extrabold text-xs sm:text-sm uppercase tracking-widest mb-4 shadow-sm">
@@ -573,7 +708,8 @@ function SuperOffersContent() {
                   {timer?.offerHeading || "EXCLUSIVE DEALS ARE UNLOCKED!"}
                 </h2>
                 <p className="text-gray-300 text-xs sm:text-sm md:text-base font-normal max-w-lg mx-auto leading-relaxed">
-                  {timer?.offerDescription || "Shop limited-time mega discounts on top brands and appliances. Limited stock available!"}
+                  {timer?.offerDescription ||
+                    "Shop limited-time mega discounts on top brands and appliances. Limited stock available!"}
                 </p>
               </div>
 
@@ -600,7 +736,7 @@ function SuperOffersContent() {
           )}
 
           {/* STATE 4: ENDED (Past end date) */}
-          {offerStatus.isEnded && (
+          {!timerLoading && timer && offerStatus.isEnded && (
             <>
               {/* Status Pill */}
               <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gray-800 border border-gray-700 text-gray-400 font-bold text-xs sm:text-sm uppercase tracking-widest mb-4">
@@ -631,7 +767,7 @@ function SuperOffersContent() {
 
       {/* Offers Showcase & Products Container */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 space-y-14">
-        {/* Category-Wise Card Offers Carousels matching Image 1 */}
+        {/* Category-Wise Card Offers Carousels */}
         {categorizedOfferGroups.length > 0 && (
           <div className="space-y-6 sm:space-y-10">
             {categorizedOfferGroups.map((group) => (
@@ -641,6 +777,23 @@ function SuperOffersContent() {
                 cards={group.cards}
               />
             ))}
+          </div>
+        )}
+
+        {/* Empty state if timer is loaded but no card offers exist */}
+        {!timerLoading && timer && categorizedOfferGroups.length === 0 && (
+          <div className="w-full bg-gray-50/80 border border-dashed border-gray-300 rounded-xl sm:rounded-2xl p-6 sm:p-8 text-center my-4">
+            <div className="w-12 h-12 rounded-full bg-red-50 border border-red-100 flex items-center justify-center text-[#d72828] mx-auto mb-3 shadow-xs">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+              </svg>
+            </div>
+            <h3 className="text-sm sm:text-base font-bold text-gray-800 tracking-tight mb-1">
+              No Card Offers Available For This Promotion
+            </h3>
+            <p className="text-xs sm:text-sm text-gray-500 max-w-md mx-auto leading-relaxed">
+              Card discounts and category banners for this promotion are currently being updated. Check our hot product deals below!
+            </p>
           </div>
         )}
 

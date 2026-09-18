@@ -72,7 +72,7 @@ export default function DealsOfferModal({
     null;
 
   const resolvedImg = resolveImageUrl(rawImg, "topbanner");
-  const fallbackImg = "/uploads/topbanner/deals-popup-1788955833206-Screenshot_2026-09-09_173902.png";
+  const fallbackImg = "/uploads/topbanner/deals-popup-1789045708272-Screenshot_2026-09-09_173902.png";
   const displayImg = imgError || !resolvedImg ? fallbackImg : resolvedImg;
 
   // Resolve title
@@ -80,7 +80,7 @@ export default function DealsOfferModal({
     timer.offerHeading ||
     timer.offerTitle ||
     timer.offer_title ||
-    "FULL MOON SALE 3";
+    "Special Deals & Offers";
 
   return (
     <div

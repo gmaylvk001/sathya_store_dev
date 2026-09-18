@@ -9,7 +9,7 @@ import AddToWishlistButton from "@/components/ProductCard";
 import { useRegion } from "@/context/RegionContext";
 import { useHeaderdetails } from "@/context/HeaderContext";
 import DealsOfferModal from "@/components/deals-offer/DealsOfferModal";
-import { getCardOfferCategoryHref } from "@/lib/cardOffers/cardOfferNavigationHelper";
+import { getCardOfferCategoryHref, isExternalUrl } from "@/lib/cardOffers/cardOfferNavigationHelper";
 
 // Helper to determine destination URL for any card offer
 export function getCardOfferHref(card) {
@@ -131,11 +131,17 @@ function AdminCardOfferItem({ card }) {
 
   const [imgSrc, setImgSrc] = useState(initialImg);
 
+  useEffect(() => {
+    setImgSrc(initialImg);
+  }, [initialImg]);
+
   const targetHref = getCardOfferHref(card);
+  const isExternal = isExternalUrl(targetHref);
 
   return (
     <Link
       href={targetHref}
+      {...(isExternal ? { target: "_blank", rel: "noopener noreferrer" } : {})}
       className="group flex flex-col bg-white border border-gray-200/90 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden rounded-sm"
     >
       {/* Banner Image Container */}
@@ -341,12 +347,10 @@ export default function DealsOfferPage() {
             });
 
             if (isMounted) {
-              setActiveOfferTimers(
-                matchedTimers.length > 0 ? matchedTimers : timers
-              );
+              setActiveOfferTimers(matchedTimers);
 
               // Ensure the latest uploaded banner from top active offer shows as header background
-              const latestTimer = matchedTimers[0] || timers[0];
+              const latestTimer = matchedTimers[0] || null;
               if (latestTimer) {
                 const latestBanner =
                   latestTimer.topBanner || latestTimer.top_banner_url || null;
@@ -550,6 +554,24 @@ export default function DealsOfferPage() {
         )}
 
         {/* Active Offer Sections: Rendered line by line, sorted latest on top */}
+        {!loading &&
+          !error &&
+          activeOfferTimers.length === 0 && (
+            <div className="w-full bg-gray-50/80 border border-gray-200/90 rounded-xl sm:rounded-2xl p-6 sm:p-8 text-center my-2">
+              <div className="w-12 h-12 rounded-full bg-red-50 border border-red-100 flex items-center justify-center text-[#d72828] mx-auto mb-3 shadow-xs">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h3 className="text-base sm:text-lg font-bold text-gray-800 tracking-tight mb-1">
+                No Active Promotions In This Region
+              </h3>
+              <p className="text-xs sm:text-sm text-gray-500 max-w-md mx-auto leading-relaxed">
+                There are currently no active promotional campaigns in your selected location. Browse our wide range of category deals below!
+              </p>
+            </div>
+          )}
+
         {!loading &&
           !error &&
           activeOfferTimers.map((timer) => {
