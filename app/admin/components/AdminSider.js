@@ -88,6 +88,7 @@ const menuItems = [
     submenu: [
       { icon: "mdi:timer-outline", label: "Offer Timer", link: "offer-timer", dotColor: "bg-yellow-500" },
       { icon: "mdi:sparkles", label: "Festival Effects", link: "festival-effects", dotColor: "bg-pink-500" },
+      { icon: "mdi:rocket-launch-outline", label: "New Product Launch", link: "design/new-product-launch", dotColor: "bg-blue-500" },
     ],
   },
   {
