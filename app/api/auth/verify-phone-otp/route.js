@@ -1,5 +1,6 @@
 import connectDB from "@/lib/db";
 import User from "@/models/User";
+import Otp from "@/models/Otp";
 import jwt from "jsonwebtoken";
 import Cart from "@/models/ecom_cart_info";
 import Offer from "@/models/ecom_offer_info";
@@ -25,16 +26,45 @@ export async function POST(req) {
       );
     }
 
-    // TODO: Replace with real OTP verification when API key is available
-    // For now, only accept hardcoded OTP "1234"
-    if (otp !== "1234") {
-      return NextResponse.json(
-        { success: false, error: "Invalid OTP. Please try again." },
-        { status: 400 }
-      );
-    }
-
     await connectDB();
+
+    // Development test number bypass (9999999999 with 1234)
+    const isTestBypass =
+      process.env.NODE_ENV === "development" &&
+      mobile === "9999999999" &&
+      String(otp).trim() === "1234";
+
+    if (!isTestBypass) {
+      // Find the latest OTP record for this mobile
+      const otpRecord = await Otp.findOne({ mobile }).sort({ createdAt: -1 });
+
+      if (!otpRecord) {
+        return NextResponse.json(
+          { success: false, error: "OTP expired or not requested. Please request a new OTP." },
+          { status: 400 }
+        );
+      }
+
+      // Check if OTP has expired
+      if (new Date() > otpRecord.expiresAt) {
+        await Otp.deleteOne({ _id: otpRecord._id });
+        return NextResponse.json(
+          { success: false, error: "OTP has expired. Please request a new OTP." },
+          { status: 400 }
+        );
+      }
+
+      // Check if OTP matches
+      if (String(otpRecord.otp).trim() !== String(otp).trim()) {
+        return NextResponse.json(
+          { success: false, error: "Invalid OTP. Please try again." },
+          { status: 400 }
+        );
+      }
+
+      // Clean up verified OTP to prevent replay
+      await Otp.deleteOne({ _id: otpRecord._id });
+    }
 
     // Check if user with this mobile already exists
     let user = await User.findOne({ mobile });

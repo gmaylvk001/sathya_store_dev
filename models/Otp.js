@@ -1,9 +1,13 @@
 import mongoose from "mongoose";
 
-const OtpSchema = new mongoose.Schema({
-  email: { type: String, required: true },
-  otp: { type: String, required: true },
-  expiresAt: { type: Date, required: true },
-});
+const OtpSchema = new mongoose.Schema(
+  {
+    mobile: { type: String, default: null, index: true },
+    email: { type: String, default: null, index: true },
+    otp: { type: String, required: true },
+    expiresAt: { type: Date, required: true, index: { expires: 0 } },
+  },
+  { timestamps: true }
+);
 
 export default mongoose.models.Otp || mongoose.model("Otp", OtpSchema);

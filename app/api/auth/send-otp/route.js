@@ -1,5 +1,7 @@
 import connectDB from "@/lib/db";
 import User from "@/models/User";
+import Otp from "@/models/Otp";
+import { sendRobeetaOtp } from "@/lib/sms";
 import { NextResponse } from "next/server";
 
 export async function POST(req) {
@@ -16,16 +18,32 @@ export async function POST(req) {
 
     await connectDB();
 
-    // TODO: Replace with real SMS OTP API when key is available
-    // For now, OTP is hardcoded as 1234
-    const otp = "1234";
+    // Generate random 4-digit OTP (1000 - 9999)
+    const otp = Math.floor(1000 + Math.random() * 9000).toString();
 
-    console.log(`[OTP] Sending OTP ${otp} to mobile ${mobile}`);
+    const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes validity
 
-    // In a real implementation, you would:
-    // 1. Generate a random 4-6 digit OTP
-    // 2. Store it in DB or cache (Redis) with expiry (e.g., 5 minutes)
-    // 3. Send it via SMS API (MSG91, Twilio, etc.)
+    // Upsert OTP record for this mobile
+    await Otp.findOneAndUpdate(
+      { mobile },
+      { otp, expiresAt },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
+
+    console.log(`[OTP] Mobile: ${mobile} | Generated OTP: ${otp}`);
+
+    // Dispatch SMS via Robeeta SMS Gateway
+    const smsResult = await sendRobeetaOtp(mobile, otp);
+    if (!smsResult.success) {
+      console.warn("[OTP] Robeeta dispatch error:", smsResult.error || smsResult.response);
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Failed to send SMS to your mobile number. Please try again.",
+        },
+        { status: 502 }
+      );
+    }
 
     return NextResponse.json({
       success: true,
