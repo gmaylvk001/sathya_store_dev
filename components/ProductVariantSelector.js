@@ -32,25 +32,32 @@ export default function ProductVariantSelector({ variantGroup, currentProductId,
   if (!variantGroup?.products?.length || variantGroup.products.length < 2) return null;
   if (!variantGroup.attributes?.length) return null;
 
-  const attributeNames = variantGroup.attributes.map((attr) => attr.name).filter(Boolean);
-  const products = variantGroup.products
-    .filter((p) => p.status !== "Inactive")
+  const attributeNames = (variantGroup.attributes || []).map((attr) => attr?.name).filter(Boolean);
+  if (!attributeNames.length) return null;
+
+  const products = (variantGroup.products || [])
+    .filter((p) => p && String(p.status || "").trim().toLowerCase() !== "inactive")
     .map((product) => ({
       ...product,
-      values: normalizeProductValues(product.values, attributeNames),
+      values: normalizeProductValues(product?.values, attributeNames),
     }));
 
+  if (!products.length) return null;
+
   const current =
-    products.find((p) => String(p._id) === String(currentProductId)) || products[0];
+    products.find((p) => p && String(p._id) === String(currentProductId)) || products[0];
   const selected = normalizeSelected(current?.values, attributeNames);
 
   return (
     <div className="mt-1 mb-2 space-y-2">
       {variantGroup.attributes.map((attr) => {
+        if (!attr?.name) return null;
         const values = uniqueVariantValues(products, attr.name);
         if (!values.length) return null;
         const metaByValue = Object.fromEntries(
-          (attr.valuesMeta || []).map((meta) => [variantValue(meta.value), meta])
+          (attr.valuesMeta || [])
+            .filter((meta) => meta && meta.value != null)
+            .map((meta) => [variantValue(meta.value), meta])
         );
         return (
           <div key={attr.name}>
@@ -66,11 +73,33 @@ export default function ProductVariantSelector({ variantGroup, currentProductId,
                 );
                 const isActive = variantValue(selected[attr.name]) === value;
                 const meta = metaByValue[value] || {};
+                const isOptionDisabled = !available;
+
+                let buttonClass = "flex items-center gap-2 px-3 py-1.5 rounded-md border text-sm transition ";
+                if (isActive) {
+                  if (available) {
+                    buttonClass += "border-[#d72828] bg-red-50 text-[#d72828] font-semibold";
+                  } else {
+                    buttonClass += "border-[#d72828] bg-gray-100 text-gray-400 font-semibold cursor-not-allowed line-through";
+                  }
+                } else if (available) {
+                  buttonClass += "border-gray-300 bg-white text-gray-800 hover:border-red-400 hover:text-[#d72828] cursor-pointer";
+                } else {
+                  buttonClass += "border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed line-through";
+                }
+
+                let titleText = value;
+                if (!available) {
+                  titleText = isActive
+                    ? `${value} (Out of Stock)`
+                    : "Out of stock or not available with the selected options";
+                }
+
                 return (
                   <button
                     key={value}
                     type="button"
-                    disabled={!available}
+                    disabled={isOptionDisabled}
                     onClick={() => {
                       if (!available) return;
                       const nextSelected = { ...selected, [attr.name]: value };
@@ -80,29 +109,23 @@ export default function ProductVariantSelector({ variantGroup, currentProductId,
                         attributeNames,
                         attr.name
                       );
-                      if (match) onSelect(match);
+                      if (match && typeof onSelect === "function") onSelect(match);
                     }}
-                    className={`flex items-center gap-2 px-3 py-1.5 rounded-md border text-sm transition ${
-                      isActive
-                        ? "border-[#d72828] bg-red-50 text-[#d72828] font-semibold"
-                        : available
-                          ? "border-gray-300 bg-white text-gray-800 hover:border-red-400"
-                          : "border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed line-through"
-                    }`}
-                    title={
-                      !available
-                        ? "Out of stock or not available with the selected options"
-                        : value
-                    }
+                    className={buttonClass}
+                    title={titleText}
                   >
                     {attr.type === "color" && meta.colorHex && (
                       <span
-                        className="w-4 h-4 rounded-full border border-gray-300"
+                        className={`w-4 h-4 rounded-full border border-gray-300 ${isOptionDisabled ? "opacity-50" : ""}`}
                         style={{ backgroundColor: meta.colorHex }}
                       />
                     )}
                     {meta.image && (
-                      <img src={resolveImage(meta.image)} alt="" className="w-5 h-5 object-contain" />
+                      <img
+                        src={resolveImage(meta.image)}
+                        alt=""
+                        className={`w-5 h-5 object-contain ${isOptionDisabled ? "opacity-50" : ""}`}
+                      />
                     )}
                     <span>{value}</span>
                   </button>
