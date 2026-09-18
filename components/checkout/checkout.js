@@ -706,7 +706,7 @@ export default function CheckoutPage() {
               promotion_discount_applied: appliedCoupon ? (orderSummary.discount || 0) : 0,
 
               customer_comments: comments, payment_method: paymentMethod, payment_type: paymentMode,
-              order_status: 'pending',
+              order_status: 'payment_initialized',
               delivery_type: formData.deliveryType === 'store' ? 'store_pickup' : 'home',
               pickup_store: pickupStoreName,
               store_id: formData.deliveryType === 'store' ? formData.selectedStore : null,

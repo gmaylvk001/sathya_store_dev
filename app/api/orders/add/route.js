@@ -26,9 +26,15 @@ function mapDeliveryType(value) {
   return "home";
 }
 
-function mapOrderStatus(value) {
+function mapOrderStatus(value, payment_status) {
+  const paymentKey = String(payment_status || "").toLowerCase().replace(/[_-]+/g, " ").trim();
+  if (paymentKey === "payment initialized" || paymentKey === "payment initiated") {
+    return "Payment Initiated";
+  }
   if (value && ORDER_STATUS_ENUM.includes(value)) return value;
-  if (String(value || "").toLowerCase() === "payment_initialized") return "Payment Initiated";
+  if (String(value || "").toLowerCase().replace(/[_-]+/g, " ").trim() === "payment initialized") {
+    return "Payment Initiated";
+  }
   return "pending";
 }
 
@@ -215,7 +221,7 @@ export async function POST(req) {
       : body.region || "tamilnadu";
     const resolvedStoreId = isKarnatakaOrder ? "unilet" : store_id || null;
 
-    const mappedStatus = mapOrderStatus(order_status);
+    const mappedStatus = mapOrderStatus(order_status, payment_status);
     const mappedDelivery = mapDeliveryType(delivery_type);
     const baseOrderNumber = stringify(order_number) || `ORD${Date.now()}`;
     const detailsList = Array.isArray(order_details) ? order_details : [];

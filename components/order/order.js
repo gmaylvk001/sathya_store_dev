@@ -171,6 +171,7 @@ export default function Order() {
       "order placed": "bg-cyan-100 text-cyan-800",
       failure: "bg-red-100 text-red-800",
       payment_initialized: "bg-slate-100 text-slate-800",
+      "payment initiated": "bg-slate-100 text-slate-800",
       "order accepted": "bg-sky-100 text-sky-800",
       complete: "bg-green-100 text-green-800",
       ordered: "bg-blue-100 text-blue-800",
@@ -183,6 +184,7 @@ export default function Order() {
       "order placed": "Order Placed",
       failure: "Failure",
       payment_initialized: "payment_initialized",
+      "payment initiated": "Payment Initiated",
       "order accepted": "Order Accepted",
       complete: "Complete",
       ordered: "ordered",
@@ -291,15 +293,20 @@ export default function Order() {
       {/* Mobile Header */}
       <div className="lg:hidden bg-white py-4 px-4 shadow-sm flex items-center justify-between gap-3">
         <h2 className="text-xl font-bold text-gray-800">My Orders</h2>
-        <button
-          type="button"
-          onClick={handleFetchExistOrders}
-          disabled={fetchingOrders}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-100 text-blue-700 rounded-full text-xs font-medium disabled:opacity-50"
-        >
-          <FiRefreshCw className={fetchingOrders ? "animate-spin" : ""} />
-          {fetchingOrders ? "Fetching..." : "Fetch"}
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={handleFetchExistOrders}
+            disabled={fetchingOrders}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-100 text-blue-700 rounded-full text-xs font-medium disabled:opacity-50"
+          >
+            <FiRefreshCw className={fetchingOrders ? "animate-spin" : ""} />
+            {fetchingOrders ? "Fetching..." : "Fetch"}
+          </button>
+          <span className="inline-flex items-center px-3 py-1.5 bg-emerald-100 text-emerald-700 rounded-full text-xs font-medium">
+            LatesOrdersFetched
+          </span>
+        </div>
       </div>
       
       {/* Desktop Header */}
@@ -338,16 +345,21 @@ export default function Order() {
             <div className="bg-white p-4 sm:p-6 rounded-xl border border-gray-200 hover:border-red-600 transition-all duration-300 shadow-sm">
               <div className="flex items-center justify-between gap-3 mb-4 sm:mb-6">
                 <h3 className="text-lg font-semibold text-gray-800">Your orders</h3>
-                <button
-                  type="button"
-                  onClick={handleFetchExistOrders}
-                  disabled={fetchingOrders}
-                  className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-100 text-blue-700 rounded-full text-sm font-medium hover:bg-blue-200 disabled:opacity-50"
-                  title="Fetch exist orders"
-                >
-                  <FiRefreshCw className={fetchingOrders ? "animate-spin" : ""} />
-                  {fetchingOrders ? "Fetching..." : "Fetch"}
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleFetchExistOrders}
+                    disabled={fetchingOrders}
+                    className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-100 text-blue-700 rounded-full text-sm font-medium hover:bg-blue-200 disabled:opacity-50"
+                    title="Fetch exist orders"
+                  >
+                    <FiRefreshCw className={fetchingOrders ? "animate-spin" : ""} />
+                    {fetchingOrders ? "Fetching..." : "Fetch"}
+                  </button>
+                  <span className="inline-flex items-center px-3 py-1.5 bg-emerald-100 text-emerald-700 rounded-full text-sm font-medium">
+                    LatesOrdersFetched
+                  </span>
+                </div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4 sm:mb-6">
                 <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
@@ -466,7 +478,7 @@ export default function Order() {
                                 {statusKey === "shipped" ? <FiTruck className="mr-1 text-xs" /> : null}
                                 {statusKey === "cancelled" || statusKey === "failure" ? <FiXCircle className="mr-1 text-xs" /> : null}
                                 {statusKey === "billed" || statusKey === "complete" || statusKey === "order accepted" ? <FiCheckCircle className="mr-1 text-xs" /> : null}
-                                {statusKey === "pending" || statusKey === "payment_initialized" || statusKey === "order placed" || statusKey === "ordered" ? <FiClock className="mr-1 text-xs" /> : null}
+                                {statusKey === "pending" || statusKey === "payment_initialized" || statusKey === "payment initiated" || statusKey === "order placed" || statusKey === "ordered" ? <FiClock className="mr-1 text-xs" /> : null}
                                 {getStatusBadge(order.order_status).label}
                               </span>
                             </div>
