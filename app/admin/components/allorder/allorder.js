@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
@@ -483,61 +483,8 @@ const OrdersTable = () => {
 
                       <td className="p-2 border">{o.order_number}</td>
 
-                      {/* Status dropdown */}
-                      <td className="p-2 border">
-                        <select
-                          value={o.order_status}
-                          onChange={async (e) => {
-                            const newStatus = e.target.value;
-                            const prevStatus = o.order_status;
-
-                            try {
-                              const res = await fetch(`/api/orders_new/${o._id}`, {
-                                method: "PUT",
-                                headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify({ status: newStatus }),
-                              });
-
-                              if (!res.ok) throw new Error();
-
-                              toast.success("Order Status updated successfully");
-
-                              setOrders((prev) =>
-                                prev.map((ord) =>
-                                  ord._id === o._id
-                                    ? { ...ord, order_status: newStatus }
-                                    : ord
-                                )
-                              );
-
-                              // Send cancellation email if status changed to cancelled
-                              if (newStatus === "Cancelled") {
-                                try {
-                                  await sendCancellationEmail(o);
-                                  toast.success("Cancellation email sent successfully!");
-                                } catch (error) {
-                                  toast.error("Failed to send cancellation email");
-                                }
-                              }
-
-                              // Send admin notification for any status change
-                              try {
-                                await sendAdminNotificationEmail(o, prevStatus, newStatus);
-                              } catch (error) {
-                                console.error("Admin notification failed:", error);
-                              }
-                            } catch (err) {
-                              toast.error("Failed to update status");
-                              e.target.value = prevStatus;
-                            }
-                          }}
-                          className="border px-2 py-1 rounded-md text-sm"
-                        >
-                          {ORDER_STATUSES.map((value) => (
-                            <option key={value} value={value}>{value}</option>
-                          ))}
-                        </select>
-                      </td>
+                      {/* Status text */}
+                      <td className="p-2 border capitalize">{o.order_status}</td>
 
                       <td className="p-2 border">
                         {o.delivery_date
