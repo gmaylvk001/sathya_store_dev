@@ -50,15 +50,16 @@ function stringifyValue(value) {
 }
 
 function compactKey(name) {
-  return String(name || "").toLowerCase().trim().replace(/[\s_]/g, "");
+  return String(name || "").toLowerCase().trim().replace(/[\s_\-]/g, "");
 }
 
 function buildHeaderMap(row) {
   const map = {};
   for (const header of Object.keys(row || {})) {
-    const normalized = String(header).toLowerCase().trim().replace(/\s+/g, "_");
+    const normalized = String(header).toLowerCase().trim().replace(/[\s\-]+/g, "_");
     map[normalized] = header;
     map[normalized.replace(/_/g, "")] = header;
+    map[compactKey(header)] = header;
   }
   return map;
 }
@@ -71,8 +72,8 @@ function fieldAliases(field) {
   if (field === "ModeReference") aliases.push("mode_reference");
   if (field === "ReferenceDate") aliases.push("reference_date", "referencedate");
   if (field === "ModeValue") aliases.push("mode_value");
-  if (field === "created_at") aliases.push("created", "createdat", "created_on");
-  if (field === "updated_at") aliases.push("updated", "updatedat", "updated_on");
+  if (field === "created_at") aliases.push("created", "createdat", "created_on", "created-at");
+  if (field === "updated_at") aliases.push("updated", "updatedat", "updated_on", "updated-at");
   if (field === "payment_date") aliases.push("paymentdate", "payment_on");
   return aliases;
 }

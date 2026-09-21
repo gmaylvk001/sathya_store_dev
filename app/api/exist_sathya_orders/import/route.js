@@ -34,7 +34,7 @@ function stringifyValue(value) {
 }
 
 function compactKey(name) {
-  return String(name || "").toLowerCase().trim().replace(/[\s_]/g, "");
+  return String(name || "").toLowerCase().trim().replace(/[\s_\-]/g, "");
 }
 
 function getCell(row, headerMap, keys) {
@@ -50,9 +50,10 @@ function getCell(row, headerMap, keys) {
 function buildHeaderMap(row) {
   const map = {};
   for (const header of Object.keys(row || {})) {
-    const normalized = String(header).toLowerCase().trim().replace(/\s+/g, "_");
+    const normalized = String(header).toLowerCase().trim().replace(/[\s\-]+/g, "_");
     map[normalized] = header;
     map[normalized.replace(/_/g, "")] = header;
+    map[compactKey(header)] = header;
   }
   return map;
 }
@@ -67,8 +68,8 @@ function mapRowToOrder(row) {
     if (field === "exist_id") continue;
     let aliases = [field];
     if (field === "referrel_url") aliases = ["referrel_url", "referral_url"];
-    if (field === "created_at") aliases = ["created_at", "createdat", "created", "created_on"];
-    if (field === "updated_at") aliases = ["updated_at", "updatedat", "updated", "updated_on"];
+    if (field === "created_at") aliases = ["created_at", "createdat", "created", "created_on", "created-at"];
+    if (field === "updated_at") aliases = ["updated_at", "updatedat", "updated", "updated_on", "updated-at"];
     if (field === "offline_order_date") aliases = ["offline_order_date", "offlineorderdate"];
     const raw = getCell(row, headerMap, aliases);
 

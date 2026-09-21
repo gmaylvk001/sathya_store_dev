@@ -43,7 +43,7 @@ function parseNumberValue(value) {
 }
 
 function compactKey(name) {
-  return String(name || "").toLowerCase().trim().replace(/[\s_]/g, "");
+  return String(name || "").toLowerCase().trim().replace(/[\s_\-]/g, "");
 }
 
 function getCell(row, headerMap, keys) {
@@ -59,9 +59,10 @@ function getCell(row, headerMap, keys) {
 function buildHeaderMap(row) {
   const map = {};
   for (const header of Object.keys(row || {})) {
-    const normalized = String(header).toLowerCase().trim().replace(/\s+/g, "_");
+    const normalized = String(header).toLowerCase().trim().replace(/[\s\-]+/g, "_");
     map[normalized] = header;
     map[normalized.replace(/_/g, "")] = header;
+    map[compactKey(header)] = header;
   }
   return map;
 }
@@ -70,8 +71,8 @@ function fieldAliases(field) {
   if (field === "exist_id") return ["exist_id", "id"];
   if (field === "orderNumber") return ["ordernumber", "order_number", "orderNumber"];
   if (field === "gift_Price_to_apply") return ["gift_price_to_apply", "gift_Price_to_apply"];
-  if (field === "created_at") return ["created_at", "createdat", "created", "created_on"];
-  if (field === "updated_at") return ["updated_at", "updatedat", "updated", "updated_on"];
+  if (field === "created_at") return ["created_at", "createdat", "created", "created_on", "created-at"];
+  if (field === "updated_at") return ["updated_at", "updatedat", "updated", "updated_on", "updated-at"];
   return [field.toLowerCase()];
 }
 
