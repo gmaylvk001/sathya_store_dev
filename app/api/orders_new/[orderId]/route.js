@@ -120,6 +120,28 @@ export async function PATCH(req, { params }) {
     }
 
     const body = await req.json();
+
+    if (body.pickup_type !== undefined && body.sales_person_id === undefined) {
+      const pickup_type = String(body.pickup_type || "").trim();
+      if (!pickup_type) {
+        return NextResponse.json(
+          { success: false, message: "Please select a store with branch code" },
+          { status: 400 }
+        );
+      }
+
+      const pickupResult = await OrderNew.updateOne(
+        { _id: orderId },
+        { $set: { pickup_type } }
+      );
+      if (!pickupResult.matchedCount) {
+        return NextResponse.json({ success: false, message: "Order not found" }, { status: 404 });
+      }
+
+      const pickupOrder = await OrderNew.findById(orderId).lean();
+      return NextResponse.json({ success: true, order: pickupOrder }, { status: 200 });
+    }
+
     const sales_person_role = toSalesPersonValue(body.sales_person_role);
     const sales_person_id = toSalesPersonValue(body.sales_person_id);
 

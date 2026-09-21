@@ -18,7 +18,9 @@ const OrderDetails = () => {
   const [assignStoreId, setAssignStoreId] = useState("");
   const [assignRoleId, setAssignRoleId] = useState("");
   const [assignUserId, setAssignUserId] = useState("");
+  const [assigningStore, setAssigningStore] = useState(false);
   const [assigningSalesPerson, setAssigningSalesPerson] = useState(false);
+  const [placingOrder, setPlacingOrder] = useState(false);
   const [roles, setRoles] = useState([]);
   const [systemUsers, setSystemUsers] = useState([]);
   const [remarks, setRemarks] = useState("");
@@ -116,10 +118,56 @@ const OrderDetails = () => {
           setOrder(data);
           setAssignRoleId(data?.sales_person_role != null && data.sales_person_role !== "" ? String(data.sales_person_role) : "");
           setAssignUserId(data?.sales_person_id != null && data.sales_person_id !== "" ? String(data.sales_person_id) : "");
+          setRemarks(data?.customer_comments != null ? String(data.customer_comments) : "");
         })
         .catch(err => console.error("Fetch error:", err));
     }
   }, [orderId]);
+
+  const storeBranchCode = (store) =>
+    String(store?.branch_code || store?.location_id || "").trim();
+
+  useEffect(() => {
+    if (!order || !stores.length) return;
+    const currentCode = String(order.pickup_type || "").trim();
+    if (!currentCode) return;
+    const matched = stores.find((store) => storeBranchCode(store) === currentCode);
+    if (matched) setAssignStoreId(String(matched._id));
+  }, [order, stores]);
+
+  const handleAssignStore = async () => {
+    const store = stores.find((item) => String(item._id) === String(assignStoreId));
+    const pickup_type = storeBranchCode(store);
+    if (!assignStoreId) {
+      toast.error("Please select a store");
+      return;
+    }
+    if (!pickup_type) {
+      toast.error("Selected store has no branch code");
+      return;
+    }
+
+    setAssigningStore(true);
+    try {
+      const res = await fetch(`/api/orders_new/${orderId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pickup_type }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        toast.error(data.message || "Failed to assign store");
+        return;
+      }
+      setOrder((prev) => ({ ...prev, pickup_type }));
+      toast.success(`Store assigned (${pickup_type})`);
+    } catch (err) {
+      console.error(err);
+      toast.error("Network error occurred");
+    } finally {
+      setAssigningStore(false);
+    }
+  };
 
   const handleAssignSalesPerson = async () => {
     if (!assignRoleId || !assignUserId) {
@@ -153,6 +201,37 @@ const OrderDetails = () => {
       toast.error("Network error occurred");
     } finally {
       setAssigningSalesPerson(false);
+    }
+  };
+
+  const handlePlaceOrder = async () => {
+    setPlacingOrder(true);
+    try {
+      const res = await fetch(`/api/orders_new/${orderId}/wondersoft-send`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ remarks }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        toast.error(data.message || "Failed to place order");
+        return;
+      }
+      if (data.api_status === "SUCCESS") {
+        toast.success(data.api_reason || "Order placed");
+      } else {
+        toast.error(data.api_reason || data.api_status || "Place order failed");
+      }
+      const refreshed = await fetch(`/api/orders_new/${orderId}`).then((r) => r.json());
+      if (refreshed && !refreshed.error) {
+        setOrder(refreshed);
+        setRemarks(refreshed.customer_comments != null ? String(refreshed.customer_comments) : remarks);
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Network error occurred");
+    } finally {
+      setPlacingOrder(false);
     }
   };
 
@@ -332,17 +411,23 @@ const OrderDetails = () => {
                 className="flex-1 border border-gray-300 rounded px-3 py-2 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-gray-400"
               >
                 <option value="">Choose</option>
-                {stores.map((store) => (
-                  <option key={store._id} value={store._id}>
-                    {store.organisation_name || store.store_name || store.name || "Store"}
-                  </option>
-                ))}
+                {stores.map((store) => {
+                  const code = storeBranchCode(store);
+                  const label = store.organisation_name || store.store_name || store.name || "Store";
+                  return (
+                    <option key={store._id} value={store._id}>
+                      {code ? `${label} (${code})` : label}
+                    </option>
+                  );
+                })}
               </select>
               <button
                 type="button"
-                className="sm:w-56 bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded text-sm font-medium"
+                onClick={handleAssignStore}
+                disabled={assigningStore}
+                className="sm:w-56 bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded text-sm font-medium disabled:opacity-50"
               >
-                Assign
+                {assigningStore ? "Assigning..." : "Assign"}
               </button>
             </div>
           </div>
@@ -419,9 +504,11 @@ const OrderDetails = () => {
               </div>
               <button
                 type="button"
-                className="lg:w-56 bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded text-sm font-medium"
+                onClick={handlePlaceOrder}
+                disabled={placingOrder}
+                className="lg:w-56 bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded text-sm font-medium disabled:opacity-50"
               >
-                PlaceOrder
+                {placingOrder ? "Placing..." : "PlaceOrder"}
               </button>
             </div>
           </div>
