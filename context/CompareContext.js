@@ -33,7 +33,17 @@ import { trackCompareAdd, trackCompareRemove } from '@/utils/compareHelpers';
 const STORAGE_KEY = 'compare_list';
 const MAX_COMPARE = 4;
 
-const CompareContext = createContext();
+const CompareContext = createContext({
+  compareList: [],
+  loading: false,
+  error: null,
+  addToCompare: () => {},
+  removeFromCompare: () => {},
+  clearCompare: () => {},
+  isInCompare: () => false,
+  syncOnLogin: async () => {},
+  fetchFromDB: async () => {},
+});
 
 export const CompareProvider = ({ children }) => {
   // compareList: Array<{ productId: string, category_slug: string, productData?: object }>
