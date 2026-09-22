@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import dbConnect from "@/lib/db";
 import OrderNew from "@/models/orders_new";
 import OrderDetailsNew from "@/models/order_details_new";
+import OrderHistoryNew from "@/models/order_history_new";
 import Product from "@/models/product";
 
 const ORDER_STATUSES = [
@@ -38,6 +39,35 @@ async function attachDetails(order) {
   return order;
 }
 
+async function attachOrderHistory(order) {
+  const orderIdStr = String(order._id);
+  const orderNumber = order.order_number ? String(order.order_number).trim() : "";
+
+  const historyQuery = orderNumber
+    ? { $or: [{ order_id: orderIdStr }, { order_number: orderNumber }] }
+    : { order_id: orderIdStr };
+
+  const rows = await OrderHistoryNew.find(historyQuery)
+    .sort({ created_at: 1 })
+    .lean();
+
+  order.order_history = rows.map((row) => ({
+    _id: row._id,
+    exist_id: row.exist_id,
+    order_id: row.order_id,
+    order_number: row.order_number,
+    date: row.created_at,
+    created_at: row.created_at,
+    comment: row.comment || "",
+    status: row.order_status || "",
+    order_status: row.order_status || "",
+    notify: row.notify != null ? Number(row.notify) : 0,
+    customer_notified: row.notify != null ? Number(row.notify) : 0,
+  }));
+
+  return order;
+}
+
 export async function GET(req, { params }) {
   await dbConnect();
   const { orderId } = await params;
@@ -53,6 +83,7 @@ export async function GET(req, { params }) {
     }
 
     await attachDetails(order);
+    await attachOrderHistory(order);
     const rawSales = await OrderNew.collection.findOne(
       { _id: order._id },
       { projection: { sales_person_id: 1, sales_person_role: 1 } }
