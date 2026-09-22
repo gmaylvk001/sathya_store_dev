@@ -49,6 +49,14 @@ const menuItems = [
   },
 
   {
+    icon: 'mdi:store-marker-outline',
+    label: 'Stores',
+    submenu: [
+      { icon: 'mdi:map-marker-radius-outline', label: 'Store Zones', link: 'store-zones', dotColor: 'bg-blue-500' },
+      { icon: 'mdi:storefront-outline', label: 'Store Listings', link: 'store-listings', dotColor: 'bg-green-500' },
+    ]
+  },
+  {
     icon: 'mdi:cog-outline',
     label: 'Settings',
     submenu: [
