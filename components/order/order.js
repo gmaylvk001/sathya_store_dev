@@ -29,6 +29,10 @@ export default function Order() {
   const [orderCounts, setOrderCounts] = useState({ total: 0, exist: 0, newOrders: 0 });
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
+  const [cancelReason, setCancelReason] = useState("");
+  const [cancelComments, setCancelComments] = useState("");
+  const [cancelSubmitting, setCancelSubmitting] = useState(false);
+  const [cancelFeedback, setCancelFeedback] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [fetchingOrders, setFetchingOrders] = useState(false);
   const itemsPerPage = 5;
@@ -200,79 +204,110 @@ export default function Order() {
     router.push('/');
   };
 
+  const CANCEL_REASONS = [
+    { value: "price too high", label: "Item Price/shipping cost is too high" },
+    { value: "bought elsewhere", label: "Bought it from somewhere else" },
+    { value: "mistake", label: "Order placed by mistake" },
+    { value: "change address", label: "Need to change shipping address" },
+    { value: "others", label: "My reason is not listed" },
+  ];
+
   const handleCancelClick = (order) => {
     setSelectedOrder(order);
+    setCancelReason("");
+    setCancelComments("");
+    setCancelFeedback(null);
+    setCancelSubmitting(false);
     setShowCancelConfirm(true);
   };
 
-  const handleCancelConfirm = async () => {
-    setShowCancelConfirm(false);
+  const handleCancelConfirm = async (e) => {
+    if (e?.preventDefault) e.preventDefault();
+    if (cancelSubmitting) return;
 
-    const token = localStorage.getItem("token");
-    if (!token) {
-      setShowAuthModal(true);
+    if (!cancelReason.trim()) {
+      setCancelFeedback({ type: "error", message: "Please select a reason" });
       return;
     }
 
+    setCancelSubmitting(true);
+    setCancelFeedback(null);
+
     try {
-      const response = await fetch(`/api/orders/${selectedOrder._id}`, {
-        method: 'PUT',
-        headers: { "Content-Type": "application/json" },
+      const response = await fetch("/api/cancel_order", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({
-          status: "cancelled",
+          reason: cancelReason,
+          comments: cancelComments,
+          cancel_order_number: selectedOrder?.order_number || "",
+          cancel_order_id: selectedOrder?._id || "",
+          customer_id: selectedOrder?.user_id || "",
+          order_status: selectedOrder?.order_status || "",
         }),
       });
 
-      const data = await response.json();
+      let data = null;
+      try {
+        data = await response.json();
+      } catch {
+        data = null;
+      }
 
       if (!response.ok) {
-        throw new Error(data.message || 'Failed to cancel order');
+        throw new Error(data?.message || data?.result || "something is wrong. Please try again later!");
       }
 
-      // Update local state
-      setFilteredOrders(prev =>
-        prev.map(order =>
-          order._id === selectedOrder._id ? { ...order, order_status: 'cancelled' } : order
-        )
-      );
-
-      toast.success("Order cancelled successfully");
-
-      // Send cancellation confirmation via Eygr (loyalty/wishlist-style template)
-      try {
-        const emailRes = await fetch("/api/send-cancellation-email", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            customerEmail: selectedOrder.email_address,
-            orderDetails: {
-              order_number: selectedOrder.order_number,
-              order_amount: selectedOrder.order_amount,
-              order_item: selectedOrder.order_item || [],
-              order_username: selectedOrder.order_username,
-            },
-          }),
+      const resultText = String(data?.result || "").trim();
+      if (resultText === "Success") {
+        setCancelFeedback({
+          type: "success",
+          message: "Thank you!. Your request has been sent.",
         });
-        const emailData = await emailRes.json();
-        if (!emailRes.ok || !emailData.success) {
-          throw new Error(emailData.error || "Failed to send cancellation email");
+        if (data?.order_status === "Cancelled") {
+          setFilteredOrders((prev) =>
+            prev.map((order) =>
+              order._id === selectedOrder._id
+                ? { ...order, order_status: "Cancelled" }
+                : order
+            )
+          );
         }
-        toast.success("Cancellation email sent");
-      } catch (emailError) {
-        console.error(emailError);
-        toast.error(emailError.message || "Order cancelled, but email failed");
-      } finally {
-        setSelectedOrder(null);
+        setTimeout(() => {
+          setShowCancelConfirm(false);
+          setSelectedOrder(null);
+          setCancelReason("");
+          setCancelComments("");
+          setCancelFeedback(null);
+          setCancelSubmitting(false);
+        }, 2000);
+        return;
       }
+
+      setCancelFeedback({
+        type: "error",
+        message: resultText || data?.message || "something is wrong. Please try again later!",
+      });
+      setCancelSubmitting(false);
     } catch (error) {
-      toast.error(error.message || "Failed to cancel order");
       console.error(error);
+      setCancelFeedback({
+        type: "error",
+        message: error.message || "something is wrong. Please try again later!",
+      });
+      setCancelSubmitting(false);
     }
   };
 
   const handleCancelReject = () => {
+    if (cancelSubmitting) return;
     setShowCancelConfirm(false);
     setSelectedOrder(null);
+    setCancelReason("");
+    setCancelComments("");
+    setCancelFeedback(null);
   };
 
   const pageCount = Math.ceil(filteredOrders.length / itemsPerPage);
@@ -288,8 +323,8 @@ export default function Order() {
   return (
     <div className="bg-gray-50 min-h-screen">
       <ToastContainer position="top-right" autoClose={5000} />
-
-
+      
+      
       {/* Mobile Header */}
       <div className="lg:hidden bg-white py-4 px-4 shadow-sm flex items-center justify-between gap-3">
         <h2 className="text-xl font-bold text-gray-800">My Orders</h2>
@@ -303,12 +338,12 @@ export default function Order() {
             <FiRefreshCw className={fetchingOrders ? "animate-spin" : ""} />
             {fetchingOrders ? "Fetching..." : "Fetch"}
           </button>
-          {/* <span className="inline-flex items-center px-3 py-1.5 bg-emerald-100 text-emerald-700 rounded-full text-xs font-medium">
+          <span className="inline-flex items-center px-3 py-1.5 bg-emerald-100 text-emerald-700 rounded-full text-xs font-medium">
             LatesOrdersFetched
-          </span> */}
+          </span>
         </div>
       </div>
-
+      
       {/* Desktop Header */}
       <div className="hidden lg:block bg-red-50 py-6 px-8 flex justify-between items-center border-b border-gray-200 shadow-sm">
         <h2 className="text-2xl font-bold text-gray-800">My Orders</h2>
@@ -356,9 +391,9 @@ export default function Order() {
                     <FiRefreshCw className={fetchingOrders ? "animate-spin" : ""} />
                     {fetchingOrders ? "Fetching..." : "Fetch"}
                   </button>
-                  {/* <span className="inline-flex items-center px-3 py-1.5 bg-emerald-100 text-emerald-700 rounded-full text-sm font-medium">
+                  <span className="inline-flex items-center px-3 py-1.5 bg-emerald-100 text-emerald-700 rounded-full text-sm font-medium">
                     LatesOrdersFetched
-                  </span> */}
+                  </span>
                 </div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4 sm:mb-6">
@@ -382,18 +417,19 @@ export default function Order() {
                   <button
                     key={filter}
                     onClick={() => setActiveFilter(filter)}
-                    className={`px-3 sm:px-4 py-1 sm:py-2 rounded-full text-xs sm:text-sm font-medium flex items-center whitespace-nowrap ${activeFilter === filter
-                      ? filter === 'all'
-                        ? 'bg-customBlue text-white'
-                        : filter === 'pending'
+                    className={`px-3 sm:px-4 py-1 sm:py-2 rounded-full text-xs sm:text-sm font-medium flex items-center whitespace-nowrap ${
+                      activeFilter === filter
+                        ? filter === 'all'
+                          ? 'bg-customBlue text-white'
+                          : filter === 'pending'
                           ? 'bg-amber-100 text-amber-800'
                           : filter === 'shipped'
-                            ? 'bg-red-100 text-[#d72828]'
-                            : filter === 'delivered'
-                              ? 'bg-green-100 text-green-800'
-                              : 'bg-red-100 text-red-800'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                      }`}
+                          ? 'bg-red-100 text-[#d72828]'
+                          : filter === 'delivered'
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-red-100 text-red-800'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
                   >
                     {/* {filter === 'pending' && <FiClock className="mr-1" />} */}
                     {/* {filter === 'shipped' && <FiTruck className="mr-1" />} */}
@@ -415,8 +451,8 @@ export default function Order() {
                   <FiShoppingBag className="mx-auto text-4xl text-gray-300 mb-3 sm:mb-4" />
                   <h3 className="text-lg font-medium text-gray-700">No orders found</h3>
                   <p className="text-gray-500 mt-1 text-sm sm:text-base">
-                    {activeFilter === 'all'
-                      ? "You haven't placed any orders yet"
+                    {activeFilter === 'all' 
+                      ? "You haven't placed any orders yet" 
                       : `No ${activeFilter} orders found`}
                   </p>
                   <Link href="/products" className="mt-4 sm:mt-6 inline-block px-4 sm:px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm sm:text-base">
@@ -430,118 +466,118 @@ export default function Order() {
                     const paymentLabel = getPaymentStatusLabel(order);
                     const paymentMethodLabel = getPaymentMethodLabel(order);
                     return (
-                      <div key={order._id} className="p-3 sm:p-5 border border-gray-200 rounded-xl hover:shadow-md transition-shadow">
-                        <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
-                          {/* Product Image */}
-                          <div className="w-full sm:w-24 md:w-32 flex-shrink-0">
-                            {order.order_item?.[0]?.image ? (
-                              <img
-                                src={getImageUrl(order.order_item[0].image)}
-                                alt={order.order_item[0].product_name || 'Product'}
-                                className="w-full h-24 sm:h-32 object-contain rounded-lg border border-gray-200"
-                              />
-                            ) : (
-                              <div className="w-full h-24 sm:h-32 bg-gray-100 rounded-lg flex items-center justify-center">
-                                <FiShoppingBag className="text-xl sm:text-2xl text-gray-400" />
-                              </div>
-                            )}
+                    <div key={order._id} className="p-3 sm:p-5 border border-gray-200 rounded-xl hover:shadow-md transition-shadow">
+                      <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
+                        {/* Product Image */}
+                        <div className="w-full sm:w-24 md:w-32 flex-shrink-0">
+                          {order.order_item?.[0]?.image ? (
+                            <img
+                              src={getImageUrl(order.order_item[0].image)}
+                              alt={order.order_item[0].product_name || 'Product'}
+                              className="w-full h-24 sm:h-32 object-contain rounded-lg border border-gray-200"
+                            />
+                          ) : (
+                            <div className="w-full h-24 sm:h-32 bg-gray-100 rounded-lg flex items-center justify-center">
+                              <FiShoppingBag className="text-xl sm:text-2xl text-gray-400" />
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Order Details */}
+                        <div className="flex-1">
+                          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 sm:gap-4">
+                            <div>
+                              <p className="text-xs sm:text-sm font-medium text-gray-500 mb-1">Order #{order.order_number}</p>
+                              <h3 className="font-medium text-gray-800 mb-1 sm:mb-2 text-sm sm:text-base">
+                                {order.order_item?.[0]?.name || 'Product'}
+                                {order.order_item?.length > 1 && ` + ${order.order_item.length - 1} more`}
+                              </h3>
+                                      {/* Warranty Data */}
+{order.order_item?.some(item => item.warrantyData?.name) && (
+  <div className="mb-2">
+    {order.order_item.filter(item => item.warrantyData?.name).map((item, idx) => (
+      <div key={idx} className="flex items-center gap-1 text-sm text-[#d72828] bg-red-50 px-2 py-1 rounded-md w-fit mb-1">
+        🛡️ <span>{item.warrantyData.year} Yr Warranty</span>
+        <span className="text-gray-500">— {item.warrantyData.name}</span>
+        <span className="font-bold text-red-500 ml-1">₹{item.warrantyData.price}</span>
+      </div>
+    ))}
+  </div>
+)}
+                               
+                              <p className="text-base sm:text-lg font-semibold text-gray-900 mb-2 sm:mb-3">₹{order.order_amount}</p>
+                            </div>
+
+                            <div className={`px-2 py-1 sm:px-3 sm:py-1 rounded-full text-xs font-medium self-start ${getStatusBadge(order.order_status).className}`}>
+                              <span className="flex items-center">
+                                {statusKey === "shipped" ? <FiTruck className="mr-1 text-xs" /> : null}
+                                {statusKey === "cancelled" || statusKey === "failure" ? <FiXCircle className="mr-1 text-xs" /> : null}
+                                {statusKey === "billed" || statusKey === "complete" || statusKey === "order accepted" ? <FiCheckCircle className="mr-1 text-xs" /> : null}
+                                {statusKey === "pending" || statusKey === "payment_initialized" || statusKey === "payment initiated" || statusKey === "order placed" || statusKey === "ordered" ? <FiClock className="mr-1 text-xs" /> : null}
+                                {getStatusBadge(order.order_status).label}
+                              </span>
+                            </div>
                           </div>
 
-                          {/* Order Details */}
-                          <div className="flex-1">
-                            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 sm:gap-4">
-                              <div>
-                                <p className="text-xs sm:text-sm font-medium text-gray-500 mb-1">Order #{order.order_number}</p>
-                                <h3 className="font-medium text-gray-800 mb-1 sm:mb-2 text-sm sm:text-base">
-                                  {order.order_item?.[0]?.name || 'Product'}
-                                  {order.order_item?.length > 1 && ` + ${order.order_item.length - 1} more`}
-                                </h3>
-                                {/* Warranty Data */}
-                                {order.order_item?.some(item => item.warrantyData?.name) && (
-                                  <div className="mb-2">
-                                    {order.order_item.filter(item => item.warrantyData?.name).map((item, idx) => (
-                                      <div key={idx} className="flex items-center gap-1 text-sm text-[#d72828] bg-red-50 px-2 py-1 rounded-md w-fit mb-1">
-                                        🛡️ <span>{item.warrantyData.year} Yr Warranty</span>
-                                        <span className="text-gray-500">— {item.warrantyData.name}</span>
-                                        <span className="font-bold text-red-500 ml-1">₹{item.warrantyData.price}</span>
-                                      </div>
-                                    ))}
-                                  </div>
-                                )}
-
-                                <p className="text-base sm:text-lg font-semibold text-gray-900 mb-2 sm:mb-3">₹{order.order_amount}</p>
-                              </div>
-
-                              <div className={`px-2 py-1 sm:px-3 sm:py-1 rounded-full text-xs font-medium self-start ${getStatusBadge(order.order_status).className}`}>
-                                <span className="flex items-center">
-                                  {statusKey === "shipped" ? <FiTruck className="mr-1 text-xs" /> : null}
-                                  {statusKey === "cancelled" || statusKey === "failure" ? <FiXCircle className="mr-1 text-xs" /> : null}
-                                  {statusKey === "billed" || statusKey === "complete" || statusKey === "order accepted" ? <FiCheckCircle className="mr-1 text-xs" /> : null}
-                                  {statusKey === "pending" || statusKey === "payment_initialized" || statusKey === "payment initiated" || statusKey === "order placed" || statusKey === "ordered" ? <FiClock className="mr-1 text-xs" /> : null}
-                                  {getStatusBadge(order.order_status).label}
-                                </span>
-                              </div>
+                          {/* Order Meta */}
+                          <div className="mt-3 sm:mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4 text-xs sm:text-sm">
+                            <div className="flex items-center text-gray-600">
+                              <FiTruck className="mr-2 text-gray-400 text-xs sm:text-sm" />
+                              <span>
+                                {statusKey === 'delivered'
+                                  ? `Delivered on ${formatDateTime(order.updatedAt)}`
+                                  : statusKey === 'shipped'
+                                  ? `Shipped on ${formatDateTime(order.updatedAt)}`
+                                  : statusKey === 'cancelled'
+                                  ? `Cancelled on ${formatDateTime(order.cancelled_at || order.updatedAt)}`
+                                  : statusKey === 'billed'
+                                  ? `Billed on ${formatDateTime(order.updatedAt || order.createdAt)}`
+                                  : `Order placed on ${formatDateTime(order.createdAt)}`}
+                              </span>
                             </div>
-
-                            {/* Order Meta */}
-                            <div className="mt-3 sm:mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4 text-xs sm:text-sm">
-                              <div className="flex items-center text-gray-600">
-                                <FiTruck className="mr-2 text-gray-400 text-xs sm:text-sm" />
-                                <span>
-                                  {statusKey === 'delivered'
-                                    ? `Delivered on ${formatDateTime(order.updatedAt)}`
-                                    : statusKey === 'shipped'
-                                      ? `Shipped on ${formatDateTime(order.updatedAt)}`
-                                      : statusKey === 'cancelled'
-                                        ? `Cancelled on ${formatDateTime(order.cancelled_at || order.updatedAt)}`
-                                        : statusKey === 'billed'
-                                          ? `Billed on ${formatDateTime(order.updatedAt || order.createdAt)}`
-                                          : `Order placed on ${formatDateTime(order.createdAt)}`}
+                            <div className="text-gray-600 flex flex-wrap items-center gap-1 sm:gap-2">
+                              <span>Payment:</span>
+                              {paymentMethodLabel ? (
+                                <span className="inline-flex items-center px-2 py-0.5 sm:py-1 text-xs font-semibold rounded-full bg-slate-100 text-slate-800">
+                                  {paymentMethodLabel}
                                 </span>
-                              </div>
-                              <div className="text-gray-600 flex flex-wrap items-center gap-1 sm:gap-2">
-                                <span>Payment:</span>
-                                {paymentMethodLabel ? (
-                                  <span className="inline-flex items-center px-2 py-0.5 sm:py-1 text-xs font-semibold rounded-full bg-slate-100 text-slate-800">
-                                    {paymentMethodLabel}
-                                  </span>
-                                ) : null}
-                                <span className={`inline-flex items-center px-2 py-0.5 sm:py-1 text-xs font-semibold rounded-full ${getPaymentStatusClass(paymentLabel)}`}>
-                                  {paymentLabel === "Paid" ? <FiCheckCircle className="mr-1 text-xs" /> : <FiClock className="mr-1 text-xs" />}
-                                  {paymentLabel}
-                                </span>
-                              </div>
+                              ) : null}
+                              <span className={`inline-flex items-center px-2 py-0.5 sm:py-1 text-xs font-semibold rounded-full ${getPaymentStatusClass(paymentLabel)}`}>
+                                {paymentLabel === "Paid" ? <FiCheckCircle className="mr-1 text-xs" /> : <FiClock className="mr-1 text-xs" />}
+                                {paymentLabel}
+                              </span>
                             </div>
+                          </div>
 
-                            {/* Action Buttons */}
-                            <div className="mt-4 sm:mt-6 flex flex-wrap gap-2 sm:gap-3">
-                              <button
-                                onClick={handleBuyAgain}
-                                className="px-3 sm:px-4 py-1 sm:py-2 bg-red-50 text-red-600 rounded-md hover:bg-red-100 transition-colors flex items-center text-xs sm:text-sm"
+                          {/* Action Buttons */}
+                          <div className="mt-4 sm:mt-6 flex flex-wrap gap-2 sm:gap-3">
+                            <button 
+                              onClick={handleBuyAgain}
+                              className="px-3 sm:px-4 py-1 sm:py-2 bg-red-50 text-red-600 rounded-md hover:bg-red-100 transition-colors flex items-center text-xs sm:text-sm"
+                            >
+                              <FiShoppingBag className="mr-1 sm:mr-2 text-xs sm:text-sm" />
+                              Buy Again
+                            </button>
+                            {statusKey === 'pending' && (
+                              <button 
+                                onClick={() => handleCancelClick(order)}
+                                className="px-3 sm:px-4 py-1 sm:py-2 border border-gray-300 text-gray-600 rounded-md hover:bg-gray-50 transition-colors text-xs sm:text-sm"
                               >
-                                <FiShoppingBag className="mr-1 sm:mr-2 text-xs sm:text-sm" />
-                                Buy Again
+                                Cancel Order
                               </button>
-                              {statusKey === 'pending' && (
-                                <button
-                                  onClick={() => handleCancelClick(order)}
-                                  className="px-3 sm:px-4 py-1 sm:py-2 border border-gray-300 text-gray-600 rounded-md hover:bg-gray-50 transition-colors text-xs sm:text-sm"
-                                >
-                                  Cancel Order
-                                </button>
-                              )}
+                            )}
 
-                              {statusKey === "shipped" && (
-                                <a href={`/product/${order.order_item[0].slug}#reviews`} target='_blank'>
-                                  <button className="px-3 sm:px-4 py-1 sm:py-2 bg-green-100 text-green-600 rounded-md hover:bg-green-200 transition-colors text-xs sm:text-sm">
-                                    Write Review
-                                  </button>
-                                </a>
-                              )}
-                            </div>
+                            {statusKey === "shipped" && (
+                              <a href={`/product/${order.order_item[0].slug}#reviews`} target='_blank'>
+                                <button className="px-3 sm:px-4 py-1 sm:py-2 bg-green-100 text-green-600 rounded-md hover:bg-green-200 transition-colors text-xs sm:text-sm">
+                                  Write Review
+                                </button>
+                              </a>
+                            )}
                           </div>
                         </div>
                       </div>
+                    </div>
                     );
                   })}
                 </div>
@@ -559,10 +595,11 @@ export default function Order() {
                     <button
                       onClick={() => paginate(currentPage - 1)}
                       disabled={currentPage === 1}
-                      className={`px-3 py-1.5 border border-gray-300 rounded-md ${currentPage === 1
-                        ? "text-gray-400 cursor-not-allowed"
-                        : "text-black bg-white hover:bg-gray-100"
-                        }`}
+                      className={`px-3 py-1.5 border border-gray-300 rounded-md ${
+                        currentPage === 1
+                          ? "text-gray-400 cursor-not-allowed"
+                          : "text-black bg-white hover:bg-gray-100"
+                      }`}
                       aria-label="Previous page"
                     >
                       «
@@ -572,10 +609,11 @@ export default function Order() {
                       <button
                         key={page}
                         onClick={() => paginate(page)}
-                        className={`px-3 py-1.5 border border-gray-300 rounded-md ${currentPage === page
-                          ? "bg-red-500 text-white"
-                          : "text-black bg-white hover:bg-gray-100"
-                          }`}
+                        className={`px-3 py-1.5 border border-gray-300 rounded-md ${
+                          currentPage === page
+                            ? "bg-red-500 text-white"
+                            : "text-black bg-white hover:bg-gray-100"
+                        }`}
                         aria-label={`Page ${page}`}
                         aria-current={currentPage === page ? "page" : undefined}
                       >
@@ -586,10 +624,11 @@ export default function Order() {
                     <button
                       onClick={() => paginate(currentPage + 1)}
                       disabled={currentPage === pageCount || pageCount === 0}
-                      className={`px-3 py-1.5 border border-gray-300 rounded-md ${currentPage === pageCount || pageCount === 0
-                        ? "text-gray-400 cursor-not-allowed"
-                        : "text-black bg-white hover:bg-gray-100"
-                        }`}
+                      className={`px-3 py-1.5 border border-gray-300 rounded-md ${
+                        currentPage === pageCount || pageCount === 0
+                          ? "text-gray-400 cursor-not-allowed"
+                          : "text-black bg-white hover:bg-gray-100"
+                      }`}
                       aria-label="Next page"
                     >
                       »
@@ -602,33 +641,77 @@ export default function Order() {
         </div>
       </div>
 
-      {/* Cancel Confirmation Modal */}
+      {/* Order Cancellation Request Modal */}
       {showCancelConfirm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl max-w-md w-full p-6 animate-scale-in">
-            <div className="flex items-center mb-4">
-              <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center mr-3">
-                <FiXCircle className="text-red-600 text-xl" />
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-lg w-full p-6 relative shadow-xl">
+            <button
+              type="button"
+              onClick={handleCancelReject}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl leading-none"
+              aria-label="Close"
+            >
+              ×
+            </button>
+
+            <h3 className="text-xl font-semibold text-gray-800 mb-6 pr-8">
+              Order Cancellation Request
+            </h3>
+
+            <div className="space-y-5">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Select Reason
+                </label>
+                <select
+                  value={cancelReason}
+                  onChange={(e) => setCancelReason(e.target.value)}
+                  disabled={cancelSubmitting}
+                  className="w-full border border-gray-300 rounded-md px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-gray-400 disabled:bg-gray-100"
+                >
+                  <option value="">Select Reason</option>
+                  {CANCEL_REASONS.map((reason) => (
+                    <option key={reason.value} value={reason.value}>
+                      {reason.label}
+                    </option>
+                  ))}
+                </select>
               </div>
-              <h3 className="text-lg font-semibold text-gray-800">Cancel Order</h3>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Comments
+                </label>
+                <textarea
+                  value={cancelComments}
+                  onChange={(e) => setCancelComments(e.target.value)}
+                  rows={4}
+                  disabled={cancelSubmitting}
+                  className="w-full border border-gray-300 rounded-md px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-gray-400 resize-y disabled:bg-gray-100"
+                />
+              </div>
+
+              {cancelFeedback && (
+                <div
+                  className={`text-sm rounded-md px-3 py-2 ${
+                    cancelFeedback.type === "success"
+                      ? "bg-green-50 text-green-700 border border-green-200"
+                      : "bg-red-50 text-red-700 border border-red-200"
+                  }`}
+                >
+                  {cancelFeedback.message}
+                </div>
+              )}
             </div>
 
-            <p className="text-gray-600 mb-6">
-              Are you sure you want to cancel order <span className="font-semibold">#{selectedOrder?.order_number}</span>? This action cannot be undone.
-            </p>
-
-            <div className="flex gap-3 justify-end">
+            <div className="flex justify-end mt-6">
               <button
-                onClick={handleCancelReject}
-                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                No, Keep Order
-              </button>
-              <button
+                type="button"
                 onClick={handleCancelConfirm}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                disabled={cancelSubmitting}
+                className="px-8 py-2.5 bg-[#d72828] hover:bg-[#c02020] text-white text-sm font-bold uppercase tracking-wide rounded disabled:opacity-50"
               >
-                Yes, Cancel Order
+                {cancelSubmitting ? "Submitting..." : "Submit"}
               </button>
             </div>
           </div>
