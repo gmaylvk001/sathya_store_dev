@@ -2,6 +2,7 @@
 
 
 import ProductDetailsSection from "@/components/ProductDetailsSection";
+import OfferRibbonBadge from "@/components/OfferRibbonBadge";
 import FlixMediaLoader from "@/components/FlixMediaLoader";
 import ProductVariantSelector from "@/components/ProductVariantSelector";
 import ExchangeOfferSection from "@/components/ExchangeOfferSection";
@@ -88,8 +89,65 @@ export default function ProductClient() {
   const [addOnProducts, setAddOnProducts] = useState([]);
   const [warranties, setWarranties] = useState([]);
   const [selectedWarrantyData, setSelectedWarrantyData] = useState(null);
+  const { pincode: globalPincode, region: globalRegion, isInitialized } = useRegion();
+  const [highlightOffer, setHighlightOffer] = useState(null);
 
-  const { pincode: globalPincode, region: globalRegion } = useRegion();
+  useEffect(() => {
+    setHighlightOffer(null);
+
+    if (!product?._id) {
+      return;
+    }
+
+    // Wait until RegionContext initializes from localStorage/cookie to prevent wrong-state flash
+    if (typeof isInitialized !== "undefined" && !isInitialized) {
+      return;
+    }
+
+    // Missing / unknown state -> ribbon hidden
+    if (!globalRegion || typeof globalRegion !== "string" || !globalRegion.trim()) {
+      setHighlightOffer(null);
+      return;
+    }
+
+    const currentRegion = globalRegion.trim();
+    let active = true;
+
+    const fetchHighlightOffer = async () => {
+      try {
+        const res = await fetch(
+          `/api/highlighted-offer/check-product?productId=${encodeURIComponent(product._id)}&state=${encodeURIComponent(currentRegion)}`,
+          { cache: "no-store" }
+        );
+        if (!res.ok) {
+          if (active) setHighlightOffer(null);
+          return;
+        }
+        const data = await res.json();
+        if (active) {
+          if (data?.hasOffer && (data?.labelText || data?.offerName)) {
+            setHighlightOffer({
+              offerName: data.offerName,
+              labelText: data.labelText,
+              labelColor: data.labelColor,
+            });
+          } else {
+            setHighlightOffer(null);
+          }
+        }
+      } catch (err) {
+        console.error("Error checking highlighted offer:", err);
+        if (active) setHighlightOffer(null);
+      }
+    };
+
+    fetchHighlightOffer();
+
+    return () => {
+      active = false;
+    };
+  }, [product?._id, globalRegion, isInitialized]);
+
   const [deliveryPincode, setDeliveryPincode] = useState("");
   const [deliveryInfo, setDeliveryInfo] = useState(null);
   const [isCheckingDelivery, setIsCheckingDelivery] = useState(false);
@@ -1017,7 +1075,12 @@ const fetchBrand = async () => {
 
   {/* 1. Product Image */}
   <div className="w-full relative">
-    <div className="border border-gray-400 rounded-lg">
+    <div className="border border-gray-400 rounded-lg relative">
+      <OfferRibbonBadge
+        offerName={highlightOffer?.offerName}
+        labelText={highlightOffer?.labelText}
+        labelColor={highlightOffer?.labelColor}
+      />
       <div
         className="relative aspect-square w-full px-4"
         onClick={() => openLightbox(0)}
@@ -1448,6 +1511,11 @@ const fetchBrand = async () => {
     <div className="flex flex-col gap-3 sticky top-[118px] z-10">
       {/* Main Image Container with Zoom */}
       <div className="border border-gray-300 rounded-lg p-2 bg-white relative">
+        <OfferRibbonBadge
+          offerName={highlightOffer?.offerName}
+          labelText={highlightOffer?.labelText}
+          labelColor={highlightOffer?.labelColor}
+        />
         <div
           className="relative aspect-square w-full px-4 flex items-center justify-center cursor-pointer"
           onMouseMove={handleMouseMove}

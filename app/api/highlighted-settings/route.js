@@ -22,17 +22,36 @@ export async function GET() {
 export async function POST(req) {
   try {
     const data = await req.json();
+
+    const trimmedText = typeof data?.labelText === "string" ? data.labelText.trim() : "";
+    const trimmedColor = typeof data?.labelColor === "string" ? data.labelColor.trim() : "";
+
+    if (!trimmedText) {
+      return NextResponse.json(
+        { success: false, error: "Highlight label text is required" },
+        { status: 400 }
+      );
+    }
+
+    const hexColorRegex = /^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})$/;
+    if (!trimmedColor || !hexColorRegex.test(trimmedColor)) {
+      return NextResponse.json(
+        { success: false, error: "Please provide a valid hex color (e.g. #d72828)" },
+        { status: 400 }
+      );
+    }
+
     await dbConnect();
 
     let settings = await HighlightedProductSettings.findOne();
     if (settings) {
-      settings.labelText = data.labelText;
-      settings.labelColor = data.labelColor;
+      settings.labelText = trimmedText;
+      settings.labelColor = trimmedColor;
       await settings.save();
     } else {
       settings = await HighlightedProductSettings.create({
-        labelText: data.labelText,
-        labelColor: data.labelColor,
+        labelText: trimmedText,
+        labelColor: trimmedColor,
       });
     }
 

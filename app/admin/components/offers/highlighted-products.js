@@ -22,13 +22,15 @@ export default function HighlightedProductsComponent() {
     startDate: "",
     endDate: "",
     status: "Active",
-    state: "karnataka",
+    state: "all",
   });
 
   const [labelSettings, setLabelSettings] = useState({
     labelText: "Highlighted Products",
     labelColor: "#ff0000",
   });
+  const [isSavingLabel, setIsSavingLabel] = useState(false);
+  const [labelValidationError, setLabelValidationError] = useState(null);
 
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
   const [offerToDelete, setOfferToDelete] = useState(null);
@@ -39,10 +41,11 @@ export default function HighlightedProductsComponent() {
   const itemsPerPage = 20;
 
   const statesList = [
+    { value: "all", label: "All" },
     { value: "tamilnadu", label: "Tamil Nadu" },
-    { value: "karnataka", label: "Karnataka" },
     { value: "andhra", label: "Andhra Pradesh" },
     { value: "kerala", label: "Kerala" },
+    { value: "karnataka", label: "Karnataka" },
     { value: "telangana", label: "Telangana" }
   ];
 
@@ -119,7 +122,7 @@ export default function HighlightedProductsComponent() {
           startDate: "",
           endDate: "",
           status: "Active",
-          state: "karnataka",
+          state: "all",
         });
         setSuccessMessage("Highlighted Offer Added Successfully");
         setShowSuccessModal(true);
@@ -201,23 +204,51 @@ export default function HighlightedProductsComponent() {
   };
 
   const handleSaveLabelSettings = async () => {
+    const trimmedText = (labelSettings.labelText || "").trim();
+    const trimmedColor = (labelSettings.labelColor || "").trim();
+
+    if (!trimmedText) {
+      setLabelValidationError("Highlight label text is required.");
+      return;
+    }
+
+    const hexColorRegex = /^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})$/;
+    if (!trimmedColor || !hexColorRegex.test(trimmedColor)) {
+      setLabelValidationError("Please enter a valid hex color code (e.g. #d72828).");
+      return;
+    }
+
     try {
+      setIsSavingLabel(true);
+      setLabelValidationError(null);
+
       const response = await fetch("/api/highlighted-settings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(labelSettings),
+        body: JSON.stringify({
+          labelText: trimmedText,
+          labelColor: trimmedColor,
+        }),
       });
 
-      if (response.ok) {
+      const result = await response.json().catch(() => ({}));
+
+      if (response.ok && result.success) {
+        if (result.data) {
+          setLabelSettings(result.data);
+        }
         setIsLabelModalOpen(false);
-        setSuccessMessage("Settings Updated Successfully");
+        setSuccessMessage("Highlighted Label Updated Successfully");
         setShowSuccessModal(true);
         setTimeout(() => setShowSuccessModal(false), 2000);
       } else {
-        alert("Failed to update settings");
+        setLabelValidationError(result.error || "Failed to update label settings.");
       }
     } catch (error) {
-      console.error("Error:", error);
+      console.error("Error saving label settings:", error);
+      setLabelValidationError("Network error while saving settings. Please try again.");
+    } finally {
+      setIsSavingLabel(false);
     }
   };
 
@@ -297,7 +328,10 @@ export default function HighlightedProductsComponent() {
             </div>
             <div className="flex gap-2">
               <button
-                onClick={() => setIsLabelModalOpen(true)}
+                onClick={() => {
+                  setLabelValidationError(null);
+                  setIsLabelModalOpen(true);
+                }}
                 className="border px-3 py-1.5 rounded bg-white text-gray-600 hover:bg-gray-50 flex items-center gap-1"
               >
                 <Icon icon="mdi:refresh" /> Change Highlighted Label
@@ -585,51 +619,103 @@ export default function HighlightedProductsComponent() {
       {/* Change Highlighted Label Modal */}
       {isLabelModalOpen && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-md relative flex flex-col">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-md relative flex flex-col mx-4">
             <button 
-              onClick={() => setIsLabelModalOpen(false)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 text-xl leading-none"
+              onClick={() => {
+                if (!isSavingLabel) {
+                  setLabelValidationError(null);
+                  setIsLabelModalOpen(false);
+                }
+              }}
+              disabled={isSavingLabel}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 text-xl leading-none disabled:opacity-50"
             >
               &times;
             </button>
             <div className="px-5 py-4 border-b border-gray-200">
               <h2 className="text-xl font-light text-gray-800">Change Highlighted Label</h2>
             </div>
+            
             <div className="px-5 py-6 space-y-4">
+              {labelValidationError && (
+                <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded flex items-center gap-2">
+                  <Icon icon="mdi:alert-circle-outline" className="w-5 h-5 flex-shrink-0 text-red-500" />
+                  <span>{labelValidationError}</span>
+                </div>
+              )}
+
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Highlight Label Text</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">
+                  Highlight Label Text <span className="text-red-500">*</span>
+                </label>
                 <input
                   type="text"
                   value={labelSettings.labelText}
-                  onChange={(e) => setLabelSettings({...labelSettings, labelText: e.target.value})}
-                  className="w-full border border-blue-400 rounded p-2 focus:outline-none"
+                  onChange={(e) => {
+                    setLabelValidationError(null);
+                    setLabelSettings({ ...labelSettings, labelText: e.target.value });
+                  }}
+                  disabled={isSavingLabel}
+                  placeholder="e.g. Brand Deal, Weekend Special"
+                  className="w-full border border-gray-300 rounded p-2 focus:outline-none focus:border-blue-500 disabled:bg-gray-100"
                 />
               </div>
+
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Highlight Label Color</label>
-                <div className="flex items-center gap-2">
+                <label className="block text-sm font-semibold text-gray-700 mb-1">
+                  Highlight Label Color <span className="text-red-500">*</span>
+                </label>
+                <div className="flex items-center gap-3">
                   <input
                     type="color"
-                    value={labelSettings.labelColor}
-                    onChange={(e) => setLabelSettings({...labelSettings, labelColor: e.target.value})}
-                    className="h-10 w-24 p-1 border rounded cursor-pointer"
+                    value={labelSettings.labelColor?.startsWith("#") && (labelSettings.labelColor.length === 7 || labelSettings.labelColor.length === 4) ? labelSettings.labelColor : "#d72828"}
+                    onChange={(e) => {
+                      setLabelValidationError(null);
+                      setLabelSettings({ ...labelSettings, labelColor: e.target.value });
+                    }}
+                    disabled={isSavingLabel}
+                    className="h-10 w-16 p-1 border rounded cursor-pointer disabled:opacity-50"
                   />
-                  <span className="text-sm text-gray-500">{labelSettings.labelColor}</span>
+                  <input
+                    type="text"
+                    value={labelSettings.labelColor}
+                    onChange={(e) => {
+                      setLabelValidationError(null);
+                      setLabelSettings({ ...labelSettings, labelColor: e.target.value });
+                    }}
+                    disabled={isSavingLabel}
+                    placeholder="#d72828"
+                    className="w-32 border border-gray-300 rounded p-2 text-sm focus:outline-none focus:border-blue-500 font-mono disabled:bg-gray-100"
+                  />
+                  <div
+                    className="w-8 h-8 rounded border shadow-inner flex-shrink-0"
+                    style={{ backgroundColor: labelSettings.labelColor || "#ffffff" }}
+                    title="Color Preview"
+                  />
                 </div>
               </div>
             </div>
-            <div className="px-5 py-4 border-t border-gray-200 flex justify-between">
+
+            <div className="px-5 py-4 border-t border-gray-200 flex justify-between items-center">
               <button
-                onClick={() => setIsLabelModalOpen(false)}
-                className="border px-4 py-2 rounded text-gray-600 hover:bg-gray-50"
+                type="button"
+                onClick={() => {
+                  setLabelValidationError(null);
+                  setIsLabelModalOpen(false);
+                }}
+                disabled={isSavingLabel}
+                className="border px-4 py-2 rounded text-gray-600 hover:bg-gray-50 disabled:opacity-50 transition"
               >
                 Close
               </button>
               <button
+                type="button"
                 onClick={handleSaveLabelSettings}
-                className="bg-[#d72828] text-white px-6 py-2 rounded hover:bg-red-700 transition"
+                disabled={isSavingLabel}
+                className="bg-[#d72828] text-white px-6 py-2 rounded hover:bg-red-700 disabled:opacity-60 transition flex items-center gap-2"
               >
-                Change
+                {isSavingLabel && <Icon icon="eos-icons:loading" className="w-4 h-4 animate-spin" />}
+                {isSavingLabel ? "Saving..." : "Change"}
               </button>
             </div>
           </div>
