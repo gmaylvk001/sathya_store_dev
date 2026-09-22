@@ -8,6 +8,7 @@ import mongoose from "mongoose";
 import Coupon from "@/models/ecom_offer_info";
 import Usedcoupon from "@/models/ecom_coupon_track_info";
 import Notification from "@/models/Notification.js";
+import { sendOrderData } from "@/lib/sendOrderData";
 
 const ORDER_STATUS_ENUM = [
   "Billed",
@@ -367,6 +368,31 @@ export async function POST(req) {
         savedOrders.forEach((order) => {
           order.payment_id = paymentObjectId;
         });
+      }
+    }
+
+    // Auto CreateSalesOrder for Store Pickup
+    if (primaryOrder && sharedFields.delivery_type === "store") {
+      const pm = String(sharedFields.payment_method || "").toLowerCase().trim();
+      const ps = String(sharedFields.payment_status || "").toLowerCase().trim();
+      
+      const isOfflinePayment = 
+        pm === "cash on delivery" || 
+        pm === "cod" ||
+        pm === "pay_at_store" || 
+        pm === "pay at store" ||
+        pm === "emi" ||
+        pm === "bajaj finance" ||
+        pm === "bajajemioffline";
+        
+      const isOnlinePaid = (pm === "online" && (ps === "paid" || ps === "success"));
+
+      if (isOfflinePayment || isOnlinePaid) {
+        try {
+          await sendOrderData(primaryOrder._id, "Auto CreateSalesOrder for store checkout");
+        } catch (err) {
+          console.error("Auto sendOrderData error:", err);
+        }
       }
     }
 
