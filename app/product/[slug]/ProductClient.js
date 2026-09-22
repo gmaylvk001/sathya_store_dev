@@ -31,6 +31,7 @@ import ProductBreadcrumb from "@/components/ProductBreadcrumb";
 import RecentlyViewedProducts from '@/components/RecentlyViewedProducts';
 import RelatedProducts from "@/components/RelatedProducts";
 import RazorpayOffers from "@/components/RazorpayOffers";
+import CompareButton from "@/components/CompareButton";
 import { v4 as uuidv4 } from "uuid";
 
 
@@ -1940,10 +1941,11 @@ const fetchBrand = async () => {
         <span>Share</span>
       </button>
       <span className="text-gray-300">|</span>
-      <button onClick={() => alert("Compare feature coming soon")} className="flex items-center gap-1 hover:text-[#d72828] transition">
-        <IoReload className="text-gray-500 w-3.5 h-3.5" />
-        <span>Compare</span>
-      </button>
+      <CompareButton
+        product={product}
+        variant="text"
+        className="flex items-center gap-1 hover:text-[#d72828] transition bg-transparent p-0 border-0 shadow-none text-xs text-gray-700 font-semibold"
+      />
       <span className="text-gray-300">|</span>
       <AddToWishlistButton
         productId={product._id}

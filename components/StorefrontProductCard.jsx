@@ -6,6 +6,7 @@ import Link from "next/link";
 import { FaStar } from "react-icons/fa";
 import AddToWishlistButton from "@/components/ProductCard";
 import ProductAddtoCart from "@/components/AddToCart";
+import CompareButton from "@/components/CompareButton";
 
 export default function StorefrontProductCard({
   product,
@@ -77,11 +78,16 @@ export default function StorefrontProductCard({
           </span>
         )}
 
-        <div className="absolute top-2.5 right-2.5 z-10">
+        <div className="absolute top-2.5 right-2.5 z-10 flex flex-col gap-1.5">
           <AddToWishlistButton
             productId={product._id}
             iconSize={14}
             className="w-7 h-7 rounded-full bg-white/90 backdrop-blur-md shadow-xs border border-gray-100 flex items-center justify-center hover:bg-white hover:scale-110 active:scale-95 transition-all text-gray-600 hover:text-rose-600"
+          />
+          {/* Compare button — icon variant, stacked below the wishlist button */}
+          <CompareButton
+            product={product}
+            variant="icon"
           />
         </div>
 

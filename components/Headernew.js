@@ -468,8 +468,18 @@ const Header = () => {
     } catch { }
     return [];
   };
+  const decodeHtmlEntities = (str) => {
+    if (!str) return str;
+    return String(str)
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'");
+  };
+
   const ensureWordsNotEmpty = (names) => {
-    const cleaned = (names || []).filter(Boolean);
+    const cleaned = (names || []).map(decodeHtmlEntities).filter(Boolean);
     if (cleaned.length > 0) return cleaned;
     return ['Mobiles', 'Laptops', 'Television', 'Air Conditioner', 'Refrigerator'];
   };
@@ -612,9 +622,7 @@ const Header = () => {
       // Count words in updatedText
       const wordCount = updatedText.trim().split(/\s+/).filter(Boolean).length;
 
-      if (wordCount <= 2) {
-        setTypedPreview(updatedText || "");
-      }
+      setTypedPreview(updatedText || "");
 
       charIndex.current = isDeleting.current
         ? Math.max(0, charIndex.current - 1)

@@ -26,7 +26,7 @@ const ABOUT_LINKS = [
   { label: "Terms & Conditions", href: "/terms-and-conditions" },
   { label: "Help/FAQ", href: "/faq" },
   { label: "Sitemap", href: "/sitemap.xml" },
-  { label: "Blogs", href: "/blog" },
+  { label: "Blogs", href: "/blog-listing" },
 ];
 
 const OFFER_LINKS = [
@@ -99,10 +99,10 @@ const Footer = () => {
       const arr = Array.isArray(data?.data)
         ? data.data
         : Array.isArray(data?.categories)
-        ? data.categories
-        : Array.isArray(data)
-        ? data
-        : [];
+          ? data.categories
+          : Array.isArray(data)
+            ? data
+            : [];
       const active = arr.filter((cat) => cat && cat.status === "Active");
       const main = active.filter((cat) => cat.parentid === "none");
       const subs = {};
@@ -317,7 +317,7 @@ const Footer = () => {
                 <h3 className="text-sm font-bold tracking-wide uppercase mb-4">
                   Categories
                 </h3>
-                <ul 
+                <ul
                   className="space-y-2.5 max-h-[28rem] overflow-y-auto pr-1 scrollbar-hide"
                   style={{ WebkitMaskImage: "linear-gradient(to bottom, black 85%, transparent 100%)", maskImage: "linear-gradient(to bottom, black 85%, transparent 100%)" }}
                 >
@@ -407,30 +407,30 @@ const Footer = () => {
                   <p className="text-sm text-gray-500">Categories loading…</p>
                 ) : (
                   detailRows.map((row) => (
-                  <div
-                    key={row.id || row.title}
-                    className="flex flex-wrap items-baseline gap-x-2 gap-y-1 text-sm leading-relaxed"
-                  >
-                    <Link
-                      href={row.href}
-                      className="footer-link footer-link-bold text-sm whitespace-nowrap"
+                    <div
+                      key={row.id || row.title}
+                      className="flex flex-wrap items-baseline gap-x-2 gap-y-1 text-sm leading-relaxed"
                     >
-                      {row.title}
-                    </Link>
-                    {row.children.length > 0 ? (
-                      <span className="text-gray-500">—</span>
-                    ) : null}
-                    {row.children.map((child, idx) => (
-                      <span key={child.href} className="text-gray-400">
-                        <Link href={child.href} className="footer-link text-sm">
-                          {child.label}
-                        </Link>
-                        {idx < row.children.length - 1 ? (
-                          <span className="mx-1.5 text-gray-600">,</span>
-                        ) : null}
-                      </span>
-                    ))}
-                  </div>
+                      <Link
+                        href={row.href}
+                        className="footer-link footer-link-bold text-sm whitespace-nowrap"
+                      >
+                        {row.title}
+                      </Link>
+                      {row.children.length > 0 ? (
+                        <span className="text-gray-500">—</span>
+                      ) : null}
+                      {row.children.map((child, idx) => (
+                        <span key={child.href} className="text-gray-400">
+                          <Link href={child.href} className="footer-link text-sm">
+                            {child.label}
+                          </Link>
+                          {idx < row.children.length - 1 ? (
+                            <span className="mx-1.5 text-gray-600">,</span>
+                          ) : null}
+                        </span>
+                      ))}
+                    </div>
                   ))
                 )}
               </div>
