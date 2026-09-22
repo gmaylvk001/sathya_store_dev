@@ -55,7 +55,7 @@ const OrderDetails = () => {
 
   // 🔹 Fetch Stores
   useEffect(() => {
-    fetch("/api/store/get")
+    fetch("/api/store_listings/get")
       .then(res => res.json())
       .then(data => {
         setStores(Array.isArray(data) ? data : data.data || []);
@@ -413,7 +413,7 @@ const OrderDetails = () => {
                 <option value="">Choose</option>
                 {stores.map((store) => {
                   const code = storeBranchCode(store);
-                  const label = store.organisation_name || store.store_name || store.name || "Store";
+                  const label = store.title || store.organisation_name || store.store_name || store.name || "Store";
                   return (
                     <option key={store._id} value={store._id}>
                       {code ? `${label} (${code})` : label}

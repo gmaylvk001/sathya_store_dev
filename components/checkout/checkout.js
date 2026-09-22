@@ -202,92 +202,24 @@ const DeliveryOptions = ({
         </label>
       </div>
 
-      {/* Store Pickup → nearest stores */}
+      {/* Store Pickup → simple dropdown */}
       {formData.deliveryType === 'store' && (
-        <div className="bg-red-50 border border-red-200 rounded-xl p-4 mt-2">
-          <p className="text-xs font-semibold text-red-700 uppercase tracking-wide mb-3 flex items-center gap-1.5">
-            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round"
-                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-            Nearest Sathya Stores (Store Pickup)
-          </p>
-
-          {loadingStores ? (
-            <div className="flex items-center gap-2 py-3">
-              <div className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
-              <span className="text-sm text-gray-500">Finding nearest stores…</span>
-            </div>
-          ) : nearestStores.length === 0 ? (
-            <div className="text-sm text-gray-500 py-2">
-              Enter your pincode above to find nearest stores.
-            </div>
-          ) : (
-            <>
-              {/* Top 3 stores side-by-side on desktop, stacked on mobile */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-3">
-                {displayedStores.map((store) => {
-                  const mailLink = `mailto:${BEA_CONTACT_EMAIL}?subject=${encodeURIComponent('Product availability check')}&body=${encodeURIComponent(productMsg)}`;
-                  return (
-                    <div
-                      key={store._id}
-                      className="rounded-lg p-3 border border-red-200 bg-white flex flex-col h-full min-h-[150px]"
-                    >
-                      <div className="flex-1 min-h-0">
-                        <p className="text-xs font-semibold text-gray-800 leading-snug line-clamp-2">
-                          {store.organisation_name}
-                        </p>
-                        <p className="text-xs text-gray-500 mt-1 leading-snug line-clamp-2">
-                          {store.address || store.city}
-                        </p>
-                        <span className="inline-flex items-center gap-1 mt-2 text-xs text-red-600
-                          bg-red-100 px-2 py-0.5 rounded-full font-medium">
-                          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round"
-                              d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                          </svg>
-                          {store.distanceKm != null ? `${store.distanceKm.toFixed(1)} KM Away` : "Nearest store"}
-                        </span>
-                      </div>
-
-                      <div className="mt-auto pt-3 border-t border-gray-100">
-                        <p className="text-[10px] text-gray-500 flex items-center gap-2">
-                          <span>Call and check the product availability</span>
-                        </p>
-                        <div className="flex items-center gap-2 mt-1.5">
-                          <a href={`tel:${BEA_CONTACT_PHONE}`} title="Call store"
-                            className="w-7 h-7 flex items-center justify-center rounded-full bg-green-50 border border-green-200 text-green-700 hover:bg-green-100 transition">
-                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                            </svg>
-                          </a>
-                          <a href={mailLink} title="Email store"
-                            className="w-7 h-7 flex items-center justify-center rounded-full bg-red-50 border border-red-200 text-red-700 hover:bg-red-100 transition">
-                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                            </svg>
-                          </a>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {nearestStores.length > 3 && (
-                <button
-                  type="button"
-                  onClick={() => setShowAllStores(v => !v)}
-                  className="text-xs text-red-600 underline"
-                >
-                  {showAllStores
-                    ? 'Show less'
-                    : `View all ${nearestStores.length} stores ›`}
-                </button>
-              )}
-            </>
-          )}
+        <div className="mt-4">
+          <label className="block text-sm font-semibold text-gray-700 mb-2">Select Store</label>
+          <select
+            name="selectedStore"
+            value={formData.selectedStore}
+            onChange={handleChange}
+            className="w-full border border-gray-300 rounded-lg p-3 text-sm focus:outline-none focus:ring-1 focus:ring-red-500 bg-white"
+            required
+          >
+            <option value="">Select store</option>
+            {stores.map((store) => (
+              <option key={store._id} value={store.branch_code || store._id}>
+                {store.title || store.organisation_name} {store.city ? `- ${store.city}` : ''}
+              </option>
+            ))}
+          </select>
         </div>
       )}
 
@@ -364,9 +296,13 @@ export default function CheckoutPage() {
   useEffect(() => {
     const fetchStores = async () => {
       try {
-        const res = await fetch('/api/store/get');
-        const result = await res.json();
-        if (result.success) setStores(result.data);
+        const res = await fetch('/api/store_listings/get');
+        const json = await res.json();
+        if (Array.isArray(json)) {
+          setStores(json);
+        } else if (json.data) {
+          setStores(json.data);
+        }
       } catch (err) { console.error('Fetch stores error:', err); }
     };
     fetchStores();
@@ -641,8 +577,12 @@ export default function CheckoutPage() {
       }
 
       if (formData.deliveryType === 'store') {
-        if (!formData.firstName || !formData.address || !formData.city || !formData.phonenumber) {
-          toast.error('Please fill in all required store pickup fields.');
+        if (!formData.selectedStore) {
+          toast.error('Please select a store.');
+          return;
+        }
+        if (!formData.phonenumber) {
+          toast.error('Please provide your phone number.');
           return;
         }
       }
@@ -674,12 +614,12 @@ export default function CheckoutPage() {
 
       const comments = formData.additionalInfo || '';
 
-      const orderUserName = formData.deliveryType === 'home' && shippingAddress ? shippingAddress.username : formData.firstName;
+      const orderUserName = formData.deliveryType === 'home' && shippingAddress ? shippingAddress.username : (formData.firstName || 'Customer');
       const orderPhone = formData.deliveryType === 'home' && shippingAddress ? shippingAddress.phonenumber : formData.phonenumber;
       const orderEmail = formData.email;
 
       const pickupStoreName = formData.deliveryType === 'store'
-        ? stores.find(s => s._id === formData.selectedStore)?.organisation_name
+        ? (stores.find(s => s.branch_code === formData.selectedStore || s._id === formData.selectedStore)?.title || stores.find(s => s.branch_code === formData.selectedStore || s._id === formData.selectedStore)?.organisation_name)
         : undefined;
 
       let order_number = 'ORD' + Date.now();
@@ -708,7 +648,8 @@ export default function CheckoutPage() {
               customer_comments: comments, payment_method: paymentMethod, payment_type: paymentMode,
               order_status: 'payment_initialized',
               delivery_type: formData.deliveryType === 'store' ? 'store_pickup' : 'home',
-              pickup_store: pickupStoreName,
+              pickup_store: formData.deliveryType === 'store' ? formData.selectedStore : null,
+              pickup_type: formData.deliveryType === 'store' ? formData.selectedStore : null,
               store_id: formData.deliveryType === 'store' ? formData.selectedStore : null,
               gst_number: gstNumber,
               payment_id: '', payment_status: 'payment_initialized',
@@ -747,7 +688,8 @@ export default function CheckoutPage() {
           customer_comments: comments, payment_method: paymentMethod, payment_type: paymentMode,
           order_status: 'pending',
           delivery_type: formData.deliveryType === 'store' ? 'store_pickup' : 'home',
-          pickup_store: pickupStoreName,
+          pickup_store: formData.deliveryType === 'store' ? formData.selectedStore : null,
+          pickup_type: formData.deliveryType === 'store' ? formData.selectedStore : null,
           store_id: formData.deliveryType === 'store' ? formData.selectedStore : null,
           gst_number: gstNumber,
           payment_id: paymentData.payment_id, payment_status: paymentData.status,
@@ -1017,52 +959,6 @@ export default function CheckoutPage() {
                 </div>
               )}
 
-              {/* Store pickup — full address block (matches design) */}
-              {formData.deliveryType === 'store' && (
-                <div className="mt-4 space-y-3">
-                  <FloatInput label="Full Name" name="firstName" required
-                    value={formData.firstName} onChange={handleChange} onBlur={handleBlur}
-                    error={getFieldError('firstName')} />
-                  <FloatInput label="Address" name="address" required
-                    value={formData.address} onChange={handleChange} onBlur={handleBlur}
-                    error={getFieldError('address')} />
-                  <FloatInput label="Landmark (Optional)" name="landmark"
-                    value={formData.landmark} onChange={handleChange} onBlur={handleBlur}
-                    error={getFieldError('landmark')} />
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <FloatInput label="State" name="state" readOnly
-                      value={formData.state} onChange={handleChange} onBlur={handleBlur}
-                      error={getFieldError('state')} />
-                    <div className="relative">
-                      <select
-                        name="city" value={formData.city}
-                        onChange={handleChange} onBlur={handleBlur}
-                        className={`peer w-full border rounded-lg pt-5 pb-1.5 px-3 text-sm outline-none transition appearance-none bg-white
-                          ${getFieldError('city') ? 'border-red-400 focus:border-red-500' : 'border-gray-300 focus:border-[#d72828]'}`}
-                      >
-                        <option value="" disabled hidden />
-                        {finalCities.map((city, i) => <option key={i} value={city}>{city}</option>)}
-                      </select>
-                      <label className={`absolute left-3 transition-all duration-150 pointer-events-none
-                        ${formData.city ? 'top-1 text-[10px] text-gray-500' : 'top-3.5 text-sm text-gray-400'}`}>
-                        City*
-                      </label>
-                      {getFieldError('city') && <p className="text-red-500 text-xs mt-0.5">{getFieldError('city')}</p>}
-                    </div>
-                    <FloatInput label="Pincode" name="postCode" required
-                      value={formData.postCode} onChange={handleChange} onBlur={handleBlur}
-                      error={getFieldError('postCode')}
-                      inputMode="numeric" maxLength={6} />
-                  </div>
-                  <FloatInput label="Country" name="country" required readOnly showLock
-                    value={formData.country || 'India'} onChange={handleChange} onBlur={handleBlur}
-                    error={getFieldError('country')}
-                    hint="Only available for delivery within India" />
-                  <FloatInput label="Phone" name="phonenumber" type="tel" required
-                    value={formData.phonenumber} onChange={handleChange} onBlur={handleBlur}
-                    error={getFieldError('phonenumber')} />
-                </div>
-              )}
 
               {/* GST invoice (optional) — after delivery address inputs */}
               <div className="mt-4">

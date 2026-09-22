@@ -27,13 +27,16 @@ const DeliveryOptions = ({ formData, handleChange, isDeliverySaved, setIsDeliver
   useEffect(() => {
     const fetchStores = async () => {
       try {
-        const res = await fetch("/api/store/get");
+        const res = await fetch("/api/store_listings/get");
         const json = await res.json();
-        if (json.success) {
+        // /api/store_listings/get returns the array directly
+        if (Array.isArray(json)) {
+          setFetchedStores(json);
+        } else if (json.data) {
           setFetchedStores(json.data);
         }
       } catch (error) {
-        console.error("Failed to fetch stores", error);
+        console.error("Failed to fetch store listings", error);
       }
     };
     
@@ -87,8 +90,8 @@ const DeliveryOptions = ({ formData, handleChange, isDeliverySaved, setIsDeliver
             >
               <option value="">Select store</option>
               {fetchedStores.map((store) => (
-                <option key={store._id} value={store._id}>
-                  {store.organisation_name} - {store.city}
+                <option key={store._id} value={store.branch_code || store._id}>
+                  {store.title || store.organisation_name} {store.city ? `- ${store.city}` : ''}
                 </option>
               ))}
             </select>
@@ -625,10 +628,9 @@ const grandTotal = subtotal - totalDiscount;
           payment_type: paymentMode,
           order_status: "pending",
          delivery_type: formData.deliveryType === "store" ? "store_pickup" : "home",
-         pickup_store: formData.deliveryType === "store" 
-      ? stores.find(s => s._id === formData.selectedStore)?.organisation_name 
-      : undefined,
-          payment_id: paymentData._id,
+         pickup_store: formData.deliveryType === "store" ? formData.selectedStore : undefined,
+         pickup_type: formData.deliveryType === "store" ? formData.selectedStore : undefined,
+         payment_id: paymentData._id,
           payment_status: paymentData.status,
           order_number: "ORD" + Date.now(),
           order_details: cartItems.map((item) => ({

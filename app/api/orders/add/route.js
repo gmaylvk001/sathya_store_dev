@@ -195,6 +195,7 @@ export async function POST(req) {
       order_billingaddress,
       user_addbillingid,
       order_details,
+      pickup_type,
     } = body;
 
     if (
@@ -249,6 +250,7 @@ export async function POST(req) {
       order_billingaddress: order_billingaddress || null,
       user_addbillingid: user_addbillingid || null,
       order_owner: isKarnatakaOrder ? "unilet" : "sathya",
+      pickup_type: pickup_type || null,
     };
 
     const siblingNumbers = order_item.map((_, index) => makeOrderNumber(baseOrderNumber, index));

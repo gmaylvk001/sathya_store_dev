@@ -132,7 +132,7 @@ export async function PATCH(req, { params }) {
 
       const pickupResult = await OrderNew.updateOne(
         { _id: orderId },
-        { $set: { pickup_type } }
+        { $set: { pickup_type, pickup_store: pickup_type } }
       );
       if (!pickupResult.matchedCount) {
         return NextResponse.json({ success: false, message: "Order not found" }, { status: 404 });

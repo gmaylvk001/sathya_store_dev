@@ -1699,7 +1699,8 @@ return (
             })}
           </div>
 
-          {/* Active Offers & Coupons Banner */}
+          {/* Active Offers & Coupons Banner (Hidden/Commented Out) */}
+          {/*
           {couponFeatureEnabled && validActiveOfferCodes.length > 0 && (
             <div className="bg-white rounded-xl border border-gray-200/80 p-4 shadow-2xs">
               <h3 className="text-xs font-bold text-gray-700 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
@@ -1723,11 +1724,13 @@ return (
               </div>
             </div>
           )}
+          */}
         </div>
 
         {/* RIGHT COLUMN: Price Details Card */}
         <div className="flex flex-col gap-4 sticky top-4">
-          {/* Coupon Input Box */}
+          {/* Coupon Input Box (Hidden/Commented Out) */}
+          {/*
           {couponFeatureEnabled && (
             <div className="bg-white rounded-xl border border-gray-200/80 p-4 shadow-2xs">
               <h3 className="text-xs font-bold text-gray-600 uppercase tracking-wider mb-2.5">
@@ -1763,6 +1766,7 @@ return (
               {couponSuccess && <p className="text-emerald-600 text-xs font-medium mt-2">{couponSuccess}</p>}
             </div>
           )}
+          */}
 
           {/* Price Details Card */}
           <div className="bg-white rounded-xl border border-gray-200/80 p-5 shadow-2xs">
