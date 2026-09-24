@@ -76,8 +76,54 @@ const OrderDetails = () => {
       .catch((err) => console.error("System users fetch error:", err));
   }, []);
 
-  // Order History save logic — next step (view only for now)
-  const addHistory = () => {};
+  // Admin Add Order History (exist Complete / Cancelled flow)
+  const addHistory = async () => {
+    if (!status) {
+      toast.error("Please select a status");
+      return;
+    }
+
+    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    if (!token) {
+      toast.error("Please login again");
+      return;
+    }
+
+    setIsUpdating(true);
+    try {
+      const res = await fetch(`/api/orders_new/${orderId}/add-history`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          status,
+          comment,
+        }),
+      });
+
+      const data = await res.json().catch(() => null);
+      if (!res.ok || !data?.success) {
+        toast.error(data?.message || "Failed to add history");
+        return;
+      }
+
+      toast.success(data.message || "Order History Added Successfully!");
+      setStatus("");
+      setComment("");
+
+      const refreshed = await fetch(`/api/orders_new/${orderId}`).then((r) => r.json());
+      if (refreshed && !refreshed.error) {
+        setOrder(refreshed);
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Network error occurred");
+    } finally {
+      setIsUpdating(false);
+    }
+  };
 
   const openHistoryCommentModal = (entry, index) => {
     setSelectedHistoryIndex(index);
