@@ -9,6 +9,7 @@ import Coupon from "@/models/ecom_offer_info";
 import Usedcoupon from "@/models/ecom_coupon_track_info";
 import Notification from "@/models/Notification.js";
 import { sendOrderData } from "@/lib/sendOrderData";
+import { sendOrderConfirmationSms } from "@/lib/orderConfirmSms";
 
 const ORDER_STATUS_ENUM = [
   "Billed",
@@ -371,28 +372,68 @@ export async function POST(req) {
       }
     }
 
-    // Auto CreateSalesOrder for Store Pickup
-    if (primaryOrder && sharedFields.delivery_type === "store") {
-      const pm = String(sharedFields.payment_method || "").toLowerCase().trim();
-      const ps = String(sharedFields.payment_status || "").toLowerCase().trim();
-      
-      const isOfflinePayment = 
-        pm === "cash on delivery" || 
-        pm === "cod" ||
-        pm === "pay_at_store" || 
-        pm === "pay at store" ||
-        pm === "emi" ||
-        pm === "bajaj finance" ||
-        pm === "bajajemioffline";
-        
-      const isOnlinePaid = (pm === "online" && (ps === "paid" || ps === "success"));
+    // Auto CreateSalesOrder for Store Pickup + order confirmation SMS (exist storeOrders rules)
+    const pm = String(sharedFields.payment_method || sharedFields.payment_type || "")
+      .toLowerCase()
+      .trim();
+    const ps = String(sharedFields.payment_status || "").toLowerCase().trim();
 
+    const isOfflinePayment =
+      pm === "cash on delivery" ||
+      pm === "cod" ||
+      pm === "pay_at_store" ||
+      pm === "pay at store" ||
+      pm === "emi" ||
+      pm === "bajaj finance" ||
+      pm === "bajajemioffline";
+
+    const isOnlinePaid =
+      (pm === "online" || pm === "emi") && (ps === "paid" || ps === "success");
+
+    const isPaymentInitiated =
+      ps === "payment_initialized" ||
+      ps === "payment initialized" ||
+      ps === "payment initiated" ||
+      mappedStatus === "Payment Initiated";
+
+    // Exist: no confirmation SMS while Payment Initiated (online not completed)
+    const canSendConfirmSms = !isPaymentInitiated && (isOfflinePayment || isOnlinePaid);
+
+    if (primaryOrder && sharedFields.delivery_type === "store") {
       if (isOfflinePayment || isOnlinePaid) {
         try {
-          await sendOrderData(primaryOrder._id, "Auto CreateSalesOrder for store checkout");
+          const wondersoftResult = await sendOrderData(
+            primaryOrder._id,
+            "Auto CreateSalesOrder for store checkout"
+          );
+          // Exist store path: SMS only if CreateSalesOrder SUCCESS
+          if (wondersoftResult?.api_status === "SUCCESS" && canSendConfirmSms) {
+            const fresh = {
+              ...primaryOrder.toObject?.() ? primaryOrder.toObject() : primaryOrder,
+              order_username: sharedFields.order_username,
+              order_phonenumber: sharedFields.order_phonenumber,
+              order_number: primaryOrder.order_number || sharedFields.order_number,
+            };
+            await sendOrderConfirmationSms(fresh).catch((err) =>
+              console.error("Order confirm SMS error:", err)
+            );
+          }
         } catch (err) {
           console.error("Auto sendOrderData error:", err);
         }
+      }
+    } else if (primaryOrder && sharedFields.delivery_type === "home" && canSendConfirmSms) {
+      // Exist home: COD/EMI after create; online after payment success
+      try {
+        const fresh = {
+          ...(primaryOrder.toObject?.() ? primaryOrder.toObject() : primaryOrder),
+          order_username: sharedFields.order_username,
+          order_phonenumber: sharedFields.order_phonenumber,
+          order_number: primaryOrder.order_number,
+        };
+        await sendOrderConfirmationSms(fresh);
+      } catch (err) {
+        console.error("Order confirm SMS error:", err);
       }
     }
 

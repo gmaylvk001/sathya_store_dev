@@ -776,15 +776,24 @@ const OrderDetails = () => {
             >
               <option value="">Choose</option>
               {(() => {
-                const current = String(order?.order_status || "").toLowerCase();
-                const cancelDisabled = ["cancelled", "canceled", "complete", "billed"].includes(current);
+                // Exist Add History dropdown matrix (normal dropdown)
+                const current = String(order?.order_status || "").trim().toLowerCase();
+                const isFinal = current === "cancelled" || current === "canceled" || current === "complete";
+                const cancelDisabled =
+                  isFinal || current === "billed";
+                const completeDisabled = isFinal;
+                // ordered / Order Placed / Order Accepted → both enabled
                 return (
-                  <option value="Cancelled" disabled={cancelDisabled}>
-                    Cancelled{cancelDisabled ? " (not allowed)" : ""}
-                  </option>
+                  <>
+                    <option value="Cancelled" disabled={cancelDisabled}>
+                      Cancelled{cancelDisabled ? " (not allowed)" : ""}
+                    </option>
+                    <option value="Complete" disabled={completeDisabled}>
+                      Complete{completeDisabled ? " (not allowed)" : ""}
+                    </option>
+                  </>
                 );
               })()}
-              <option value="Complete">Complete</option>
             </select>
           </div>
 
