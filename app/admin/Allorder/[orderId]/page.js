@@ -775,7 +775,15 @@ const OrderDetails = () => {
               className="w-full border border-gray-300 p-2 rounded text-sm bg-white focus:outline-none focus:ring-1 focus:ring-gray-400"
             >
               <option value="">Choose</option>
-              <option value="Cancelled">Cancelled</option>
+              {(() => {
+                const current = String(order?.order_status || "").toLowerCase();
+                const cancelDisabled = ["cancelled", "canceled", "complete", "billed"].includes(current);
+                return (
+                  <option value="Cancelled" disabled={cancelDisabled}>
+                    Cancelled{cancelDisabled ? " (not allowed)" : ""}
+                  </option>
+                );
+              })()}
               <option value="Complete">Complete</option>
             </select>
           </div>

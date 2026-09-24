@@ -166,6 +166,22 @@ export default function Order() {
 
   const getStatusKey = (status) => String(status || "").toLowerCase();
 
+  // Exist: show Cancel only if Pending/Processing and cancel_exists is false
+  const canCancelOrder = (order) => {
+    if (order?.cancel_exists) return false;
+    const key = getStatusKey(order?.order_status);
+    const allowed = new Set([
+      "pending",
+      "processing",
+      "ordered",
+      "order placed",
+      "order accepted",
+      "payment initiated",
+      "payment_initialized",
+    ]);
+    return allowed.has(key);
+  };
+
   const getStatusBadge = (status) => {
     const key = getStatusKey(status);
     const styles = {
@@ -558,7 +574,7 @@ export default function Order() {
                               <FiShoppingBag className="mr-1 sm:mr-2 text-xs sm:text-sm" />
                               Buy Again
                             </button>
-                            {statusKey === 'pending' && (
+                            {canCancelOrder(order) && (
                               <button 
                                 onClick={() => handleCancelClick(order)}
                                 className="px-3 sm:px-4 py-1 sm:py-2 border border-gray-300 text-gray-600 rounded-md hover:bg-gray-50 transition-colors text-xs sm:text-sm"

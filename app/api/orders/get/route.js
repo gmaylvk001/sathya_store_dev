@@ -44,6 +44,7 @@ import dbConnect from "@/lib/db";
 import OrderNew from "@/models/orders_new";
 import OrderDetailsNew from "@/models/order_details_new";
 import PaymentNewLive from "@/models/payment_new_live";
+import CancelOrders from "@/models/cancel_orders";
 import product from "@/models/product";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
@@ -122,6 +123,20 @@ export async function GET(req) {
       );
     };
 
+    // Exist cancel_exists: any cancel_orders row for this order
+    const cancelOrderIds = orders.map((o) => String(o._id));
+    const cancelOrderNumbers = orders.map((o) => o.order_number).filter(Boolean);
+    const cancelQuery = [];
+    if (cancelOrderIds.length) cancelQuery.push({ order_id: { $in: cancelOrderIds } });
+    if (cancelOrderNumbers.length) cancelQuery.push({ order_number: { $in: cancelOrderNumbers } });
+    const cancelRows = cancelQuery.length
+      ? await CancelOrders.find({ $or: cancelQuery }).select("order_id order_number").lean()
+      : [];
+    const cancelExistsByOrderId = new Set(cancelRows.map((r) => String(r.order_id || "")));
+    const cancelExistsByOrderNumber = new Set(
+      cancelRows.map((r) => String(r.order_number || "").trim()).filter(Boolean)
+    );
+
     const updatedOrders = [];
     for (let order of orders) {
       // Find line items from order_details_new linked to this order
@@ -155,6 +170,12 @@ export async function GET(req) {
 
       const orderObj = order.toObject();
       const payment = findPaymentForOrder(order);
+      const cancel_exists =
+        cancelExistsByOrderId.has(String(order._id)) ||
+        (order.order_number
+          ? cancelExistsByOrderNumber.has(String(order.order_number).trim())
+          : false);
+
       updatedOrders.push({
         ...orderObj,
         order_item: itemsWithSlug,
@@ -163,6 +184,7 @@ export async function GET(req) {
         payment_mode: payment?.PaymentMode || orderObj.payment_mode || null,
         createdAt: orderObj.created_at || orderObj.createdAt,
         updatedAt: orderObj.updated_at || orderObj.updatedAt,
+        cancel_exists: Boolean(cancel_exists),
       });
     }
     

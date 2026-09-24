@@ -5,7 +5,8 @@ const CancelOrdersSchema = new mongoose.Schema({
   order_id: { type: String, required: true, trim: true, maxlength: 45 },
   customer_id: { type: String, required: true, trim: true, maxlength: 45 },
   order_status: { type: String, required: true, trim: true, maxlength: 255 },
-  reason: { type: String, required: true, trim: true, maxlength: 255 },
+  // My Orders: dropdown value; Admin exist: may be empty
+  reason: { type: String, required: false, trim: true, maxlength: 255, default: "" },
   comments: { type: String, required: false, default: null },
   created_at: { type: Date, required: false, default: null },
   updated_at: { type: Date, required: false, default: null },
