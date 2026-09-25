@@ -23,29 +23,15 @@ const OrderDetails = () => {
   const [roles, setRoles] = useState([]);
   const [systemUsers, setSystemUsers] = useState([]);
   const [remarks, setRemarks] = useState("");
+  const [isUpdating, setIsUpdating] = useState(false);
 
-  const orderr = {
-    history: [
-      {
-        date: '2025-07-22T12:00:00Z',
-        comment: 'Order placed by user',
-        status: 'Pending',
-        customer_notified: true,
-      },
-      {
-        date: '2025-07-23T08:30:00Z',
-        comment: 'Order packed and ready to ship',
-        status: 'Processing',
-        customer_notified: false,
-      },
-      {
-        date: '2025-07-23T14:00:00Z',
-        comment: 'Order shipped via BlueDart',
-        status: 'Shipped',
-        customer_notified: true,
-      },
-    ],
-  };
+  // FOR ORDER HISTORY
+  const [status, setStatus] = useState("");
+  const [comment, setComment] = useState("");
+  const [showHistoryCommentModal, setShowHistoryCommentModal] = useState(false);
+  const [historyCommentDraft, setHistoryCommentDraft] = useState("");
+  const [selectedHistoryIndex, setSelectedHistoryIndex] = useState(null);
+
 
 
   useEffect(() => {
@@ -112,6 +98,125 @@ const OrderDetails = () => {
       setAssigningSalesPerson(false);
     }
   };
+
+  // Admin Add Order History (exist Complete / Cancelled flow)
+  const addHistory = async () => {
+    if (!status) {
+      toast.error("Please select a status");
+      return;
+    }
+
+    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    if (!token) {
+      toast.error("Please login again");
+      return;
+    }
+
+    setIsUpdating(true);
+    try {
+      const res = await fetch(`/api/orders_new/${orderId}/add-history`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          status,
+          comment,
+        }),
+      });
+
+      const data = await res.json().catch(() => null);
+      if (!res.ok || !data?.success) {
+        toast.error(data?.message || "Failed to add history");
+        return;
+      }
+
+      toast.success(data.message || "Order History Added Successfully!");
+      setStatus("");
+      setComment("");
+
+      const refreshed = await fetch(`/api/orders_new/${orderId}`).then((r) => r.json());
+      if (refreshed && !refreshed.error) {
+        setOrder(refreshed);
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Network error occurred");
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const openHistoryCommentModal = (entry, index) => {
+    setSelectedHistoryIndex(index);
+    setHistoryCommentDraft(entry?.comment != null ? String(entry.comment) : "");
+    setShowHistoryCommentModal(true);
+  };
+
+  const closeHistoryCommentModal = () => {
+    setShowHistoryCommentModal(false);
+    setSelectedHistoryIndex(null);
+    setHistoryCommentDraft("");
+  };
+
+  // Save comment to order_history_comments (users_id = logged-in admin)
+  const saveHistoryComment = async () => {
+    const entry =
+      selectedHistoryIndex != null && Array.isArray(order?.order_history)
+        ? order.order_history[selectedHistoryIndex]
+        : null;
+
+    const commentText = String(historyCommentDraft || "").trim();
+    if (!commentText) {
+      toast.error("Please enter a comment");
+      return;
+    }
+    if (!entry) {
+      toast.error("History row not selected");
+      return;
+    }
+
+    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    if (!token) {
+      toast.error("Please login again");
+      return;
+    }
+
+    setIsUpdating(true);
+    try {
+      const res = await fetch("/api/order_history_comments", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          order_number: order?.order_number || entry.order_number || "",
+          order_status: entry.status || entry.order_status || "",
+          comment: commentText,
+          order_history_id: entry._id || null,
+          order_id: order?._id || null,
+        }),
+      });
+
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        toast.error(data?.message || "Failed to save comment");
+        return;
+      }
+
+      toast.success("Comment saved");
+      closeHistoryCommentModal();
+    } catch (err) {
+      console.error(err);
+      toast.error("Network error occurred");
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const historyRows = Array.isArray(order?.order_history) ? order.order_history : [];
 
   if (!order) return <p className="text-center mt-10">Loading...</p>;
 
@@ -444,52 +549,187 @@ const OrderDetails = () => {
         </div>
       </div>
 
-      {/* Order History */}
-      <div className="bg-white p-4 shadow rounded">
-      {/* <h3 className="font-semibold text-gray-600 border-b pb-2">Order History</h3>
+      {/* Order History — view only (save logic next) */}
+      <div className="bg-white p-4 shadow rounded space-y-6">
+        <div className="flex items-center justify-between border-b pb-2">
+          <h3 className="font-semibold text-gray-600">Order History</h3>
+          <button
+            type="button"
+            className="bg-red-500 text-white px-4 py-1.5 rounded text-sm font-medium"
+          >
+            History
+          </button>
+        </div>
 
-      <table className="w-full text-sm mt-3 border text-gray-700">
-        <thead>
-          <tr className="bg-gray-100 border-b">
-            <th className="p-2">Date Added</th>
-            <th className="p-2">Comment</th>
-            <th className="p-2">Status</th>
-            <th className="p-2 text-center">Customer Notified</th>
-          </tr>
-        </thead>
-        <tbody>
-          {orderr.history.map((entry, i) => (
-            <tr key={i} className="border-b">
-              <td className="p-2">{new Date(entry.date).toLocaleDateString()}</td>
-              <td className="p-2">{entry.comment}</td>
-              <td className="p-2">{entry.status}</td>
-              <td className="p-2 text-center">
-                {entry.customer_notified ? 'Yes' : 'No'}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table> */}
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm border text-gray-700">
+            <thead>
+              <tr className="bg-gray-100 border-b">
+                <th className="p-2 text-left">Date Added</th>
+                <th className="p-2 text-left">Comment</th>
+                <th className="p-2 text-left">Status</th>
+                <th className="p-2 text-center">Customer Notified</th>
+              </tr>
+            </thead>
+            <tbody>
+              {historyRows.length === 0 ? (
+                <tr className="border-b">
+                  <td className="p-3 text-gray-400 text-center" colSpan={4}>
+                    No history yet
+                  </td>
+                </tr>
+              ) : (
+                historyRows.map((entry, i) => (
+                  <tr key={entry._id || i} className="border-b">
+                    <td className="p-2 whitespace-nowrap">
+                      {entry.date || entry.created_at
+                        ? new Date(entry.date || entry.created_at).toLocaleDateString("en-GB")
+                        : "—"}
+                    </td>
+                    <td className="p-2">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-gray-700">{entry.comment || ""}</span>
+                        <button
+                          type="button"
+                          onClick={() => openHistoryCommentModal(entry, i)}
+                          className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-2.5 py-1 rounded whitespace-nowrap shrink-0"
+                        >
+                          Add Comment
+                        </button>
+                      </div>
+                    </td>
+                    <td className="p-2">{entry.status || entry.order_status || "—"}</td>
+                    <td className="p-2 text-center">
+                      {entry.notify != null
+                        ? Number(entry.notify)
+                        : entry.customer_notified != null
+                          ? Number(entry.customer_notified)
+                          : 0}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
 
-      {/* Add Order History Form */}
-      {/* <div className="mt-6">
-        <h4 className="font-semibold text-gray-600 border-b pb-2">Add Order History</h4>
-        <select className="w-full border p-2 mb-3 rounded text-sm">
-          <option>Choose Status</option>
-          <option value="Pending">Pending</option>
-          <option value="Completed">Completed</option>
-          <option value="Failed">Failed</option>
-        </select>
-        <textarea
-          className="w-full border rounded p-2 text-sm"
-          rows={3}
-          placeholder="Comment"
-        ></textarea>
-        <button className="bg-red-500 text-white px-4 py-2 rounded mt-2 hover:bg-red-700">
-          Add History
-        </button>
-      </div> */}
-    </div>
+        <div>
+          <h4 className="font-semibold text-gray-600 border-b pb-2">Add Order History</h4>
+
+          <div className="mt-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Order Status
+            </label>
+            <select
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
+              className="w-full border border-gray-300 p-2 rounded text-sm bg-white focus:outline-none focus:ring-1 focus:ring-gray-400"
+            >
+              <option value="">Choose</option>
+              {(() => {
+                // Exist Add History dropdown matrix (normal dropdown)
+                const current = String(order?.order_status || "").trim().toLowerCase();
+                const isFinal = current === "cancelled" || current === "canceled" || current === "complete";
+                const cancelDisabled =
+                  isFinal || current === "billed";
+                const completeDisabled = isFinal;
+                // ordered / Order Placed / Order Accepted → both enabled
+                return (
+                  <>
+                    <option value="Cancelled" disabled={cancelDisabled}>
+                      Cancelled{cancelDisabled ? " (not allowed)" : ""}
+                    </option>
+                    <option value="Complete" disabled={completeDisabled}>
+                      Complete{completeDisabled ? " (not allowed)" : ""}
+                    </option>
+                  </>
+                );
+              })()}
+            </select>
+          </div>
+
+          <div className="mt-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Comment
+            </label>
+            <textarea
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              className="w-full border border-gray-300 rounded p-2 text-sm focus:outline-none focus:ring-1 focus:ring-gray-400"
+              rows={4}
+              placeholder=""
+            />
+          </div>
+
+          <div className="mt-4 flex justify-end">
+            <button
+              type="button"
+              onClick={addHistory}
+              disabled={isUpdating}
+              className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded text-sm font-medium disabled:opacity-50"
+            >
+              Add History
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Order History Comment popup — view only */}
+      {showHistoryCommentModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div
+            className="absolute inset-0 bg-black/50"
+            onClick={closeHistoryCommentModal}
+          />
+          <div className="relative bg-white rounded-md shadow-xl w-full max-w-lg mx-4">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-800">
+                Order History Comment
+              </h3>
+              <button
+                type="button"
+                onClick={closeHistoryCommentModal}
+                className="text-gray-400 hover:text-gray-600 text-2xl leading-none px-1"
+                aria-label="Close"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="px-4 py-5">
+              <div className="flex gap-3 items-start">
+                <label className="text-sm text-gray-700 pt-2 w-20 shrink-0">
+                  Comment
+                </label>
+                <textarea
+                  value={historyCommentDraft}
+                  onChange={(e) => setHistoryCommentDraft(e.target.value)}
+                  rows={5}
+                  className="flex-1 border border-gray-300 rounded px-3 py-2 text-sm resize-y focus:outline-none focus:ring-1 focus:ring-blue-400"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 px-4 py-3 border-t border-gray-200 bg-gray-50 rounded-b-md">
+              <button
+                type="button"
+                onClick={closeHistoryCommentModal}
+                className="px-4 py-2 text-sm rounded border border-gray-300 bg-white text-gray-700 hover:bg-gray-100"
+              >
+                Close
+              </button>
+              <button
+                type="button"
+                onClick={saveHistoryComment}
+                disabled={isUpdating}
+                className="px-4 py-2 text-sm rounded bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50"
+              >
+                {isUpdating ? "Saving..." : "Save changes"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
