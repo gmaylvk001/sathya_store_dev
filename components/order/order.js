@@ -354,9 +354,9 @@ export default function Order() {
             <FiRefreshCw className={fetchingOrders ? "animate-spin" : ""} />
             {fetchingOrders ? "Fetching..." : "Fetch"}
           </button>
-          <span className="inline-flex items-center px-3 py-1.5 bg-emerald-100 text-emerald-700 rounded-full text-xs font-medium">
+          {/* <span className="inline-flex items-center px-3 py-1.5 bg-emerald-100 text-emerald-700 rounded-full text-xs font-medium">
             LatesOrdersFetched
-          </span>
+          </span> */}
         </div>
       </div>
       
@@ -407,9 +407,9 @@ export default function Order() {
                     <FiRefreshCw className={fetchingOrders ? "animate-spin" : ""} />
                     {fetchingOrders ? "Fetching..." : "Fetch"}
                   </button>
-                  <span className="inline-flex items-center px-3 py-1.5 bg-emerald-100 text-emerald-700 rounded-full text-sm font-medium">
+                  {/* <span className="inline-flex items-center px-3 py-1.5 bg-emerald-100 text-emerald-700 rounded-full text-sm font-medium">
                     LatesOrdersFetched
-                  </span>
+                  </span> */}
                 </div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4 sm:mb-6">
