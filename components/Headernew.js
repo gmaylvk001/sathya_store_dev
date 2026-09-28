@@ -853,11 +853,12 @@ const Header = () => {
   const [dropdownUseTranslate, setDropdownUseTranslate] = useState(false);
   const slideRefs = useRef({});
   const [suggestions, setSuggestions] = useState([]);
+  const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
   // refs & state for search dropdown positioning
   const searchInputRef = useRef(null);
-  // ADD missing state
   const [searchContext, setSearchContext] = useState(null);
   const debounceRef = useRef(null);
+  const abortControllerRef = useRef(null);
   const searchDropdownRef = useRef(null);
   const [searchDropdownVisible, setSearchDropdownVisible] = useState(false);
   const [searchDropdownLeft, setSearchDropdownLeft] = useState(0);
@@ -937,24 +938,13 @@ const Header = () => {
   }, [dropdownOpen]);
 
   const handleSearch = () => {
-
     if (!searchQuery.trim() && selectedCategory === "All Category") return;
-
+    setSearchDropdownVisible(false);
     const params = new URLSearchParams();
     if (searchQuery.trim()) params.append("query", searchQuery.trim());
     if (selectedCategory !== "All Category") {
       params.append("category", selectedCategory);
     }
-    router.push(`/search?${params.toString()}`);
-  };
-  const handleSearchBtnClick = () => {
-    if (!searchQuery.trim() && selectedCategory === "All Category") return;
-    const params = new URLSearchParams();
-    if (searchQuery.trim()) params.append("query", searchQuery.trim());
-    if (selectedCategory !== "All Category") {
-      params.append("category", selectedCategory);
-    }
-
     router.push(`/search?${params.toString()}`);
   };
   useEffect(() => {
@@ -1001,32 +991,38 @@ const Header = () => {
   }, []);
 
   // Primary: /api/search/suggestions. Fallback: local cache only if present.
-  const fetchSuggestions = useCallback(async (q) => {
-    if (!q || q.trim().length < 1) {
+  const fetchSuggestions = useCallback(async (q, category) => {
+    if (!q || q.trim().length < 2) {
       setSuggestions([]);
+      setIsLoadingSuggestions(false);
       return;
     }
 
     const trimmed = q.trim();
 
+    // Cancel any in-flight request to prevent race conditions
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
+    setIsLoadingSuggestions(true);
+
     try {
-      const res = await fetch(`/api/search/suggestions?q=${encodeURIComponent(trimmed)}`);
+      const qs = new URLSearchParams({ q: trimmed });
+      if (category && category !== 'All Category') qs.set('category', category);
+      const res = await fetch(`/api/search/suggestions?${qs}`, { signal: controller.signal });
       if (res.ok) {
         const data = await res.json();
         const items = Array.isArray(data) ? data : (data?.results || []);
-        if (items.length > 0) {
-          setSuggestions(items.slice(0, 12));
-          setSearchDropdownVisible(true);
-          if (searchInputRef.current) {
-            const rect = searchInputRef.current.getBoundingClientRect();
-            setSearchDropdownLeft(rect.left);
-            setSearchDropdownTop(rect.bottom + window.scrollY);
-            setSearchDropdownWidth(rect.width);
-          }
-          return;
-        }
+        setSuggestions(items.slice(0, 12));
+        setSearchDropdownVisible(true);
+        setIsLoadingSuggestions(false);
+        return;
       }
     } catch (err) {
+      if (err.name === 'AbortError') return; // request was cancelled — do nothing
       console.error('Error fetching suggestions:', err);
     }
 
@@ -1038,13 +1034,6 @@ const Header = () => {
         });
         setSuggestions(filtered);
         setSearchDropdownVisible(filtered.length > 0);
-
-        if (searchInputRef.current) {
-          const rect = searchInputRef.current.getBoundingClientRect();
-          setSearchDropdownLeft(rect.left);
-          setSearchDropdownTop(rect.bottom + 4);
-          setSearchDropdownWidth(rect.width);
-        }
       } else {
         setSuggestions([]);
       }
@@ -1052,30 +1041,27 @@ const Header = () => {
       console.error('Local filter error', err);
       setSuggestions([]);
     }
+    setIsLoadingSuggestions(false);
   }, [sortedProducts, brandsForSearch]);
 
   // Debounced effect: call fetchSuggestions while typing
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     const q = searchQuery.trim();
-    if (!q) {
+    if (!q || q.length < 2) {
       setSuggestions([]);
+      setIsLoadingSuggestions(false);
       setSearchDropdownVisible(false);
       return;
     }
 
-    // Ensure dropdown becomes visible as soon as user types (even for one char)
+    // Show loading state immediately, then debounce the actual API call
+    setIsLoadingSuggestions(true);
     setSearchDropdownVisible(true);
 
-    // Immediate fetch for the first character, otherwise debounce for performance
-    if (q.length === 1) {
-      fetchSuggestions(q);
-      return;
-    }
-
-    debounceRef.current = setTimeout(() => fetchSuggestions(q), 200);
+    debounceRef.current = setTimeout(() => fetchSuggestions(q, selectedCategory), 200);
     return () => clearTimeout(debounceRef.current);
-  }, [searchQuery, fetchSuggestions]);
+  }, [searchQuery, selectedCategory, fetchSuggestions]);
 
   // Close search dropdown when clicking outside input or dropdown
   useEffect(() => {
@@ -1426,11 +1412,10 @@ const Header = () => {
   // ADD state (place with other useState declarations)
   const [activeSuggestion, setActiveSuggestion] = useState(-1);
 
-  // RESET active suggestion when list changes or dropdown closes
+  // RESET active suggestion only when dropdown closes (not on every list update)
   useEffect(() => {
     if (!searchDropdownVisible) setActiveSuggestion(-1);
-    else setActiveSuggestion(-1);
-  }, [suggestions, searchDropdownVisible]);
+  }, [searchDropdownVisible]);
 
   // SELECT helper
   const selectSuggestion = useCallback((index) => {
@@ -1908,11 +1893,11 @@ const Header = () => {
                     if (searchInputRef.current) {
                       const rect = searchInputRef.current.getBoundingClientRect();
                       setSearchDropdownLeft(rect.left);
-                      setSearchDropdownTop(rect.bottom + window.scrollY);
+                      setSearchDropdownTop(rect.bottom);
                       setSearchDropdownWidth(rect.width);
                     }
-                    if (searchQuery.trim().length >= 1) fetchSuggestions(searchQuery);
-                    setSearchDropdownVisible(true);
+                    if (searchQuery.trim().length >= 2) fetchSuggestions(searchQuery, selectedCategory);
+                    if (searchQuery.trim().length >= 2) setSearchDropdownVisible(true);
                   }}
                 />
                 {searchQuery.trim() === "" && (
@@ -1940,33 +1925,37 @@ const Header = () => {
                   PRODUCTS
                 </div>
                 <div className="px-3 pb-2">
-                  {suggestions.length > 0
-                    ? suggestions.map(renderSuggestionItem)
-                    : (searchQuery.trim() && (
-                      <div className="py-10 flex flex-col items-center justify-center text-gray-500">
-                        {/* Icon */}
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="w-12 h-12 mb-3 text-gray-400"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                          strokeWidth={1.5}
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M9 13h6m-3-3v6m9-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                          />
-                        </svg>
-
-                        {/* Message */}
-                        <p className="text-sm font-medium">No products found</p>
-                        <p className="text-xs text-gray-400 mt-1">Try a different keyword</p>
-                      </div>
-
-                    ))
-                  }
+                  {isLoadingSuggestions ? (
+                    <div className="space-y-2 py-2">
+                      {[1,2,3].map(i => (
+                        <div key={i} className="flex items-center gap-3 animate-pulse">
+                          <div className="w-10 h-10 rounded bg-gray-200 shrink-0" />
+                          <div className="flex-1 space-y-1.5">
+                            <div className="h-3 bg-gray-200 rounded w-3/4" />
+                            <div className="h-3 bg-gray-200 rounded w-1/3" />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : suggestions.length > 0 ? (
+                    <>
+                      {suggestions.map(renderSuggestionItem)}
+                      <button
+                        onClick={handleSearch}
+                        className="w-full mt-2 py-2 text-xs font-semibold text-brandRed border border-brandRed rounded-lg hover:bg-red-50 transition-colors"
+                      >
+                        See all results for &ldquo;{searchQuery.trim()}&rdquo;
+                      </button>
+                    </>
+                  ) : (searchQuery.trim().length >= 2 && (
+                    <div className="py-10 flex flex-col items-center justify-center text-gray-500">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="w-12 h-12 mb-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 13h6m-3-3v6m9-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <p className="text-sm font-medium">No products found</p>
+                      <p className="text-xs text-gray-400 mt-1">Try a different keyword</p>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
@@ -2013,8 +2002,8 @@ const Header = () => {
                       setSearchDropdownTop(rect.bottom + 4);
                       setSearchDropdownWidth(rect.width);
                     }
-                    if (searchQuery.trim().length >= 2) fetchSuggestions(searchQuery);
-                    setSearchDropdownVisible(true);
+                    if (searchQuery.trim().length >= 2) fetchSuggestions(searchQuery, selectedCategory);
+                    if (searchQuery.trim().length >= 2) setSearchDropdownVisible(true);
                   }}
                   onKeyDown={handleDesktopKeyDown}
                   className="header-search-input"
@@ -2031,7 +2020,7 @@ const Header = () => {
               <button
                 type="button"
                 className="header-search-btn"
-                onClick={handleSearchBtnClick}
+                onClick={handleSearch}
                 aria-label="Search"
               >
                 <FaSearch size={15} />
@@ -2939,32 +2928,39 @@ const Header = () => {
             Products
           </div>
           <div className="px-3 pb-3 overflow-y-auto custom-scrollbar space-y-2">
-            {suggestions.length > 0
-              ? suggestions.map(renderDesktopSuggestionItem)
-              : (searchQuery.trim() && (
-                <div className="py-10 flex flex-col items-center justify-center text-gray-500">
-                  {/* Icon */}
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="w-12 h-12 mb-3 text-gray-400"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={1.5}
+            {isLoadingSuggestions ? (
+              <div className="space-y-2 py-1">
+                {[1,2,3,4].map(i => (
+                  <div key={i} className="flex items-center gap-4 px-4 py-3 animate-pulse">
+                    <div className="w-[50px] h-[50px] rounded-md bg-gray-200 shrink-0" />
+                    <div className="flex-1 space-y-2">
+                      <div className="h-3.5 bg-gray-200 rounded w-3/4" />
+                      <div className="h-3.5 bg-gray-200 rounded w-1/4" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : suggestions.length > 0 ? (
+              <>
+                {suggestions.map(renderDesktopSuggestionItem)}
+                <div className="px-1 pt-1 pb-1">
+                  <button
+                    onClick={handleSearch}
+                    className="w-full py-2.5 text-sm font-semibold text-brandRed border border-brandRed rounded-lg hover:bg-red-50 transition-colors"
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M9 13h6m-3-3v6m9-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-
-                  {/* Message */}
-                  <p className="text-sm font-medium">No products found</p>
-                  <p className="text-xs text-gray-400 mt-1">Try a different keyword</p>
+                    See all results for &ldquo;{searchQuery.trim()}&rdquo;
+                  </button>
                 </div>
-              ))
-            }
+              </>
+            ) : (searchQuery.trim().length >= 2 && (
+              <div className="py-10 flex flex-col items-center justify-center text-gray-500">
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-12 h-12 mb-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 13h6m-3-3v6m9-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <p className="text-sm font-medium">No products found</p>
+                <p className="text-xs text-gray-400 mt-1">Try a different keyword</p>
+              </div>
+            ))}
           </div>
         </div>
       )}
