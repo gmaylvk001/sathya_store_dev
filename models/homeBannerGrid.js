@@ -38,6 +38,7 @@ const HomeBannerGridSchema = new mongoose.Schema(
     imageCount: { type: Number, enum: [2, 3, 4], default: 4 },
     banners: { type: [BannerItemSchema], default: [] },
     productName: { type: String, default: "" },
+    seeAllLink: { type: String, default: "" },
     products: { type: [ProductRefSchema], default: [] },
     /** When true, storefront shows spacing between banner images */
     showGap: { type: Boolean, default: false },

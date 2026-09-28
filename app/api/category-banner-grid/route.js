@@ -76,6 +76,7 @@ export async function POST(req) {
     const pageId = formData.get("pageId");
     const name = String(formData.get("name") || "").trim();
     const productName = String(formData.get("productName") || "").trim();
+    const seeAllLink = String(formData.get("seeAllLink") || "").trim();
     const status = formData.get("status") || "active";
     const imageCountRaw = parseInt(String(formData.get("imageCount") || "4"), 10);
     const imageCount = [2, 3, 4].includes(imageCountRaw) ? imageCountRaw : 4;
@@ -148,6 +149,7 @@ export async function POST(req) {
       imageCount,
       banners,
       productName,
+      seeAllLink,
       products: validProductIds.map((id, index) => ({
         productId: new mongoose.Types.ObjectId(id),
         order: index,

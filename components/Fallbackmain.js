@@ -17,6 +17,7 @@ import {
   hasActiveFilterParams,
   normalizeFilterOption,
   slugifyFilter,
+  selectionKey,
 } from "@/lib/filterUrl";
 import { useCategoryFilterUrl } from "@/hooks/useCategoryFilterUrl";
 import ProductFilters from "@/components/filters/ProductFilters";
@@ -93,6 +94,9 @@ const [selectedSubCategory, setSelectedSubCategory] = useState("");
     priceRange,
     enabled: true,
     ready: initialLoadComplete && !!filterCatalog,
+    onApplyUrlFilters: (hydratedFilters) => {
+      fetchFilteredProducts(categoryData, 1, false, hydratedFilters);
+    },
   });
 
 
@@ -340,6 +344,14 @@ const fetchFilteredProducts = useCallback(async (categoryData, pageNum = 1, init
         setIsFiltering(true);
       }
       const activeFilters = filtersOverride || selectedFilters;
+      lastFetchedFiltersKeyRef.current =
+        selectionKey(activeFilters) +
+        "|" +
+        sortOption +
+        "|" +
+        selectedCategory +
+        "|" +
+        selectedSubCategory;
       const query = new URLSearchParams();
 
       // Category IDs correctly based on selected category/subcategory
@@ -642,17 +654,32 @@ const fetchFilteredProducts = useCallback(async (categoryData, pageNum = 1, init
 
 
 
-  const skipNextFilterFetch = useRef(true);
+  const lastFetchedFiltersKeyRef = useRef("");
 
-useEffect(() => {
+  useEffect(() => {
     if (categoryData.main_category && categoryData.category && initialLoadComplete) {
-      if (skipNextFilterFetch.current) {
-        skipNextFilterFetch.current = false;
+      const key =
+        selectionKey(selectedFilters) +
+        "|" +
+        sortOption +
+        "|" +
+        selectedCategory +
+        "|" +
+        selectedSubCategory;
+      if (key === lastFetchedFiltersKeyRef.current) {
         return;
       }
       fetchFilteredProducts(categoryData, 1);
     }
-  }, [selectedFilters, selectedCategory, selectedSubCategory, sortOption, categoryData.main_category, categoryData.category, initialLoadComplete]);
+  }, [
+    selectedFilters,
+    selectedCategory,
+    selectedSubCategory,
+    sortOption,
+    categoryData.main_category,
+    categoryData.category,
+    initialLoadComplete,
+  ]);
   
   const clearAllFilters = () => {
     setSelectedFilters({

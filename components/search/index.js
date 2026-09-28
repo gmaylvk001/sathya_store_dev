@@ -16,6 +16,7 @@ import {
   searchParamsToSelectedFilters,
   hasActiveFilterParams,
   buildFilterGroupsFromList,
+  selectionKey,
 } from "@/lib/filterUrl";
 import { CATEGORY_PAGE_SHELL_CLASS } from "@/lib/categoryPageComponents/layout";
 import { humanLabel } from "@/lib/humanLabel";
@@ -67,6 +68,9 @@ export default function SearchPage() {
     enabled: true,
     ready: filterUrlReady && !!filterCatalog,
     keepParams: ["query"],
+    onApplyUrlFilters: (hydratedFilters) => {
+      fetchResults(1, false, hydratedFilters);
+    },
   });
 
   useEffect(() => {
@@ -189,31 +193,36 @@ export default function SearchPage() {
     setPage(1);
   };
 
+  const lastFetchedFiltersKeyRef = useRef("");
+
   const fetchResults = useCallback(
-    async (pageNum = 1, bootstrap = false) => {
+    async (pageNum = 1, bootstrap = false, filtersOverride = null) => {
       if (!searchQuery) return;
       try {
         if (bootstrap) setLoading(true);
         else setIsFiltering(true);
+        const activeFilters = filtersOverride || selectedFilters;
+        lastFetchedFiltersKeyRef.current =
+          selectionKey(activeFilters) + "|" + pageNum + "|" + searchQuery;
         const qs = new URLSearchParams();
         qs.set("query", searchQuery);
         qs.set("page", String(pageNum));
         qs.set("limit", "12");
-        if (!bootstrap) {
-          if (selectedFilters.brands.length) {
-            qs.set("brands", selectedFilters.brands.join(","));
+        if (!bootstrap || filtersOverride) {
+          if (activeFilters.brands.length) {
+            qs.set("brands", activeFilters.brands.join(","));
           }
-          if (selectedFilters.filters.length) {
-            qs.set("filters", selectedFilters.filters.join(","));
+          if (activeFilters.filters.length) {
+            qs.set("filters", activeFilters.filters.join(","));
           }
-          if (selectedFilters.categories.length) {
-            qs.set("categoryIds", selectedFilters.categories.join(","));
+          if (activeFilters.categories.length) {
+            qs.set("categoryIds", activeFilters.categories.join(","));
           }
-          if (selectedFilters.subcategories.length) {
-            qs.set("subcategoryIds", selectedFilters.subcategories.join(","));
+          if (activeFilters.subcategories.length) {
+            qs.set("subcategoryIds", activeFilters.subcategories.join(","));
           }
-          qs.set("minPrice", String(selectedFilters.price.min));
-          qs.set("maxPrice", String(selectedFilters.price.max));
+          qs.set("minPrice", String(activeFilters.price.min));
+          qs.set("maxPrice", String(activeFilters.price.max));
         }
 
         const { data } = await axios.get(`/api/search?${qs}`);
@@ -284,7 +293,7 @@ export default function SearchPage() {
             lookupMaps,
             [priceRange[0], priceRange[1]]
           );
-          setSelectedFilters({
+          const nextSelected = {
             categories: urlFilters.categories,
             subcategories: urlFilters.subcategories,
             brands: urlFilters.brands,
@@ -292,9 +301,13 @@ export default function SearchPage() {
             price: hasActiveFilterParams(urlSearch)
               ? urlFilters.price
               : { min: priceRange[0], max: priceRange[1] },
-          });
-          skipNextFilterFetch.current = !hasActiveFilterParams(urlSearch);
+          };
+          setSelectedFilters(nextSelected);
           setFilterUrlReady(true);
+
+          if (hasActiveFilterParams(urlSearch)) {
+            await fetchResults(1, false, nextSelected);
+          }
         }
       } catch (err) {
         console.error("Search API error", err);
@@ -340,12 +353,13 @@ export default function SearchPage() {
 
   useEffect(() => {
     if (!filterUrlReady) return;
-    if (skipNextFilterFetch.current) {
-      skipNextFilterFetch.current = false;
+    const key =
+      selectionKey(selectedFilters) + "|" + page + "|" + searchQuery;
+    if (key === lastFetchedFiltersKeyRef.current) {
       return;
     }
     fetchResults(page, false);
-  }, [selectedFilters, page, filterUrlReady, fetchResults]);
+  }, [selectedFilters, page, filterUrlReady, fetchResults, searchQuery]);
 
   const handlePageChange = (nextPage) => {
     setPage(nextPage);

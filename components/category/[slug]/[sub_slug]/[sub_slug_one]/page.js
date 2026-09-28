@@ -20,6 +20,7 @@ import {
   normalizeFilterOption,
   slugifyFilter,
   buildFilterGroupsFromList,
+  selectionKey,
 } from "@/lib/filterUrl";
 import { useCategoryFilterUrl } from "@/hooks/useCategoryFilterUrl";
 import ProductFilters from "@/components/filters/ProductFilters";
@@ -64,6 +65,10 @@ export default function CategoryPage() {
     priceRange,
     enabled: true,
     ready: filterUrlReady && !!filterCatalog,
+    onApplyUrlFilters: (hydratedFilters) => {
+      setPage(1);
+      fetchFilteredProducts(categoryData, 1, false, hydratedFilters);
+    },
   });
 
   const [nofound,setNofound]=useState(false);
@@ -251,6 +256,8 @@ const handleShare = async (product) => {
         setLoading(true);
       }
       const activeFilters = filtersOverride || selectedFilters;
+      lastFetchedFiltersKeyRef.current =
+        selectionKey(activeFilters) + "|" + sortOption;
       const query = new URLSearchParams();
    
 
@@ -445,14 +452,16 @@ const getSortedProducts = () => {
   }, [selectedFilters.price.min, selectedFilters.price.max]);
 
 
-useEffect(() => {
+  const lastFetchedFiltersKeyRef = useRef("");
+
+  useEffect(() => {
     if (categoryData.category?._id && filterUrlReady) {
-      if (skipNextFilterFetch.current) {
-        skipNextFilterFetch.current = false;
+      const key = selectionKey(selectedFilters) + "|" + sortOption;
+      if (key === lastFetchedFiltersKeyRef.current) {
         return;
       }
       setPage(1);
-      fetchFilteredProducts(categoryData,1);
+      fetchFilteredProducts(categoryData, 1);
     }
   }, [selectedFilters, sortOption, filterUrlReady, categoryData.category?._id]);
 

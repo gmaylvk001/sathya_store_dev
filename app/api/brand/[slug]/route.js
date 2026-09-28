@@ -92,7 +92,7 @@ const subCategoryIds = [
     for (const catId of categoryIds) {
   if (!catId || catId.toString().trim() === "") continue; // skip invalid IDs
   
-  const mainCategory = await ecom_category_info.findOne({_id: catId,parentid: { $nin: [null, "none"] }}).lean();
+  const mainCategory = await ecom_category_info.findOne({ _id: catId }).lean();
   if (!mainCategory) continue;
 
   const subTree = await getCategoryTree(mainCategory._id, subCategoryIds);
@@ -112,7 +112,7 @@ const subCategoryIds = [
     const filterIds = [...new Set(productFilters.map(pf => pf.filter_id))];
     const filters = await Filter.find({ _id: { $in: filterIds } }).populate({
       path: 'filter_group',
-      select: 'filtergroup_name -_id',
+      select: 'filtergroup_name filtergroup_slug',
       model: FilterGroup
     }).lean();
     
@@ -120,6 +120,7 @@ const subCategoryIds = [
     const formattedFilters = filters.map(filter => ({
       ...filter,
       filter_group_name: filter.filter_group?.filtergroup_name || 'No Group',
+      filter_group_slug: filter.filter_group?.filtergroup_slug || '',
       filter_group: filter.filter_group?._id
     }));
 

@@ -155,7 +155,7 @@ async function buildCategoryResponse(main_category, getCategoryTree, models) {
     }
 
     const categoryFilters = await CategoryFilter.find({
-      category_id: main_category._id,
+      category_id: { $in: allCategoryIds },
     }).lean();
 
     const filterIds = [...new Set(categoryFilters.map((cf) => cf.filter_id))];

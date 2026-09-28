@@ -91,6 +91,7 @@ export function useCategoryFilterUrl({
   ready = false,
   omitUrlKeys = [],
   keepParams = [],
+  onApplyUrlFilters,
 }) {
   const pathname = usePathname();
   const skipWriteRef = useRef(false);
@@ -101,7 +102,7 @@ export function useCategoryFilterUrl({
   const selectedRef = useRef(selectedFilters);
   selectedRef.current = selectedFilters;
 
-  const [searchKey, setSearchKey] = useState("");
+  const [searchKey, setSearchKey] = useState(() => readSearchKey());
 
   useEffect(() => {
     setSearchKey(readSearchKey());
@@ -166,9 +167,12 @@ export function useCategoryFilterUrl({
 
       skipWriteRef.current = true;
       setSelectedFilters(next);
+      if (typeof onApplyUrlFilters === "function") {
+        onApplyUrlFilters(next);
+      }
       return true;
     },
-    [setSelectedFilters, priceMin, priceMax, omitSet]
+    [setSelectedFilters, priceMin, priceMax, omitSet, onApplyUrlFilters]
   );
 
   /** Apply URL → state (initial load + back/forward) */
@@ -181,7 +185,8 @@ export function useCategoryFilterUrl({
       return;
     }
 
-    const params = new URLSearchParams(searchKey);
+    const currentSearch = searchKey || readSearchKey();
+    const params = new URLSearchParams(currentSearch);
     const parsed = searchParamsToSelectedFilters(params, maps, [
       priceMin,
       priceMax,
@@ -207,7 +212,7 @@ export function useCategoryFilterUrl({
       applyParsed(parsed, false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [enabled, ready, searchKey, priceMin, priceMax]);
+  }, [enabled, ready, searchKey, priceMin, priceMax, maps]);
 
   /** Write state → URL */
   useEffect(() => {

@@ -15,6 +15,7 @@ import {
   normalizeFilterOption,
   slugifyFilter,
   buildFilterGroupsFromList,
+  selectionKey,
 } from "@/lib/filterUrl";
 import { useCategoryFilterUrl } from "@/hooks/useCategoryFilterUrl";
 import ProductFilters from "@/components/filters/ProductFilters";
@@ -64,6 +65,9 @@ export default function CategoryBrandComponent({ categorySlug, brandSlug }) {
     enabled: true,
     ready: filterUrlReady && !!filterCatalog,
     omitUrlKeys: ["brand"],
+    onApplyUrlFilters: (hydratedFilters) => {
+      fetchFilteredProducts(1, hydratedFilters);
+    },
   });
 
   // Pagination state
@@ -152,7 +156,6 @@ export default function CategoryBrandComponent({ categorySlug, brandSlug }) {
           ? urlFilters.price
           : { min: minPrice, max: maxPrice },
       };
-      // Don't treat path brand alone as a query filter for clean URLs
       setSelectedFilters(nextSelected);
       setFilterCatalog({
         brands: data.brand ? [data.brand] : [],
@@ -160,6 +163,7 @@ export default function CategoryBrandComponent({ categorySlug, brandSlug }) {
         categoryTree: data.categories || [],
         subcategoryTree: data.categories || [],
       });
+      await fetchFilteredProducts(1, nextSelected);
     } catch (error) {
       toast.error("Error fetching initial data");
     } finally {
@@ -167,9 +171,20 @@ export default function CategoryBrandComponent({ categorySlug, brandSlug }) {
       setFilterUrlReady(true);
     }
   };
-   const fetchFilteredProducts = useCallback(async (pageNum = 1) => {
+   const fetchFilteredProducts = useCallback(async (pageNum = 1, filtersOverride = null) => {
   try {
     setIsFiltering(true);
+    const activeFilters = filtersOverride || selectedFilters;
+    lastFetchedFiltersKeyRef.current =
+      selectionKey(activeFilters) +
+      "|" +
+      sortOption +
+      "|" +
+      (categoryData.brand?._id || "") +
+      "|" +
+      categorySlug +
+      "|" +
+      brandSlug;
     const query = new URLSearchParams();
 
     // ✅ Always restrict by brand
@@ -177,12 +192,12 @@ export default function CategoryBrandComponent({ categorySlug, brandSlug }) {
       query.set('brands', categoryData.brand._id);
     }
 
-    if (selectedFilters.categories.length > 0) {
-      query.set('categoryIds', selectedFilters.categories.join(','));
+    if (activeFilters.categories.length > 0) {
+      query.set('categoryIds', activeFilters.categories.join(','));
     }
 
-    if (selectedFilters.subcategories.length > 0) {
-      query.set('subcategoryIds', selectedFilters.subcategories.join(','));
+    if (activeFilters.subcategories.length > 0) {
+      query.set('subcategoryIds', activeFilters.subcategories.join(','));
     }
 
     query.set('categorySlug', categorySlug);
@@ -190,11 +205,14 @@ export default function CategoryBrandComponent({ categorySlug, brandSlug }) {
 
     query.set('page', pageNum);
     query.set('limit', itemsPerPage);
-    query.set('minPrice', selectedFilters.price.min);
-    query.set('maxPrice', selectedFilters.price.max);
+    query.set('minPrice', activeFilters.price.min);
+    query.set('maxPrice', activeFilters.price.max);
 
-    if (selectedFilters.filters.length > 0) {
-      query.set('filters', selectedFilters.filters.join(','));
+    if (activeFilters.filters.length > 0) {
+      query.set('filters', activeFilters.filters.join(','));
+    }
+    if (sortOption) {
+      query.set('sort', sortOption);
     }
     const res = await fetch(`/api/product/filter/category-brand/main?${query}`);
     const { products, pagination: paginationData, filters } = await res.json();
@@ -536,14 +554,26 @@ export default function CategoryBrandComponent({ categorySlug, brandSlug }) {
   };
 
 
+  const lastFetchedFiltersKeyRef = useRef("");
+
   useEffect(() => {
     if (categoryData.brand && filterUrlReady) {
-      if (skipNextFilterFetch.current) {
-        skipNextFilterFetch.current = false;
+      const key =
+        selectionKey(selectedFilters) +
+        "|" +
+        sortOption +
+        "|" +
+        (categoryData.brand?._id || "") +
+        "|" +
+        categorySlug +
+        "|" +
+        brandSlug;
+      if (key === lastFetchedFiltersKeyRef.current) {
+        return;
       }
       fetchFilteredProducts(1);
     }
-  }, [selectedFilters, categoryData.brand, filterUrlReady]);
+  }, [selectedFilters, categoryData.brand, filterUrlReady, sortOption, categorySlug, brandSlug]);
 
   const clearAllFilters = () => {
     setSelectedFilters({

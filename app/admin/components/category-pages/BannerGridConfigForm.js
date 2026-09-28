@@ -91,6 +91,7 @@ export default function BannerGridConfigForm({
     Array.from({ length: 4 }, emptyBanner)
   );
   const [productName, setProductName] = useState("");
+  const [seeAllLink, setSeeAllLink] = useState("");
   const [selected, setSelected] = useState([]);
   const [query, setQuery] = useState("");
   const [suggestions, setSuggestions] = useState([]);
@@ -125,6 +126,7 @@ export default function BannerGridConfigForm({
           setShowGap(readShowGap(d.showGap));
           setImageCount(count);
           setProductName(d.productName || "");
+          setSeeAllLink(d.seeAllLink || "");
           setSelected(data.products || []);
           const rows = [...(d.banners || [])].sort(
             (a, b) => (a.order ?? 0) - (b.order ?? 0)
@@ -151,6 +153,7 @@ export default function BannerGridConfigForm({
           setShowGap(false);
           setBanners(Array.from({ length: 4 }, emptyBanner));
           setProductName("");
+          setSeeAllLink("");
           setSelected([]);
           setStatus("active");
           referenceDims.current = null;
@@ -362,6 +365,7 @@ export default function BannerGridConfigForm({
       fd.append("pageId", pageId);
       fd.append("name", name.trim());
       fd.append("productName", productName.trim());
+      fd.append("seeAllLink", seeAllLink.trim());
       fd.append("status", status);
       fd.append("showGap", showGap ? "true" : "false");
       fd.append("imageCount", String(imageCount));
@@ -667,6 +671,22 @@ export default function BannerGridConfigForm({
             placeholder="e.g. Featured Products"
             className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
           />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            See All link / slug (optional)
+          </label>
+          <input
+            type="text"
+            value={seeAllLink}
+            onChange={(event) => setSeeAllLink(event.target.value)}
+            placeholder="/category/mobiles or mobiles/smartphones"
+            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+          />
+          <p className="text-[11px] text-gray-500 mt-1">
+            Used by the See All button. Path starting with / or a category slug.
+          </p>
         </div>
 
         <div ref={productSearchRef} className="relative">

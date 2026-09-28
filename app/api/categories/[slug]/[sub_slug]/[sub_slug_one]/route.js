@@ -108,19 +108,21 @@ export async function GET(req, { params }) {
     const filterIds = [...new Set(productFilters.map(pf => pf.filter_id))]; */ 
     const filters = await Filter.find({ _id: { $in: filterIds } }).populate({
             path: 'filter_group',
-            select: 'filtergroup_name -_id',
+            select: 'filtergroup_name filtergroup_slug',
             model: FilterGroup
           })
           .lean();
     // Add filter_group_name to filters
     const enrichedFilters = filters.map(filter => ({
         ...filter,
-        filtergroup_name: filter.filter_group?.filtergroup_name || "Unknown"
+        filtergroup_name: filter.filter_group?.filtergroup_name || "Unknown",
+        filtergroup_slug: filter.filter_group?.filtergroup_slug || "",
       }));
 
       const formattedFilters = filters.map(filter => ({
         ...filter,
         filter_group_name: filter.filter_group?.filtergroup_name || 'No Group',
+        filter_group_slug: filter.filter_group?.filtergroup_slug || '',
         filter_group: filter.filter_group?._id // Keep original ID
       }));
     return Response.json({ category, products, brands: brandsWithCount,  filters: formattedFilters });

@@ -15,6 +15,7 @@ import {
   normalizeFilterOption,
   slugifyFilter,
   buildFilterGroupsFromList,
+  selectionKey,
 } from "@/lib/filterUrl";
 import { useCategoryFilterUrl } from "@/hooks/useCategoryFilterUrl";
 import ProductFilters from "@/components/filters/ProductFilters";
@@ -62,6 +63,9 @@ export default function BrandPage() {
     enabled: true,
     ready: filterUrlReady && !!filterCatalog,
     omitUrlKeys: ["brand"],
+    onApplyUrlFilters: (hydratedFilters) => {
+      fetchFilteredProducts(1, hydratedFilters);
+    },
   });
 
   // Pagination state
@@ -140,7 +144,7 @@ export default function BrandPage() {
         [minPrice, maxPrice]
       );
       const brandId = brandData.brand?._id ? [brandData.brand._id] : [];
-      setSelectedFilters({
+      const nextSelected = {
         categories: urlFilters.categories,
         subcategories: urlFilters.subcategories,
         brands: brandId,
@@ -148,13 +152,15 @@ export default function BrandPage() {
         price: hasActiveFilterParams(urlSearch)
           ? urlFilters.price
           : { min: minPrice, max: maxPrice },
-      });
+      };
+      setSelectedFilters(nextSelected);
       setFilterCatalog({
         brands: brandData.brand ? [brandData.brand] : [],
         filterGroups: groups,
         categoryTree,
         subcategoryTree: categoryTree,
       });
+      await fetchFilteredProducts(1, nextSelected);
     } catch (error) {
       toast.error("Error fetching initial data");
     } finally {
@@ -181,27 +187,37 @@ export default function BrandPage() {
     }
   };
 
-  const fetchFilteredProducts = useCallback(async (pageNum = 1) => {
+  const fetchFilteredProducts = useCallback(async (pageNum = 1, filtersOverride = null) => {
     try {
       if (!brandData.brand?._id) return;
       setIsFiltering(true);
+      const activeFilters = filtersOverride || selectedFilters;
+      lastFetchedFiltersKeyRef.current =
+        selectionKey(activeFilters) +
+        "|" +
+        sortOption +
+        "|" +
+        (brandData.brand?._id || "");
       const query = new URLSearchParams();
       query.set('brands', brandData.brand._id);
 
-      if (selectedFilters.categories.length > 0) {
-        query.set('categoryIds', selectedFilters.categories.join(','));
+      if (activeFilters.categories.length > 0) {
+        query.set('categoryIds', activeFilters.categories.join(','));
       }
-      if (selectedFilters.subcategories.length > 0) {
-        query.set('subcategoryIds', selectedFilters.subcategories.join(','));
+      if (activeFilters.subcategories.length > 0) {
+        query.set('subcategoryIds', activeFilters.subcategories.join(','));
       }
 
       query.set('page', pageNum);
       query.set('limit', itemsPerPage);
-      query.set('minPrice', selectedFilters.price.min);
-      query.set('maxPrice', selectedFilters.price.max);
+      query.set('minPrice', activeFilters.price.min);
+      query.set('maxPrice', activeFilters.price.max);
 
-      if (selectedFilters.filters.length > 0) {
-        query.set('filters', selectedFilters.filters.join(','));
+      if (activeFilters.filters.length > 0) {
+        query.set('filters', activeFilters.filters.join(','));
+      }
+      if (sortOption) {
+        query.set('sort', sortOption);
       }
 
       const res = await fetch(`/api/product/filter/brand/main?${query}`);
@@ -439,14 +455,22 @@ export default function BrandPage() {
     }));
   };
 
+  const lastFetchedFiltersKeyRef = useRef("");
+
   useEffect(() => {
     if (brandData.brand && filterUrlReady) {
-      if (skipNextFilterFetch.current) {
-        skipNextFilterFetch.current = false;
+      const key =
+        selectionKey(selectedFilters) +
+        "|" +
+        sortOption +
+        "|" +
+        (brandData.brand?._id || "");
+      if (key === lastFetchedFiltersKeyRef.current) {
+        return;
       }
       fetchFilteredProducts(1);
     }
-  }, [selectedFilters, brandData.brand, filterUrlReady]);
+  }, [selectedFilters, brandData.brand, filterUrlReady, sortOption]);
 
   const clearAllFilters = () => {
     setSelectedFilters({

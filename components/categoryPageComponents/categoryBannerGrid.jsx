@@ -160,7 +160,9 @@ export default function CategoryBannerGrid({ config }) {
             config={{
               name: productName,
               products,
-              seeAllHref: "",
+              seeAllHref:
+                config?.seeAllHref ||
+                (config?.seeAllLink ? resolveHref(config.seeAllLink) : ""),
             }}
           />
         ) : null}

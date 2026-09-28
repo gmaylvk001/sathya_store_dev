@@ -3,6 +3,8 @@ import Product from "@/models/product";
 import ProductFilter from "@/models/ecom_productfilter_info";
 import ecom_category_info from "@/models/ecom_category_info";
 import Brand from "@/models/ecom_brand_info";
+import Filter from "@/models/ecom_filter_infos";
+import FilterGroup from "@/models/ecom_filter_group_infos";
 import { brandMatchQuery } from "@/lib/brandMatchQuery";
 import { getFiltersForProductIds } from "@/lib/availableProductFilters";
 
@@ -190,28 +192,46 @@ let query = {
     let productsQuery = Product.find(query);
 
     /* --------------------------------------------------
-       5️⃣ Apply FILTERS (must match ALL)
+       5️⃣ Apply FILTERS (group-aware: OR within group, AND across groups)
     -------------------------------------------------- */
     if (filterIds.length > 0) {
       const productIds = await productsQuery.distinct("_id");
+      const productIdStrings = productIds.map((id) => id.toString());
 
-      const productFilters = await ProductFilter.find({
-        product_id: { $in: productIds },
-        filter_id: { $in: filterIds },
+      const selectedFilterDocs = await Filter.find({ _id: { $in: filterIds } })
+        .populate({ path: "filter_group", select: "filtergroup_name", model: FilterGroup })
+        .lean();
+
+      const filtersByGroup = {};
+      selectedFilterDocs.forEach((f) => {
+        const groupId = f.filter_group?._id?.toString() || f.filter_group || "other";
+        if (!filtersByGroup[groupId]) filtersByGroup[groupId] = [];
+        filtersByGroup[groupId].push(f._id.toString());
       });
 
-      const filterMap = {};
-      productFilters.forEach((pf) => {
-        const pid = pf.product_id.toString();
-        if (!filterMap[pid]) filterMap[pid] = new Set();
-        filterMap[pid].add(pf.filter_id.toString());
-      });
+      let matchingProductIds = new Set(productIdStrings);
 
-      const matchedProductIds = productIds.filter((id) =>
-        filterIds.every((fid) => filterMap[id.toString()]?.has(fid)),
-      );
+      for (const groupFilterIds of Object.values(filtersByGroup)) {
+        const groupProductFilters = await ProductFilter.find({
+          $or: [
+            { product_id: { $in: productIdStrings } },
+            { product_id: { $in: productIds } },
+          ],
+          filter_id: { $in: groupFilterIds },
+        }).lean();
 
-      query._id = { $in: matchedProductIds };
+        const groupMatchingIds = new Set(
+          groupProductFilters.map((pf) => pf.product_id.toString())
+        );
+
+        matchingProductIds = new Set(
+          [...matchingProductIds].filter((id) => groupMatchingIds.has(id))
+        );
+
+        if (matchingProductIds.size === 0) break;
+      }
+
+      query._id = { $in: [...matchingProductIds] };
       productsQuery = Product.find(query);
     }
 

@@ -16,6 +16,7 @@ import {
   hasActiveFilterParams,
   normalizeFilterOption,
   slugifyFilter,
+  selectionKey,
 } from "@/lib/filterUrl";
 import { useCategoryFilterUrl } from "@/hooks/useCategoryFilterUrl";
 import ProductFilters from "@/components/filters/ProductFilters";
@@ -72,6 +73,9 @@ export default function CategoryPage() {
     priceRange,
     enabled: true,
     ready: filterUrlReady && !!filterCatalog,
+    onApplyUrlFilters: (hydratedFilters) => {
+      fetchFilteredProducts(categoryData, 1, false, hydratedFilters);
+    },
   });
 
  
@@ -244,11 +248,15 @@ const scroll = (direction) => {
       };
       setSelectedFilters(nextSelected);
 
-      setFilterCatalog({
+      const catalogObj = {
         brands: categoryData.brands || [],
         filterGroups: groups,
         categoryTree: children,
-      });
+      };
+      setFilterGroups(groups);
+      filterGroupsRef.current = groups;
+      setFilterCatalog(catalogObj);
+      filterCatalogRef.current = catalogObj;
 
       if (categoryData.products?.length > 0) {
         await fetchFilteredProducts(categoryData, 1, true, nextSelected);
@@ -275,6 +283,12 @@ const scroll = (direction) => {
       setLoading(true);
       }
       const activeFilters = filtersOverride || selectedFilters;
+      lastFetchedFiltersKeyRef.current =
+        selectionKey(activeFilters) +
+        "|" +
+        sortOption +
+        "|" +
+        selectedChildCategory;
       const query = new URLSearchParams();
       const categoryIds = activeFilters.categories.length > 0
         ? activeFilters.categories
@@ -309,7 +323,7 @@ const scroll = (direction) => {
         const groupsSource = filterCatalogRef.current?.filterGroups || filterGroupsRef.current;
         activeFilters.filters.forEach(filterId => {
           for (const group of Object.values(groupsSource || {})) {
-            if (group.filters.some(f => f._id === filterId || String(f._id) === String(filterId))) {
+            if (group.filters?.some(f => f._id === filterId || String(f._id) === String(filterId))) {
               if (!filtersByGroup[group.name]) filtersByGroup[group.name] = [];
               filtersByGroup[group.name].push(filterId);
               break;
@@ -319,6 +333,7 @@ const scroll = (direction) => {
         if (Object.keys(filtersByGroup).length > 0) {
           query.set('filterGroups', JSON.stringify(filtersByGroup));
         }
+        query.set('filters', activeFilters.filters.join(','));
       }
 
       if (sortOption) {
@@ -544,15 +559,22 @@ const scroll = (direction) => {
       }, [selectedFilters.price.min, selectedFilters.price.max]);
 
 
-useEffect(() => {
-  if (categoryData.main_category && categoryData.category && filterUrlReady) {
-    if (skipNextFilterFetch.current) {
-      skipNextFilterFetch.current = false;
-      return;
+  const lastFetchedFiltersKeyRef = useRef("");
+
+  useEffect(() => {
+    if (categoryData.main_category && categoryData.category && filterUrlReady) {
+      const key =
+        selectionKey(selectedFilters) +
+        "|" +
+        sortOption +
+        "|" +
+        selectedChildCategory;
+      if (key === lastFetchedFiltersKeyRef.current) {
+        return;
+      }
+      fetchFilteredProducts(categoryData, 1);
     }
-    fetchFilteredProducts(categoryData, 1);
-  }
-}, [selectedFilters, selectedChildCategory, sortOption, categoryData.main_category, categoryData.category, filterUrlReady]);
+  }, [selectedFilters, selectedChildCategory, sortOption, categoryData.main_category, categoryData.category, filterUrlReady]);
 
   const clearAllFilters = () => {
     setSelectedFilters({
