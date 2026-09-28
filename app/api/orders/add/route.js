@@ -287,6 +287,7 @@ export async function POST(req) {
       let isNew = false;
 
       if (existing) {
+        const oldStatus = existing.order_status;
         existing.payment_id = payment_id || existing.payment_id;
         existing.payment_status = payment_status || existing.payment_status;
         existing.payment_method = payment_method || existing.payment_method;
@@ -294,6 +295,16 @@ export async function POST(req) {
         existing.payment_mode = payment_type || payment_method || existing.payment_mode;
         existing.order_status = mappedStatus;
         savedOrder = await existing.save();
+
+        if (oldStatus !== mappedStatus) {
+          await OrderHistoryNew.create({
+            order_id: String(savedOrder._id),
+            order_number: stringify(savedOrder.order_number),
+            order_status: mappedStatus,
+            notify: 0,
+            comment: "Order updated via payment completion",
+          });
+        }
       } else {
         savedOrder = await new OrderNew(perOrderFields).save();
         isNew = true;

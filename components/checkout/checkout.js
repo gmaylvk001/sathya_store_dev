@@ -402,8 +402,8 @@ export default function CheckoutPage() {
     // highlighted payment option to match the in-store collection flow shown in the design.
     if (name === 'deliveryType') {
       if (value === 'store') {
-        setPaymentMethod('pay_at_store');
-      } else if (value === 'home' && paymentMethod === 'pay_at_store') {
+        setPaymentMethod('Cash on Delivery');
+      } else if (value === 'home' && paymentMethod === 'Cash on Delivery') {
         setPaymentMethod('online');
       }
     }
@@ -686,7 +686,7 @@ export default function CheckoutPage() {
           promotion_discount_applied: appliedCoupon ? (orderSummary.discount || 0) : 0,
 
           customer_comments: comments, payment_method: paymentMethod, payment_type: paymentMode,
-          order_status: 'pending',
+          order_status: paymentMethod === 'Cash on Delivery' || paymentMethod === 'pay_at_store' ? 'pending' : 'ordered',
           delivery_type: formData.deliveryType === 'store' ? 'store_pickup' : 'home',
           pickup_store: formData.deliveryType === 'store' ? formData.selectedStore : null,
           pickup_type: formData.deliveryType === 'store' ? formData.selectedStore : null,
@@ -1067,20 +1067,13 @@ export default function CheckoutPage() {
                       </svg>
                     ), label: 'EMI options', sub: 'Easy EMI from leading banks'
                   },
-                  ...(formData.deliveryType !== 'store' ? [{
+                  ...(formData.deliveryType === 'store' ? [{
                     value: 'Cash on Delivery', icon: (
                       <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
                       </svg>
-                    ), label: 'Cash on delivery', sub: 'Pay when you receive'
+                    ), label: 'Cash on delivery', sub: 'Pay when you pickup'
                   }] : []),
-                  {
-                    value: 'pay_at_store', icon: (
-                      <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                      </svg>
-                    ), label: 'Pay at store', sub: 'Pay at the time of pickup'
-                  },
                 ].map(opt => (
                   <button
                     key={opt.value}
