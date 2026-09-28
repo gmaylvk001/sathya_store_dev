@@ -11,7 +11,7 @@ const presetsList = [
   { label: 'Custom Range', value: 'custom' },
 ];
 
-const DateRangePicker = ({ onDateChange }) => {
+const DateRangePicker = ({ onDateChange, defaultDays = 30 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -72,7 +72,7 @@ const DateRangePicker = ({ onDateChange }) => {
   useEffect(() => {
     if (!startDate && !endDate) {
       const today = new Date();
-      const thirtyDaysAgo = subDays(today, 29);
+      const thirtyDaysAgo = subDays(today, defaultDays - 1);
       setStartDate(format(thirtyDaysAgo, 'yyyy-MM-dd'));
       setEndDate(format(today, 'yyyy-MM-dd'));
     }

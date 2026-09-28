@@ -2,9 +2,11 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Icon } from '@iconify/react';
 import DateRangePicker from '@/components/DateRangePicker';
+import { useRouter } from "next/navigation";
 import { flattenAdminModules, getAdminModuleLabel } from '@/lib/adminModules';
 
 export default function PermissionsComponent() {
+  const router = useRouter();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showAlert, setShowAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
@@ -272,10 +274,7 @@ export default function PermissionsComponent() {
 
               <div className="flex justify-end">
                 <button
-                  onClick={() => {
-                    resetForm();
-                    setIsModalOpen(true);
-                  }}
+                  onClick={() => router.push("/admin/permissions/create")}
                   className="p-2 bg-red-500 hover:bg-red-600 text-white rounded-md transition"
                 >
                   + Add Permission
@@ -353,8 +352,8 @@ export default function PermissionsComponent() {
             {showAlert && <div className="bg-green-500 text-white px-4 py-2 rounded-md mb-4 text-center">{alertMessage}</div>}
             <form onSubmit={handleSubmit} className="mt-4">
               <input type="text" name="name" placeholder="Permission Name" value={formData.name} onChange={handleChange} className="w-full border p-2 mb-2 rounded" required />
-              <select name="module" value={formData.module} onChange={handleChange} className="w-full border p-2 mb-2 rounded" required>
-                <option value="">Select Module (side menu)</option>
+              <select name="module" value={formData.module} onChange={handleChange} className="w-full border p-2 mb-2 rounded">
+                <option value="">Select Module (side menu, optional)</option>
                 {adminModules.map((moduleItem) => (
                   <option key={moduleItem.key} value={moduleItem.key}>
                     {moduleItem.group === moduleItem.name ? moduleItem.name : `${moduleItem.group} / ${moduleItem.name}`}
