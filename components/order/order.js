@@ -166,53 +166,64 @@ export default function Order() {
 
   const getStatusKey = (status) => String(status || "").toLowerCase();
 
-  // Exist: show Cancel only if Pending/Processing and cancel_exists is false
+  // Spec: show Request Cancel only for online, non-warranty, Pending/Processing orders with no prior cancel request
   const canCancelOrder = (order) => {
+    // 1. Already has a cancel request → hide
     if (order?.cancel_exists) return false;
+
+    // 2. Must be an online order (order_details_new.type defaults to "online")
+    const orderType = String(order?.type || "online").trim().toLowerCase();
+    if (orderType !== "online") return false;
+
+    // 3. Must NOT be a warranty item
+    const hasWarrantyItem = (order?.order_item || []).some(
+      (item) => Number(item.is_warranty) === 1
+    );
+    if (hasWarrantyItem) return false;
+
+    // 4. Status must map to Pending or Processing
     const key = getStatusKey(order?.order_status);
     const allowed = new Set([
-      "pending",
-      "processing",
-      "ordered",
-      "order placed",
-      "order accepted",
-      "payment initiated",
-      "payment_initialized",
+      "ordered",          // → Pending
+      "order placed",     // → Pending
+      "order accepted",   // → Processing
+      "billed",           // → Processing (creates waiting request)
     ]);
     return allowed.has(key);
   };
 
   const getStatusBadge = (status) => {
     const key = getStatusKey(status);
+    // Spec mapping: ordered/Order Placed → Pending, Order Accepted/Billed → Processing
     const styles = {
       pending: "bg-amber-100 text-amber-800",
       cancelled: "bg-rose-100 text-rose-800",
       shipped: "bg-indigo-100 text-indigo-800",
-      "order placed": "bg-cyan-100 text-cyan-800",
+      "order placed": "bg-amber-100 text-amber-800",
       failure: "bg-red-100 text-red-800",
       payment_initialized: "bg-slate-100 text-slate-800",
       "payment initiated": "bg-slate-100 text-slate-800",
       "order accepted": "bg-sky-100 text-sky-800",
       complete: "bg-green-100 text-green-800",
-      ordered: "bg-blue-100 text-blue-800",
-      billed: "bg-emerald-100 text-emerald-800",
+      ordered: "bg-amber-100 text-amber-800",
+      billed: "bg-sky-100 text-sky-800",
     };
     const labels = {
-      pending: "pending",
-      cancelled: "cancelled",
-      shipped: "shipped",
-      "order placed": "Order Placed",
+      pending: "Pending",
+      cancelled: "Cancelled",
+      shipped: "Shipped",
+      "order placed": "Pending",
       failure: "Failure",
-      payment_initialized: "payment_initialized",
+      payment_initialized: "Payment Initialized",
       "payment initiated": "Payment Initiated",
-      "order accepted": "Order Accepted",
-      complete: "Complete",
-      ordered: "ordered",
-      billed: "Billed",
+      "order accepted": "Processing",
+      complete: "Completed",
+      ordered: "Pending",
+      billed: "Processing",
     };
     return {
       className: styles[key] || "bg-gray-100 text-gray-800",
-      label: labels[key] || status || "pending",
+      label: labels[key] || status || "Pending",
     };
   };
 
@@ -278,19 +289,25 @@ export default function Order() {
 
       const resultText = String(data?.result || "").trim();
       if (resultText === "Success") {
+        const isCancelled = data?.order_status === "Cancelled";
         setCancelFeedback({
           type: "success",
-          message: "Thank you!. Your request has been sent.",
+          message: isCancelled
+            ? "Your order has been cancelled successfully."
+            : "Your cancellation request has been submitted. We will notify you once it is processed.",
         });
-        if (data?.order_status === "Cancelled") {
-          setFilteredOrders((prev) =>
-            prev.map((order) =>
-              order._id === selectedOrder._id
-                ? { ...order, order_status: "Cancelled" }
-                : order
-            )
-          );
-        }
+        // Update local state: mark cancel_exists so button hides, update status if cancelled
+        setFilteredOrders((prev) =>
+          prev.map((order) =>
+            order._id === selectedOrder._id
+              ? {
+                  ...order,
+                  order_status: isCancelled ? "Cancelled" : order.order_status,
+                  cancel_exists: true,
+                }
+              : order
+          )
+        );
         setTimeout(() => {
           setShowCancelConfirm(false);
           setSelectedOrder(null);
@@ -298,7 +315,7 @@ export default function Order() {
           setCancelComments("");
           setCancelFeedback(null);
           setCancelSubmitting(false);
-        }, 2000);
+        }, 2500);
         return;
       }
 
@@ -481,118 +498,238 @@ export default function Order() {
                     const statusKey = getStatusKey(order.order_status);
                     const paymentLabel = getPaymentStatusLabel(order);
                     const paymentMethodLabel = getPaymentMethodLabel(order);
+
+                    // Stepper: determine current step index
+                    const STEPPER_STEPS = [
+                      { key: "ordered", label: "Ordered" },
+                      { key: "order placed", label: "Order Placed" },
+                      { key: "order accepted", label: "Order Accepted" },
+                      { key: "billed", label: "Order Billed" },
+                    ];
+                    const activeStepIndex = STEPPER_STEPS.findIndex(
+                      (s) => s.key === statusKey
+                    );
+                    const isCancelledOrFailure = statusKey === "cancelled" || statusKey === "failure" || statusKey === "complete";
+
+                    const firstItem = order.order_item?.[0] || {};
+                    const sellingPrice = firstItem.price || firstItem.product_price || order.order_amount;
+                    const checkoutDiscount = firstItem.coupondiscount || 0;
+                    const quantity = firstItem.quantity || 1;
+
+                    const formatDate = (d) => {
+                      if (!d) return "N/A";
+                      const dt = new Date(d);
+                      if (Number.isNaN(dt.getTime())) return "N/A";
+                      return dt.toLocaleDateString("en-IN", { year: "numeric", month: "short", day: "numeric" });
+                    };
+                    const formatTime = (d) => {
+                      if (!d) return "N/A";
+                      const dt = new Date(d);
+                      if (Number.isNaN(dt.getTime())) return "N/A";
+                      return dt.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", hour12: true });
+                    };
+
                     return (
-                    <div key={order._id} className="p-3 sm:p-5 border border-gray-200 rounded-xl hover:shadow-md transition-shadow">
-                      <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
+                    <div key={order._id} className="border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow bg-white">
+                      {/* ── Header Bar: Order ID + Request Cancel ── */}
+                      <div className="flex items-center justify-between px-4 py-2.5 bg-gray-50 border-b border-gray-200">
+                        <h4 className="text-sm sm:text-base font-bold text-gray-800 tracking-wide">
+                          {order.order_number || order._id}
+                        </h4>
+                        <div className="flex items-center gap-3">
+                          {canCancelOrder(order) && (
+                            <button
+                              onClick={() => handleCancelClick(order)}
+                              className="text-sm text-blue-600 hover:text-blue-800 hover:underline font-medium transition-colors"
+                            >
+                              Request Cancel
+                            </button>
+                          )}
+                          {statusKey === "cancelled" && (
+                            <span className="text-xs font-medium text-rose-600 bg-rose-50 px-2 py-0.5 rounded">Cancelled</span>
+                          )}
+                          {statusKey === "failure" && (
+                            <span className="text-xs font-medium text-red-600 bg-red-50 px-2 py-0.5 rounded">Failure</span>
+                          )}
+                          {statusKey === "complete" && (
+                            <span className="text-xs font-medium text-green-600 bg-green-50 px-2 py-0.5 rounded">Completed</span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* ── Body: Image | Details | Meta ── */}
+                      <div className="flex flex-col lg:flex-row p-4 gap-4 lg:gap-5">
                         {/* Product Image */}
-                        <div className="w-full sm:w-24 md:w-32 flex-shrink-0">
-                          {order.order_item?.[0]?.image ? (
+                        <div className="w-28 sm:w-32 lg:w-36 flex-shrink-0 mx-auto lg:mx-0">
+                          {firstItem.image ? (
                             <img
-                              src={getImageUrl(order.order_item[0].image)}
-                              alt={order.order_item[0].product_name || 'Product'}
-                              className="w-full h-24 sm:h-32 object-contain rounded-lg border border-gray-200"
+                              src={getImageUrl(firstItem.image)}
+                              alt={firstItem.name || firstItem.product_name || "Product"}
+                              className="w-full h-28 sm:h-32 object-contain rounded border border-gray-100"
                             />
                           ) : (
-                            <div className="w-full h-24 sm:h-32 bg-gray-100 rounded-lg flex items-center justify-center">
-                              <FiShoppingBag className="text-xl sm:text-2xl text-gray-400" />
+                            <div className="w-full h-28 sm:h-32 bg-gray-50 rounded border border-gray-100 flex items-center justify-center">
+                              <FiShoppingBag className="text-2xl text-gray-300" />
                             </div>
                           )}
                         </div>
 
-                        {/* Order Details */}
-                        <div className="flex-1">
-                          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 sm:gap-4">
-                            <div>
-                              <p className="text-xs sm:text-sm font-medium text-gray-500 mb-1">Order #{order.order_number}</p>
-                              <h3 className="font-medium text-gray-800 mb-1 sm:mb-2 text-sm sm:text-base">
-                                {order.order_item?.[0]?.name || 'Product'}
-                                {order.order_item?.length > 1 && ` + ${order.order_item.length - 1} more`}
-                              </h3>
-                                      {/* Warranty Data */}
-{order.order_item?.some(item => item.warrantyData?.name) && (
-  <div className="mb-2">
-    {order.order_item.filter(item => item.warrantyData?.name).map((item, idx) => (
-      <div key={idx} className="flex items-center gap-1 text-sm text-[#d72828] bg-red-50 px-2 py-1 rounded-md w-fit mb-1">
-        🛡️ <span>{item.warrantyData.year} Yr Warranty</span>
-        <span className="text-gray-500">— {item.warrantyData.name}</span>
-        <span className="font-bold text-red-500 ml-1">₹{item.warrantyData.price}</span>
-      </div>
-    ))}
-  </div>
-)}
-                               
-                              <p className="text-base sm:text-lg font-semibold text-gray-900 mb-2 sm:mb-3">₹{order.order_amount}</p>
-                            </div>
-
-                            <div className={`px-2 py-1 sm:px-3 sm:py-1 rounded-full text-xs font-medium self-start ${getStatusBadge(order.order_status).className}`}>
-                              <span className="flex items-center">
-                                {statusKey === "shipped" ? <FiTruck className="mr-1 text-xs" /> : null}
-                                {statusKey === "cancelled" || statusKey === "failure" ? <FiXCircle className="mr-1 text-xs" /> : null}
-                                {statusKey === "billed" || statusKey === "complete" || statusKey === "order accepted" ? <FiCheckCircle className="mr-1 text-xs" /> : null}
-                                {statusKey === "pending" || statusKey === "payment_initialized" || statusKey === "payment initiated" || statusKey === "order placed" || statusKey === "ordered" ? <FiClock className="mr-1 text-xs" /> : null}
-                                {getStatusBadge(order.order_status).label}
-                              </span>
-                            </div>
-                          </div>
-
-                          {/* Order Meta */}
-                          <div className="mt-3 sm:mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4 text-xs sm:text-sm">
-                            <div className="flex items-center text-gray-600">
-                              <FiTruck className="mr-2 text-gray-400 text-xs sm:text-sm" />
-                              <span>
-                                {statusKey === 'delivered'
-                                  ? `Delivered on ${formatDateTime(order.updatedAt)}`
-                                  : statusKey === 'shipped'
-                                  ? `Shipped on ${formatDateTime(order.updatedAt)}`
-                                  : statusKey === 'cancelled'
-                                  ? `Cancelled on ${formatDateTime(order.cancelled_at || order.updatedAt)}`
-                                  : statusKey === 'billed'
-                                  ? `Billed on ${formatDateTime(order.updatedAt || order.createdAt)}`
-                                  : `Order placed on ${formatDateTime(order.createdAt)}`}
-                              </span>
-                            </div>
-                            <div className="text-gray-600 flex flex-wrap items-center gap-1 sm:gap-2">
-                              <span>Payment:</span>
-                              {paymentMethodLabel ? (
-                                <span className="inline-flex items-center px-2 py-0.5 sm:py-1 text-xs font-semibold rounded-full bg-slate-100 text-slate-800">
-                                  {paymentMethodLabel}
-                                </span>
-                              ) : null}
-                              <span className={`inline-flex items-center px-2 py-0.5 sm:py-1 text-xs font-semibold rounded-full ${getPaymentStatusClass(paymentLabel)}`}>
-                                {paymentLabel === "Paid" ? <FiCheckCircle className="mr-1 text-xs" /> : <FiClock className="mr-1 text-xs" />}
-                                {paymentLabel}
-                              </span>
-                            </div>
-                          </div>
-
-                          {/* Action Buttons */}
-                          <div className="mt-4 sm:mt-6 flex flex-wrap gap-2 sm:gap-3">
-                            <button 
-                              onClick={handleBuyAgain}
-                              className="px-3 sm:px-4 py-1 sm:py-2 bg-red-50 text-red-600 rounded-md hover:bg-red-100 transition-colors flex items-center text-xs sm:text-sm"
-                            >
-                              <FiShoppingBag className="mr-1 sm:mr-2 text-xs sm:text-sm" />
-                              Buy Again
-                            </button>
-                            {canCancelOrder(order) && (
-                              <button 
-                                onClick={() => handleCancelClick(order)}
-                                className="px-3 sm:px-4 py-1 sm:py-2 border border-gray-300 text-gray-600 rounded-md hover:bg-gray-50 transition-colors text-xs sm:text-sm"
-                              >
-                                Cancel Order
-                              </button>
+                        {/* Product Details (middle column) */}
+                        <div className="flex-1 min-w-0">
+                          <h3 className="text-sm sm:text-base font-semibold text-gray-800 mb-1.5 leading-snug">
+                            {firstItem.name || firstItem.product_name || "Product"}
+                            {order.order_item?.length > 1 && (
+                              <span className="text-gray-500 font-normal"> + {order.order_item.length - 1} more</span>
                             )}
+                          </h3>
 
-                            {statusKey === "shipped" && (
-                              <a href={`/product/${order.order_item[0].slug}#reviews`} target='_blank'>
-                                <button className="px-3 sm:px-4 py-1 sm:py-2 bg-green-100 text-green-600 rounded-md hover:bg-green-200 transition-colors text-xs sm:text-sm">
-                                  Write Review
-                                </button>
-                              </a>
+                          <p className="text-lg sm:text-xl font-bold text-[#d72828] mb-2">
+                            ₹ {Number(order.order_amount || 0).toLocaleString("en-IN")}
+                          </p>
+
+                          {/* Warranty Data */}
+                          {order.order_item?.some(item => item.warrantyData?.name) && (
+                            <div className="mb-2">
+                              {order.order_item.filter(item => item.warrantyData?.name).map((item, idx) => (
+                                <div key={idx} className="flex items-center gap-1 text-xs text-[#d72828] bg-red-50 px-2 py-0.5 rounded w-fit mb-1">
+                                  🛡️ <span>{item.warrantyData.year} Yr Warranty</span>
+                                  <span className="text-gray-500">— {item.warrantyData.name}</span>
+                                  <span className="font-bold text-red-500 ml-1">₹{item.warrantyData.price}</span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
+                          {/* Detail rows - table style for clean alignment */}
+                          <table className="text-xs sm:text-sm text-gray-600 border-separate" style={{ borderSpacing: "0 2px" }}>
+                            <tbody>
+                              <tr>
+                                <td className="text-gray-500 pr-1 whitespace-nowrap align-top">Selling Price</td>
+                                <td className="text-gray-500 pr-2 align-top">:</td>
+                                <td className="font-medium text-gray-800">₹{Number(sellingPrice || 0).toLocaleString("en-IN")}</td>
+                              </tr>
+                              <tr>
+                                <td className="text-gray-500 pr-1 whitespace-nowrap align-top">Checkout Offer Discount</td>
+                                <td className="text-gray-500 pr-2 align-top">:</td>
+                                <td className="font-medium text-gray-800">₹{Number(checkoutDiscount || 0).toLocaleString("en-IN")}</td>
+                              </tr>
+                              <tr>
+                                <td className="text-gray-500 pr-1 whitespace-nowrap align-top">Quantity</td>
+                                <td className="text-gray-500 pr-2 align-top">:</td>
+                                <td className="font-medium text-gray-800">{quantity}</td>
+                              </tr>
+                              <tr>
+                                <td className="text-gray-500 pr-1 whitespace-nowrap align-top">Payment Method</td>
+                                <td className="text-gray-500 pr-2 align-top">:</td>
+                                <td className="font-medium text-gray-800">{paymentMethodLabel || "N/A"}{paymentLabel === "Paid" ? ` (${paymentLabel})` : ""}</td>
+                              </tr>
+                              {order.delivery_date && (
+                                <tr>
+                                  <td className="text-gray-500 pr-1 whitespace-nowrap align-top">Estimated Delivery Date</td>
+                                  <td className="text-gray-500 pr-2 align-top">:</td>
+                                  <td className="font-medium text-gray-800">{formatDate(order.delivery_date)}</td>
+                                </tr>
+                              )}
+                              <tr>
+                                <td className="text-gray-500 pr-1 whitespace-nowrap align-top">Tracking Details</td>
+                                <td className="text-gray-500 pr-2 align-top">:</td>
+                                <td className="font-medium text-gray-800"></td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+
+                        {/* Right Meta Column */}
+                        <div className="flex-shrink-0 lg:w-48 lg:border-l lg:border-gray-200 lg:pl-4">
+                          <div className="flex flex-row lg:flex-col flex-wrap gap-3 lg:gap-3 text-xs sm:text-sm border-t lg:border-t-0 border-gray-100 pt-3 lg:pt-0">
+                            <div>
+                              <p className="text-gray-400 flex items-center gap-1 mb-0.5">
+                                <FiClock className="text-[10px]" /> Order Date
+                              </p>
+                              <p className="font-medium text-gray-800">{formatDate(order.createdAt)}</p>
+                            </div>
+                            <div>
+                              <p className="text-gray-400 flex items-center gap-1 mb-0.5">
+                                <FiClock className="text-[10px]" /> Created Time
+                              </p>
+                              <p className="font-medium text-gray-800">{formatTime(order.createdAt)}</p>
+                            </div>
+                            {order.pickup_type && (
+                              <div>
+                                <p className="text-gray-400 flex items-center gap-1 mb-0.5">
+                                  <FiTruck className="text-[10px]" /> Store
+                                </p>
+                                <p className="font-medium text-gray-800">{order.pickup_type}</p>
+                              </div>
+                            )}
+                            {order.store_id && !order.pickup_type && (
+                              <div>
+                                <p className="text-gray-400 flex items-center gap-1 mb-0.5">
+                                  <FiTruck className="text-[10px]" /> Channel
+                                </p>
+                                <p className="font-medium text-gray-800">{order.store_id}</p>
+                              </div>
                             )}
                           </div>
                         </div>
                       </div>
+
+                      {/* ── Status Stepper ── */}
+                      {!isCancelledOrFailure && (
+                        <div className="px-4 pb-4 pt-2">
+                          <div className="relative flex items-center justify-between">
+                            {/* Background connector line */}
+                            <div className="absolute top-3 left-0 right-0 h-0.5 bg-gray-200 z-0" />
+                            {/* Active connector line */}
+                            {activeStepIndex > 0 && (
+                              <div
+                                className="absolute top-3 left-0 h-0.5 bg-[#d72828] z-10 transition-all duration-500"
+                                style={{ width: `${(activeStepIndex / (STEPPER_STEPS.length - 1)) * 100}%` }}
+                              />
+                            )}
+
+                            {STEPPER_STEPS.map((step, idx) => {
+                              const isActive = idx === activeStepIndex;
+                              const isCompleted = idx < activeStepIndex;
+                              return (
+                                <div key={step.key} className="relative z-20 flex flex-col items-center" style={{ width: `${100 / STEPPER_STEPS.length}%` }}>
+                                  <div
+                                    className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-300 ${
+                                      isActive
+                                        ? "bg-[#d72828] border-[#d72828] shadow-md shadow-red-200"
+                                        : isCompleted
+                                        ? "bg-[#d72828] border-[#d72828]"
+                                        : "bg-white border-gray-300"
+                                    }`}
+                                  >
+                                    {(isActive || isCompleted) && (
+                                      <FiCheckCircle className="text-white text-xs" />
+                                    )}
+                                  </div>
+                                  <span className={`mt-1.5 text-[10px] sm:text-xs text-center leading-tight ${
+                                    isActive ? "text-[#d72828] font-semibold" : isCompleted ? "text-[#d72828] font-medium" : "text-gray-400"
+                                  }`}>
+                                    {step.label}
+                                  </span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Cancelled/Failure/Complete status bar */}
+                      {isCancelledOrFailure && (
+                        <div className={`px-4 py-2.5 text-xs font-medium flex items-center gap-1.5 ${
+                          statusKey === "cancelled" ? "bg-rose-50 text-rose-700"
+                          : statusKey === "failure" ? "bg-red-50 text-red-700"
+                          : "bg-green-50 text-green-700"
+                        }`}>
+                          {statusKey === "cancelled" && <><FiXCircle /> Order was cancelled on {formatDateTime(order.updatedAt)}</>}
+                          {statusKey === "failure" && <><FiXCircle /> Payment failed on {formatDateTime(order.createdAt)}</>}
+                          {statusKey === "complete" && <><FiCheckCircle /> Order completed on {formatDateTime(order.updatedAt)}</>}
+                        </div>
+                      )}
                     </div>
                     );
                   })}

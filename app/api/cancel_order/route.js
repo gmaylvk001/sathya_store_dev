@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import mongoose from "mongoose";
 import dbConnect from "@/lib/db";
 import OrderNew from "@/models/orders_new";
+import CancelOrders from "@/models/cancel_orders";
+import OrderDetailsNew from "@/models/order_details_new";
 import { cancelOrder } from "@/lib/cancelOrder";
 
 export async function POST(req) {
@@ -40,6 +42,47 @@ export async function POST(req) {
       return NextResponse.json(
         { result: "Order not found", message: "Order not found" },
         { status: 404 }
+      );
+    }
+
+    // --- Server-side spec guards ---
+
+    // 1. Duplicate cancel request check
+    const existingCancel = await CancelOrders.findOne({
+      $or: [
+        { order_id: String(order._id) },
+        ...(order.order_number ? [{ order_number: String(order.order_number).trim() }] : []),
+      ],
+    }).lean();
+    if (existingCancel) {
+      return NextResponse.json(
+        { result: "Cancel request already exists", message: "A cancellation request already exists for this order." },
+        { status: 400 }
+      );
+    }
+
+    // 2. Order status must be cancellable (Pending/Processing per spec)
+    const statusKey = String(order.order_status || "").trim().toLowerCase();
+    const cancellableStatuses = new Set(["ordered", "order placed", "order accepted", "billed"]);
+    if (!cancellableStatuses.has(statusKey)) {
+      return NextResponse.json(
+        { result: "Order cannot be cancelled", message: "This order is not eligible for cancellation." },
+        { status: 400 }
+      );
+    }
+
+    // 3. Warranty items cannot be cancelled
+    const orderDetails = await OrderDetailsNew.find({
+      $or: [
+        { order_id: order._id },
+        ...(order.order_number ? [{ orderNumber: order.order_number }] : []),
+      ],
+    }).lean();
+    const hasWarrantyItem = orderDetails.some((item) => Number(item.is_warranty) === 1);
+    if (hasWarrantyItem) {
+      return NextResponse.json(
+        { result: "Warranty orders cannot be cancelled", message: "Orders containing warranty items cannot be cancelled." },
+        { status: 400 }
       );
     }
 
