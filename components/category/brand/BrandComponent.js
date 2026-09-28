@@ -46,6 +46,7 @@ export default function CategoryBrandComponent({ categorySlug, brandSlug }) {
   const [filterCatalog, setFilterCatalog] = useState(null);
   const [isFiltering, setIsFiltering] = useState(false);
   const skipNextFilterFetch = useRef(true);
+  const lastFetchedFiltersKeyRef = useRef("");
   const [sortOption, setSortOption] = useState('');
   const [wishlist, setWishlist] = useState([]); 
   const [nofound, setNofound] = useState(false);
@@ -553,8 +554,6 @@ export default function CategoryBrandComponent({ categorySlug, brandSlug }) {
     }));
   };
 
-
-  const lastFetchedFiltersKeyRef = useRef("");
 
   useEffect(() => {
     if (categoryData.brand && filterUrlReady) {

@@ -48,6 +48,7 @@ export default function BrandPage() {
   const [filterCatalog, setFilterCatalog] = useState(null);
   const [isFiltering, setIsFiltering] = useState(false);
   const skipNextFilterFetch = useRef(true);
+  const lastFetchedFiltersKeyRef = useRef("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedSubCategory, setSelectedSubCategory] = useState("");
 
@@ -454,8 +455,6 @@ export default function BrandPage() {
       subcategories: node?._id ? [String(node._id)] : [],
     }));
   };
-
-  const lastFetchedFiltersKeyRef = useRef("");
 
   useEffect(() => {
     if (brandData.brand && filterUrlReady) {

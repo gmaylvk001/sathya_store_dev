@@ -43,6 +43,8 @@ export default function CategoryPage() {
   const [filterCatalog, setFilterCatalog] = useState(null);
   const [isFiltering, setIsFiltering] = useState(false);
   const skipNextFilterFetch = useRef(true);
+  const lastFetchedFiltersKeyRef = useRef("");
+  const categoryDataRef = useRef({ category: null, brands: [], filters: [] });
 
   const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
   const [isSortPanelOpen, setIsSortPanelOpen] = useState(false);
@@ -67,9 +69,11 @@ export default function CategoryPage() {
     ready: filterUrlReady && !!filterCatalog,
     onApplyUrlFilters: (hydratedFilters) => {
       setPage(1);
-      fetchFilteredProducts(categoryData, 1, false, hydratedFilters);
+      fetchFilteredProducts(categoryDataRef.current, 1, false, hydratedFilters);
     },
   });
+
+  categoryDataRef.current = categoryData;
 
   const [nofound,setNofound]=useState(false);
   const [page, setPage] = useState(1);
@@ -451,8 +455,6 @@ const getSortedProducts = () => {
     setValues([selectedFilters.price.min, selectedFilters.price.max]);
   }, [selectedFilters.price.min, selectedFilters.price.max]);
 
-
-  const lastFetchedFiltersKeyRef = useRef("");
 
   useEffect(() => {
     if (categoryData.category?._id && filterUrlReady) {

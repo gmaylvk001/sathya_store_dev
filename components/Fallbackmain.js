@@ -58,6 +58,7 @@ const [selectedSubCategory, setSelectedSubCategory] = useState("");
   const [isFiltering, setIsFiltering] = useState(false);
   /** Stable options for URL slug↔id maps (not live facets) */
   const [filterCatalog, setFilterCatalog] = useState(null);
+  const lastFetchedFiltersKeyRef = useRef("");
   const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
 
   const activeBanners =
@@ -653,8 +654,6 @@ const fetchFilteredProducts = useCallback(async (categoryData, pageNum = 1, init
   }, [selectedFilters.price.min, selectedFilters.price.max]);
 
 
-
-  const lastFetchedFiltersKeyRef = useRef("");
 
   useEffect(() => {
     if (categoryData.main_category && categoryData.category && initialLoadComplete) {
