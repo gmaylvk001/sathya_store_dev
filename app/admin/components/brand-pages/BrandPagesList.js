@@ -47,9 +47,7 @@ export default function BrandPagesList() {
         <div className="flex-1 pr-4">
           <h1 className="text-2xl font-semibold text-gray-900">Brand Settings</h1>
           <p className="text-sm text-gray-500 mt-1">
-            Create an overview for a brand, or for a category + brand pair.
-            Brand only: /brand/slug/overview. Category + brand:
-            /category/brand/category-slug/brand-slug/overview.
+            Create an overview for a brand (/brand/slug/overview).
           </p>
         </div>
         <Link

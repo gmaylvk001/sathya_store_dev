@@ -28,7 +28,7 @@ import { uniqueById } from '@/lib/uniqueById';
 import { PAGE_TYPES } from '@/lib/categoryPageComponents/registry';
 import {
   buildCategoryHref,
-  buildCategoryBrandHref,
+  buildBrandHref,
   hasOverviewAvailability as categoryHasOverviewDesign,
   pageTypeFromLevel,
 } from '@/lib/categoryPageComponents/categoryHref';
@@ -656,21 +656,36 @@ const Header = () => {
   const [categories, setCategories] = useState([]);
   const [products, setProducts] = useState([]);
 
-  const collectAvailabilityRequests = useCallback((nodes, level = 0, out = []) => {
-    if (!Array.isArray(nodes)) return out;
-    for (const node of nodes) {
-      if (node?._id) {
-        out.push({
-          categoryId: String(node._id),
-          pageType: pageTypeFromLevel(level),
-        });
+  const collectAvailabilityRequests = useCallback(
+    (nodes, level = 0, out = [], seenBrandIds = new Set()) => {
+      if (!Array.isArray(nodes)) return out;
+      for (const node of nodes) {
+        if (node?._id) {
+          out.push({
+            categoryId: String(node._id),
+            pageType: pageTypeFromLevel(level),
+          });
+        }
+        if (Array.isArray(node?.brands)) {
+          for (const b of node.brands) {
+            if (b?._id && !seenBrandIds.has(String(b._id))) {
+              seenBrandIds.add(String(b._id));
+              out.push({
+                categoryId: String(b._id),
+                pageType: PAGE_TYPES.BRAND,
+                slug: b.brand_slug,
+              });
+            }
+          }
+        }
+        if (Array.isArray(node?.subcategories) && node.subcategories.length > 0) {
+          collectAvailabilityRequests(node.subcategories, level + 1, out, seenBrandIds);
+        }
       }
-      if (Array.isArray(node?.subcategories) && node.subcategories.length > 0) {
-        collectAvailabilityRequests(node.subcategories, level + 1, out);
-      }
-    }
-    return out;
-  }, []);
+      return out;
+    },
+    []
+  );
 
   const resolveCategoryNavHref = useCallback((slugs = [], categoryId, level = 0) => {
     const pageType = pageTypeFromLevel(level);
@@ -683,17 +698,20 @@ const Header = () => {
   }, [overviewAvailability]);
 
   const resolveCategoryBrandNavHref = useCallback(
-    (categorySlug, brand, categoryId) =>
-      buildCategoryBrandHref(
-        categorySlug,
-        brand?.brand_slug,
+    (_categorySlug, brand) => {
+      const slug = brand?.brand_slug || (typeof brand === 'string' ? brand : '');
+      if (!slug) return '/brand';
+      const hasOverview = Boolean(
         categoryHasOverviewDesign(
           overviewAvailability,
-          categoryId,
-          PAGE_TYPES.CATEGORY_BRAND,
-          brand?._id
-        )
-      ),
+          brand?._id,
+          PAGE_TYPES.BRAND
+        ) ||
+        (brand?.brand_slug &&
+          overviewAvailability[`${brand.brand_slug}:${PAGE_TYPES.BRAND}`])
+      );
+      return buildBrandHref(slug, hasOverview);
+    },
     [overviewAvailability]
   );
 
@@ -714,7 +732,7 @@ const Header = () => {
 
     let cancelled = false;
     // Bump key to drop stale v1 caches that kept /overview links off.
-    const AVAIL_CACHE_KEY = 'category_overview_availability_v6';
+    const AVAIL_CACHE_KEY = 'category_overview_availability_v7';
     const AVAIL_TTL_MS = 2 * 60 * 1000;
 
     const loadAvailability = async () => {
@@ -788,21 +806,20 @@ const Header = () => {
     const seen = new Set();
     for (const brand of brands) {
       if (!brand?._id) continue;
-      const key = `${hoveredCategory._id}:${brand._id}`;
-      if (seen.has(key)) continue;
-      seen.add(key);
+      const brandId = String(brand._id);
+      if (seen.has(brandId)) continue;
+      seen.add(brandId);
       pages.push({
-        categoryId: String(hoveredCategory._id),
-        pageType: PAGE_TYPES.CATEGORY_BRAND,
-        brandId: String(brand._id),
+        categoryId: brandId,
+        pageType: PAGE_TYPES.BRAND,
+        slug: brand.brand_slug,
       });
     }
     if (!pages.length) return;
     const missing = pages.filter(
       (p) =>
-        overviewAvailability[
-        `${p.categoryId}:${PAGE_TYPES.CATEGORY_BRAND}:${p.brandId}`
-        ] === undefined
+        overviewAvailability[`${p.categoryId}:${PAGE_TYPES.BRAND}`] === undefined &&
+        (!p.slug || overviewAvailability[`${p.slug}:${PAGE_TYPES.BRAND}`] === undefined)
     );
     if (!missing.length) return;
 
@@ -822,7 +839,7 @@ const Header = () => {
           ...data.availability,
         }));
       } catch (err) {
-        console.error('Failed to load category-brand overview availability:', err);
+        console.error('Failed to load brand overview availability:', err);
       }
     };
     loadBrandAvailability();

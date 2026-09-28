@@ -96,8 +96,7 @@ export default function CreateBrandPage() {
       </Link>
       <h1 className="text-2xl font-semibold mb-1">Create Brand Overview</h1>
       <p className="text-sm text-gray-500 mb-6">
-        Brand only uses /brand/slug/overview. Category + brand uses
-        /category/brand/category-slug/brand-slug/overview.
+        Brand uses /brand/slug/overview.
       </p>
 
       <form
@@ -122,7 +121,7 @@ export default function CreateBrandPage() {
               />
               Brand only — /brand/lg/overview
             </label>
-            <label className="inline-flex items-center gap-2 text-sm">
+            {/* <label className="inline-flex items-center gap-2 text-sm">
               <input
                 type="radio"
                 name="mode"
@@ -130,11 +129,11 @@ export default function CreateBrandPage() {
                 onChange={() => setMode("category_brand")}
               />
               Category + brand — /category/brand/tvs/lg/overview
-            </label>
+            </label> */}
           </div>
         </div>
 
-        {mode === "category_brand" && (
+        {/* {mode === "category_brand" && (
           <div>
             <label className="block text-sm font-medium mb-2">
               Select Category
@@ -157,7 +156,7 @@ export default function CreateBrandPage() {
               </select>
             )}
           </div>
-        )}
+        )} */}
 
         <div>
           <label className="block text-sm font-medium mb-2">Select Brand</label>

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import { getCategoryPagesAvailability } from "@/lib/categoryPageComponents/resolvePageComponents";
+import { availabilityKey } from "@/lib/categoryPageComponents/categoryHref";
 
 /**
  * POST /api/category-pages/availability
@@ -30,7 +31,7 @@ export async function POST(req) {
     const uncachedPages = [];
 
     for (const page of pages) {
-      const key = `${String(page.categoryId || "")}:${page.pageType || ""}:${page.brandId ? String(page.brandId) : ""}`;
+      const key = availabilityKey(page.categoryId, page.pageType, page.brandId);
       const cached = g.__sathyaAvailCache.get(key);
       if (cached && now - cached.at < AVAIL_CACHE_TTL_MS) {
         result[key] = cached.val;
