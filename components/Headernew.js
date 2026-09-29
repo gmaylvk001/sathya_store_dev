@@ -859,11 +859,17 @@ const Header = () => {
   const [searchContext, setSearchContext] = useState(null);
   const debounceRef = useRef(null);
   const abortControllerRef = useRef(null);
+  const searchRequestIdRef = useRef(0);
   const searchDropdownRef = useRef(null);
   const [searchDropdownVisible, setSearchDropdownVisible] = useState(false);
   const [searchDropdownLeft, setSearchDropdownLeft] = useState(0);
   const [searchDropdownTop, setSearchDropdownTop] = useState(0);
   const [searchDropdownWidth, setSearchDropdownWidth] = useState(0);
+  const [searchPage, setSearchPage] = useState(1);
+  const [searchHasMore, setSearchHasMore] = useState(false);
+  const [searchTotal, setSearchTotal] = useState(0);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [searchError, setSearchError] = useState(null);
   // Toggle mobile menu
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -986,63 +992,111 @@ const Header = () => {
     setSearchQuery('');
     setSuggestions([]);
     setTypedPreview('');
+    setSearchPage(1);
+    setSearchHasMore(false);
+    setSearchTotal(0);
+    setSearchError(null);
     setSearchDropdownVisible(false);
     if (searchInputRef.current) searchInputRef.current.blur();
   }, []);
 
-  // Primary: /api/search/suggestions. Fallback: local cache only if present.
-  const fetchSuggestions = useCallback(async (q, category) => {
+  // Production Search API: fetch suggestions with database-level search and pagination
+  const fetchSuggestions = useCallback(async (q, category, pageNum = 1, isLoadMore = false) => {
     if (!q || q.trim().length < 2) {
       setSuggestions([]);
       setIsLoadingSuggestions(false);
+      setIsLoadingMore(false);
+      setSearchHasMore(false);
+      setSearchTotal(0);
+      setSearchError(null);
       return;
     }
 
     const trimmed = q.trim();
+    const requestId = ++searchRequestIdRef.current;
 
-    // Cancel any in-flight request to prevent race conditions
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
+    if (!isLoadMore) {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+      setIsLoadingSuggestions(true);
+      setSearchError(null);
+    } else {
+      setIsLoadingMore(true);
     }
+
     const controller = new AbortController();
     abortControllerRef.current = controller;
 
-    setIsLoadingSuggestions(true);
-
     try {
-      const qs = new URLSearchParams({ q: trimmed });
-      if (category && category !== 'All Category') qs.set('category', category);
+      const qs = new URLSearchParams({
+        q: trimmed,
+        page: String(pageNum),
+        limit: "8",
+      });
+      if (category && category !== 'All Category' && category !== 'All Categories') {
+        qs.set('category', category);
+      }
+
       const res = await fetch(`/api/search/suggestions?${qs}`, { signal: controller.signal });
-      if (res.ok) {
-        const data = await res.json();
-        const items = Array.isArray(data) ? data : (data?.results || []);
-        setSuggestions(items.slice(0, 12));
-        setSearchDropdownVisible(true);
-        setIsLoadingSuggestions(false);
-        return;
-      }
-    } catch (err) {
-      if (err.name === 'AbortError') return; // request was cancelled — do nothing
-      console.error('Error fetching suggestions:', err);
-    }
+      
+      // Cancelled or superseded by newer request
+      if (requestId !== searchRequestIdRef.current) return;
 
-    // Fallback: ranked local cache when API returns nothing
-    try {
-      if (Array.isArray(sortedProducts) && sortedProducts.length > 0) {
-        const filtered = filterAndRankProducts(sortedProducts, trimmed, 12, {
-          brands: brandsForSearch,
-        });
-        setSuggestions(filtered);
-        setSearchDropdownVisible(filtered.length > 0);
-      } else {
-        setSuggestions([]);
+      if (!res.ok) {
+        throw new Error(`Search request failed with status ${res.status}`);
       }
+
+      const data = await res.json();
+      const items = Array.isArray(data) ? data : (data?.results || []);
+      const pagination = data?.pagination || {
+        page: pageNum,
+        limit: 8,
+        total: items.length,
+        totalPages: 1,
+        hasMore: false,
+      };
+
+      if (isLoadMore) {
+        setSuggestions((prev) => {
+          const seen = new Set(prev.map((p) => String(p._id || p.id)));
+          const uniqueNew = items.filter((p) => !seen.has(String(p._id || p.id)));
+          return [...prev, ...uniqueNew];
+        });
+        setSearchPage(pageNum);
+      } else {
+        setSuggestions(items);
+        setSearchPage(1);
+      }
+
+      setSearchTotal(pagination.total ?? items.length);
+      setSearchHasMore(Boolean(pagination.hasMore));
+      setSearchDropdownVisible(true);
+      setSearchError(null);
     } catch (err) {
-      console.error('Local filter error', err);
-      setSuggestions([]);
+      if (err.name === 'AbortError') return; // Expected when user keeps typing
+      if (requestId !== searchRequestIdRef.current) return;
+      console.error('Error fetching suggestions:', err);
+      if (!isLoadMore) {
+        setSuggestions([]);
+        setSearchError('Unable to load search results. Please try again.');
+      }
+    } finally {
+      if (requestId === searchRequestIdRef.current) {
+        setIsLoadingSuggestions(false);
+        setIsLoadingMore(false);
+      }
     }
-    setIsLoadingSuggestions(false);
-  }, [sortedProducts, brandsForSearch]);
+  }, []);
+
+  const handleLoadMore = useCallback((e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    if (isLoadingMore || !searchHasMore) return;
+    fetchSuggestions(searchQuery, selectedCategory, searchPage + 1, true);
+  }, [fetchSuggestions, searchQuery, selectedCategory, searchPage, isLoadingMore, searchHasMore]);
 
   // Debounced effect: call fetchSuggestions while typing
   useEffect(() => {
@@ -1051,6 +1105,10 @@ const Header = () => {
     if (!q || q.length < 2) {
       setSuggestions([]);
       setIsLoadingSuggestions(false);
+      setIsLoadingMore(false);
+      setSearchHasMore(false);
+      setSearchTotal(0);
+      setSearchError(null);
       setSearchDropdownVisible(false);
       return;
     }
@@ -1059,9 +1117,30 @@ const Header = () => {
     setIsLoadingSuggestions(true);
     setSearchDropdownVisible(true);
 
-    debounceRef.current = setTimeout(() => fetchSuggestions(q, selectedCategory), 200);
+    debounceRef.current = setTimeout(() => {
+      fetchSuggestions(q, selectedCategory, 1, false);
+    }, 280);
     return () => clearTimeout(debounceRef.current);
   }, [searchQuery, selectedCategory, fetchSuggestions]);
+
+  // Keep dropdown aligned with input on resize or scroll
+  useEffect(() => {
+    if (!searchDropdownVisible) return;
+    const updatePos = () => {
+      if (searchInputRef.current) {
+        const rect = searchInputRef.current.getBoundingClientRect();
+        setSearchDropdownLeft(rect.left);
+        setSearchDropdownTop(searchContext === 'desktop' ? rect.bottom + 4 : rect.bottom);
+        setSearchDropdownWidth(rect.width);
+      }
+    };
+    window.addEventListener('resize', updatePos);
+    window.addEventListener('scroll', updatePos, true);
+    return () => {
+      window.removeEventListener('resize', updatePos);
+      window.removeEventListener('scroll', updatePos, true);
+    };
+  }, [searchDropdownVisible, searchContext]);
 
   // Close search dropdown when clicking outside input or dropdown
   useEffect(() => {
@@ -1920,15 +1999,23 @@ const Header = () => {
           {/* MOBILE TOP SUGGESTIONS (outside menu) */}
           {searchDropdownVisible && searchContext === 'mobileTop' && !isMobileMenuOpen && (
             <div ref={searchDropdownRef} className="sm:hidden absolute z-[70] left-0 right-0 px-3 mt-1">
-              <div className="bg-white rounded-lg shadow-lg border max-h-72 overflow-y-auto">
-                <div className="px-3 pt-2 pb-1 text-[11px] font-semibold tracking-wide text-gray-500">
-                  PRODUCTS
+              <div className="bg-white rounded-xl shadow-2xl border border-gray-200 max-h-80 overflow-y-auto">
+                <div className="flex items-center justify-between px-3 pt-2.5 pb-1.5 border-b border-gray-100 bg-gray-50/70 select-none">
+                  <span className="text-[11px] font-bold tracking-wide text-gray-500 uppercase">
+                    PRODUCTS {searchTotal > 0 ? `(${searchTotal})` : ''}
+                  </span>
+                  {isLoadingSuggestions && (
+                    <span className="text-[10px] text-gray-400 flex items-center gap-1">
+                      <span className="inline-block w-2 h-2 border-2 border-brandRed border-t-transparent rounded-full animate-spin"></span>
+                      Searching...
+                    </span>
+                  )}
                 </div>
-                <div className="px-3 pb-2">
+                <div className="px-3 py-2 space-y-2">
                   {isLoadingSuggestions ? (
-                    <div className="space-y-2 py-2">
-                      {[1,2,3].map(i => (
-                        <div key={i} className="flex items-center gap-3 animate-pulse">
+                    <div className="space-y-2 py-1">
+                      {[1, 2, 3].map((i) => (
+                        <div key={i} className="flex items-center gap-3 animate-pulse bg-gray-50 rounded-lg p-2">
                           <div className="w-10 h-10 rounded bg-gray-200 shrink-0" />
                           <div className="flex-1 space-y-1.5">
                             <div className="h-3 bg-gray-200 rounded w-3/4" />
@@ -1937,25 +2024,66 @@ const Header = () => {
                         </div>
                       ))}
                     </div>
+                  ) : searchError ? (
+                    <div className="py-6 text-center">
+                      <p className="text-xs text-red-600 mb-2">{searchError}</p>
+                      <button
+                        type="button"
+                        onClick={() => fetchSuggestions(searchQuery, selectedCategory, 1, false)}
+                        className="px-3 py-1 text-xs font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded transition-colors"
+                      >
+                        Retry Search
+                      </button>
+                    </div>
                   ) : suggestions.length > 0 ? (
                     <>
                       {suggestions.map(renderSuggestionItem)}
+
+                      {/* Loading more skeleton indicator */}
+                      {isLoadingMore && (
+                        <div className="space-y-2 pt-1">
+                          {[1, 2].map((i) => (
+                            <div key={i} className="flex items-center gap-3 animate-pulse bg-gray-50 rounded-lg p-2">
+                              <div className="w-10 h-10 rounded bg-gray-200 shrink-0" />
+                              <div className="flex-1 space-y-1.5">
+                                <div className="h-3 bg-gray-200 rounded w-3/4" />
+                                <div className="h-3 bg-gray-200 rounded w-1/3" />
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Load More Button */}
+                      {searchHasMore && !isLoadingMore && (
+                        <button
+                          type="button"
+                          onClick={handleLoadMore}
+                          className="w-full mt-1 py-2 text-xs font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors flex items-center justify-center gap-1.5"
+                        >
+                          Load more ({suggestions.length} of {searchTotal})
+                        </button>
+                      )}
+
                       <button
+                        type="button"
                         onClick={handleSearch}
-                        className="w-full mt-2 py-2 text-xs font-semibold text-brandRed border border-brandRed rounded-lg hover:bg-red-50 transition-colors"
+                        className="w-full mt-1.5 py-2 text-xs font-semibold text-brandRed border border-brandRed rounded-lg hover:bg-red-50 transition-colors"
                       >
-                        See all results for &ldquo;{searchQuery.trim()}&rdquo;
+                        See all {searchTotal > 0 ? searchTotal : ''} results for &ldquo;{searchQuery.trim()}&rdquo;
                       </button>
                     </>
-                  ) : (searchQuery.trim().length >= 2 && (
-                    <div className="py-10 flex flex-col items-center justify-center text-gray-500">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="w-12 h-12 mb-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 13h6m-3-3v6m9-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      <p className="text-sm font-medium">No products found</p>
-                      <p className="text-xs text-gray-400 mt-1">Try a different keyword</p>
-                    </div>
-                  ))}
+                  ) : (
+                    searchQuery.trim().length >= 2 && (
+                      <div className="py-8 flex flex-col items-center justify-center text-gray-500">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="w-10 h-10 mb-2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M9 13h6m-3-3v6m9-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <p className="text-xs font-medium">No products found</p>
+                        <p className="text-[11px] text-gray-400 mt-0.5">Try a different keyword</p>
+                      </div>
+                    )
+                  )}
                 </div>
               </div>
             </div>
@@ -2914,24 +3042,35 @@ const Header = () => {
       {searchDropdownVisible && searchContext === 'desktop' && (
         <div
           ref={searchDropdownRef}
-          className="hidden sm:flex flex-col fixed z-[80] bg-white shadow-xl rounded-xl border border-gray-200 overflow-hidden"
+          className="hidden sm:flex flex-col fixed z-[9999] bg-white shadow-2xl rounded-2xl border border-gray-200 overflow-hidden"
           style={{
             top: `${searchDropdownTop}px`,
             left: `${searchDropdownLeft}px`,
             width: `${searchDropdownWidth}px`,
-            maxHeight: '500px'
+            maxHeight: '520px'
           }}
           role="listbox"
           aria-label="Search product suggestions"
         >
-          <div className="px-5 pt-3 pb-2 text-[11px] font-semibold tracking-[0.12em] text-gray-500 uppercase select-none">
-            Products
+          {/* Header */}
+          <div className="flex items-center justify-between px-5 pt-3.5 pb-2.5 border-b border-gray-100 bg-gray-50/70 select-none">
+            <span className="text-[11px] font-bold tracking-[0.12em] text-gray-500 uppercase">
+              Products {searchTotal > 0 ? `(${searchTotal})` : ''}
+            </span>
+            {isLoadingSuggestions && (
+              <span className="text-[11px] text-gray-400 flex items-center gap-1.5">
+                <span className="inline-block w-2.5 h-2.5 border-2 border-brandRed border-t-transparent rounded-full animate-spin"></span>
+                Searching...
+              </span>
+            )}
           </div>
-          <div className="px-3 pb-3 overflow-y-auto custom-scrollbar space-y-2">
+
+          {/* List Area */}
+          <div className="px-3 py-2.5 overflow-y-auto custom-scrollbar space-y-2 max-h-[420px]">
             {isLoadingSuggestions ? (
               <div className="space-y-2 py-1">
-                {[1,2,3,4].map(i => (
-                  <div key={i} className="flex items-center gap-4 px-4 py-3 animate-pulse">
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className="flex items-center gap-4 px-4 py-3 animate-pulse bg-gray-50 rounded-lg">
                     <div className="w-[50px] h-[50px] rounded-md bg-gray-200 shrink-0" />
                     <div className="flex-1 space-y-2">
                       <div className="h-3.5 bg-gray-200 rounded w-3/4" />
@@ -2940,27 +3079,71 @@ const Header = () => {
                   </div>
                 ))}
               </div>
+            ) : searchError ? (
+              <div className="py-8 px-4 text-center">
+                <p className="text-sm font-medium text-red-600 mb-2">{searchError}</p>
+                <button
+                  type="button"
+                  onClick={() => fetchSuggestions(searchQuery, selectedCategory, 1, false)}
+                  className="px-3 py-1.5 text-xs font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+                >
+                  Retry Search
+                </button>
+              </div>
             ) : suggestions.length > 0 ? (
               <>
                 {suggestions.map(renderDesktopSuggestionItem)}
+
+                {/* Loading more skeleton indicator */}
+                {isLoadingMore && (
+                  <div className="space-y-2 pt-1">
+                    {[1, 2].map((i) => (
+                      <div key={i} className="flex items-center gap-4 px-4 py-3 animate-pulse bg-gray-50 rounded-lg">
+                        <div className="w-[50px] h-[50px] rounded-md bg-gray-200 shrink-0" />
+                        <div className="flex-1 space-y-2">
+                          <div className="h-3.5 bg-gray-200 rounded w-3/4" />
+                          <div className="h-3.5 bg-gray-200 rounded w-1/4" />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Load More Button */}
+                {searchHasMore && !isLoadingMore && (
+                  <div className="px-1 pt-1">
+                    <button
+                      type="button"
+                      onClick={handleLoadMore}
+                      className="w-full py-2 text-xs font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors flex items-center justify-center gap-1.5"
+                    >
+                      Load more products ({suggestions.length} of {searchTotal})
+                    </button>
+                  </div>
+                )}
+
+                {/* Full search button */}
                 <div className="px-1 pt-1 pb-1">
                   <button
+                    type="button"
                     onClick={handleSearch}
                     className="w-full py-2.5 text-sm font-semibold text-brandRed border border-brandRed rounded-lg hover:bg-red-50 transition-colors"
                   >
-                    See all results for &ldquo;{searchQuery.trim()}&rdquo;
+                    See all {searchTotal > 0 ? searchTotal : ''} results for &ldquo;{searchQuery.trim()}&rdquo;
                   </button>
                 </div>
               </>
-            ) : (searchQuery.trim().length >= 2 && (
-              <div className="py-10 flex flex-col items-center justify-center text-gray-500">
-                <svg xmlns="http://www.w3.org/2000/svg" className="w-12 h-12 mb-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 13h6m-3-3v6m9-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <p className="text-sm font-medium">No products found</p>
-                <p className="text-xs text-gray-400 mt-1">Try a different keyword</p>
-              </div>
-            ))}
+            ) : (
+              searchQuery.trim().length >= 2 && (
+                <div className="py-10 flex flex-col items-center justify-center text-gray-500">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-12 h-12 mb-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 13h6m-3-3v6m9-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <p className="text-sm font-medium">No products found for &ldquo;{searchQuery.trim()}&rdquo;</p>
+                  <p className="text-xs text-gray-400 mt-1">Try checking the spelling or use a different keyword</p>
+                </div>
+              )
+            )}
           </div>
         </div>
       )}
