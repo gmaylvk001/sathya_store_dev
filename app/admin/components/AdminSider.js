@@ -26,6 +26,7 @@ const menuItems = [
     icon: 'mdi:cart-outline',
     label: 'Sales',
     submenu: [
+      { icon: 'mdi:view-dashboard-outline', label: 'Dashboard', id: 'sales-dashboard', link: 'sales/dashboard', dotColor: 'bg-green-500' },
       { icon: 'mdi:clipboard-list-outline', label: 'All Orders', link: 'Allorder', dotColor: 'bg-yellow-500' },
       { icon: 'mdi:home-import-outline', label: 'Home Delivery', link: 'homedelivery', dotColor: 'bg-yellow-500' },
       { icon: 'mdi:cart-off', label: 'Abandoned Order', link: 'abandonedorder', dotColor: 'bg-yellow-500' },
@@ -146,7 +147,7 @@ export default function AdminSider({ collapsed }) {
       if (item.submenu) {
         const sub = item.submenu.find((s) => pathname.includes(`/admin/${s.link}`));
         if (sub) {
-          setActiveMenu(sub.label);
+          setActiveMenu(sub.id || sub.label);
           setOpenMenus((prev) => (prev.includes(item.label) ? prev : [...prev, item.label]));
           return;
         }
@@ -269,7 +270,7 @@ function SidebarItemWithDropdown({
           if (collapsed) return;
           toggleMenu();
         }}
-        className={`w-full flex items-center px-3 py-3 rounded-lg text-sm font-medium transition-colors duration-200 ${item.submenu.some((sub) => sub.label === activeMenu)
+        className={`w-full flex items-center px-3 py-3 rounded-lg text-sm font-medium transition-colors duration-200 ${item.submenu.some((sub) => (sub.id || sub.label) === activeMenu)
           ? 'bg-red-100 text-brandRed'
           : 'text-gray-700 hover:text-brandRed'
           } ${collapsed ? 'justify-center' : 'space-x-3'}`}
@@ -305,10 +306,10 @@ function SidebarItemWithDropdown({
                   <li key={sub.label}>
                     <button
                       onClick={() => {
-                        setActiveMenu(sub.label);
+                        setActiveMenu(sub.id || sub.label);
                         router.push(`/admin/${sub.link}`);
                       }}
-                      className={`flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm transition-colors ${activeMenu === sub.label
+                      className={`flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm transition-colors ${activeMenu === (sub.id || sub.label)
                         ? 'bg-brandRed text-white'
                         : 'text-gray-700 hover:bg-red-50 hover:text-brandRed'
                         }`}
@@ -330,10 +331,10 @@ function SidebarItemWithDropdown({
             <li key={sub.label}>
               <button
                 onClick={() => {
-                  setActiveMenu(sub.label);
+                  setActiveMenu(sub.id || sub.label);
                   router.push(`/admin/${sub.link}`);
                 }}
-                className={`w-full flex items-center px-3 py-2 rounded text-sm space-x-3 ${activeMenu === sub.label
+                className={`w-full flex items-center px-3 py-2 rounded text-sm space-x-3 ${activeMenu === (sub.id || sub.label)
                   ? 'bg-brandRed text-white'
                   : 'text-gray-700 hover:text-brandRed'
                   }`}
