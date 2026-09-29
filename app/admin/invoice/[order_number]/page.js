@@ -138,7 +138,7 @@ const handlePrint = () => {
             Download PDF
           </button>
           <Link
-            href="/admin/order/shipping-order"
+            href="/admin/Allorder"
             className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded flex items-center gap-2"
           >
             <Icon icon="material-symbols:arrow-back" className="w-5 h-5" />

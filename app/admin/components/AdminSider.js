@@ -31,7 +31,6 @@ const menuItems = [
       { icon: 'mdi:cart-off', label: 'Abandoned Order', link: 'abandonedorder', dotColor: 'bg-yellow-500' },
       { icon: 'mdi:cancel', label: 'Cancel Order', link: 'order/cancel-order', dotColor: 'bg-[#d72828]' },
       { icon: 'mdi:clipboard-check-outline', label: 'Place Orders', link: 'order/place-order', dotColor: 'bg-blue-500' },
-      { icon: 'mdi:truck-delivery-outline', label: 'Shipped Order', link: 'shippedorder', dotColor: 'bg-green-500' },
       { icon: 'mdi:clipboard-list-outline', label: 'Sathya Exist Orders', link: 'sathya-exist-orders', dotColor: 'bg-yellow-500' },
       { icon: 'mdi:clipboard-list-outline', label: 'Sathya Exist Orders Details', link: 'sathya-exist-orders-details', dotColor: 'bg-yellow-500' },
       { icon: 'mdi:credit-card-outline', label: 'Sathya Exist Payments', link: 'sathya-exist-payments', dotColor: 'bg-yellow-500' },
