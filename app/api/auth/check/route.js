@@ -1,5 +1,6 @@
 // app/api/auth/check/route.js
 import jwt from 'jsonwebtoken';
+import connectDB from '@/lib/db';
 import User from '@/models/User';
 export async function GET(req) {
   const token = req.headers.get('Authorization')?.split(' ')[1]; // Extract token from Authorization header
@@ -11,13 +12,17 @@ export async function GET(req) {
   try {
     // Implement your token verification logic
     const decoded = verifyToken(token);
+    await connectDB();
     const userRole = await User.findOne({ _id: decoded.userId }, { name: 1, last_name: 1, email: 1, mobile: 1, user_type: 1, store_id: 1 });
+    if (!userRole) {
+      return Response.json({ loggedIn: false }, { status: 200 });
+    }
     return Response.json({
       loggedIn: true,
       user: decoded, // optional
       userId: decoded.userId,
       role: userRole.user_type,
-      phone: userRole.mobile,
+      phone: userRole.mobile || "",
       name: userRole.name || "",
       last_name: userRole.last_name || "",
       email: userRole.email || decoded.email || "",

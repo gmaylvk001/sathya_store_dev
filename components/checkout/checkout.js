@@ -25,6 +25,16 @@ const RAZORPAY_EMI_TEST_CARD = '5241 8100 0000 0000';
 const BEA_CONTACT_PHONE = '9842344323';
 const BEA_CONTACT_EMAIL = 'customercare@sathya.store';
 
+const toCheckoutPhone = (value) => {
+  const digits = String(value ?? '').replace(/\D/g, '');
+  return digits.length >= 10 ? digits.slice(-10) : '';
+};
+
+const toCheckoutEmail = (value) => {
+  const email = String(value ?? '').trim();
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? email : '';
+};
+
 const FloatInput = ({ label, name, type = 'text', required, readOnly, value, onChange, onBlur, error, inputMode, maxLength, showLock, hint }) => (
   <div>
     <div className="relative">
@@ -349,6 +359,24 @@ export default function CheckoutPage() {
     try {
       const decoded = jwtDecode(token);
       const userId = decoded.userId;
+
+      let contactEmail = toCheckoutEmail(decoded.email);
+      let contactPhone = toCheckoutPhone(decoded.mobile);
+      try {
+        const authRes = await fetch('/api/auth/check', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (authRes.ok) {
+          const authData = await authRes.json();
+          if (authData.loggedIn) {
+            contactEmail = toCheckoutEmail(authData.email || authData.user?.email) || contactEmail;
+            contactPhone = toCheckoutPhone(authData.phone || authData.user?.mobile) || contactPhone;
+          }
+        }
+      } catch (authErr) {
+        console.error('Contact prefill auth check:', authErr);
+      }
+
       if (!skipCartFetch) {
         const cartRes = await fetch('/api/cart', { headers: { Authorization: `Bearer ${token}` } });
         if (!cartRes.ok) throw new Error('Failed to fetch cart');
@@ -374,6 +402,9 @@ export default function CheckoutPage() {
           if (addresses.length > 0) {
             const defaultShip = addresses.find(a => a.is_default_shipping) || addresses[0];
             const defaultBill = addresses.find(a => a.is_default_billing) || addresses[0];
+            if (!contactPhone) {
+              contactPhone = toCheckoutPhone(defaultShip.phonenumber);
+            }
             setShippingAddressId(defaultShip._id);
             if (defaultShip._id !== defaultBill._id) {
               setBillingSameAsShipping(false);
@@ -386,6 +417,14 @@ export default function CheckoutPage() {
         } catch (parseErr) {
           setSavedAddresses([]);
         }
+      }
+
+      if (contactEmail || contactPhone) {
+        setFormData((prev) => ({
+          ...prev,
+          email: prev.email || contactEmail,
+          phonenumber: prev.phonenumber || contactPhone,
+        }));
       }
     } catch (err) {
       console.error('fetchData error:', err);
