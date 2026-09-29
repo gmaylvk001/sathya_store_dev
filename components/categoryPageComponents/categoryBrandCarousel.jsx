@@ -295,24 +295,28 @@ export default function CategoryBrandCarousel({ config }) {
         onTouchStart={() => setPaused(true)}
         onTouchEnd={() => setPaused(false)}
       >
-        <button
-          type="button"
-          aria-label="Previous"
-          disabled={page <= 0}
-          onClick={() => scrollToPage(page - 1)}
-          className="absolute left-0 sm:left-1 top-1/2 -translate-y-1/2 z-10 h-8 w-8 sm:h-9 sm:w-9 rounded-full bg-[#ED1C24] hover:bg-[#d01820] text-white flex items-center justify-center shadow-md transition-all duration-200 hover:scale-105 disabled:opacity-25 disabled:pointer-events-none"
-        >
-          <FiChevronLeft size={18} />
-        </button>
-        <button
-          type="button"
-          aria-label="Next"
-          disabled={page >= pageCount - 1}
-          onClick={() => scrollToPage(page + 1)}
-          className="absolute right-0 sm:right-1 top-1/2 -translate-y-1/2 z-10 h-8 w-8 sm:h-9 sm:w-9 rounded-full bg-[#ED1C24] hover:bg-[#d01820] text-white flex items-center justify-center shadow-md transition-all duration-200 hover:scale-105 disabled:opacity-25 disabled:pointer-events-none"
-        >
-          <FiChevronRight size={18} />
-        </button>
+        {pageCount > 1 && (
+          <>
+            <button
+              type="button"
+              aria-label="Previous"
+              disabled={page <= 0}
+              onClick={() => scrollToPage(page - 1)}
+              className="absolute left-0 sm:left-1 top-1/2 -translate-y-1/2 z-10 h-8 w-8 sm:h-9 sm:w-9 rounded-full bg-[#ED1C24] hover:bg-[#d01820] text-white flex items-center justify-center shadow-md transition-all duration-200 hover:scale-105 disabled:opacity-25 disabled:pointer-events-none"
+            >
+              <FiChevronLeft size={18} />
+            </button>
+            <button
+              type="button"
+              aria-label="Next"
+              disabled={page >= pageCount - 1}
+              onClick={() => scrollToPage(page + 1)}
+              className="absolute right-0 sm:right-1 top-1/2 -translate-y-1/2 z-10 h-8 w-8 sm:h-9 sm:w-9 rounded-full bg-[#ED1C24] hover:bg-[#d01820] text-white flex items-center justify-center shadow-md transition-all duration-200 hover:scale-105 disabled:opacity-25 disabled:pointer-events-none"
+            >
+              <FiChevronRight size={18} />
+            </button>
+          </>
+        )}
 
         <div
           ref={scrollerRef}
@@ -325,7 +329,7 @@ export default function CategoryBrandCarousel({ config }) {
           {pages.map((chunk, pageIdx) => (
             <div
               key={pageIdx}
-              className="flex w-full min-w-full shrink-0 snap-start snap-always items-center"
+              className={`flex w-full min-w-full shrink-0 snap-start snap-always items-center ${pageCount === 1 ? 'justify-center' : ''}`}
             >
               {chunk.map((item, i) =>
                 renderItem(item, pageStarts[pageIdx] + i)

@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
-import StorefrontProductCard from "@/components/StorefrontProductCard";
+import SharedProductCard from "@/components/product/ProductCard";
+import { normalizeProduct } from "@/lib/normalizeProduct";
 
 function usePerPage() {
   const [perPage, setPerPage] = useState(6);
@@ -213,9 +214,8 @@ export default function CategoryProductCarousel({ config }) {
         className="box-border min-w-0 shrink-0 py-1"
         style={cellStyle}
       >
-        <StorefrontProductCard
-          product={product}
-          brandMap={brandMap}
+        <SharedProductCard
+          product={normalizeProduct(product, brandMap)}
           onProductClick={handleProductClick}
         />
       </div>

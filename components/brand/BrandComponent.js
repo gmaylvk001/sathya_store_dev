@@ -6,6 +6,8 @@ import { useParams } from "next/navigation";
 import { ChevronLeft, ChevronRight } from "react-feather";
 import { FaSortAmountDown, FaSlidersH } from "react-icons/fa";
 import ProductCard from "@/components/ProductCard";
+import SharedProductCard from "@/components/product/ProductCard";
+import { normalizeProduct } from "@/lib/normalizeProduct";
 import Addtocart from "@/components/AddToCart";
 import { ToastContainer, toast } from 'react-toastify';
 import {
@@ -701,116 +703,11 @@ export default function BrandPage() {
                 <>
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3">
                     {getSortedProducts().map((product, index) => (
-                      <div key={`${product._id}-${index}`} className="group relative bg-white rounded-lg border hover:border-blue-200 transition-all shadow-sm hover:shadow-md flex flex-col h-full">
-                        {/* Product Image */}
-                        <div className="relative aspect-square bg-white">
-                          {product.images?.[0] && (
-                            <Image
-                              // src={
-                              //   product.images[0].startsWith("http")
-                              //     ? product.images[0]
-                              //     : `/uploads/products/${product.images[0]}`
-                              // }
-                              src={
-                                product.images[0].startsWith("http")
-                                  ? product.images[0]
-                                  : `https://www.sathya.store/img/product/${product.images[0].replace(/^\/?(uploads\/products\/)?/, "").replace(/^\/+/, "")}`
-                              }
-                              alt={product.name}
-                              fill
-                              className="object-contain p-2 md:p-4 transition-transform duration-300 group-hover:scale-105"
-                              sizes="(max-width: 640px) 50vw, 33vw, 25vw"
-                              unoptimized
-                            />
-                          )}
-       
-                          {/* Discount Badge */}
-                          {Number(product.special_price) > 0 &&
-                            Number(product.special_price) < Number(product.price) && (
-                              <span className="absolute top-3 left-2 bg-orange-500 tracking-wider text-white text-xs font-bold px-4 py-0.5 rounded z-10">
-                                -{Math.round(100 - (Number(product.special_price) / Number(product.price)) * 100)}%
-                              </span>
-                          )}
-       
-       
-                          {/* Wishlist */}
-                          <div className="absolute top-2 right-2">
-                            <ProductCard productId={product._id} />
-                          </div>
-                        </div>
-       
-                        {/* Product Info and Buttons */}
-                        <div className="p-2 md:p-4 flex flex-col h-full">
-                          <h4 className="text-xs text-gray-500 mb-2 uppercase">
-                            <Link
-                              href={`/brand/${brandMap[product.brand] ? brandMap[product.brand].toLowerCase().replace(/\s+/g, "-") : ""}`}
-                              className="hover:text-blue-600"
-                            >
-                              {brandMap[product.brand] || ""}
-                            </Link>
-                          </h4>
-      
-                          {/* Title with fixed height */}
-                          <Link
-                            href={`/product/${product.slug}`}
-                            className="block mb-2"
-                            onClick={() => handleProductClick(product)}
-                          >
-                            <h3 className="text-xs sm:text-sm font-medium text-[#0069c6] hover:text-[#00badb] line-clamp-2 min-h-[40px]">
-                              {product.name}
-                            </h3>
-                          </Link>
-       
-                          {/* Price Row (same level always) */}
-                          <div className="flex items-center gap-2 mb-3">
-                            <span className="text-base font-semibold text-red-600">
-                              ₹ {(
-                                product.special_price &&
-                                product.special_price > 0 &&
-                                product.special_price != '0' &&
-                                product.special_price != 0 &&
-                                product.special_price < product.price
-                                  ? Math.round(product.special_price)
-                                  : Math.round(product.price)
-                              ).toLocaleString()}
-                            </span>
-      
-                            {product.special_price > 0 &&
-                              product.special_price != '0' &&
-                              product.special_price != 0 &&
-                              product.special_price &&
-                              product.special_price < product.price && (
-                                <span className="text-xs text-gray-500 line-through">
-                                  ₹ {Math.round(product.price).toLocaleString()}
-                                </span>
-                            )}
-                          </div>
-      
-                          <h4 className={`text-xs mb-3 ${product.stock_status === "In Stock" && product.quantity ? "text-green-600" : "text-red-600"}`}>
-                            {product.stock_status === "In Stock" && product.quantity ? ` ${product.stock_status}` : "Out Of Stock"}
-                            {product.stock_status === "In Stock" && product.quantity ? `, ${product.quantity} units` : ""}
-                          </h4>
-       
-                          {/* Bottom Buttons */}
-                          <div className="mt-auto flex items-center justify-between gap-2">
-                            <Addtocart
-                              productId={product._id} stockQuantity={product.quantity}  special_price={product.special_price}
-                              className="w-full text-xs sm:text-sm py-1.5"
-                                 movement={product.movement}
-                              productName={product.name}
-                              productSlug={product.slug}
-                            />
-                             {/* <button
-                    type="button"
-                    onClick={() => handleShare(product)}
-                    className="bg-blue-600 hover:bg-blue-700 text-white p-1.5 rounded-full transition-colors duration-300 flex items-center justify-center flex-shrink-0"
-                    title="Share this product"
-                  >
-                    <FaShareAlt className="w-5 h-5" />
-                  </button> */}
-                          </div>
-                        </div>
-                      </div>
+                      <SharedProductCard 
+                        key={`${product._id}-${index}`}
+                        product={normalizeProduct(product, brandMap)}
+                        onProductClick={handleProductClick}
+                      />
                     ))}
                   </div>
 

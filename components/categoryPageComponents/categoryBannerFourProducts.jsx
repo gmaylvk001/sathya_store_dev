@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
-import StorefrontProductCard from "@/components/StorefrontProductCard";
+import SharedProductCard from "@/components/product/ProductCard";
+import { normalizeProduct } from "@/lib/normalizeProduct";
 
 function usePerPage() {
   const [perPage, setPerPage] = useState(5);
@@ -161,9 +162,8 @@ function RelatedProducts({ products, seeAllHref, name }) {
         className="box-border min-w-0 shrink-0 py-1"
         style={cellStyle}
       >
-        <StorefrontProductCard
-          product={product}
-          brandMap={brandMap}
+        <SharedProductCard
+          product={normalizeProduct(product, brandMap)}
           onProductClick={handleProductClick}
         />
       </div>
@@ -267,27 +267,27 @@ function ExactSizeImage({ src, alt = "", maxSide, className = "" }) {
     maxSide != null
       ? displaySize
         ? {
-            width: `${displaySize.width}px`,
-            height: `${displaySize.height}px`,
-            maxWidth: "100%",
-          }
+          width: `${displaySize.width}px`,
+          height: `${displaySize.height}px`,
+          maxWidth: "100%",
+        }
         : {
-            width: "auto",
-            height: "auto",
-            maxWidth: "100%",
-            maxHeight: `${maxSide}px`,
-          }
+          width: "auto",
+          height: "auto",
+          maxWidth: "100%",
+          maxHeight: `${maxSide}px`,
+        }
       : displaySize
         ? {
-            width: `${displaySize.width}px`,
-            maxWidth: "100%",
-            height: "auto",
-          }
+          width: `${displaySize.width}px`,
+          maxWidth: "100%",
+          height: "auto",
+        }
         : {
-            width: "auto",
-            height: "auto",
-            maxWidth: "100%",
-          };
+          width: "auto",
+          height: "auto",
+          maxWidth: "100%",
+        };
 
   return (
     // eslint-disable-next-line @next/next/no-img-element
