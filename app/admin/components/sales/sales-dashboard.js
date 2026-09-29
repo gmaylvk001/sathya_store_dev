@@ -1,6 +1,19 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { Bar, Line } from "react-chartjs-2";
+import {
+  Chart as ChartJS,
+  BarElement,
+  LineElement,
+  PointElement,
+  LinearScale,
+  CategoryScale,
+  Tooltip,
+  Legend,
+} from "chart.js";
+
+ChartJS.register(BarElement, LineElement, PointElement, LinearScale, CategoryScale, Tooltip, Legend);
 
 function isoDate(date) {
   const y = date.getFullYear();
@@ -159,14 +172,26 @@ function StatCard({ title, value, className, icon }) {
   );
 }
 
-function AnalyticsPanel({ title }) {
+const chartOptions = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: {
+    legend: { position: "bottom", labels: { boxWidth: 10, font: { size: 11 } } },
+  },
+  scales: {
+    x: { ticks: { font: { size: 10 }, maxRotation: 0, autoSkip: true } },
+    y: { beginAtZero: true, ticks: { font: { size: 10 }, precision: 0 } },
+  },
+};
+
+function AnalyticsPanel({ title, children }) {
   return (
     <section className="overflow-hidden rounded border border-gray-200 bg-white">
       <div className="flex items-center gap-2 border-b border-gray-200 bg-[#f7f7f7] px-3 py-2 text-[13px] text-gray-800">
         <ChartIcon />
         {title}
       </div>
-      <div className="min-h-[140px] bg-white sm:min-h-[168px]" />
+      <div className="h-52 p-2 sm:h-60">{children}</div>
     </section>
   );
 }
@@ -211,6 +236,7 @@ function AnalyticsTable({ title, icon, rows }) {
 export default function SalesDashboard() {
   const initialRange = defaultRange();
   const [paymentMethod, setPaymentMethod] = useState("");
+  const [orderType, setOrderType] = useState("");
   const [storeId, setStoreId] = useState("");
   const [startDate, setStartDate] = useState(initialRange.startDate);
   const [endDate, setEndDate] = useState(initialRange.endDate);
@@ -219,6 +245,7 @@ export default function SalesDashboard() {
   const [stats, setStats] = useState(emptyStats);
   const [categories, setCategories] = useState([]);
   const [salesPersons, setSalesPersons] = useState([]);
+  const [charts, setCharts] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -230,6 +257,7 @@ export default function SalesDashboard() {
           startDate,
           endDate,
           paymentMethod,
+          orderType,
           storeId,
         });
         const res = await fetch(`/api/admin/sales-dashboard?${params.toString()}`, {
@@ -243,6 +271,7 @@ export default function SalesDashboard() {
         setStats(data.stats || emptyStats);
         setCategories(data.categories || []);
         setSalesPersons(data.salesPersons || []);
+        setCharts(data.charts || null);
       } catch (error) {
         if (error.name !== "AbortError") {
           console.error("Sales dashboard load failed:", error);
@@ -253,7 +282,7 @@ export default function SalesDashboard() {
     };
     load();
     return () => controller.abort();
-  }, [paymentMethod, storeId, startDate, endDate]);
+  }, [paymentMethod, orderType, storeId, startDate, endDate]);
 
   return (
     <div className="text-gray-800">
@@ -263,7 +292,7 @@ export default function SalesDashboard() {
       </div>
 
       <div className="mb-3 rounded border border-gray-200 p-2">
-        <div className="grid grid-cols-1 gap-2 min-[520px]:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-1 gap-2 min-[520px]:grid-cols-2 xl:grid-cols-4">
           <div className="relative min-w-0">
             <select
               value={paymentMethod}
@@ -277,6 +306,20 @@ export default function SalesDashboard() {
                   {method}
                 </option>
               ))}
+            </select>
+            <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-gray-500">▾</span>
+          </div>
+
+          <div className="relative min-w-0">
+            <select
+              value={orderType}
+              onChange={(event) => setOrderType(event.target.value)}
+              className={fieldClass}
+              aria-label="Order type"
+            >
+              <option value="">Order Type</option>
+              <option value="online">Online</option>
+              <option value="offline">Offline</option>
             </select>
             <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-gray-500">▾</span>
           </div>
@@ -298,7 +341,7 @@ export default function SalesDashboard() {
             <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-gray-500">▾</span>
           </div>
 
-          <div className="min-w-0 min-[520px]:col-span-2 xl:col-span-1">
+          <div className="min-w-0">
             <CompactDateRange
               startDate={startDate}
               endDate={endDate}
@@ -340,9 +383,53 @@ export default function SalesDashboard() {
       </div>
 
       <div className="mt-4 space-y-4">
-        <AnalyticsPanel title="Orders Analytics" />
-        <AnalyticsPanel title="Sales Analytics" />
-        <AnalyticsPanel title="Category Analysis for Last Month" />
+        <AnalyticsPanel title="Orders Analytics">
+          {charts?.orders?.labels?.length ? (
+            <Bar
+              data={{
+                labels: charts.orders.labels,
+                datasets: [
+                  { label: "Ordered", data: charts.orders.ordered, backgroundColor: "#f6c34a" },
+                  { label: "Complete", data: charts.orders.complete, backgroundColor: "#67d36a" },
+                  { label: "Cancelled", data: charts.orders.cancelled, backgroundColor: "#f07178" },
+                ],
+              }}
+              options={chartOptions}
+            />
+          ) : (
+            <p className="py-10 text-center text-sm text-gray-500">No order found</p>
+          )}
+        </AnalyticsPanel>
+        <AnalyticsPanel title="Sales Analytics">
+          {charts?.sales?.labels?.length ? (
+            <Line
+              data={{
+                labels: charts.sales.labels,
+                datasets: [
+                  { label: "Ordered", data: charts.sales.ordered, borderColor: "#f6c34a", backgroundColor: "#f6c34a", tension: 0.2 },
+                  { label: "Complete", data: charts.sales.complete, borderColor: "#67d36a", backgroundColor: "#67d36a", tension: 0.2 },
+                  { label: "Cancelled", data: charts.sales.cancelled, borderColor: "#f07178", backgroundColor: "#f07178", tension: 0.2 },
+                ],
+              }}
+              options={chartOptions}
+            />
+          ) : (
+            <p className="py-10 text-center text-sm text-gray-500">No order found</p>
+          )}
+        </AnalyticsPanel>
+        <AnalyticsPanel title="Category Analysis for Last Month">
+          {charts?.categories?.labels?.length ? (
+            <Bar
+              data={{
+                labels: charts.categories.labels,
+                datasets: [{ label: "Order amount", data: charts.categories.values, backgroundColor: "#7eb6ff" }],
+              }}
+              options={chartOptions}
+            />
+          ) : (
+            <p className="py-10 text-center text-sm text-gray-500">No order found</p>
+          )}
+        </AnalyticsPanel>
       </div>
     </div>
   );
