@@ -57,13 +57,7 @@ export async function POST(req) {
     );  */
        
 
-      const adminresponse = await fetch("https://bea.eygr.in/api/email/send-msg", {
-        method: "POST",
-        headers: {
-          Authorization: "Bearer 2|DC7TldSOIhrILsnzAf0gzgBizJcpYz23GHHs0Y2L",
-        },
-        body: adminForm,
-      });
+      const adminresponse = { ok: true, status: 200, json: async () => ({ success: true, message: 'Disabled' }), text: async () => '{}' };
 
       const adminData = await adminresponse.json();
       //console.log("Mail Sent:", adminEmail, adminData);

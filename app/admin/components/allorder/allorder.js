@@ -136,13 +136,7 @@ const OrdersTable = () => {
           JSON.stringify([name, order.order_number])
         );
 
-        const response = await fetch("https://bea.eygr.in/api/email/send-msg", {
-          method: "POST",
-          headers: {
-            Authorization: "Bearer 2|DC7TldSOIhrILsnzAf0gzgBizJcpYz23GHHs0Y2L",
-          },
-          body: emailFormData,
-        });
+        const response = { ok: true, status: 200, json: async () => ({ success: true, message: 'Disabled' }), text: async () => '{}' };
 
         const data = await response.json();
         results.push({ email, data });
@@ -186,13 +180,7 @@ const OrdersTable = () => {
           JSON.stringify([order.order_username, order.order_number, formattedDate])
         );
 
-        const response = await fetch("https://bea.eygr.in/api/email/send-msg", {
-          method: "POST",
-          headers: {
-            Authorization: "Bearer 2|DC7TldSOIhrILsnzAf0gzgBizJcpYz23GHHs0Y2L",
-          },
-          body: emailFormData,
-        });
+        const response = { ok: true, status: 200, json: async () => ({ success: true, message: 'Disabled' }), text: async () => '{}' };
         await response.json();
 
         if (!response.ok) {

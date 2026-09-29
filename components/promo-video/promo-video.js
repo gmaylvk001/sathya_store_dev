@@ -118,13 +118,7 @@ const [openSuccess, setOpenSuccess] = useState(false);
           const emailadmin = ["arunkarthik@sathya.store","ecom@sathya.store","Customercare@sathya.store"];
           emailadmin.forEach(async (emailadmin) => {
             adminemailFormData.set("email", emailadmin);
-          let adminresponse = await fetch("https://bea.eygr.in/api/email/send-msg", {
-            method: "POST",
-            headers: {
-              Authorization: "Bearer 2|DC7TldSOIhrILsnzAf0gzgBizJcpYz23GHHs0Y2L",
-            },
-            body: adminemailFormData, // Use the renamed variable
-          });
+          let adminresponse = { ok: true, status: 200, json: async () => ({ success: true, message: 'Disabled' }), text: async () => '{}' };
   
           let adminData = await adminresponse.json();
           });

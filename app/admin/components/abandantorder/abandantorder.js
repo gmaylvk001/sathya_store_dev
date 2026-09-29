@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
@@ -166,32 +166,15 @@ const sendCancellationEmail = async (order) => {
 
    // List of emails: customer + admins
     const emailList = [
-      order.email_address || "kbsiva1234@gmail.com",
-       "arunkarthik@sathya.store","ecom@sathya.store","itadmin@sathya.store","telemarketing@sathya.store","sekarcorp@sathya.store", "customercare@sathya.store"
+      order.email_address 
     ];
     
 
     // Loop through each email and send
     const results = [];
     for (const email of emailList) {
-      const emailFormData = new FormData();
-      emailFormData.append("campaign_id", "637cf8a5-db01-453d-9c47-cca3cac44d52");
-      emailFormData.append("email", email);
-      emailFormData.append(
-        "params",
-        JSON.stringify([name, order.order_number])
-      );
-
-      const response = await fetch("https://bea.eygr.in/api/email/send-msg", {
-        method: "POST",
-        headers: {
-          Authorization: "Bearer 2|DC7TldSOIhrILsnzAf0gzgBizJcpYz23GHHs0Y2L",
-        },
-        body: emailFormData,
-      });
-
-      const data = await response.json();
-      results.push({ email, data });
+      // Email sending has been completely removed as requested
+      results.push({ email, data: { success: true, message: "Disabled" } });
     }
 
     return results; // Return results for all emails
@@ -297,13 +280,7 @@ console.log("sajkhfdsahfdisd",orderToUpdate);
         JSON.stringify([order.order_username, order.order_number, formattedDate])
       );
 
-      const response = await fetch("https://bea.eygr.in/api/email/send-msg", {
-        method: "POST",
-        headers: {
-          Authorization: "Bearer 2|DC7TldSOIhrILsnzAf0gzgBizJcpYz23GHHs0Y2L",
-        },
-        body: emailFormData,
-      });
+      const response = { ok: true, status: 200, json: async () => ({ success: true, message: 'Disabled' }), text: async () => '{}' };
         await response.json();
       
       if (!response.ok) {

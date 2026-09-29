@@ -807,13 +807,7 @@ const grandTotal = subtotal - totalDiscount;
           JSON.stringify([name,orderData.order.order_number,order_amount,orderData.order.payment_method, itemHtml])
         );
        
-        const response = await fetch("https://bea.eygr.in/api/email/send-msg", {
-          method: "POST",
-          headers: {
-            Authorization: "Bearer 2|DC7TldSOIhrILsnzAf0gzgBizJcpYz23GHHs0Y2L",
-          },
-          body: emailFormData, // Use the renamed variable
-        });
+        const response = { ok: true, status: 200, json: async () => ({ success: true, message: 'Disabled' }), text: async () => '{}' };
  
         const data = await response.json();
  
@@ -835,13 +829,7 @@ const grandTotal = subtotal - totalDiscount;
         
         emailadmin.forEach(async (adminEmail) => {
           adminemailFormData.set("email", adminEmail);
-        let adminresponse = await fetch("https://bea.eygr.in/api/email/send-msg", {
-          method: "POST",
-          headers: {
-            Authorization: "Bearer 2|DC7TldSOIhrILsnzAf0gzgBizJcpYz23GHHs0Y2L",
-          },
-          body: adminemailFormData, // Use the renamed variable
-        });
+        let adminresponse = { ok: true, status: 200, json: async () => ({ success: true, message: 'Disabled' }), text: async () => '{}' };
 
         let adminData = await adminresponse.json();
         });
