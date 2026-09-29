@@ -75,8 +75,5 @@ warranty_ids: {
 });
 
 ProductSchema.index({ createdAt: -1, _id: -1 });
-ProductSchema.index({ status: 1, brand: 1 });
-ProductSchema.index({ status: 1, name: 1 });
-ProductSchema.index({ status: 1, createdAt: -1 });
 
 export default mongoose.models.Product || mongoose.model("Product", ProductSchema);
