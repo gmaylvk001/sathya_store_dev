@@ -9,9 +9,10 @@ import {
   CategoryScale,
   Tooltip,
   Legend,
+  Title,
 } from "chart.js";
 
-ChartJS.register(BarElement, LinearScale, CategoryScale, Tooltip, Legend);
+ChartJS.register(BarElement, LinearScale, CategoryScale, Tooltip, Legend, Title);
 
 function isoDate(date) {
   const y = date.getFullYear();
@@ -421,9 +422,20 @@ export default function SalesDashboard() {
             <Bar
               data={{
                 labels: charts.categories.labels,
-                datasets: [{ label: "Order amount", data: charts.categories.values, backgroundColor: "#7eb6ff" }],
+                datasets: [{ label: "Orders Amount", data: charts.categories.values, backgroundColor: "#0080ff" }],
               }}
-              options={chartOptions}
+              options={{
+                ...chartOptions,
+                plugins: {
+                  ...chartOptions.plugins,
+                  title: {
+                    display: true,
+                    text: charts.categories.title,
+                    font: { size: 13 },
+                    color: "#374151",
+                  },
+                },
+              }}
             />
           ) : (
             <p className="py-10 text-center text-sm text-gray-500">No order found</p>

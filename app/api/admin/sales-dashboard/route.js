@@ -13,6 +13,7 @@ export const dynamic = "force-dynamic";
 
 const SKIPPED = new Set(["payment initiated", "failure"]);
 const PENDING = new Set(["ordered", "order placed", "order accepted"]);
+const CATEGORY_SALES = new Set(["ordered", "order placed", "order accepted", "billed", "complete"]);
 const SELLING = new Set(["complete", "billed"]);
 
 function authorize(req) {
@@ -179,15 +180,19 @@ function isMainParent(parentid) {
   return !parent || parent === "none" || parent === "null";
 }
 
-function mainCategoryName(startId, byId) {
+function mainCategory(startId, byId) {
   let current = byId.get(String(startId || ""));
   for (let guard = 0; current && guard < 6; guard += 1) {
-    if (isMainParent(current.parentid)) return current.category_name || "";
+    if (isMainParent(current.parentid)) {
+      return { id: String(current._id), name: current.category_name || "" };
+    }
     const next = byId.get(String(current.parentid));
-    if (!next) return current.category_name || "";
+    if (!next) {
+      return { id: String(current._id), name: current.category_name || "" };
+    }
     current = next;
   }
-  return "";
+  return null;
 }
 
 function subCategoryName(product, byId) {
@@ -510,30 +515,27 @@ async function buildCharts(filteredOrders, detailsByOrder, rangeStart, rangeEnd)
   const lastLookup = await categoryLookup(lastMonthOrders, lastMonthByOrder);
   const mainTotals = new Map();
   for (const order of lastMonthOrders) {
-    if (SKIPPED.has(statusOf(order))) continue;
+    if (!CATEGORY_SALES.has(statusOf(order))) continue;
     const lines = lastMonthByOrder.get(String(order._id)) || [];
-    const names = new Set();
     for (const ref of refsFor(order, lines)) {
       const product = productForRef(ref, lastLookup);
       if (!product) continue;
-      const startId = product.sub_category || product.sub_category_new || product.category || product.category_new;
-      const name = mainCategoryName(startId, lastLookup.byId);
-      if (name) names.add(name);
-    }
-    const amount = money(order.order_amount);
-    for (const name of names) {
-      mainTotals.set(name, roundMoney((mainTotals.get(name) || 0) + amount));
+      const startId = product.category || product.category_new || product.sub_category || product.sub_category_new;
+      const category = mainCategory(startId, lastLookup.byId);
+      if (!category?.id || !category.name) continue;
+      const current = mainTotals.get(category.id) || { name: category.name, value: 0 };
+      current.value = roundMoney(current.value + (ref.value || 0));
+      mainTotals.set(category.id, current);
     }
   }
-  const categoryRows = [...mainTotals.entries()]
-    .map(([name, value]) => ({ name, value }))
-    .sort((a, b) => b.value - a.value)
-    .slice(0, 8);
+  const categoryRows = [...mainTotals.values()].sort((a, b) => b.value - a.value);
+  const catDate = previous.toLocaleString("en-US", { month: "short", year: "numeric" }).replace(" ", "-");
 
   return {
     orders: ordersChart,
     sales: salesChart,
     categories: {
+      title: `${catDate} Business Category Sales Report`,
       labels: categoryRows.map((row) => row.name),
       values: categoryRows.map((row) => row.value),
     },
