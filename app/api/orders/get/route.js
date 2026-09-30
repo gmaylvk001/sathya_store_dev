@@ -83,8 +83,8 @@ export async function GET(req) {
       query.user_id = userId;
     }
 
-    // Exclude offline store orders from user order history
-    query.type = { $ne: "offline" };
+    // Offline orders are now included in user order history
+    // query.type = { $ne: "offline" };
 
     const orders = await OrderNew.find(query).sort({ created_at: -1 });
 
