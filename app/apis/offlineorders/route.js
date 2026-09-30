@@ -53,7 +53,6 @@ export async function POST(req) {
         order_amount: "0",
         payment_status: "pending",
         order_status: "pending",
-        delivery_type: "home",
         netamt: "0",
         order_item: [
           {
