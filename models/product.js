@@ -78,5 +78,28 @@ ProductSchema.index({ createdAt: -1, _id: -1 });
 ProductSchema.index({ status: 1, brand: 1 });
 ProductSchema.index({ status: 1, name: 1 });
 ProductSchema.index({ status: 1, createdAt: -1 });
+ProductSchema.index({ status: 1, sub_category_new_name: 1 });
+ProductSchema.index({ status: 1, item_code: 1 });
+ProductSchema.index({ status: 1, model_number: 1 });
+ProductSchema.index(
+  {
+    name: "text",
+    sub_category_new_name: "text",
+    item_code: "text",
+    model_number: "text",
+    search_keywords: "text",
+  },
+  {
+    weights: {
+      name: 10,
+      model_number: 8,
+      item_code: 8,
+      sub_category_new_name: 5,
+      search_keywords: 3,
+    },
+    name: "product_search_text_idx",
+    background: true,
+  }
+);
 
 export default mongoose.models.Product || mongoose.model("Product", ProductSchema);

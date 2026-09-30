@@ -1,51 +1,20 @@
 import dbConnect from "@/lib/db";
 import Product from "@/models/product";
+import Category from "@/models/ecom_category_info";
 import { NextResponse } from "next/server";
 import { getActiveBrandsForSearch } from "@/lib/brandSearch";
-import {
-  buildSearchOrConditions,
-  getBrandSearchConstraints,
-  scoreProductMatch,
-  escapeRegExp,
-} from "@/lib/searchMatch";
+import { escapeRegExp } from "@/lib/searchMatch";
 
 export const runtime = "nodejs";
-
-const REQUIRED_PROJECTION =
-  "_id name item_code images price special_price slug search_keywords sub_category_new_name category_new brand createdAt model_number";
 
 function sanitizeInput(str = "") {
   return str.replace(/[^\w\s\-/+().,&]/gi, "").trim();
 }
 
-function buildProductFindQuery(query, brands) {
-  const base = { status: "Active" };
-  const brandConstraints = getBrandSearchConstraints(query, brands);
-
-  if (brandConstraints?.mode === "brand_product") {
-    return {
-      ...base,
-      brand: brandConstraints.brandId,
-      $or: buildSearchOrConditions(brandConstraints.productQuery, brands),
-    };
-  }
-
-  if (brandConstraints?.mode === "exact") {
-    return {
-      ...base,
-      brand: brandConstraints.brandId,
-    };
-  }
-
-  return {
-    ...base,
-    $or: buildSearchOrConditions(query, brands),
-  };
-}
-
-// In-process memory cache for repeated queries within 30s
+// In-process LRU cache for identical queries within 30s TTL
 const suggestionsCache = new Map();
 const CACHE_TTL_MS = 30 * 1000;
+const MAX_CACHE_ENTRIES = 500;
 
 function getCached(key) {
   const entry = suggestionsCache.get(key);
@@ -58,7 +27,7 @@ function getCached(key) {
 }
 
 function setCache(key, data) {
-  if (suggestionsCache.size > 500) {
+  if (suggestionsCache.size >= MAX_CACHE_ENTRIES) {
     const firstKey = suggestionsCache.keys().next().value;
     if (firstKey) suggestionsCache.delete(firstKey);
   }
@@ -71,9 +40,9 @@ export async function GET(req) {
     const rawQuery = (searchParams.get("q") || "").trim().slice(0, 100);
     const rawCategory = (searchParams.get("category") || "").trim().slice(0, 100);
     const page = Math.max(1, parseInt(searchParams.get("page"), 10) || 1);
-    const limit = Math.min(30, Math.max(1, parseInt(searchParams.get("limit"), 10) || 8));
+    const limit = Math.min(24, Math.max(1, parseInt(searchParams.get("limit"), 10) || 8));
 
-    const q = sanitizeInput(rawQuery);
+    const q = sanitizeInput(rawQuery).replace(/\s+/g, " ");
     const category = rawCategory;
 
     // Minimum 2 characters for search query
@@ -101,149 +70,227 @@ export async function GET(req) {
 
     await dbConnect();
     const brands = await getActiveBrandsForSearch();
-    const brandConstraints = getBrandSearchConstraints(q, brands);
-    const findQuery = buildProductFindQuery(q, brands);
 
-    // Filter by category if specified
-    const catLower = category.toLowerCase();
+    const qLower = q.toLowerCase();
+    const isShort = q.length <= 2;
+    const escapedQ = escapeRegExp(q);
+    const tokens = qLower.split(/\s+/).filter(Boolean);
+
+    // Detect matched brand
+    const matchedBrand = (brands || []).find((b) => {
+      const bName = (b?.brand_name || "").toLowerCase().trim();
+      return (
+        bName &&
+        (bName === qLower ||
+          qLower.startsWith(`${bName} `) ||
+          (qLower.length >= 3 && bName.startsWith(qLower)) ||
+          (bName.length >= 4 && qLower.startsWith(bName)))
+      );
+    });
+    const brandId = matchedBrand ? String(matchedBrand._id) : null;
+
+    // Build database search conditions using indexed fields:
+    // 1. Prefix regexes on indexed fields (name, item_code, model_number, sub_category_new_name)
+    // 2. Matched brand lookup using indexed status_1_brand_1
+    // 3. Text search using product_search_text_idx
+    const orConditions = [
+      { status: "Active", name: new RegExp(`^${escapedQ}`, "i") },
+      { status: "Active", item_code: new RegExp(`^${escapedQ}`, "i") },
+      { status: "Active", model_number: new RegExp(`^${escapedQ}`, "i") },
+      { status: "Active", sub_category_new_name: new RegExp(`^${escapedQ}`, "i") },
+    ];
+
+    if (brandId) {
+      orConditions.push({ status: "Active", brand: brandId });
+    }
+
+    // MongoDB enforces AT MOST ONE $text expression per query
+    const cleanSearchText = qLower.replace(/["']/g, " ").replace(/\s+/g, " ").trim();
+    const cleanTokens = cleanSearchText.split(/\s+/).filter(Boolean);
+    if (cleanTokens.length > 1) {
+      orConditions.push({
+        status: "Active",
+        $text: { $search: `"${cleanTokens.join(" ")}" ${cleanSearchText}` },
+      });
+    } else if (cleanSearchText.length >= 2) {
+      orConditions.push({ status: "Active", $text: { $search: cleanSearchText } });
+    }
+
+    // Specific optimization for common acronyms like "ac"
+    if (qLower === "ac") {
+      orConditions.push({ status: "Active", sub_category_new_name: /air condition/i });
+      orConditions.push({ status: "Active", search_keywords: /air condition/i });
+    }
+
+    // Category filter mapping
+    let matchFilter = { $or: orConditions };
+    const catLower = category.toLowerCase().trim();
     if (category && catLower !== "all category" && catLower !== "all categories") {
-      const Category = (await import("@/models/ecom_category_info")).default;
       const categoryDoc = await Category.findOne({
-        category_name: { $regex: new RegExp(`^${category}$`, "i") },
+        category_name: { $regex: new RegExp(`^${escapeRegExp(category)}$`, "i") },
         status: "Active",
       }).select("md5_cat_name");
-      if (categoryDoc?.md5_cat_name) {
-        findQuery.sub_category_new = { $regex: categoryDoc.md5_cat_name, $options: "i" };
-      }
+
+      const categoryFilter = categoryDoc?.md5_cat_name
+        ? { sub_category_new: { $regex: categoryDoc.md5_cat_name, $options: "i" } }
+        : { sub_category_new_name: { $regex: escapeRegExp(category), $options: "i" } };
+
+      matchFilter = {
+        $and: [{ $or: orConditions }, categoryFilter],
+      };
     }
 
-    // Base filter inherits active status and category if present
-    const baseFilter = { status: "Active" };
-    if (findQuery.sub_category_new) {
-      baseFilter.sub_category_new = findQuery.sub_category_new;
-    }
-
-    const escapedQ = escapeRegExp(q.trim());
-
-    // Priority 1: Exact matches (exact name, exact model_number, exact item_code, exact brand)
-    const exactConditions = [
-      { name: new RegExp(`^${escapedQ}$`, "i") },
-      { name: new RegExp(`(^|[\\s\\-/,_(])${escapedQ}($|[\\s\\-/,_.)])`, "i") },
-      { model_number: new RegExp(`^${escapedQ}$`, "i") },
-      { item_code: new RegExp(`^${escapedQ}$`, "i") },
-    ];
-    if (brandConstraints?.mode === "exact") {
-      exactConditions.push({ brand: brandConstraints.brandId });
-    } else if (brandConstraints?.mode === "brand_product") {
-      const pQueryEsc = escapeRegExp(brandConstraints.productQuery);
-      exactConditions.push({
-        brand: brandConstraints.brandId,
-        $or: [
-          { name: new RegExp(`^${pQueryEsc}$`, "i") },
-          { name: new RegExp(`(^|[\\s\\-/,_(])${pQueryEsc}($|[\\s\\-/,_.)])`, "i") },
-          { model_number: new RegExp(`^${pQueryEsc}$`, "i") },
-          { item_code: new RegExp(`^${pQueryEsc}$`, "i") },
+    // Token relevance boosts
+    const tokenScoreAdditions = tokens.map((t) => {
+      const escT = escapeRegExp(t);
+      return {
+        $cond: [
+          {
+            $regexMatch: {
+              input: { $ifNull: ["$name", ""] },
+              regex: `(^|[\\s\\-/,_(])${escT}`,
+              options: "i",
+            },
+          },
+          25,
+          0,
         ],
-      });
-    }
-    const exactQuery = { ...baseFilter, $or: exactConditions };
+      };
+    });
 
-    // Priority 2: Prefix and strong partial matches
-    const prefixConditions = [
-      { name: new RegExp(`^${escapedQ}`, "i") },
-      { name: new RegExp(`(^|[\\s\\-/,_(])${escapedQ}`, "i") },
-      { model_number: new RegExp(`^${escapedQ}`, "i") },
-      { item_code: new RegExp(`^${escapedQ}`, "i") },
-      { sub_category_new_name: new RegExp(escapedQ, "i") },
-    ];
-    if (brandConstraints?.mode === "brand_product") {
-      const pQueryEsc = escapeRegExp(brandConstraints.productQuery);
-      prefixConditions.push({
-        brand: brandConstraints.brandId,
-        $or: [
-          { name: new RegExp(`^${pQueryEsc}`, "i") },
-          { name: new RegExp(`(^|[\\s\\-/,_(])${pQueryEsc}`, "i") },
-          { model_number: new RegExp(`^${pQueryEsc}`, "i") },
-          { item_code: new RegExp(`^${pQueryEsc}`, "i") },
-          { sub_category_new_name: new RegExp(pQueryEsc, "i") },
-        ],
-      });
-    }
-    const matchedBrandIds = (brands || [])
-      .filter((b) => {
-        const bName = (b?.brand_name || "").toLowerCase().trim();
-        const qLower = q.toLowerCase();
-        return (
-          bName &&
-          (bName === qLower ||
-            (qLower.length >= 3 && bName.startsWith(qLower)) ||
-            (bName.length >= 4 && qLower.startsWith(bName)))
-        );
-      })
-      .map((b) => String(b._id));
-    if (matchedBrandIds.length > 0) {
-      prefixConditions.push({ brand: { $in: matchedBrandIds } });
-    }
-    const prefixQuery = { ...baseFilter, $or: prefixConditions };
-
-    // Priority 3: Broader fallback candidates (sorted by newest)
-    const fallbackLimit = Math.min(1000, Math.max(120, page * limit + 80));
-
-    // Parallel execution of total count and candidate retrieval tiers
-    const [total, exactDocs, prefixDocs, fallbackDocs] = await Promise.all([
-      Product.countDocuments(findQuery),
-      Product.find(exactQuery).select(REQUIRED_PROJECTION).limit(50).lean(),
-      Product.find(prefixQuery).select(REQUIRED_PROJECTION).limit(80).lean(),
-      Product.find(findQuery)
-        .select(REQUIRED_PROJECTION)
-        .sort({ createdAt: -1, _id: -1 })
-        .limit(fallbackLimit)
-        .lean(),
-    ]);
-
-    // Merge and deduplicate candidates safely by _id
-    const candidateMap = new Map();
-    for (const doc of exactDocs) {
-      candidateMap.set(String(doc._id), doc);
-    }
-    for (const doc of prefixDocs) {
-      if (!candidateMap.has(String(doc._id))) {
-        candidateMap.set(String(doc._id), doc);
-      }
-    }
-    for (const doc of fallbackDocs) {
-      if (!candidateMap.has(String(doc._id))) {
-        candidateMap.set(String(doc._id), doc);
-      }
-    }
-    const combinedCandidates = Array.from(candidateMap.values());
-
-    // Score and rank products with existing relevance scoring
-    const ranked = combinedCandidates
-      .map((product) => ({
-        ...product,
-        _score: scoreProductMatch(product, q, { brands }),
-      }))
-      .filter((product) => product._score > 0)
-      .sort((a, b) => {
-        if (b._score !== a._score) return b._score - a._score;
-        const timeA = new Date(a.createdAt || 0).getTime();
-        const timeB = new Date(b.createdAt || 0).getTime();
-        if (timeB !== timeA) return timeB - timeA;
-        return String(b._id).localeCompare(String(a._id));
-      });
-
-    // Pagination based on actual MongoDB total count
-    const totalPages = Math.ceil(total / limit);
     const skip = (page - 1) * limit;
-    const pagedItems = ranked
-      .slice(skip, skip + limit)
-      .map(({ _score, ...product }) => product);
+
+    // Production single-roundtrip aggregation pipeline with relevance ranking and pagination
+    const pipeline = [
+      { $match: matchFilter },
+      {
+        $addFields: {
+          relevanceScore: {
+            $add: [
+              // Exact name match
+              {
+                $cond: [
+                  {
+                    $regexMatch: {
+                      input: { $ifNull: ["$name", ""] },
+                      regex: `^${escapedQ}$`,
+                      options: "i",
+                    },
+                  },
+                  100,
+                  0,
+                ],
+              },
+              // Prefix name match
+              {
+                $cond: [
+                  isShort
+                    ? {
+                        $regexMatch: {
+                          input: { $ifNull: ["$name", ""] },
+                          regex: `^${escapedQ}([\\s\\-/,_.)]|$)`,
+                          options: "i",
+                        },
+                      }
+                    : {
+                        $regexMatch: {
+                          input: { $ifNull: ["$name", ""] },
+                          regex: `^${escapedQ}`,
+                          options: "i",
+                        },
+                      },
+                  50,
+                  0,
+                ],
+              },
+              // Word boundary token match in name
+              {
+                $cond: [
+                  {
+                    $regexMatch: {
+                      input: { $ifNull: ["$name", ""] },
+                      regex: `(^|[\\s\\-/,_(])${escapedQ}([\\s\\-/,_.)]|$)`,
+                      options: "i",
+                    },
+                  },
+                  40,
+                  0,
+                ],
+              },
+              // Matched Brand boost
+              { $cond: [brandId ? { $eq: ["$brand", brandId] } : false, 45, 0] },
+              // Subcategory name match boost
+              {
+                $cond: [
+                  {
+                    $regexMatch: {
+                      input: { $ifNull: ["$sub_category_new_name", ""] },
+                      regex: escapedQ,
+                      options: "i",
+                    },
+                  },
+                  30,
+                  0,
+                ],
+              },
+              // "AC" synonym category boost
+              qLower === "ac"
+                ? {
+                    $cond: [
+                      {
+                        $regexMatch: {
+                          input: { $ifNull: ["$sub_category_new_name", ""] },
+                          regex: "air condition",
+                          options: "i",
+                        },
+                      },
+                      90,
+                      0,
+                    ]
+                  }
+                : 0,
+              // Token matches
+              ...tokenScoreAdditions,
+            ],
+          },
+        },
+      },
+      {
+        $facet: {
+          totalCount: [{ $count: "count" }],
+          items: [
+            { $sort: { relevanceScore: -1, createdAt: -1, _id: -1 } },
+            { $skip: skip },
+            { $limit: limit },
+            {
+              $project: {
+                _id: 1,
+                name: 1,
+                slug: 1,
+                price: 1,
+                special_price: 1,
+                images: 1,
+                brand: 1,
+                sub_category_new_name: 1,
+                item_code: 1,
+                model_number: 1,
+                relevanceScore: 1,
+              },
+            },
+          ],
+        },
+      },
+    ];
+
+    const [aggResult] = await Product.aggregate(pipeline);
+    const total = aggResult?.totalCount?.[0]?.count || 0;
+    const items = aggResult?.items || [];
+    const totalPages = Math.ceil(total / limit);
     const hasMore = page < totalPages;
 
     const responsePayload = {
       success: true,
-      results: pagedItems,
+      results: items,
       pagination: {
         page,
         limit,
@@ -271,4 +318,3 @@ export async function GET(req) {
     );
   }
 }
-

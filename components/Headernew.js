@@ -856,11 +856,13 @@ const Header = () => {
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
   // refs & state for search dropdown positioning
   const searchInputRef = useRef(null);
+  const mobileSearchInputRef = useRef(null);
   const [searchContext, setSearchContext] = useState(null);
   const debounceRef = useRef(null);
   const abortControllerRef = useRef(null);
   const searchRequestIdRef = useRef(0);
   const searchDropdownRef = useRef(null);
+  const mobileSearchDropdownRef = useRef(null);
   const [searchDropdownVisible, setSearchDropdownVisible] = useState(false);
   const [searchDropdownLeft, setSearchDropdownLeft] = useState(0);
   const [searchDropdownTop, setSearchDropdownTop] = useState(0);
@@ -943,12 +945,14 @@ const Header = () => {
     };
   }, [dropdownOpen]);
 
-  const handleSearch = () => {
-    if (!searchQuery.trim() && selectedCategory === "All Category") return;
+  const handleSearch = (e) => {
+    if (e && typeof e.preventDefault === 'function') e.preventDefault();
+    if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
+    if (!searchQuery.trim() && (selectedCategory === "All Category" || selectedCategory === "All Categories")) return;
     setSearchDropdownVisible(false);
     const params = new URLSearchParams();
     if (searchQuery.trim()) params.append("query", searchQuery.trim());
-    if (selectedCategory !== "All Category") {
+    if (selectedCategory && selectedCategory !== "All Category" && selectedCategory !== "All Categories") {
       params.append("category", selectedCategory);
     }
     router.push(`/search?${params.toString()}`);
@@ -987,17 +991,16 @@ const Header = () => {
   // Memoized sorted products using existing getSortedProducts flow
   const sortedProducts = useMemo(() => getSortedProducts(), [products, sortOption]);
 
-  // ADD: clearSearch helper for new mobile search design (from reference mobile view)
+  // Clear search helper
   const clearSearch = useCallback(() => {
     setSearchQuery('');
     setSuggestions([]);
-    setTypedPreview('');
     setSearchPage(1);
     setSearchHasMore(false);
     setSearchTotal(0);
     setSearchError(null);
     setSearchDropdownVisible(false);
-    if (searchInputRef.current) searchInputRef.current.blur();
+    if (searchInputRef.current) searchInputRef.current.focus();
   }, []);
 
   // Production Search API: fetch suggestions with database-level search and pagination
@@ -1146,15 +1149,19 @@ const Header = () => {
   useEffect(() => {
     const handler = (e) => {
       const target = e.target;
-      if (
-        searchDropdownVisible &&
-        searchInputRef.current &&
-        searchDropdownRef.current &&
-        !searchInputRef.current.contains(target) &&
-        !searchDropdownRef.current.contains(target)
-      ) {
-        setSearchDropdownVisible(false);
+      if (!searchDropdownVisible) return;
+      if (target?.closest && (target.closest('[role="listbox"]') || target.closest('.header-search') || target.closest('.header-search-field'))) {
+        return;
       }
+      if (
+        (searchInputRef.current && searchInputRef.current.contains(target)) ||
+        (mobileSearchInputRef.current && mobileSearchInputRef.current.contains(target)) ||
+        (searchDropdownRef.current && searchDropdownRef.current.contains(target)) ||
+        (mobileSearchDropdownRef.current && mobileSearchDropdownRef.current.contains(target))
+      ) {
+        return;
+      }
+      setSearchDropdownVisible(false);
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
@@ -1445,27 +1452,66 @@ const Header = () => {
     if (Number.isNaN(num)) return '';
     return '₹' + num.toLocaleString('en-IN');
   };
-  // FIX: renderSuggestionItem slug bug
+  // Query keyword highlight helper
+  const renderHighlightedText = useCallback((text, query) => {
+    if (!text) return 'Unnamed';
+    if (!query || !query.trim()) return text;
+    const terms = query.trim().split(/\s+/).filter(Boolean);
+    if (!terms.length) return text;
+    try {
+      const pattern = new RegExp(`(${terms.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})`, 'gi');
+      const parts = text.split(pattern);
+      return parts.map((part, i) =>
+        pattern.test(part) ? (
+          <span key={i} className="text-brandRed font-bold">
+            {part}
+          </span>
+        ) : (
+          part
+        )
+      );
+    } catch {
+      return text;
+    }
+  }, []);
+
+  // Safe image path resolution
+  const getSuggestionImage = useCallback((item) => {
+    if (item?.image) return item.image;
+    if (Array.isArray(item?.images) && item.images.length > 0) {
+      const img = item.images[0];
+      if (img.startsWith('http') || img.startsWith('/')) return img;
+      return `/uploads/products/${img}`;
+    }
+    return null;
+  }, []);
+
   const renderSuggestionItem = useCallback((item, idx) => {
     const id = item._id || item.id || idx;
-    const slug = item.slug || item._id || item.id || ''; // added slug definition
+    const slug = item.slug || item._id || item.id || '';
     const price = item.special_price ?? item.price;
-    const imageSrc = item.image || (Array.isArray(item.images) && item.images.length > 0 ? `/uploads/products/${item.images[0]}` : null);
+    const imageSrc = getSuggestionImage(item);
     return (
       <Link
         key={id}
+        role="option"
+        aria-selected={false}
         href={`/product/${encodeURIComponent(slug)}`}
         onClick={() => setSearchDropdownVisible(false)}
-        className="group block mb-2 last:mb-0 rounded-lg bg-[#e9e9ec] hover:bg-white border border-transparent hover:border-red-300 shadow-sm hover:shadow transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-red-400/40"
+        className="group block mb-2 last:mb-0 rounded-lg bg-[#f7f7f8] hover:bg-white border border-transparent hover:border-red-300 shadow-xs hover:shadow-sm transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-red-400/40"
       >
         <div className="flex items-center gap-3 px-3 py-2">
-          <div className="w-12 h-12 rounded-md overflow-hidden bg-white ring-1 ring-gray-200 flex items-center justify-center shrink-0">
+          <div className="w-12 h-12 rounded-md overflow-hidden bg-white ring-1 ring-gray-200 flex items-center justify-center shrink-0 p-0.5">
             {imageSrc ? (
               <img
                 src={imageSrc}
-                alt={imageSrc || 'Product'}
+                alt={item.name || 'Product'}
                 className="object-contain w-full h-full"
                 loading="lazy"
+                onError={(e) => {
+                  e.currentTarget.onerror = null;
+                  e.currentTarget.src = "/uploads/sathya-header-logo.webp";
+                }}
               />
             ) : (
               <span className="text-[10px] text-gray-400">NO IMG</span>
@@ -1473,12 +1519,17 @@ const Header = () => {
           </div>
           <div className="flex-1 min-w-0">
             <div className="text-[12px] font-semibold text-gray-800 leading-snug line-clamp-2 uppercase group-hover:text-brandRed">
-              {item.name || 'Unnamed'}
+              {renderHighlightedText(item.name, searchQuery)}
             </div>
-            <div className="mt-1 flex items-center gap-2">
+            <div className="mt-1 flex items-center justify-between">
               {price !== undefined && price !== null && (
                 <span className="text-[12px] font-medium text-gray-700 group-hover:text-brandRed">
                   {formatPrice(price)}
+                </span>
+              )}
+              {item.sub_category_new_name && (
+                <span className="text-[10px] text-gray-400 truncate max-w-[130px]">
+                  {item.sub_category_new_name.split('##').pop()}
                 </span>
               )}
             </div>
@@ -1486,7 +1537,7 @@ const Header = () => {
         </div>
       </Link>
     );
-  }, [setSearchDropdownVisible]);
+  }, [setSearchDropdownVisible, searchQuery, renderHighlightedText, getSuggestionImage]);
 
   // ADD state (place with other useState declarations)
   const [activeSuggestion, setActiveSuggestion] = useState(-1);
@@ -1495,6 +1546,16 @@ const Header = () => {
   useEffect(() => {
     if (!searchDropdownVisible) setActiveSuggestion(-1);
   }, [searchDropdownVisible]);
+
+  // Scroll active suggestion into view on keyboard navigation
+  useEffect(() => {
+    if (activeSuggestion >= 0 && searchDropdownRef.current) {
+      const activeEl = searchDropdownRef.current.querySelector('[aria-selected="true"]');
+      if (activeEl && typeof activeEl.scrollIntoView === 'function') {
+        activeEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      }
+    }
+  }, [activeSuggestion]);
 
   // SELECT helper
   const selectSuggestion = useCallback((index) => {
@@ -1530,16 +1591,12 @@ const Header = () => {
     }
   };
 
-  // DESKTOP specific renderer (keep existing renderSuggestionItem for mobile contexts)
+  // DESKTOP specific renderer
   function renderDesktopSuggestionItem(item, idx) {
     const id = item._id || item.id || idx;
     const price = item.special_price ?? item.price;
     const isActive = idx === activeSuggestion;
-    const imageSrc =
-      item.image ||
-      (Array.isArray(item.images) && item.images.length > 0
-        ? `/uploads/products/${item.images[0]}`
-        : null);
+    const imageSrc = getSuggestionImage(item);
 
     return (
       <div
@@ -1548,15 +1605,21 @@ const Header = () => {
         aria-selected={isActive}
         onMouseEnter={() => setActiveSuggestion(idx)}
         onMouseDown={() => selectSuggestion(idx)}
-        className={`flex gap-4 px-4 py-3 cursor-pointer rounded-md transition-colors group bg-[#f2f2f2]`}
+        className={`flex gap-4 px-4 py-3 cursor-pointer rounded-lg transition-all group ${
+          isActive ? 'bg-red-50/70 border border-red-200' : 'bg-[#f7f7f8] hover:bg-white border border-transparent hover:border-gray-200'
+        }`}
       >
-        <div className="w-[50px] h-[50px] rounded-md overflow-hidden bg-white flex items-center justify-center border border-gray-200 shrink-0">
+        <div className="w-[52px] h-[52px] rounded-lg overflow-hidden bg-white flex items-center justify-center border border-gray-200 shrink-0 p-1">
           {imageSrc ? (
             <img
               src={imageSrc}
               alt={item.name || 'Product'}
               className="object-contain w-full h-full"
               loading="lazy"
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                e.currentTarget.src = "/uploads/sathya-header-logo.webp";
+              }}
             />
           ) : (
             <span className="text-[10px] text-gray-400">NO IMG</span>
@@ -1564,17 +1627,24 @@ const Header = () => {
         </div>
         <div className="flex-1 min-w-0">
           <div
-            className={`text-[14px] font-medium leading-snug line-clamp-2 ${isActive ? 'text-brandRed' : 'text-gray-800 group-hover:text-gray-900'
-              }`}
+            className={`text-[13px] font-medium leading-snug line-clamp-2 transition-colors ${
+              isActive ? 'text-brandRed' : 'text-gray-800 group-hover:text-gray-900'
+            }`}
           >
-            {item.name || 'Unnamed'}
+            {renderHighlightedText(item.name, searchQuery)}
           </div>
-          {price && (
-            <div className="text-[14px] font-semibold text-brandRed mt-1">
-              ₹{price.toLocaleString('en-IN')}
-            </div>
-          )}
-
+          <div className="mt-1 flex items-center justify-between">
+            {price !== undefined && price !== null && (
+              <div className="text-[13px] font-semibold text-brandRed">
+                ₹{Number(price).toLocaleString('en-IN')}
+              </div>
+            )}
+            {item.sub_category_new_name && (
+              <span className="text-[11px] text-gray-400 truncate max-w-[200px]">
+                {item.sub_category_new_name.split('##').pop()}
+              </span>
+            )}
+          </div>
         </div>
       </div>
     );
@@ -1946,7 +2016,13 @@ const Header = () => {
               <div className="header-search-select-wrap">
                 <select
                   value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  onChange={(e) => {
+                    const newCat = e.target.value;
+                    setSelectedCategory(newCat);
+                    if (searchQuery.trim().length >= 2) {
+                      fetchSuggestions(searchQuery, newCat, 1, false);
+                    }
+                  }}
                   className="header-search-select"
                   aria-label="Category"
                 >
@@ -1966,11 +2042,11 @@ const Header = () => {
                   onKeyDown={handleKeyPress}
                   placeholder=" "
                   className="header-search-input"
-                  ref={searchInputRef}
+                  ref={mobileSearchInputRef}
                   onFocus={() => {
                     setSearchContext('mobileTop');
-                    if (searchInputRef.current) {
-                      const rect = searchInputRef.current.getBoundingClientRect();
+                    if (mobileSearchInputRef.current) {
+                      const rect = mobileSearchInputRef.current.getBoundingClientRect();
                       setSearchDropdownLeft(rect.left);
                       setSearchDropdownTop(rect.bottom);
                       setSearchDropdownWidth(rect.width);
@@ -1985,10 +2061,20 @@ const Header = () => {
                     <span className="text-gray-900 font-medium">"{typedPreview}"</span>
                   </div>
                 )}
+                {searchQuery.trim() !== "" && (
+                  <button
+                    type="button"
+                    onClick={clearSearch}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600 transition-colors focus:outline-none"
+                    aria-label="Clear search"
+                  >
+                    <FiX size={14} />
+                  </button>
+                )}
               </div>
               <button
                 type="button"
-                onClick={handleSearch}
+                onClick={(e) => handleSearch(e)}
                 aria-label="Search"
                 className="header-search-btn"
               >
@@ -1998,11 +2084,16 @@ const Header = () => {
           </div>
           {/* MOBILE TOP SUGGESTIONS (outside menu) */}
           {searchDropdownVisible && searchContext === 'mobileTop' && !isMobileMenuOpen && (
-            <div ref={searchDropdownRef} className="sm:hidden absolute z-[70] left-0 right-0 px-3 mt-1">
+            <div
+              ref={mobileSearchDropdownRef}
+              role="listbox"
+              aria-label="Search product suggestions"
+              className="sm:hidden absolute z-[70] left-0 right-0 px-3 mt-1"
+            >
               <div className="bg-white rounded-xl shadow-2xl border border-gray-200 max-h-80 overflow-y-auto">
                 <div className="flex items-center justify-between px-3 pt-2.5 pb-1.5 border-b border-gray-100 bg-gray-50/70 select-none">
                   <span className="text-[11px] font-bold tracking-wide text-gray-500 uppercase">
-                    PRODUCTS {searchTotal > 0 ? `(${searchTotal})` : ''}
+                    PRODUCTS {searchTotal > 0 ? `(${suggestions.length} of ${searchTotal})` : ''}
                   </span>
                   {isLoadingSuggestions && (
                     <span className="text-[10px] text-gray-400 flex items-center gap-1">
@@ -2067,7 +2158,7 @@ const Header = () => {
 
                       <button
                         type="button"
-                        onClick={handleSearch}
+                        onClick={(e) => handleSearch(e)}
                         className="w-full mt-1.5 py-2 text-xs font-semibold text-brandRed border border-brandRed rounded-lg hover:bg-red-50 transition-colors"
                       >
                         See all {searchTotal > 0 ? searchTotal : ''} results for &ldquo;{searchQuery.trim()}&rdquo;
@@ -2102,7 +2193,13 @@ const Header = () => {
               <div className="header-search-select-wrap">
                 <select
                   value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  onChange={(e) => {
+                    const newCat = e.target.value;
+                    setSelectedCategory(newCat);
+                    if (searchQuery.trim().length >= 2) {
+                      fetchSuggestions(searchQuery, newCat, 1, false);
+                    }
+                  }}
                   className="header-search-select"
                   aria-label="Search category"
                 >
@@ -2134,7 +2231,7 @@ const Header = () => {
                     if (searchQuery.trim().length >= 2) setSearchDropdownVisible(true);
                   }}
                   onKeyDown={handleDesktopKeyDown}
-                  className="header-search-input"
+                  className={`header-search-input ${searchQuery.trim() !== '' ? 'pr-7' : ''}`}
                   placeholder=" "
                   aria-label="Search query"
                 />
@@ -2143,6 +2240,16 @@ const Header = () => {
                     <span className="text-gray-400 text-sm">Search for</span>
                     <span className="text-gray-900 text-sm font-medium">"{typedPreview}"</span>
                   </div>
+                )}
+                {searchQuery.trim() !== "" && (
+                  <button
+                    type="button"
+                    onClick={clearSearch}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600 transition-colors focus:outline-none"
+                    aria-label="Clear search"
+                  >
+                    <FiX size={15} />
+                  </button>
                 )}
               </div>
               <button
@@ -3055,7 +3162,7 @@ const Header = () => {
           {/* Header */}
           <div className="flex items-center justify-between px-5 pt-3.5 pb-2.5 border-b border-gray-100 bg-gray-50/70 select-none">
             <span className="text-[11px] font-bold tracking-[0.12em] text-gray-500 uppercase">
-              Products {searchTotal > 0 ? `(${searchTotal})` : ''}
+              Products {searchTotal > 0 ? `(${suggestions.length} of ${searchTotal})` : ''}
             </span>
             {isLoadingSuggestions && (
               <span className="text-[11px] text-gray-400 flex items-center gap-1.5">
@@ -3126,7 +3233,7 @@ const Header = () => {
                 <div className="px-1 pt-1 pb-1">
                   <button
                     type="button"
-                    onClick={handleSearch}
+                    onClick={(e) => handleSearch(e)}
                     className="w-full py-2.5 text-sm font-semibold text-brandRed border border-brandRed rounded-lg hover:bg-red-50 transition-colors"
                   >
                     See all {searchTotal > 0 ? searchTotal : ''} results for &ldquo;{searchQuery.trim()}&rdquo;
