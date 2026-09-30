@@ -1,19 +1,17 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Bar, Line } from "react-chartjs-2";
+import { Bar } from "react-chartjs-2";
 import {
   Chart as ChartJS,
   BarElement,
-  LineElement,
-  PointElement,
   LinearScale,
   CategoryScale,
   Tooltip,
   Legend,
 } from "chart.js";
 
-ChartJS.register(BarElement, LineElement, PointElement, LinearScale, CategoryScale, Tooltip, Legend);
+ChartJS.register(BarElement, LinearScale, CategoryScale, Tooltip, Legend);
 
 function isoDate(date) {
   const y = date.getFullYear();
@@ -389,9 +387,10 @@ export default function SalesDashboard() {
               data={{
                 labels: charts.orders.labels,
                 datasets: [
-                  { label: "Ordered", data: charts.orders.ordered, backgroundColor: "#f6c34a" },
-                  { label: "Complete", data: charts.orders.complete, backgroundColor: "#67d36a" },
-                  { label: "Cancelled", data: charts.orders.cancelled, backgroundColor: "#f07178" },
+                  { label: "Pending", data: charts.orders.pending, backgroundColor: "#0080ff" },
+                  { label: "Billed", data: charts.orders.billed, backgroundColor: "#7b2cbf" },
+                  { label: "Complete", data: charts.orders.complete, backgroundColor: "#00ff00" },
+                  { label: "Cancelled", data: charts.orders.cancelled, backgroundColor: "#ff4000" },
                 ],
               }}
               options={chartOptions}
@@ -402,13 +401,13 @@ export default function SalesDashboard() {
         </AnalyticsPanel>
         <AnalyticsPanel title="Sales Analytics">
           {charts?.sales?.labels?.length ? (
-            <Line
+            <Bar
               data={{
                 labels: charts.sales.labels,
                 datasets: [
-                  { label: "Ordered", data: charts.sales.ordered, borderColor: "#f6c34a", backgroundColor: "#f6c34a", tension: 0.2 },
-                  { label: "Complete", data: charts.sales.complete, borderColor: "#67d36a", backgroundColor: "#67d36a", tension: 0.2 },
-                  { label: "Cancelled", data: charts.sales.cancelled, borderColor: "#f07178", backgroundColor: "#f07178", tension: 0.2 },
+                  { label: "Pending", data: charts.sales.pending, backgroundColor: "#0080ff" },
+                  { label: "Sold", data: charts.sales.sold, backgroundColor: "#00ff00" },
+                  { label: "Cancelled", data: charts.sales.cancelled, backgroundColor: "#ff4000" },
                 ],
               }}
               options={chartOptions}

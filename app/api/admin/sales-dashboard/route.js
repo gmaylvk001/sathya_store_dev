@@ -101,14 +101,77 @@ function monthLabel(key) {
   return date.toLocaleString("en-IN", { month: "short", year: "numeric" });
 }
 
-function lastMonths(count) {
+function monthsBetween(start, end) {
   const keys = [];
-  const now = new Date();
-  for (let i = count - 1; i >= 0; i -= 1) {
-    const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    keys.push(monthKey(date));
+  const cursor = new Date(start.getFullYear(), start.getMonth(), 1);
+  const last = new Date(end.getFullYear(), end.getMonth(), 1);
+  while (cursor <= last) {
+    keys.push(monthKey(cursor));
+    cursor.setMonth(cursor.getMonth() + 1);
   }
   return keys;
+}
+
+function buildSalesChart(orders, detailsByOrder, start, end) {
+  const months = monthsBetween(start, end);
+  const buckets = new Map(months.map((key) => [key, { pending: 0, sold: 0, cancelled: 0 }]));
+
+  for (const order of orders) {
+    const status = statusOf(order);
+    if (!status || SKIPPED.has(status)) continue;
+    let field = "";
+    if (status === "pending" || PENDING.has(status)) field = "pending";
+    else if (status === "billed" || status === "complete") field = "sold";
+    else if (status === "cancelled" || status === "canceled") field = "cancelled";
+    if (!field) continue;
+    const created = order.created_at ? new Date(order.created_at) : null;
+    if (!created || Number.isNaN(created.getTime())) continue;
+    const bucket = buckets.get(monthKey(created));
+    if (!bucket) continue;
+    const lines = detailsByOrder.get(String(order._id)) || [];
+    bucket[field] = roundMoney(bucket[field] + orderLineValue(order, lines));
+  }
+
+  const series = [...buckets.values()];
+  return {
+    labels: months.map(monthLabel),
+    pending: series.map((row) => row.pending),
+    sold: series.map((row) => row.sold),
+    cancelled: series.map((row) => row.cancelled),
+  };
+}
+
+function buildOrdersChart(orders, start, end) {
+  const months = monthsBetween(start, end);
+  const buckets = new Map(months.map((key) => [key, {
+    pending: new Set(),
+    billed: new Set(),
+    complete: new Set(),
+    cancelled: new Set(),
+  }]));
+
+  for (const order of orders) {
+    const status = statusOf(order);
+    if (!status || SKIPPED.has(status)) continue;
+    const created = order.created_at ? new Date(order.created_at) : null;
+    if (!created || Number.isNaN(created.getTime())) continue;
+    const bucket = buckets.get(monthKey(created));
+    if (!bucket) continue;
+    const key = orderKey(order);
+    if (status === "pending" || PENDING.has(status)) bucket.pending.add(key);
+    else if (status === "billed") bucket.billed.add(key);
+    else if (status === "complete") bucket.complete.add(key);
+    else if (status === "cancelled" || status === "canceled") bucket.cancelled.add(key);
+  }
+
+  const series = [...buckets.values()];
+  return {
+    labels: months.map(monthLabel),
+    pending: series.map((row) => row.pending.size),
+    billed: series.map((row) => row.billed.size),
+    complete: series.map((row) => row.complete.size),
+    cancelled: series.map((row) => row.cancelled.size),
+  };
 }
 
 function isMainParent(parentid) {
@@ -397,7 +460,7 @@ export async function GET(req) {
 
     const byCount = (a, b) => b.orders - a.orders || b.value - a.value;
     const [charts, paymentValues] = await Promise.all([
-      buildCharts(),
+      buildCharts(orders, detailsByOrder, start, end),
       OrderNew.collection.distinct("payment_method", {
         payment_method: { $nin: [null, ""] },
       }),
@@ -425,39 +488,10 @@ export async function GET(req) {
   }
 }
 
-async function buildCharts() {
-  const months = lastMonths(12);
-  const start = dayStart(`${months[0]}-01`);
+async function buildCharts(filteredOrders, detailsByOrder, rangeStart, rangeEnd) {
+  const ordersChart = buildOrdersChart(filteredOrders, rangeStart, rangeEnd);
+  const salesChart = buildSalesChart(filteredOrders, detailsByOrder, rangeStart, rangeEnd);
   const now = new Date();
-  const monthlyOrders = await loadOrders({
-    ...baseMatch(),
-    created_at: { $gte: start, $lte: now },
-    order_status: { $in: ["ordered", "Ordered", "Complete", "complete", "Cancelled", "cancelled", "Canceled", "canceled"] },
-  });
-
-  const buckets = new Map(months.map((key) => [key, { ordered: 0, complete: 0, cancelled: 0, orderedAmount: 0, completeAmount: 0, cancelledAmount: 0 }]));
-  for (const order of monthlyOrders) {
-    const created = order.created_at ? new Date(order.created_at) : null;
-    if (!created || Number.isNaN(created.getTime())) continue;
-    const bucket = buckets.get(monthKey(created));
-    if (!bucket) continue;
-    const status = statusOf(order);
-    const amount = money(order.order_amount);
-    if (status === "ordered") {
-      bucket.ordered += 1;
-      bucket.orderedAmount = roundMoney(bucket.orderedAmount + amount);
-    } else if (status === "complete") {
-      bucket.complete += 1;
-      bucket.completeAmount = roundMoney(bucket.completeAmount + amount);
-    } else if (status === "cancelled" || status === "canceled") {
-      bucket.cancelled += 1;
-      bucket.cancelledAmount = roundMoney(bucket.cancelledAmount + amount);
-    }
-  }
-
-  const labels = months.map(monthLabel);
-  const series = [...buckets.values()];
-
   const previous = new Date(now.getFullYear(), now.getMonth() - 1, 1);
   const previousEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
   const lastMonthOrders = await loadOrders({
@@ -497,18 +531,8 @@ async function buildCharts() {
     .slice(0, 8);
 
   return {
-    orders: {
-      labels,
-      ordered: series.map((row) => row.ordered),
-      complete: series.map((row) => row.complete),
-      cancelled: series.map((row) => row.cancelled),
-    },
-    sales: {
-      labels,
-      ordered: series.map((row) => row.orderedAmount),
-      complete: series.map((row) => row.completeAmount),
-      cancelled: series.map((row) => row.cancelledAmount),
-    },
+    orders: ordersChart,
+    sales: salesChart,
     categories: {
       labels: categoryRows.map((row) => row.name),
       values: categoryRows.map((row) => row.value),
