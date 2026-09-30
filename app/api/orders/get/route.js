@@ -83,8 +83,12 @@ export async function GET(req) {
       query.user_id = userId;
     }
 
-    // Offline orders are now included in user order history
-    // query.type = { $ne: "offline" };
+    // Offline orders are now included in user order history ONLY if they have an invoice 
+    // (This ensures we only show simple orders from apis/offlineorders, and hide the detailed ones)
+    query.$or = [
+      { type: { $ne: "offline" } },
+      { type: "offline", invoice: { $exists: true, $ne: null, $ne: "" } }
+    ];
 
     const orders = await OrderNew.find(query).sort({ created_at: -1 });
 

@@ -545,6 +545,16 @@ export default function Order() {
                               Request Cancel
                             </button>
                           )}
+                          {String(order.type || "online").trim().toLowerCase() === "offline" && order.invoice && (
+                            <a
+                              href={order.invoice}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-sm text-blue-600 hover:text-blue-800 hover:underline font-medium transition-colors flex items-center gap-1"
+                            >
+                              Download Invoice
+                            </a>
+                          )}
                           {statusKey === "cancelled" && (
                             <span className="text-xs font-medium text-rose-600 bg-rose-50 px-2 py-0.5 rounded">Cancelled</span>
                           )}
@@ -630,11 +640,13 @@ export default function Order() {
                                   <td className="font-medium text-gray-800">{formatDate(order.delivery_date)}</td>
                                 </tr>
                               )}
-                              <tr>
-                                <td className="text-gray-500 pr-1 whitespace-nowrap align-top">Tracking Details</td>
-                                <td className="text-gray-500 pr-2 align-top">:</td>
-                                <td className="font-medium text-gray-800"></td>
-                              </tr>
+                              {String(order.type || "online").trim().toLowerCase() !== "offline" && (
+                                <tr>
+                                  <td className="text-gray-500 pr-1 whitespace-nowrap align-top">Tracking Details</td>
+                                  <td className="text-gray-500 pr-2 align-top">:</td>
+                                  <td className="font-medium text-gray-800"></td>
+                                </tr>
+                              )}
                             </tbody>
                           </table>
                         </div>
@@ -675,7 +687,7 @@ export default function Order() {
                       </div>
 
                       {/* ── Status Stepper ── */}
-                      {!isCancelledOrFailure && (
+                      {!isCancelledOrFailure && String(order.type || "online").trim().toLowerCase() !== "offline" && (
                         <div className="px-4 pb-4 pt-2">
                           <div className="relative flex items-center justify-between">
                             {/* Background connector line */}
