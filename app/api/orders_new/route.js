@@ -5,7 +5,7 @@ import OrderNew from "@/models/orders_new";
 export async function GET() {
   try {
     await dbConnect();
-    const orders = await OrderNew.find().sort({ created_at: -1 }).lean();
+    const orders = await OrderNew.find({ type: { $ne: "offline" } }).sort({ created_at: -1 }).lean();
     return NextResponse.json(orders, { status: 200 });
   } catch (error) {
     return NextResponse.json({ message: "Error fetching orders", error: error.message }, { status: 500 });
