@@ -733,8 +733,20 @@ export default function Blogs() {
                       </td>
                       <td className="p-3 text-gray-500 text-sm">{totalEntries - (currentPage * itemsPerPage + idx)}</td>
                       <td className="p-3 text-gray-600 font-mono text-xs">{b.existId || "-"}</td>
-                      <td className="p-3 text-blue-500 cursor-pointer hover:underline" onClick={() => handleOpenEdit(b)}>
-                        {b.blogTitle}
+                      <td className="p-3">
+                        {b.slug ? (
+                          <a
+                            href={`/blog-listing/${b.slug}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-500 hover:underline"
+                            title="Open customer blog page"
+                          >
+                            {b.blogTitle}
+                          </a>
+                        ) : (
+                          <span>{b.blogTitle}</span>
+                        )}
                       </td>
                       <td className="p-3">{b.slug}</td>
                       <td className="p-3 text-center">
