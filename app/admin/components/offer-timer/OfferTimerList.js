@@ -107,7 +107,28 @@ export default function OfferTimerList() {
                 filtered.map((timer) => (
                   <tr key={timer._id} className="text-center border-b hover:bg-gray-50">
                     <td className="p-2 text-left pl-3">{timer.timerId}</td>
-                    <td className="p-2 text-left font-medium text-gray-800">{timer.offerTitle}</td>
+                    <td className="p-2 text-left font-medium">
+                      {(() => {
+                        const title = timer.offerTitle || timer.offer_title || "";
+                        if (!title) return <span className="text-gray-400">-</span>;
+                        const states = timer.offerViewStates?.length ? timer.offerViewStates : timer.states || [];
+                        const state = states.find((s) => s && String(s).toLowerCase() !== "all") || "tamilnadu";
+                        const toSlug = (v) => String(v).toLowerCase().replace(/[^a-z0-9]+/g, "-");
+                        const idVal = timer.timerId ?? timer.custom_id ?? timer._id;
+                        const href = `/super-offers/${toSlug(state)}/${toSlug(title)}?offer_timer_id=${idVal}`;
+                        return (
+                          <a
+                            href={href}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:underline"
+                            title="Open customer offer page"
+                          >
+                            {title}
+                          </a>
+                        );
+                      })()}
+                    </td>
                     <td className="p-2">
                       {timer.topBanner ? (
                         <div className="w-[140px] mx-auto rounded border border-gray-200 bg-gray-50 p-0.5">

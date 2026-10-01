@@ -142,23 +142,26 @@ function AdminCardOfferItem({ card }) {
     <Link
       href={targetHref}
       {...(isExternal ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-      className="group flex flex-col bg-white border border-gray-200/90 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden rounded-sm"
+      className="group flex flex-col h-full bg-white border border-gray-200/90 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden rounded-sm"
     >
-      {/* Banner Image Container */}
-      <div className="relative w-full h-48 sm:h-52 md:h-56 bg-white flex items-center justify-center p-3 overflow-hidden">
+      {/* Banner Image Container (square, scales with card width) */}
+      <div className="relative w-full aspect-square bg-white overflow-hidden">
         <Image
           src={imgSrc}
           alt={card.title || "Offer Banner"}
           fill
-          className="object-contain p-2 group-hover:scale-105 transition-transform duration-300"
-          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+          className="object-contain p-2 sm:p-3 group-hover:scale-105 transition-transform duration-300"
+          sizes="(max-width: 1024px) 50vw, 25vw"
           onError={() => setImgSrc("/uploads/sathya-header-logo.webp")}
           unoptimized
         />
       </div>
 
       {/* Red Title Bottom Bar */}
-      <div className="bg-[#d72828] group-hover:bg-red-700 text-white font-bold text-xs sm:text-sm py-2.5 px-4 uppercase tracking-wider transition-colors text-left">
+      <div
+        className="mt-auto bg-[#d72828] group-hover:bg-red-700 text-white font-bold text-[10px] sm:text-xs lg:text-sm py-2 sm:py-2.5 px-2.5 sm:px-4 uppercase tracking-wide sm:tracking-wider transition-colors text-left truncate"
+        title={card.title}
+      >
         {card.title}
       </div>
     </Link>
@@ -616,8 +619,8 @@ export default function DealsOfferPage() {
 
                 {/* Card Offers Grid or Amazon-Style Empty State */}
                 {timerCards.length > 0 ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                    {timerCards.map((card, idx) => (
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
+                    {timerCards.slice(0, 4).map((card, idx) => (
                       <AdminCardOfferItem
                         key={card.id || card._id || idx}
                         card={card}
