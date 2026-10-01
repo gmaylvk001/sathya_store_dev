@@ -80,6 +80,7 @@ ProductSchema.index({ status: 1, name: 1 });
 ProductSchema.index({ status: 1, createdAt: -1 });
 ProductSchema.index({ status: 1, sub_category_new_name: 1 });
 ProductSchema.index({ status: 1, item_code: 1 });
+ProductSchema.index({ item_code: 1 });
 ProductSchema.index({ status: 1, model_number: 1 });
 ProductSchema.index(
   {

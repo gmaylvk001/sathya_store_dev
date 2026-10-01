@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { FiChevronRight, FiClock, FiCheckCircle, FiTruck, FiShoppingBag, FiXCircle, FiRefreshCw } from 'react-icons/fi';
@@ -25,7 +25,7 @@ export default function Order() {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authError, setAuthError] = useState('');
   const [loading, setLoading] = useState(true);
-  const [filteredOrders, setFilteredOrders] = useState([]);
+  const [allOrders, setAllOrders] = useState([]);
   const [orderCounts, setOrderCounts] = useState({ total: 0, exist: 0, newOrders: 0 });
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
@@ -67,10 +67,7 @@ export default function Order() {
         exist: existOrders.length,
         newOrders: visible.length - existOrders.length,
       });
-      const filtered = activeFilter === "cancelled"
-        ? visible.filter((order) => String(order.order_status || "").toLowerCase() === "cancelled")
-        : visible;
-      setFilteredOrders(filtered || []);
+      setAllOrders(visible);
       setCurrentPage(1);
     } catch (error) {
       toast.error("Failed to load orders data");
@@ -83,6 +80,19 @@ export default function Order() {
   useEffect(() => {
     setLoading(true);
     loadOrders();
+  }, []);
+
+  // Tabs filter the already-loaded orders locally
+  const filteredOrders = useMemo(
+    () =>
+      activeFilter === "cancelled"
+        ? allOrders.filter((order) => String(order.order_status || "").toLowerCase() === "cancelled")
+        : allOrders,
+    [allOrders, activeFilter]
+  );
+
+  useEffect(() => {
+    setCurrentPage(1);
   }, [activeFilter]);
 
   const handleFetchExistOrders = async () => {
@@ -297,7 +307,7 @@ export default function Order() {
             : "Your cancellation request has been submitted. We will notify you once it is processed.",
         });
         // Update local state: mark cancel_exists so button hides, update status if cancelled
-        setFilteredOrders((prev) =>
+        setAllOrders((prev) =>
           prev.map((order) =>
             order._id === selectedOrder._id
               ? {

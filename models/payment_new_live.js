@@ -58,6 +58,16 @@ PaymentNewLiveSchema.index(
   }
 );
 
+PaymentNewLiveSchema.index(
+  { payment_id: 1 },
+  { name: "payment_id_relation" }
+);
+
+PaymentNewLiveSchema.index(
+  { order_number: 1 },
+  { name: "order_number_relation" }
+);
+
 if (mongoose.models.payment_new_live) {
   delete mongoose.models.payment_new_live;
 }
