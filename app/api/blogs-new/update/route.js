@@ -1,6 +1,7 @@
 import dbConnect from "@/lib/db";
 import Blogs from "@/models/Blogs";
 import BlogFaq from "@/models/BlogFaq";
+import { normalizeSchemaJson } from "@/lib/blogSchema";
 import { NextResponse } from "next/server";
 
 export async function PUT(req) {
@@ -20,6 +21,15 @@ export async function PUT(req) {
     }
 
     const { faqs, stores, isAllStores, store_id, store_ids, ...blogData } = body;
+
+    if (blogData.schemaJson !== undefined) {
+      const schema = normalizeSchemaJson(blogData.schemaJson);
+      if (!schema.ok) {
+        return NextResponse.json({ success: false, error: schema.error }, { status: 400 });
+      }
+      blogData.schemaJson = schema.value;
+    }
+
     const updatedBlog = await Blogs.findByIdAndUpdate(
       body._id,
       {

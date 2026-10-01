@@ -15,6 +15,7 @@ const BlogsSchema = new mongoose.Schema(
     metaTitle: { type: String },
     metaKeywords: { type: String },
     metaDescription: { type: String },
+    schemaJson: { type: String, default: null },
     views: { type: Number, default: 0 },
     category_id: { type: String },
     status: { type: String, default: "Active" },

@@ -4,6 +4,14 @@ import React, { useEffect, useState } from "react";
 import { Icon } from "@iconify/react";
 import ReactPaginate from "react-paginate";
 import CustomJodit from "../blog/CustomJodit";
+import {
+  BLOG_SITE_URL,
+  BLOG_DEFAULT_AUTHOR,
+  BLOG_PUBLISHER,
+  SCHEMA_INVALID_MESSAGE,
+  extractJsonLd,
+  normalizeSchemaJson,
+} from "@/lib/blogSchema";
 
 export default function Blogs() {
   const [blogs, setBlogs] = useState([]);
@@ -30,11 +38,13 @@ export default function Blogs() {
     metaTitle: "",
     metaKeywords: "",
     metaDescription: "",
+    schemaJson: "",
     status: "Active",
   });
 
   const [isMatchingBlogFaqs, setIsMatchingBlogFaqs] = useState(false);
   const [faqMatchMessage, setFaqMatchMessage] = useState("");
+  const [schemaMessage, setSchemaMessage] = useState({ text: "", type: "success" });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
@@ -330,9 +340,11 @@ export default function Blogs() {
       metaTitle: "",
       metaKeywords: "",
       metaDescription: "",
+      schemaJson: "",
       status: "Active",
     });
     setFaqMatchMessage("");
+    setSchemaMessage({ text: "", type: "success" });
     setView("create");
   };
 
@@ -354,9 +366,11 @@ export default function Blogs() {
       metaTitle: item.metaTitle || "",
       metaKeywords: item.metaKeywords || "",
       metaDescription: item.metaDescription || "",
+      schemaJson: item.schemaJson || "",
       status: item.status || "Active",
     });
     setFaqMatchMessage("");
+    setSchemaMessage({ text: "", type: "success" });
     setView("edit");
 
     // Fetch matched FAQs from standalone blogs_faq database table for this blog
@@ -465,11 +479,60 @@ export default function Blogs() {
     }
   };
 
+  // Schema JSON (JSON-LD) — browser-only helpers; nothing is saved until Save
+  const showSchemaMessage = (text, type = "success") => setSchemaMessage({ text, type });
+
+  const handleGenerateSchemaTemplate = () => {
+    const stripTags = (html) => String(html || "").replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+    const slug = generateSlug(formData.blogTitle || "") || "blog-slug";
+    const template = {
+      "@context": "https://schema.org",
+      "@type": "BlogPosting",
+      headline: formData.blogTitle.trim() || "Blog title",
+      description: formData.metaDescription.trim() || stripTags(formData.shortDescription) || "Blog description",
+      image: [`${BLOG_SITE_URL}/uploads/blogs/your-banner.webp`],
+      author: { "@type": "Person", name: formData.author.trim() || BLOG_DEFAULT_AUTHOR },
+      publisher: BLOG_PUBLISHER,
+      mainEntityOfPage: `${BLOG_SITE_URL}/blog-listing/${slug}`,
+      ...(formData.publishDate
+        ? { datePublished: formData.publishDate, dateModified: formData.publishDate }
+        : {}),
+    };
+    setFormData((prev) => ({ ...prev, schemaJson: JSON.stringify(template, null, 2) }));
+    showSchemaMessage("BlogPosting template generated. Review and save.");
+  };
+
+  const handleFormatSchemaJson = () => {
+    const json = extractJsonLd(formData.schemaJson);
+    if (!json) {
+      showSchemaMessage("Nothing to format.", "error");
+      return;
+    }
+    try {
+      const parsed = JSON.parse(json);
+      setFormData((prev) => ({ ...prev, schemaJson: JSON.stringify(parsed, null, 2) }));
+      showSchemaMessage("JSON formatted successfully.");
+    } catch (err) {
+      showSchemaMessage(`Invalid JSON: ${err.message}`, "error");
+    }
+  };
+
+  const handleClearSchemaJson = () => {
+    setFormData((prev) => ({ ...prev, schemaJson: "" }));
+    showSchemaMessage("Cleared. Auto BlogPosting schema will be used.");
+  };
+
   // Submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.blogTitle.trim()) {
       alert("Blog Title is required");
+      return;
+    }
+
+    if (!normalizeSchemaJson(formData.schemaJson).ok) {
+      showSchemaMessage(SCHEMA_INVALID_MESSAGE, "error");
+      alert(SCHEMA_INVALID_MESSAGE);
       return;
     }
 
@@ -1000,6 +1063,60 @@ export default function Blogs() {
                   value={formData.metaDescription}
                   onChange={(e) => setFormData({ ...formData, metaDescription: e.target.value })}
                 ></textarea>
+              </div>
+
+              <div className="grid grid-cols-[200px_1fr] gap-4 items-start">
+                <label className="font-semibold text-gray-700 mt-2">Schema JSON (JSON-LD)</label>
+                <div>
+                  <div className="flex flex-wrap gap-2 mb-2">
+                    <button
+                      type="button"
+                      onClick={handleGenerateSchemaTemplate}
+                      className="px-3 py-1.5 text-sm border rounded bg-white hover:bg-gray-100 text-gray-700"
+                    >
+                      Generate BlogPosting Template
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleFormatSchemaJson}
+                      className="px-3 py-1.5 text-sm border rounded bg-white hover:bg-gray-100 text-gray-700"
+                    >
+                      Format JSON
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleClearSchemaJson}
+                      className="px-3 py-1.5 text-sm border rounded bg-white hover:bg-gray-100 text-gray-700"
+                    >
+                      Clear (use Auto Schema)
+                    </button>
+                  </div>
+                  {schemaMessage.text && (
+                    <p
+                      className={`text-sm mb-2 ${schemaMessage.type === "error" ? "text-red-600" : "text-green-600"}`}
+                    >
+                      {schemaMessage.text}
+                    </p>
+                  )}
+                  <textarea
+                    rows="12"
+                    spellCheck={false}
+                    className="w-full border rounded p-2 font-mono text-sm focus:outline-none focus:border-blue-400"
+                    placeholder={'Leave empty for auto BlogPosting schema. Or paste custom JSON-LD like\n{"@context":"https://schema.org","@type":"BlogPosting",...}'}
+                    value={formData.schemaJson}
+                    onChange={(e) => setFormData({ ...formData, schemaJson: e.target.value })}
+                  ></textarea>
+                  <div className="text-sm text-gray-500 mt-1 space-y-0.5">
+                    <p>Optional SEO structured data for Google rich results.</p>
+                    <p><span className="font-semibold text-gray-700">Empty</span> = automatic BlogPosting (+ FAQPage when FAQs exist).</p>
+                    <p><span className="font-semibold text-gray-700">Filled</span> = your custom JSON-LD is used on the blog detail page.</p>
+                    <p>
+                      You can paste raw JSON or a full{" "}
+                      <code className="bg-gray-100 text-pink-600 px-1 rounded text-xs">{'<script type="application/ld+json">'}</code>{" "}
+                      block.
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
 
