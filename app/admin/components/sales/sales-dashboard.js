@@ -22,10 +22,7 @@ function isoDate(date) {
 }
 
 function defaultRange() {
-  const end = new Date();
-  const start = new Date();
-  start.setDate(end.getDate() - 7);
-  return { startDate: isoDate(start), endDate: isoDate(end) };
+  return { startDate: "", endDate: "" };
 }
 
 function formatValue(value) {
@@ -66,7 +63,7 @@ function CompactDateRange({ startDate, endDate, onStartChange, onEndChange }) {
         aria-label="Date range"
       >
         <span className="truncate">
-          {startDate} - {endDate}
+          {startDate && endDate ? `${startDate} - ${endDate}` : "All Time"}
         </span>
       </button>
       {open && (

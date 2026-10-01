@@ -329,15 +329,16 @@ export async function GET(req) {
   try {
     await dbConnect();
     const { searchParams } = new URL(req.url);
-    const fallback = defaultRange();
-    const startDate = searchParams.get("startDate") || fallback.startDate;
-    const endDate = searchParams.get("endDate") || fallback.endDate;
+    const startDate = searchParams.get("startDate") || "";
+    const endDate = searchParams.get("endDate") || "";
     const paymentMethod = String(searchParams.get("paymentMethod") || "").trim();
     const orderType = String(searchParams.get("orderType") || "").trim().toLowerCase();
     const storeId = String(searchParams.get("storeId") || "").trim();
-    const start = dayStart(startDate);
-    const end = dayEnd(endDate);
-    if (!start || !end) {
+    
+    const start = startDate ? dayStart(startDate) : null;
+    const end = endDate ? dayEnd(endDate) : null;
+    
+    if ((startDate && !start) || (endDate && !end)) {
       return NextResponse.json({ success: false, message: "Invalid date range" }, { status: 400 });
     }
 
@@ -354,8 +355,10 @@ export async function GET(req) {
 
     const match = {
       ...baseMatch(),
-      created_at: { $gte: start, $lte: end },
     };
+    if (start && end) {
+      match.created_at = { $gte: start, $lte: end };
+    }
     if (paymentMethod) {
       match.payment_method = { $regex: `^${escapeRegex(paymentMethod)}$`, $options: "i" };
     }
@@ -464,8 +467,22 @@ export async function GET(req) {
     }
 
     const byCount = (a, b) => b.orders - a.orders || b.value - a.value;
+    
+    let chartStart = start;
+    let chartEnd = end;
+    if (!chartStart || !chartEnd) {
+      if (orders.length > 0) {
+        const dates = orders.map(o => o.created_at ? new Date(o.created_at).getTime() : null).filter(Boolean);
+        chartStart = dates.length ? new Date(Math.min(...dates)) : new Date();
+        chartEnd = dates.length ? new Date(Math.max(...dates)) : new Date();
+      } else {
+        chartStart = new Date();
+        chartEnd = new Date();
+      }
+    }
+
     const [charts, paymentValues] = await Promise.all([
-      buildCharts(orders, detailsByOrder, start, end),
+      buildCharts(orders, detailsByOrder, chartStart, chartEnd),
       OrderNew.collection.distinct("payment_method", {
         payment_method: { $nin: [null, ""] },
       }),
