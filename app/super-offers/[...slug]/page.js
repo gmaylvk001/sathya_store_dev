@@ -243,7 +243,7 @@ function SuperOffersContent() {
 
   const [products, setProducts] = useState([]);
   const [brandMap, setBrandMap] = useState({});
-  const [offerStatus, setOfferStatus] = useState({
+  const [offerStatus, setOfferStatusState] = useState({
     status: "loading", // "loading" | "upcoming" | "countdown" | "live" | "ended"
     isLive: false,
     isCountdown: false,
@@ -284,55 +284,74 @@ function SuperOffersContent() {
 
     // Timeout safety guard so hero never gets stuck in loading forever
     const timeoutId = setTimeout(() => {
-      if (isMounted && timerLoading) {
+      if (isMounted) {
         setTimerLoading(false);
       }
     }, 6000);
 
+    const matchesQueryId = (t) =>
+      !!t &&
+      (String(t.timerId) === String(queryTimerId) ||
+        String(t.custom_id) === String(queryTimerId) ||
+        String(t._id) === String(queryTimerId));
+
     async function loadTimerData() {
       try {
-        const res = await fetch("/api/offer-timer");
-        if (!res.ok) throw new Error("Failed to fetch offer timer");
-        const tData = await res.json();
-        const timers = tData?.data || [];
-
         let matchedTimer = null;
 
-        // A. Match by queryTimerId if present
+        // A. Match by queryTimerId: fetch only that timer.
+        // The single-timer API falls back to the latest timer when the id is unknown,
+        // so the result is only accepted when its id really matches.
         if (queryTimerId) {
-          matchedTimer = timers.find(
-            (t) =>
-              String(t.timerId) === String(queryTimerId) ||
-              String(t.custom_id) === String(queryTimerId) ||
-              String(t._id) === String(queryTimerId)
-          );
+          try {
+            const singleRes = await fetch(`/api/offer-timer/${encodeURIComponent(queryTimerId)}`);
+            if (singleRes.ok) {
+              const singleData = await singleRes.json();
+              if (matchesQueryId(singleData?.data)) {
+                matchedTimer = singleData.data;
+              }
+            }
+          } catch (singleErr) {
+            console.error("Error loading single offer timer:", singleErr);
+          }
         }
 
-        // B. Match by URL offer slug if not matched by ID
-        if (!matchedTimer && urlOfferSlug) {
-          const normOfferSlug = urlOfferSlug.toLowerCase().replace(/[^a-z0-9]/g, "");
-          const matchingBySlug = timers.filter((t) => {
-            const title = (t.offerTitle || t.offer_title || "")
-              .toLowerCase()
-              .replace(/[^a-z0-9]/g, "");
-            return title === normOfferSlug;
-          });
+        if (!matchedTimer) {
+          const res = await fetch("/api/offer-timer");
+          if (!res.ok) throw new Error("Failed to fetch offer timer");
+          const tData = await res.json();
+          const timers = tData?.data || [];
 
-          // Prefer matching timer active for current region
-          matchedTimer =
-            matchingBySlug.find((t) => isTimerActiveForRegion(t, activeRegion)) ||
-            matchingBySlug[0] ||
-            null;
-        }
+          if (queryTimerId) {
+            matchedTimer = timers.find(matchesQueryId);
+          }
 
-        // C. If still not matched, check if any timer matches active region
-        if (!matchedTimer && timers.length > 0) {
-          const regionActiveTimers = timers.filter((t) =>
-            isTimerActiveForRegion(t, activeRegion)
-          );
-          // Only fallback if the URL slug is generic/unspecified
-          if (!urlOfferSlug || urlOfferSlug === "all" || urlOfferSlug === activeRegion) {
-            matchedTimer = regionActiveTimers[0] || timers[0];
+          // B. Match by URL offer slug if not matched by ID
+          if (!matchedTimer && urlOfferSlug) {
+            const normOfferSlug = urlOfferSlug.toLowerCase().replace(/[^a-z0-9]/g, "");
+            const matchingBySlug = timers.filter((t) => {
+              const title = (t.offerTitle || t.offer_title || "")
+                .toLowerCase()
+                .replace(/[^a-z0-9]/g, "");
+              return title === normOfferSlug;
+            });
+
+            // Prefer matching timer active for current region
+            matchedTimer =
+              matchingBySlug.find((t) => isTimerActiveForRegion(t, activeRegion)) ||
+              matchingBySlug[0] ||
+              null;
+          }
+
+          // C. If still not matched, check if any timer matches active region
+          if (!matchedTimer && timers.length > 0) {
+            const regionActiveTimers = timers.filter((t) =>
+              isTimerActiveForRegion(t, activeRegion)
+            );
+            // Only fallback if the URL slug is generic/unspecified
+            if (!urlOfferSlug || urlOfferSlug === "all" || urlOfferSlug === activeRegion) {
+              matchedTimer = regionActiveTimers[0] || timers[0];
+            }
           }
         }
 
@@ -373,29 +392,30 @@ function SuperOffersContent() {
 
     async function loadProductsAndBrands() {
       try {
-        const [productsRes, brandRes] = await Promise.allSettled([
-          fetch("/api/categoryproduct/settings"),
-          fetch("/api/brand"),
-        ]);
-
-        // Brands map
-        if (brandRes.status === "fulfilled" && brandRes.value.ok) {
-          const bData = await brandRes.value.json();
-          if (bData?.data && Array.isArray(bData.data)) {
-            const bMap = {};
-            bData.data.forEach((b) => {
-              if (b?._id) bMap[b._id] = b.brand_name;
-            });
-            if (isMounted) setBrandMap(bMap);
+        // Products
+        let topProducts = [];
+        const productsRes = await fetch("/api/categoryproduct/settings");
+        if (productsRes.ok) {
+          const pData = await productsRes.json();
+          if (pData?.ok && Array.isArray(pData?.data)) {
+            const allProds = pData.data.flatMap((item) => item.products || []);
+            topProducts = allProds.slice(0, 12);
+            if (isMounted) setProducts(topProducts);
           }
         }
 
-        // Products
-        if (productsRes.status === "fulfilled" && productsRes.value.ok) {
-          const pData = await productsRes.value.json();
-          if (pData?.ok && Array.isArray(pData?.data)) {
-            const allProds = pData.data.flatMap((item) => item.products || []);
-            if (isMounted) setProducts(allProds.slice(0, 12));
+        // Brands map is only needed to label product cards
+        if (topProducts.length > 0) {
+          const brandRes = await fetch("/api/brand");
+          if (brandRes.ok) {
+            const bData = await brandRes.json();
+            if (bData?.data && Array.isArray(bData.data)) {
+              const bMap = {};
+              bData.data.forEach((b) => {
+                if (b?._id) bMap[b._id] = b.brand_name;
+              });
+              if (isMounted) setBrandMap(bMap);
+            }
           }
         }
       } catch (err) {
@@ -414,6 +434,18 @@ function SuperOffersContent() {
     if (!timer) return;
 
     const FIVE_HOURS_MS = 5 * 60 * 60 * 1000;
+
+    // Keep the previous object when nothing visible changed, so the page doesn't re-render every second
+    const setOfferStatus = (next) => {
+      setOfferStatusState((prev) =>
+        prev.status === next.status &&
+        prev.hours === next.hours &&
+        prev.minutes === next.minutes &&
+        prev.seconds === next.seconds
+          ? prev
+          : next
+      );
+    };
 
     const calculateTime = () => {
       const now = Date.now();
@@ -519,6 +551,7 @@ function SuperOffersContent() {
   const displayTitle =
     timer?.offerTitle || timer?.offer_title || derivedSlugTitle;
   const displaySubtitle =
+    timer?.offerDescription ||
     timer?.offerHeading ||
     timer?.offerDescription ||
     (timer ? (timer.offerTitle || timer.offer_title) : "Exclusive Limited Time Offer");
@@ -545,11 +578,11 @@ function SuperOffersContent() {
   return (
     <div className="min-h-screen bg-white text-gray-800 pb-20 overflow-x-clip">
       {/* Top Titles */}
-      <div className="py-8 px-4 text-center">
+      <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8 text-center">
         <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold uppercase tracking-wide text-gray-900">
           {displayTitle}
         </h1>
-        <p className="text-gray-500 font-normal text-sm sm:text-base mt-2">
+        <p className="w-full text-gray-600 font-normal text-sm sm:text-base mt-3 leading-relaxed sm:leading-7 text-justify [text-align-last:center] hyphens-auto">
           {displaySubtitle}
         </p>
       </div>
@@ -671,10 +704,11 @@ function SuperOffersContent() {
                 <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-white tracking-wide uppercase">
                   {timer?.offerHeading || "GET READY FOR MEGA OFFERS!"}
                 </h2>
-                <p className="text-gray-300 text-xs sm:text-sm md:text-base font-normal max-w-lg mx-auto leading-relaxed">
-                  {timer?.offerDescription ||
-                    "Exclusive discounts and limited-time savings will go live soon. Stay tuned!"}
-                </p>
+                {!timer?.offerDescription && (
+                  <p className="text-gray-300 text-xs sm:text-sm md:text-base font-normal max-w-lg mx-auto leading-relaxed">
+                    Exclusive discounts and limited-time savings will go live soon. Stay tuned!
+                  </p>
+                )}
                 <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#131d33] border border-blue-900/50 text-gray-300 text-xs font-medium">
                   <span className="text-yellow-400">⏰</span>
                   <span>Countdown timer will go live 5 hours before start</span>
@@ -707,10 +741,11 @@ function SuperOffersContent() {
                 <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-white tracking-tight uppercase">
                   {timer?.offerHeading || "EXCLUSIVE DEALS ARE UNLOCKED!"}
                 </h2>
-                <p className="text-gray-300 text-xs sm:text-sm md:text-base font-normal max-w-lg mx-auto leading-relaxed">
-                  {timer?.offerDescription ||
-                    "Shop limited-time mega discounts on top brands and appliances. Limited stock available!"}
-                </p>
+                {!timer?.offerDescription && (
+                  <p className="text-gray-300 text-xs sm:text-sm md:text-base font-normal max-w-lg mx-auto leading-relaxed">
+                    Shop limited-time mega discounts on top brands and appliances. Limited stock available!
+                  </p>
+                )}
               </div>
 
               {/* Compact Modern Feature Pills */}
