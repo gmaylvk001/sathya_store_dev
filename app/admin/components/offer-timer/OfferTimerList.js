@@ -71,7 +71,7 @@ export default function OfferTimerList() {
       {isLoading ? (
         <p>Loading Offer Timers...</p>
       ) : (
-        <div className="bg-white shadow-sm border rounded-lg p-5 overflow-x-auto">
+        <div className="bg-white shadow-sm border rounded-lg p-5">
           <div className="flex justify-between items-center mb-5">
             <input
               type="text"
@@ -88,56 +88,77 @@ export default function OfferTimerList() {
             </button>
           </div>
 
-          <table className="w-full border border-gray-200 min-w-[1100px]">
+          <div className="overflow-x-auto md:overflow-visible">
+          <table className="w-full border border-gray-200 text-sm">
             <thead>
               <tr className="bg-gray-50 border-b text-gray-700">
-                <th className="p-2 text-left pl-4 font-semibold w-16">Id</th>
+                <th className="p-2 text-left pl-3 font-semibold w-12">Id</th>
                 <th className="p-2 text-left font-semibold">Offer Title</th>
-                <th className="p-2 font-semibold">Top Banner</th>
+                <th className="p-2 font-semibold w-[160px]">Top Banner</th>
                 <th className="p-2 font-semibold">Offer Start</th>
                 <th className="p-2 font-semibold">Offer End</th>
-                <th className="p-2 font-semibold">Timer Display Status</th>
-                <th className="p-2 font-semibold">Offer View States</th>
-                <th className="p-2 font-semibold w-48">Action</th>
+                <th className="p-2 font-semibold">Timer Status</th>
+                <th className="p-2 font-semibold">View States</th>
+                <th className="p-2 font-semibold">Action</th>
               </tr>
             </thead>
             <tbody>
               {filtered.length > 0 ? (
                 filtered.map((timer) => (
                   <tr key={timer._id} className="text-center border-b hover:bg-gray-50">
-                    <td className="p-2 text-left pl-4">{timer.timerId}</td>
-                    <td className="p-2 text-left">{timer.offerTitle}</td>
+                    <td className="p-2 text-left pl-3">{timer.timerId}</td>
+                    <td className="p-2 text-left font-medium text-gray-800">{timer.offerTitle}</td>
                     <td className="p-2">
                       {timer.topBanner ? (
-                        <Image
-                          src={
-                            timer.topBanner.startsWith("/")
-                              ? timer.topBanner
-                              : `/uploads/topbanner/${timer.topBanner}`
-                          }
-                          alt={timer.offerTitle}
-                          width={220}
-                          height={28}
-                          className="h-8 w-auto max-w-[220px] object-contain mx-auto"
-                          unoptimized
-                        />
+                        <div className="w-[140px] mx-auto rounded border border-gray-200 bg-gray-50 p-0.5">
+                          <Image
+                            src={
+                              timer.topBanner.startsWith("/")
+                                ? timer.topBanner
+                                : `/uploads/topbanner/${timer.topBanner}`
+                            }
+                            alt={timer.offerTitle}
+                            width={0}
+                            height={0}
+                            sizes="140px"
+                            className="block w-full h-auto object-contain"
+                            unoptimized
+                          />
+                        </div>
                       ) : (
                         <span className="text-gray-400 text-sm">-</span>
                       )}
                     </td>
-                    <td className="p-2 whitespace-nowrap">{formatTimerDateTime(timer.startDate)}</td>
-                    <td className="p-2 whitespace-nowrap">{formatTimerDateTime(timer.endDate)}</td>
-                    <td className="p-2">{timer.timerDisplayStatus === "Yes" ? "active" : "inactive"}</td>
+                    {[timer.startDate, timer.endDate].map((value, i) => {
+                      const [datePart, timePart] = String(formatTimerDateTime(value) || "").split(" ");
+                      return (
+                        <td key={i} className="p-2 leading-tight">
+                          <div className="text-gray-800">{datePart || "-"}</div>
+                          {timePart && <div className="text-xs text-gray-500">{timePart}</div>}
+                        </td>
+                      );
+                    })}
+                    <td className="p-2">
+                      <span
+                        className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${
+                          timer.timerDisplayStatus === "Yes"
+                            ? "bg-green-100 text-green-700"
+                            : "bg-gray-100 text-gray-600"
+                        }`}
+                      >
+                        {timer.timerDisplayStatus === "Yes" ? "active" : "inactive"}
+                      </span>
+                    </td>
                     <td className="p-2">{formatOfferStates(timer.offerViewStates)}</td>
                     <td className="p-2">
                       <div className="flex items-center gap-1.5 justify-center">
                         <button
                           onClick={() => router.push(`/admin/offer-timer/card-offer/${timer._id}`)}
-                          className="px-2.5 py-1 text-xs border border-blue-500 text-blue-600 hover:bg-blue-50 rounded flex items-center gap-1 font-medium transition-colors shadow-xs"
+                          className="px-2 py-1 text-xs border border-blue-500 text-blue-600 hover:bg-blue-50 rounded flex items-center gap-1 font-medium transition-colors whitespace-nowrap"
                           title="View Card Offer"
                         >
                           <Icon icon="mdi:credit-card-outline" className="w-3.5 h-3.5" />
-                          View Card Offer
+                          Card Offer
                         </button>
                         <button
                           onClick={() => router.push(`/admin/offer-timer/edit/${timer._id}`)}
@@ -164,6 +185,7 @@ export default function OfferTimerList() {
               )}
             </tbody>
           </table>
+          </div>
         </div>
       )}
 
