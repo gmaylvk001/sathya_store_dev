@@ -147,6 +147,14 @@ export default function StoreListingsComponent() {
     return match ? `${match.zonename || match.slug} (${zoneCode})` : String(zoneCode);
   };
 
+  const zoneName = (zoneCode) => {
+    if (zoneCode == null || zoneCode === "") return "-";
+    const match = zones.find(
+      (z) => String(z.exist_id || "") === String(zoneCode) || String(z._id) === String(zoneCode)
+    );
+    return match ? match.zonename || match.slug : String(zoneCode);
+  };
+
   const openAdd = () => {
     setEditingId(null);
     setForm(EMPTY_FORM);
@@ -326,7 +334,7 @@ export default function StoreListingsComponent() {
       {isLoading ? (
         <p>Loading...</p>
       ) : (
-        <div className="bg-white shadow-md rounded-lg p-5 mb-5 overflow-x-auto border border-gray-200">
+        <div className="bg-white shadow-md rounded-lg p-5 mb-5 border border-gray-200">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end mb-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
@@ -415,44 +423,43 @@ export default function StoreListingsComponent() {
             </div>
           )}
 
-          <table className="w-full border border-gray-300 min-w-[1100px]">
+          <div className="overflow-x-auto lg:overflow-visible">
+          <table className="w-full border border-gray-300 text-xs">
             <thead>
-              <tr className="bg-gray-200">
-                <th className="p-2 w-10">
+              <tr className="bg-gray-200 text-gray-700">
+                <th className="px-1.5 py-2 w-8">
                   <input type="checkbox" checked={allCurrentSelected} onChange={toggleSelectCurrentPage} />
                 </th>
-                <th className="p-2">Exist ID</th>
-                <th className="p-2">Branch</th>
-                <th className="p-2">Title</th>
-                <th className="p-2">Phone</th>
-                <th className="p-2">Zone</th>
-                <th className="p-2">Owner</th>
-                <th className="p-2">Approved</th>
-                <th className="p-2">Created At</th>
-                <th className="p-2">Action</th>
+                <th className="px-1.5 py-2 font-semibold">Exist ID</th>
+                <th className="px-1.5 py-2 font-semibold">Branch</th>
+                <th className="px-1.5 py-2 font-semibold text-left">Title</th>
+                <th className="px-1.5 py-2 font-semibold">Phone</th>
+                <th className="px-1.5 py-2 font-semibold">Zone</th>
+                <th className="px-1.5 py-2 font-semibold">Approved</th>
+                <th className="px-1.5 py-2 font-semibold">Created At</th>
+                <th className="px-1.5 py-2 font-semibold">Action</th>
               </tr>
             </thead>
             <tbody>
               {currentRows.length > 0 ? (
                 currentRows.map((row) => (
-                  <tr key={row._id} className="text-center border-b">
-                    <td className="p-2">
+                  <tr key={row._id} className="text-center border-b hover:bg-gray-50">
+                    <td className="px-1.5 py-1.5">
                       <input
                         type="checkbox"
                         checked={selectedIds.includes(String(row._id))}
                         onChange={() => toggleSelect(row._id)}
                       />
                     </td>
-                    <td className="p-2">{row.exist_id || "-"}</td>
-                    <td className="p-2 font-semibold">{row.branch_code || "-"}</td>
-                    <td className="p-2 text-left">{row.title || "-"}</td>
-                    <td className="p-2">{row.phone || "-"}</td>
-                    <td className="p-2">{zoneLabel(row.zone_code)}</td>
-                    <td className="p-2">{row.store_owner || "-"}</td>
-                    <td className="p-2">{row.approved ?? 0}</td>
-                    <td className="p-2">{formatDateTime(row.created_at)}</td>
-                    <td className="p-2">
-                      <div className="flex items-center gap-2 justify-center">
+                    <td className="px-1.5 py-1.5">{row.exist_id || "-"}</td>
+                    <td className="px-1.5 py-1.5 font-semibold">{row.branch_code || "-"}</td>
+                    <td className="px-1.5 py-1.5 text-left">{row.title || "-"}</td>
+                    <td className="px-1.5 py-1.5 whitespace-nowrap">{row.phone || "-"}</td>
+                    <td className="px-1.5 py-1.5">{zoneName(row.zone_code)}</td>
+                    <td className="px-1.5 py-1.5">{row.approved ?? 0}</td>
+                    <td className="px-1.5 py-1.5">{formatDateTime(row.created_at)}</td>
+                    <td className="px-1.5 py-1.5">
+                      <div className="flex items-center gap-1.5 justify-center">
                         <button
                           onClick={() => setViewRow(row)}
                           className="w-7 h-7 bg-blue-100 text-blue-600 rounded-full inline-flex items-center justify-center"
@@ -480,11 +487,12 @@ export default function StoreListingsComponent() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="10" className="p-2 text-center text-gray-500">No store listings found.</td>
+                  <td colSpan="9" className="p-2 text-center text-gray-500">No store listings found.</td>
                 </tr>
               )}
             </tbody>
           </table>
+          </div>
 
           {totalPages > 1 && (
             <div className="flex justify-between items-center mt-4">
