@@ -38,7 +38,7 @@ const menuItems = [
       { icon: 'mdi:history', label: 'Sathya Exist Order History', link: 'sathya-exist-order-history', dotColor: 'bg-yellow-500' },
     ]
   },
-  { icon: 'mdi:note-text-outline', label: 'Blog', link: 'blog' },
+  // { icon: 'mdi:note-text-outline', label: 'Blog', link: 'blog' },
   {
     icon: 'mdi:post-outline',
     label: 'Blogs',
@@ -83,7 +83,7 @@ const menuItems = [
     icon: "mdi:percent-outline",
     label: "Offer Module",
     submenu: [
-      { icon: "mdi:percent-outline", label: "Offer", link: "offer", dotColor: "bg-yellow-500" },
+      // { icon: "mdi:percent-outline", label: "Offer", link: "offer", dotColor: "bg-yellow-500" },
       { icon: "mdi:percent-outline", label: "Offers", link: "offers", permission: "offers", dotColor: "bg-yellow-500" },
       { icon: "mdi:swap-horizontal", label: "Exchange Offers", link: "exchange-offers-condition", dotColor: "bg-purple-500" },
       { icon: "mdi:tag-outline", label: "Offer Product", link: "offer-product", permission: "offer-product", dotColor: "bg-green-500" },

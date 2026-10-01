@@ -1,15 +1,121 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Icon } from '@iconify/react';
 
 export default function OfferClient({ offer, products }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [stores, setStores] = useState([]);
+  
+  // Form State
+  const [formData, setFormData] = useState({
+    lead_type: 'Enquiry',
+    name: '',
+    email: '',
+    mobile: '',
+    product: '',
+    invoice: '',
+    store: '',
+    message: '',
+    timings: '10 - 12AM'
+  });
+  
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [toastMessage, setToastMessage] = useState(null);
+
+  useEffect(() => {
+    // Fetch store listings
+    const fetchStores = async () => {
+      try {
+        const res = await fetch("/api/store_listings/get");
+        if (res.ok) {
+          const data = await res.json();
+          setStores(Array.isArray(data) ? data : (data.storeListing || []));
+        }
+      } catch (error) {
+        console.error("Error fetching stores", error);
+      }
+    };
+    fetchStores();
+  }, []);
+
+  const handleOpenModal = (productName = "") => {
+    setFormData(prev => ({
+      ...prev,
+      product: productName,
+      lead_type: 'Enquiry'
+    }));
+    setIsModalOpen(true);
+  };
+
+  const getCookie = (name) => {
+    if (typeof document === 'undefined') return '';
+    const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+    return match ? match[2] : '';
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    // Client Validation
+    if (!formData.name.trim() || !formData.email.trim() || !formData.mobile.trim() || !formData.store) {
+      alert("Please fill in all required fields (Name, Email, Mobile, Store)");
+      return;
+    }
+    
+    if (!/^[6-9]\d{9}$/.test(formData.mobile)) {
+      alert("Please enter a valid 10-digit mobile number");
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const payload = {
+        ...formData,
+        lead_title: "Special Event Offer",
+        referrel_url: window.location.href,
+        utm_source: urlParams.get('utm_source') || '',
+        utm_campaign: urlParams.get('utm_campaign') || '',
+        cookie_id: getCookie('emaduuid') || ''
+      };
+
+      const res = await fetch("/api/connect-store-location", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        setToastMessage(data.message || "Thank you!. Your message has been sent.");
+        setTimeout(() => {
+          window.location.reload();
+        }, 3000);
+      } else {
+        alert(data.message || "Failed to submit enquiry. Please try again.");
+        setIsSubmitting(false);
+      }
+    } catch (error) {
+      console.error("Submission Error", error);
+      alert("Something went wrong. Please try again later.");
+      setIsSubmitting(false);
+    }
+  };
 
   return (
-    <div className="bg-gray-50 min-h-screen pb-12">
+    <div className="bg-gray-50 min-h-screen pb-12 relative">
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div className="fixed top-20 right-4 z-50 bg-green-500 text-white px-6 py-3 rounded shadow-lg transition-opacity duration-300">
+          {toastMessage}
+        </div>
+      )}
+
       {/* Breadcrumb */}
       <div className="bg-white py-3 border-b">
         <div className="container mx-auto px-4 lg:px-8 flex justify-end">
@@ -28,7 +134,7 @@ export default function OfferClient({ offer, products }) {
           <div className="flex gap-2">
             <span className="bg-yellow-400 font-bold px-4 py-2 text-sm">BIG DISCOUNT</span>
             <button 
-              onClick={() => setIsModalOpen(true)}
+              onClick={() => handleOpenModal("")}
               className="bg-red-600 text-white font-bold px-4 py-2 text-sm hover:bg-red-700 transition"
             >
               Enquire Now
@@ -65,7 +171,7 @@ export default function OfferClient({ offer, products }) {
                     )}
                   </div>
                   <button 
-                    onClick={() => setIsModalOpen(true)}
+                    onClick={() => handleOpenModal(product.productName)}
                     className="bg-red-600 hover:bg-red-700 text-white font-bold w-full py-2 text-sm transition-colors"
                   >
                     KNOW MORE
@@ -84,17 +190,17 @@ export default function OfferClient({ offer, products }) {
       {/* Enquiry Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
-          <div className="bg-white shadow-xl w-full max-w-md relative flex flex-col">
+          <div className="bg-white shadow-xl w-full max-w-md relative flex flex-col max-h-[90vh]">
             {/* Close Button */}
             <button 
-              onClick={() => setIsModalOpen(false)}
+              onClick={() => !isSubmitting && setIsModalOpen(false)}
               className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 text-2xl leading-none"
             >
               &times;
             </button>
 
             {/* Modal Header */}
-            <div className="px-4 py-3 text-center border-b border-gray-200">
+            <div className="px-4 py-3 text-center border-b border-gray-200 shrink-0">
               <h2 className="text-lg font-semibold text-red-600 mb-1">CONNECT TO STORE</h2>
               <p className="text-gray-500 text-xs">
                 Fill in the form below. Our store manager will get in touch with you soon!
@@ -102,74 +208,125 @@ export default function OfferClient({ offer, products }) {
             </div>
 
             {/* Modal Body */}
-            <div className="px-5 py-3 flex-grow">
-              <h3 className="font-semibold text-gray-800 text-[13px] mb-2">Leave Your Details For Us To Call You Back</h3>
-              <form className="space-y-2">
+            <div className="px-5 py-4 overflow-y-auto">
+              <h3 className="font-semibold text-gray-800 text-[13px] mb-3">Leave Your Details For Us To Call You Back</h3>
+              <form onSubmit={handleSubmit} className="space-y-3">
+                
+                <div>
+                  <select
+                    value={formData.lead_type}
+                    onChange={(e) => setFormData({ ...formData, lead_type: e.target.value, invoice: '', product: '' })}
+                    className="w-full border border-gray-300 rounded py-2 px-2 text-[13px] text-gray-700 focus:outline-none focus:border-gray-400"
+                    required
+                  >
+                    <option value="Enquiry">Enquiry</option>
+                    <option value="Complaint">Complaint</option>
+                  </select>
+                </div>
+
+                {formData.lead_type === 'Enquiry' ? (
+                  <div>
+                    <input
+                      type="text"
+                      placeholder="Product looking for"
+                      value={formData.product}
+                      onChange={(e) => setFormData({ ...formData, product: e.target.value })}
+                      className="w-full border border-gray-300 rounded py-2 px-2 text-[13px] text-gray-700 focus:outline-none focus:border-gray-400"
+                    />
+                  </div>
+                ) : (
+                  <div>
+                    <input
+                      type="text"
+                      placeholder="Invoice ID"
+                      value={formData.invoice}
+                      onChange={(e) => setFormData({ ...formData, invoice: e.target.value })}
+                      className="w-full border border-gray-300 rounded py-2 px-2 text-[13px] text-gray-700 focus:outline-none focus:border-gray-400"
+                      required
+                    />
+                  </div>
+                )}
+
                 <div>
                   <input
                     type="text"
-                    placeholder="Enquiry Type"
-                    className="w-full border border-gray-300 rounded py-1.5 px-2 text-[13px] text-gray-700 bg-gray-100 focus:outline-none"
-                    readOnly
+                    placeholder="Name *"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    className="w-full border border-gray-300 rounded py-2 px-2 text-[13px] text-gray-700 focus:outline-none focus:border-gray-400"
+                    required
                   />
                 </div>
-                <div>
-                  <input
-                    type="text"
-                    placeholder="Name"
-                    className="w-full border border-gray-300 rounded py-1.5 px-2 text-[13px] text-gray-700 focus:outline-none focus:border-gray-400"
-                  />
-                </div>
+                
                 <div>
                   <input
                     type="email"
-                    placeholder="Email"
-                    className="w-full border border-gray-300 rounded py-1.5 px-2 text-[13px] text-gray-700 focus:outline-none focus:border-gray-400"
+                    placeholder="Email *"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    className="w-full border border-gray-300 rounded py-2 px-2 text-[13px] text-gray-700 focus:outline-none focus:border-gray-400"
+                    required
                   />
                 </div>
+                
                 <div>
                   <input
                     type="tel"
-                    placeholder="Mobile"
-                    className="w-full border border-gray-300 rounded py-1.5 px-2 text-[13px] text-gray-700 focus:outline-none focus:border-gray-400"
+                    placeholder="Mobile *"
+                    maxLength={10}
+                    value={formData.mobile}
+                    onChange={(e) => setFormData({ ...formData, mobile: e.target.value.replace(/\D/g, '') })}
+                    className="w-full border border-gray-300 rounded py-2 px-2 text-[13px] text-gray-700 focus:outline-none focus:border-gray-400"
+                    required
                   />
                 </div>
+                
                 <div>
-                  <input
-                    type="text"
-                    placeholder="Select store near you"
-                    className="w-full border border-gray-300 rounded py-1.5 px-2 text-[13px] text-gray-700 bg-gray-100 focus:outline-none"
-                    readOnly
-                  />
+                  <select
+                    value={formData.store}
+                    onChange={(e) => setFormData({ ...formData, store: e.target.value })}
+                    className="w-full border border-gray-300 rounded py-2 px-2 text-[13px] text-gray-700 focus:outline-none focus:border-gray-400"
+                    required
+                  >
+                    <option value="">Select store near you *</option>
+                    {stores.map(s => (
+                      <option key={s._id} value={s._id}>{s.title || s.name}</option>
+                    ))}
+                  </select>
                 </div>
+                
                 <div>
                   <textarea
                     placeholder="Remark"
                     rows="2"
-                    className="w-full border border-gray-300 rounded py-1.5 px-2 text-[13px] text-gray-700 focus:outline-none focus:border-gray-400 resize-none"
+                    value={formData.message}
+                    onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                    className="w-full border border-gray-300 rounded py-2 px-2 text-[13px] text-gray-700 focus:outline-none focus:border-gray-400 resize-none"
                   ></textarea>
                 </div>
                 
                 <div className="pt-1">
-                  <h3 className="font-semibold text-gray-800 text-[13px] mb-1.5">Do You Have A Preferred Time For Us To Call You Back?</h3>
-                  <input
-                    type="text"
-                    placeholder="10 - 12AM"
-                    className="w-full border border-gray-300 rounded py-1.5 px-2 text-[13px] text-gray-700 bg-gray-100 focus:outline-none"
-                    readOnly
-                  />
+                  <h3 className="font-semibold text-gray-800 text-[13px] mb-2">Preferred time to call back?</h3>
+                  <select
+                    value={formData.timings}
+                    onChange={(e) => setFormData({ ...formData, timings: e.target.value })}
+                    className="w-full border border-gray-300 rounded py-2 px-2 text-[13px] text-gray-700 focus:outline-none focus:border-gray-400"
+                  >
+                    <option value="10 - 12AM">10 - 12 AM</option>
+                    <option value="12 - 02PM">12 - 02 PM</option>
+                    <option value="02 - 04PM">02 - 04 PM</option>
+                    <option value="04 - 06PM">04 - 06 PM</option>
+                    <option value="06 - 08PM">06 - 08 PM</option>
+                  </select>
                 </div>
 
-                <div className="pt-4">
+                <div className="pt-4 pb-2">
                   <button
-                    type="button"
-                    onClick={() => {
-                      // Prevent actual submission for now since user requested design only
-                      setIsModalOpen(false);
-                    }}
-                    className="bg-[#d72828] hover:bg-red-700 text-white font-bold py-2.5 px-6 rounded text-sm tracking-wide"
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="bg-[#d72828] hover:bg-red-700 disabled:opacity-50 text-white font-bold w-full py-2.5 rounded text-sm tracking-wide transition-colors"
                   >
-                    SUBMIT
+                    {isSubmitting ? "SUBMITTING..." : "SUBMIT ENQUIRY"}
                   </button>
                 </div>
               </form>
