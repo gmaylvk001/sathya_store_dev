@@ -564,8 +564,22 @@ function SuperOffersContent() {
     return [];
   }, [timer]);
 
+  // Categories with fewer than MIN_CARDS_PER_CATEGORY cards are folded into "MORE OFFERS"
   const categorizedOfferGroups = useMemo(() => {
-    return groupCardOffersByCategory(cardOffersList);
+    const MIN_CARDS_PER_CATEGORY = 4;
+    const groups = groupCardOffersByCategory(cardOffersList);
+
+    const fullGroups = groups.filter(
+      (g) => g.categoryName !== "MORE OFFERS" && g.cards.length >= MIN_CARDS_PER_CATEGORY
+    );
+    const shownCards = new Set(fullGroups.flatMap((g) => g.cards));
+    const moreCards = cardOffersList.filter(
+      (card) => card && typeof card === "object" && !shownCards.has(card)
+    );
+
+    return moreCards.length > 0
+      ? [...fullGroups, { categoryName: "MORE OFFERS", cards: moreCards }]
+      : fullGroups;
   }, [cardOffersList]);
 
   const dateRangeBadge = useMemo(() => {
