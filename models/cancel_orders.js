@@ -1,6 +1,8 @@
 import mongoose from "mongoose";
 
 const CancelOrdersSchema = new mongoose.Schema({
+  // Exist cancel_orders.id (set by admin import only)
+  exist_id: { type: String, required: false, trim: true, default: undefined },
   order_number: { type: String, required: true, trim: true, maxlength: 45 },
   order_id: { type: String, required: true, trim: true, maxlength: 45 },
   customer_id: { type: String, required: true, trim: true, maxlength: 45 },
@@ -19,6 +21,14 @@ const CancelOrdersSchema = new mongoose.Schema({
 CancelOrdersSchema.index({ order_number: 1 }, { name: "order_number_idx" });
 CancelOrdersSchema.index({ order_id: 1 }, { name: "order_id_idx" });
 CancelOrdersSchema.index({ customer_id: 1 }, { name: "customer_id_idx" });
+CancelOrdersSchema.index(
+  { exist_id: 1 },
+  {
+    unique: true,
+    partialFilterExpression: { exist_id: { $type: "string" } },
+    name: "exist_id_unique_nonempty",
+  }
+);
 
 if (mongoose.models.cancel_orders) {
   delete mongoose.models.cancel_orders;
