@@ -31,4 +31,11 @@ const OfferTimerSchema = new mongoose.Schema(
   { timestamps: true, strict: false }
 );
 
+// Admin list sort, next-id lookup, and timerId / custom_id lookups
+OfferTimerSchema.index({ timerId: -1 });
+OfferTimerSchema.index({ custom_id: 1 });
+// Customer global timer: live / upcoming timer by date window, latest edited first
+OfferTimerSchema.index({ timerDisplayStatus: 1, startDate: 1, endDate: 1 });
+OfferTimerSchema.index({ updatedAt: -1 });
+
 export default mongoose.models.OfferTimer || mongoose.model("OfferTimer", OfferTimerSchema);

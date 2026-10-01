@@ -14,5 +14,7 @@ const StateDealSchema = new mongoose.Schema(
 
 // Compound unique index to prevent duplicate (offerTimerId + state) mapping
 StateDealSchema.index({ offerTimerId: 1, state: 1 }, { unique: true });
+// Customer global timer: latest active deal for a state
+StateDealSchema.index({ state: 1, updatedAt: -1 });
 
 export default mongoose.models.StateDeal || mongoose.model("StateDeal", StateDealSchema);

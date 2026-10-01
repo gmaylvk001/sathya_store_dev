@@ -17,7 +17,7 @@ export default function OfferTimerList() {
 
   const fetchTimers = async () => {
     try {
-      const response = await fetch("/api/offer-timer");
+      const response = await fetch("/api/offer-timer?view=list", { cache: "no-store" });
       const data = await response.json();
       setTimers(data.data || []);
     } catch (error) {
