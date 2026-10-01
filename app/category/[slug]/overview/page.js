@@ -1,5 +1,8 @@
+import { notFound } from "next/navigation";
 import CategoryOverviewPage from "@/components/categoryPageComponents/CategoryOverviewPage";
 import { PAGE_TYPES } from "@/lib/categoryPageComponents/registry";
+import dbConnect from "@/lib/db";
+import { resolveCategoryBySlug } from "@/lib/resolveCategorySlug";
 
 export async function generateMetadata({ params }) {
   const awaitedParams = await params;
@@ -55,7 +58,16 @@ export async function generateMetadata({ params }) {
 
 export default async function Page({ params }) {
   const awaitedParams = await params;
-  const slug = awaitedParams.slug;
+  const slug = awaitedParams?.slug;
+  if (!slug || slug === "undefined") {
+    notFound();
+  }
+
+  await dbConnect();
+  const category = await resolveCategoryBySlug(slug);
+  if (!category || category.status === "Inactive") {
+    notFound();
+  }
 
   return (
     <CategoryOverviewPage

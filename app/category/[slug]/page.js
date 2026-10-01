@@ -1,12 +1,21 @@
 
+import { notFound } from "next/navigation";
 import CategoryPrimaryPage from "@/components/category/sample_cat";
 import RedirectToOverviewIfDesigned from "@/components/categoryPageComponents/RedirectToOverviewIfDesigned";
 import { PAGE_TYPES } from "@/lib/categoryPageComponents/registry";
+import dbConnect from "@/lib/db";
+import { resolveCategoryBySlug } from "@/lib/resolveCategorySlug";
 
 export async function generateMetadata({ params }) {
   //const { slug } = params;
   const awaitedParams = await params;
-    const slug = awaitedParams.slug;
+  const slug = awaitedParams?.slug;
+  if (!slug || slug === "undefined") {
+    return {
+      title: "Category Not Found",
+      description: "This category does not exist",
+    };
+  }
   const baseUrl = process.env.NEXT_PUBLIC_API_URL;
 
   try {
@@ -68,7 +77,19 @@ export async function generateMetadata({ params }) {
   }
 }
 
-export default function Page() {
+export default async function Page({ params }) {
+  const awaitedParams = await params;
+  const slug = awaitedParams?.slug;
+  if (!slug || slug === "undefined") {
+    notFound();
+  }
+
+  await dbConnect();
+  const category = await resolveCategoryBySlug(slug);
+  if (!category || category.status === "Inactive") {
+    notFound();
+  }
+
   return (
     <>
       <RedirectToOverviewIfDesigned pageType={PAGE_TYPES.CATEGORY} />
@@ -76,3 +97,4 @@ export default function Page() {
     </>
   );
 }
+
