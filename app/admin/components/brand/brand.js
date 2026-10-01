@@ -26,6 +26,12 @@ export default function BrandComponent() {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [imageError, setImageError] = useState("");
+  
+  // New feature states
+  const [statusFilter, setStatusFilter] = useState("All");
+  const [selectedBrands, setSelectedBrands] = useState([]);
+  const [showBulkDeleteConfirm, setShowBulkDeleteConfirm] = useState(false);
+  const [isDeletingBulk, setIsDeletingBulk] = useState(false);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(0);
@@ -478,18 +484,37 @@ export default function BrandComponent() {
     return result;
   };
 
+  // Handle single brand selection
+  const handleSelectBrand = (brandId) => {
+    setSelectedBrands((prev) =>
+      prev.includes(brandId)
+        ? prev.filter((id) => id !== brandId)
+        : [...prev, brandId]
+    );
+  };
+
   // Render category rows with pagination
   const renderBrandRows = () => {
     const flattenedCategories = flattenCategories(brand);
-    const filteredCategories = flattenedCategories.filter((brand) =>
-      brand.brand_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      brand.brand_slug.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    const filteredCategories = flattenedCategories.filter((b) => {
+      const matchesSearch = b.brand_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                            b.brand_slug.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesStatus = statusFilter === "All" || b.status === statusFilter;
+      return matchesSearch && matchesStatus;
+    });
 
     return filteredCategories
       .slice(currentPage * itemsPerPage, (currentPage + 1) * itemsPerPage)
       .map((brand, index) => (
-        <tr key={brand._id} className="text-center border-b">
+        <tr key={brand._id} className="text-center border-b hover:bg-gray-50">
+          <td className="p-2">
+            <input 
+              type="checkbox" 
+              checked={selectedBrands.includes(brand._id)}
+              onChange={() => handleSelectBrand(brand._id)}
+              className="w-4 h-4 cursor-pointer accent-red-500"
+            />
+          </td>
           <td className="p-2">{brand.brand_name}</td>
           <td className="p-2">{brand.brand_slug}</td>
           <td className="p-2">
@@ -545,14 +570,70 @@ export default function BrandComponent() {
   };
 
   const flattenedCategories = flattenCategories(brand);
-  const filteredCategories = flattenedCategories.filter((brand) =>
-    brand.brand_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    brand.brand_slug.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredCategories = flattenedCategories.filter((b) => {
+    const matchesSearch = b.brand_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          b.brand_slug.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesStatus = statusFilter === "All" || b.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
   const pageCount = Math.ceil(filteredCategories.length / itemsPerPage);
   const totalEntries = filteredCategories.length;
   const startEntry = currentPage * itemsPerPage + 1;
   const endEntry = Math.min((currentPage + 1) * itemsPerPage, totalEntries);
+
+  const currentVisibleBrands = filteredCategories.slice(
+    currentPage * itemsPerPage,
+    (currentPage + 1) * itemsPerPage
+  );
+  const isAllVisibleSelected =
+    currentVisibleBrands.length > 0 &&
+    currentVisibleBrands.every((b) => selectedBrands.includes(b._id));
+
+  const handleSelectAll = () => {
+    if (isAllVisibleSelected) {
+      // Deselect all visible
+      const visibleIds = currentVisibleBrands.map((b) => b._id);
+      setSelectedBrands((prev) => prev.filter((id) => !visibleIds.includes(id)));
+    } else {
+      // Select all visible
+      const visibleIds = currentVisibleBrands.map((b) => b._id);
+      const newSelected = new Set([...selectedBrands, ...visibleIds]);
+      setSelectedBrands(Array.from(newSelected));
+    }
+  };
+
+  const handleConfirmBulkDelete = async () => {
+    setIsDeletingBulk(true);
+    try {
+      const response = await fetch("/api/brand/bulk-delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ brandIds: selectedBrands }),
+      });
+      const result = await response.json();
+      
+      if (response.ok) {
+        setSuccessMessage(result.message);
+        setShowSuccessModal(true);
+        setSelectedBrands([]); // Clear selection
+        fetchBrand();
+      } else {
+        setSuccessMessage(result.error || "Failed to delete brands.");
+        setShowSuccessModal(true);
+      }
+    } catch (error) {
+      console.error("Error in bulk delete:", error);
+      setSuccessMessage("An error occurred during bulk delete.");
+      setShowSuccessModal(true);
+    } finally {
+      setIsDeletingBulk(false);
+      setShowBulkDeleteConfirm(false);
+      setTimeout(() => {
+        setShowSuccessModal(false);
+        setSuccessMessage("");
+      }, 3000);
+    }
+  };
 
   return (
     <div className="container mx-auto">
@@ -564,26 +645,50 @@ export default function BrandComponent() {
         <p>Loading Brands...</p>
       ) : (
         <div className="bg-white shadow-md rounded-lg p-5 overflow-x-auto border rounded border-gray-200">
-          {/* Search and Add Brand Row */}
-          <div className="flex justify-between items-center mb-5">
-            {/* Search Box */}
-            <div>
+          {/* Search, Filter, and Action Buttons Row */}
+          <div className="flex flex-col md:flex-row justify-between items-center mb-5 gap-4">
+            {/* Left Side: Search & Filter */}
+            <div className="flex items-center gap-4">
               <input
                 type="text"
                 placeholder="Search Brand..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="border px-3 py-2 rounded-md w-64"
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setCurrentPage(0);
+                }}
+                className="border px-3 py-2 rounded-md w-64 focus:outline-none focus:ring-1 focus:ring-red-500"
               />
+              <select
+                value={statusFilter}
+                onChange={(e) => {
+                  setStatusFilter(e.target.value);
+                  setCurrentPage(0); // Reset pagination on filter
+                }}
+                className="border px-3 py-2 rounded-md focus:outline-none focus:ring-1 focus:ring-red-500 bg-white cursor-pointer"
+              >
+                <option value="All">All Status</option>
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+              </select>
             </div>
 
-            {/* Add Brand Button */}
-            <div>
+            {/* Right Side: Bulk Delete & Add Brand */}
+            <div className="flex items-center gap-3">
+              {selectedBrands.length > 0 && (
+                <button
+                  onClick={() => setShowBulkDeleteConfirm(true)}
+                  className="bg-pink-100 text-pink-600 border border-pink-200 px-4 py-2 rounded-md font-medium hover:bg-pink-200 transition flex items-center gap-2"
+                >
+                  <Icon icon="mingcute:delete-2-line" className="w-4 h-4" />
+                  Delete Selected ({selectedBrands.length})
+                </button>
+              )}
               <button
                 onClick={() => setIsModalOpen(true)}
-                className="bg-red-500 text-white px-4 py-2 rounded-md"
+                className="bg-red-500 text-white px-4 py-2 rounded-md font-medium hover:bg-red-600 transition flex items-center gap-2"
               >
-                + Add brand
+                <FaPlus className="w-3 h-3" /> Add brand
               </button>
             </div>
           </div>
@@ -591,7 +696,16 @@ export default function BrandComponent() {
 
           <table className="w-full border border-gray-300">
             <thead>
-              <tr className="bg-gray-200">
+              <tr className="bg-gray-200 text-gray-700">
+                <th className="p-2 w-12">
+                  <input
+                    type="checkbox"
+                    checked={isAllVisibleSelected}
+                    onChange={handleSelectAll}
+                    className="w-4 h-4 cursor-pointer accent-red-500"
+                    title="Select all visible"
+                  />
+                </th>
                 <th className="p-2">Brand Name</th>
                 <th className="p-2">Brand Slug</th>
                 <th className="p-2">Image</th>
@@ -604,8 +718,8 @@ export default function BrandComponent() {
                 renderBrandRows()
               ) : (
                 <tr>
-                  <td colSpan="6" className="text-center p-4">
-                    No categories found
+                  <td colSpan="6" className="text-center p-8 text-gray-500">
+                    No brands found matching your criteria
                   </td>
                 </tr>
               )}
@@ -919,17 +1033,49 @@ export default function BrandComponent() {
           </div>
         </div>
       )}
+      {/* Bulk Delete Confirmation Modal */}
+      {showBulkDeleteConfirm && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-96">
+            <h2 className="text-xl font-bold mb-4">Bulk Delete Brands</h2>
+            <p className="mb-4">Are you sure you want to delete {selectedBrands.length} selected brand(s)?</p>
+            <p className="text-sm text-gray-500 mb-6">
+              Brands with associated products will be skipped automatically.
+            </p>
+
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => setShowBulkDeleteConfirm(false)}
+                className="bg-gray-300 px-4 py-2 rounded-md"
+                disabled={isDeletingBulk}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmBulkDelete}
+                className={`bg-red-500 px-4 py-2 rounded-md text-white flex items-center justify-center min-w-[100px] ${isDeletingBulk ? 'opacity-70 cursor-not-allowed' : ''}`}
+                disabled={isDeletingBulk}
+              >
+                {isDeletingBulk ? 'Deleting...' : 'Yes, Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Success Modal */}
       {showSuccessModal && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-96">
-
-            <p className="mb-4">{successMessage}</p>
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-96 max-h-[80vh] overflow-y-auto">
+            <h2 className="text-xl font-bold mb-4">Status Update</h2>
+            <div className="mb-6 whitespace-pre-wrap text-gray-700">
+              {successMessage}
+            </div>
 
             <div className="flex justify-end">
               <button
                 onClick={() => setShowSuccessModal(false)}
-                className="bg-red-500 px-4 py-2 rounded-md text-white"
+                className="bg-red-500 px-4 py-2 rounded-md text-white font-medium"
               >
                 Close
               </button>
