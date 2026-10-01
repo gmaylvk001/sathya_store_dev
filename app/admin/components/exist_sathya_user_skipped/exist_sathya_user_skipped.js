@@ -277,11 +277,11 @@ export default function ExistSathyaUserSkippedComponent() {
           </table>
 
           {totalPages > 1 && (
-            <div className="flex justify-between items-center mt-4">
+            <div className="flex flex-wrap justify-between items-center gap-3 mt-4">
               <div className="text-sm text-gray-600">
                 Showing {indexOfFirst + 1} to {Math.min(indexOfLast, filteredRows.length)} of {filteredRows.length} entries
               </div>
-              <div className="flex items-center space-x-1">
+              <div className="flex flex-wrap items-center gap-1">
                 <button
                   onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
                   disabled={currentPage === 1}
@@ -289,15 +289,29 @@ export default function ExistSathyaUserSkippedComponent() {
                 >
                   «
                 </button>
-                {Array.from({ length: totalPages }, (_, i) => (
-                  <button
-                    key={i + 1}
-                    onClick={() => setCurrentPage(i + 1)}
-                    className={`px-3 py-1.5 border border-gray-300 rounded-md ${currentPage === i + 1 ? "bg-red-500 text-white" : "bg-white"}`}
-                  >
-                    {i + 1}
-                  </button>
-                ))}
+                {(() => {
+                  const pages = [];
+                  const start = Math.max(2, currentPage - 2);
+                  const end = Math.min(totalPages - 1, currentPage + 2);
+                  pages.push(1);
+                  if (start > 2) pages.push("start-gap");
+                  for (let p = start; p <= end; p++) pages.push(p);
+                  if (end < totalPages - 1) pages.push("end-gap");
+                  if (totalPages > 1) pages.push(totalPages);
+                  return pages.map((p) =>
+                    typeof p === "number" ? (
+                      <button
+                        key={p}
+                        onClick={() => setCurrentPage(p)}
+                        className={`px-3 py-1.5 border border-gray-300 rounded-md ${currentPage === p ? "bg-red-500 text-white" : "bg-white"}`}
+                      >
+                        {p}
+                      </button>
+                    ) : (
+                      <span key={p} className="px-2 text-gray-500">…</span>
+                    )
+                  );
+                })()}
                 <button
                   onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
                   disabled={currentPage === totalPages}

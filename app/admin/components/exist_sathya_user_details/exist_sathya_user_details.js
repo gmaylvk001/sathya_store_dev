@@ -264,7 +264,7 @@ export default function ExistSathyaUserDetailsComponent() {
       {isLoading ? (
         <p>Loading...</p>
       ) : (
-        <div className="bg-white shadow-md rounded-lg p-5 mb-5 overflow-x-auto border border-gray-200">
+        <div className="bg-white shadow-md rounded-lg p-5 mb-5 border border-gray-200">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end mb-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
@@ -369,7 +369,8 @@ export default function ExistSathyaUserDetailsComponent() {
             </span>
           </div>
 
-          <table className="w-full border border-gray-300 min-w-[1200px]">
+          <div className="overflow-x-auto lg:overflow-visible">
+          <table className="w-full border border-gray-300 text-sm">
             <thead>
               <tr className="bg-gray-200">
                 <th className="p-2 w-10">
@@ -379,7 +380,6 @@ export default function ExistSathyaUserDetailsComponent() {
                 <th className="p-2">User ID</th>
                 <th className="p-2">Username</th>
                 <th className="p-2">Phone</th>
-                <th className="p-2">Alt Number</th>
                 <th className="p-2">City</th>
                 <th className="p-2">State</th>
                 <th className="p-2">Pincode</th>
@@ -406,9 +406,8 @@ export default function ExistSathyaUserDetailsComponent() {
                     </td>
                     <td className="p-2">{row.exist_id || "-"}</td>
                     <td className="p-2 font-bold">{row.user_id || "-"}</td>
-                    <td className="p-2">{row.username || "-"}</td>
+                    <td className="p-2 break-words">{row.username || "-"}</td>
                     <td className="p-2">{row.phonenumber || "-"}</td>
-                    <td className="p-2">{row.altnumber || "-"}</td>
                     <td className="p-2">{row.city || "-"}</td>
                     <td className="p-2">{row.state || "-"}</td>
                     <td className="p-2">{row.pincode ?? "-"}</td>
@@ -437,18 +436,19 @@ export default function ExistSathyaUserDetailsComponent() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="13" className="p-2 text-center text-gray-500">No user details found.</td>
+                  <td colSpan="12" className="p-2 text-center text-gray-500">No user details found.</td>
                 </tr>
               )}
             </tbody>
           </table>
+          </div>
 
           {totalPages > 1 && (
-            <div className="flex justify-between items-center mt-4">
+            <div className="flex flex-wrap justify-between items-center gap-3 mt-4">
               <div className="text-sm text-gray-600">
                 Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, filteredRows.length)} of {filteredRows.length} entries
               </div>
-              <div className="flex items-center space-x-1">
+              <div className="flex flex-wrap items-center gap-1">
                 <button
                   onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
                   disabled={currentPage === 1}
@@ -456,15 +456,29 @@ export default function ExistSathyaUserDetailsComponent() {
                 >
                   «
                 </button>
-                {Array.from({ length: Math.min(totalPages, 20) }, (_, i) => (
-                  <button
-                    key={i + 1}
-                    onClick={() => setCurrentPage(i + 1)}
-                    className={`px-3 py-1.5 border rounded-md ${currentPage === i + 1 ? "bg-red-500 text-white" : "bg-white"}`}
-                  >
-                    {i + 1}
-                  </button>
-                ))}
+                {(() => {
+                  const pages = [];
+                  const start = Math.max(2, currentPage - 2);
+                  const end = Math.min(totalPages - 1, currentPage + 2);
+                  pages.push(1);
+                  if (start > 2) pages.push("start-gap");
+                  for (let p = start; p <= end; p++) pages.push(p);
+                  if (end < totalPages - 1) pages.push("end-gap");
+                  if (totalPages > 1) pages.push(totalPages);
+                  return pages.map((p) =>
+                    typeof p === "number" ? (
+                      <button
+                        key={p}
+                        onClick={() => setCurrentPage(p)}
+                        className={`px-3 py-1.5 border rounded-md ${currentPage === p ? "bg-red-500 text-white" : "bg-white"}`}
+                      >
+                        {p}
+                      </button>
+                    ) : (
+                      <span key={p} className="px-2 text-gray-500">…</span>
+                    )
+                  );
+                })()}
                 <button
                   onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
                   disabled={currentPage === totalPages}
