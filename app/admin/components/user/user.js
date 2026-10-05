@@ -599,6 +599,9 @@ export default function UserComponent() {
                         )}
                       </td>
                       <td className="p-2">
+                        {!String(user.exist_id || "").trim() ? (
+                          "-"
+                        ) : (
                         <div className="inline-flex items-center gap-1 justify-center">
                           {Number(user.orders_fetched) === 1 ? (
                             <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
@@ -627,6 +630,7 @@ export default function UserComponent() {
                             </button>
                           ) : null}
                         </div>
+                        )}
                       </td>
                       <td className="p-2">
                         <div className="flex items-center gap-2 justify-center">
