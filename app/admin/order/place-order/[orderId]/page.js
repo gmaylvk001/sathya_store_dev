@@ -3,7 +3,7 @@
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
-import { FaPhoneAlt, FaStore, FaCommentDots } from "react-icons/fa";
+import { FaPhoneAlt, FaStore, FaCommentDots, FaCog, FaPaperPlane } from "react-icons/fa";
 import { MdDateRange } from "react-icons/md";
 import { IoWalletSharp } from "react-icons/io5";
 import { IoMdMail } from "react-icons/io";
@@ -33,6 +33,9 @@ const OrderDetails = () => {
   const [selectedHistoryIndex, setSelectedHistoryIndex] = useState(null);
 
   const [order, setOrder] = useState(null);
+  const [smsText, setSmsText] = useState("");
+  const [sendingSms, setSendingSms] = useState(false);
+  const [downloadingInvoice, setDownloadingInvoice] = useState(false);
 
   // 🔹 Fetch Stores, Roles, System Users
   useEffect(() => {
@@ -100,6 +103,77 @@ const OrderDetails = () => {
       toast.error("Network error occurred");
     } finally {
       setIsUpdating(false);
+    }
+  };
+
+  const sendOrderSms = async () => {
+    const text = smsText.trim();
+    if (!text) {
+      toast.error("Please enter the Message");
+      return;
+    }
+    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    if (!token) {
+      toast.error("Please login again");
+      return;
+    }
+
+    setSendingSms(true);
+    try {
+      const res = await fetch(`/api/orders_new/${orderId}/send-sms`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ text }),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok || !data?.success) {
+        toast.error(data?.message || "SMS sending failed");
+        return;
+      }
+      setSmsText("");
+      toast.success(data.message || "Your Message has been Sent Successfully");
+    } catch (err) {
+      console.error(err);
+      toast.error("Network error occurred");
+    } finally {
+      setSendingSms(false);
+    }
+  };
+
+  const downloadInvoice = async () => {
+    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    if (!token) {
+      toast.error("Please login again");
+      return;
+    }
+
+    setDownloadingInvoice(true);
+    try {
+      const res = await fetch(`/api/orders_new/${orderId}/invoice`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        toast.error(data?.message || "Invoice download failed");
+        return;
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${order?.order_number || "invoice"}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error(err);
+      toast.error("Network error occurred");
+    } finally {
+      setDownloadingInvoice(false);
     }
   };
 
@@ -436,33 +510,45 @@ const OrderDetails = () => {
         </div>
 
         {/* Options / Invoice */}
-        <div className="bg-white shadow rounded overflow-hidden">
-          <table className="w-full text-sm text-gray-700">
-            <thead>
-              <tr className="bg-gray-100 border-b">
-                <th className="p-2 text-left" colSpan={2}>Options</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr className="border-b">
-                <td className="p-2" colSpan={2}>
-                  <textarea
-                    className="w-full border rounded p-2 text-sm"
-                    placeholder="Note: Maximum 150 characters allowed"
-                    maxLength={150}
-                    rows={3}
-                  />
-                </td>
-              </tr>
-              <tr>
-                <td className="p-2" colSpan={2}>
-                  <button className="bg-red-500 text-white px-4 py-2 rounded text-sm hover:bg-red-600 w-full">
-                    Generate Invoice
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+        <div className="bg-white border border-gray-200 rounded-md shadow-sm overflow-hidden">
+          <div className="bg-gray-100 border-b border-gray-200 px-4 py-3 flex items-center gap-2 text-lg text-gray-800">
+            <FaCog className="w-4 h-4" />
+            Options
+          </div>
+          <div className="px-2.5 pb-3">
+            <div className="border-b border-gray-200 px-0.5 py-3 flex items-center justify-between text-base text-gray-800">
+              <span>Invoice</span>
+              <button
+                type="button"
+                onClick={downloadInvoice}
+                disabled={!order?.file_path || downloadingInvoice}
+                title={order?.file_path ? "Download Invoice" : "Invoice not generated yet"}
+                aria-label="Download Invoice"
+                className="inline-flex h-6 w-6 items-center justify-center rounded-sm border border-[#4cae4c] bg-[#5cb85c] text-white hover:bg-[#449d44] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                <FaCog className={`w-3 h-3 ${downloadingInvoice ? "animate-spin" : ""}`} />
+              </button>
+            </div>
+            <div className="pt-3">
+              <textarea
+                className="w-full border border-gray-500 rounded-sm p-2 text-sm focus:outline-none focus:border-blue-500"
+                maxLength={160}
+                rows={3}
+                value={smsText}
+                onChange={(e) => setSmsText(e.target.value)}
+              />
+              <p className="mt-1 text-sm text-red-600">Note: Maximum 160 Characters allowed</p>
+              <button
+                type="button"
+                onClick={sendOrderSms}
+                disabled={sendingSms}
+                className="mt-2 inline-flex items-center gap-1.5 rounded-sm border border-[#2e6da4] bg-[#337ab7] px-2.5 py-1 text-sm text-white hover:bg-[#286090] disabled:opacity-60"
+              >
+                <FaPaperPlane className="w-3.5 h-3.5" />
+                {sendingSms ? "Sending..." : "Send SMS"}
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
