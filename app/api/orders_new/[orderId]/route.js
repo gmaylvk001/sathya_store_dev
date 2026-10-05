@@ -5,6 +5,7 @@ import OrderNew from "@/models/orders_new";
 import OrderDetailsNew from "@/models/order_details_new";
 import OrderHistoryNew from "@/models/order_history_new";
 import Product from "@/models/product";
+import OwnerProduct from "@/models/OwnerProduct";
 
 const ORDER_STATUSES = [
   "Billed",
@@ -31,9 +32,32 @@ async function attachDetails(order) {
     ? await Product.find({ item_code: { $in: productItemCodes } }).select("slug item_code").lean()
     : [];
 
+  const isUniletOrder = String(order.order_owner || "").trim().toLowerCase() === "unilet";
+  const vendorCodeByItemCode = new Map();
+  if (isUniletOrder && productItemCodes.length) {
+    const ownerProducts = await OwnerProduct.find({
+      owner_id: "unilet",
+      product_item_code: { $in: productItemCodes },
+    })
+      .select("product_item_code vendor_item_code is_active")
+      .sort({ is_active: -1, updatedAt: -1 })
+      .lean();
+    for (const op of ownerProducts) {
+      const key = String(op.product_item_code || "").trim();
+      if (key && op.vendor_item_code && !vendorCodeByItemCode.has(key)) {
+        vendorCodeByItemCode.set(key, String(op.vendor_item_code).trim());
+      }
+    }
+  }
+
   order.order_details = details.map((item) => {
     const product = products.find((p) => item.item_code && item.item_code.endsWith(p.item_code));
-    return { ...item, slug: product?.slug || null };
+    const row = { ...item, slug: product?.slug || null };
+    if (isUniletOrder) {
+      const code = String(item.item_code || "").replace(/^ITEM/, "").trim();
+      row.vendor_item_code = vendorCodeByItemCode.get(code) || null;
+    }
+    return row;
   });
   order.order_item = Array.isArray(order.order_item) ? order.order_item : [];
   return order;

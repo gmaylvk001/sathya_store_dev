@@ -703,9 +703,20 @@ export default function CheckoutPage() {
   const normHeaderPin = String(headerPincode || '').replace(/\D/g, '').trim();
   const currentSt = currentShipping?.state || formData.state || '';
 
-  const selectedStoreObj = stores.find(
-    (s) => s.branch_code === formData.selectedStore || s._id === formData.selectedStore
-  );
+  const isKarnatakaHeaderLocation = isKarnatakaPincode(normHeaderPin) || headerRegion === 'karnataka';
+  const pickupStores = isKarnatakaHeaderLocation
+    ? stores.filter((s) => String(s.store_owner || '').trim().toLowerCase() === 'unilet')
+    : stores;
+  const matchesSelectedStore = (s) => s.branch_code === formData.selectedStore || s._id === formData.selectedStore;
+
+  const selectedStoreObj = pickupStores.find(matchesSelectedStore) || stores.find(matchesSelectedStore);
+
+  useEffect(() => {
+    if (!formData.selectedStore || !stores.length) return;
+    if (!pickupStores.some(matchesSelectedStore)) {
+      setFormData((prev) => ({ ...prev, selectedStore: '' }));
+    }
+  }, [isKarnatakaHeaderLocation, formData.selectedStore, stores]);
 
   const isKarnatakaDelivery =
     isKarnatakaPincode(normDeliveryPin) ||
@@ -1103,7 +1114,7 @@ export default function CheckoutPage() {
       const orderEmail = formData.email;
 
       const pickupStoreName = formData.deliveryType === 'store'
-        ? (stores.find(s => s.branch_code === formData.selectedStore || s._id === formData.selectedStore)?.title || stores.find(s => s.branch_code === formData.selectedStore || s._id === formData.selectedStore)?.organisation_name)
+        ? (selectedStoreObj?.title || selectedStoreObj?.organisation_name)
         : undefined;
 
       const isKarnataka = formData.deliveryType === 'store'
@@ -1426,7 +1437,7 @@ export default function CheckoutPage() {
                 handleChange={handleChange}
                 isDeliverySaved={isDeliverySaved}
                 setIsDeliverySaved={setIsDeliverySaved}
-                stores={stores}
+                stores={pickupStores}
                 nearestStores={nearestStores}
                 setNearestStores={setNearestStores}
                 selectedPickupStore={selectedPickupStore}

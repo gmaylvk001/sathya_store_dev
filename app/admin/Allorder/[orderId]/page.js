@@ -35,6 +35,7 @@ const OrderDetails = () => {
   const [smsText, setSmsText] = useState("");
   const [sendingSms, setSendingSms] = useState(false);
   const [downloadingInvoice, setDownloadingInvoice] = useState(false);
+  const isUniletOrder = String(order?.order_owner || "").trim().toLowerCase() === "unilet";
 
   // const orderr = {
   //   history: [
@@ -714,6 +715,7 @@ const OrderDetails = () => {
               <tr className="bg-gray-100 border-b">
                 <th className="p-2 text-left">Product</th>
                 <th className="p-2 text-left">Model</th>
+                {isUniletOrder && <th className="p-2 text-left">Vendor Item Code</th>}
                 <th className="p-2 text-center">Qty</th>
                 <th className="p-2 text-right">Unit Price</th>
                 <th className="p-2 text-right">Total</th>
@@ -745,6 +747,7 @@ const OrderDetails = () => {
                       )}
                     </td>
                     <td className="p-2">{item.model}</td>
+                    {isUniletOrder && <td className="p-2">{item.vendor_item_code || "-"}</td>}
                     <td className="p-2 text-center">{item.quantity}</td>
                     <td className="p-2 text-right text-red-600">₹{itemPrice}</td>
                     <td className="p-2 text-right text-red-600">₹{totalPrice}</td>
@@ -754,7 +757,7 @@ const OrderDetails = () => {
               {(order.order_item || []).map((item, index) =>
                 item.extendedWarranty > 0 && (
                   <tr key={index} className="font-semibold">
-                    <td colSpan="4" className="p-2 text-right text-[#d72828]">
+                    <td colSpan={isUniletOrder ? 5 : 4} className="p-2 text-right text-[#d72828]">
                       Extended Warranty:
                     </td>
                     <td className="p-2 text-right text-red-600">
@@ -765,17 +768,17 @@ const OrderDetails = () => {
               )}
 
               <tr className="font-semibold">
-                <td colSpan="4" className="p-2 text-right">Sub-Total:</td>
+                <td colSpan={isUniletOrder ? 5 : 4} className="p-2 text-right">Sub-Total:</td>
                 <td className="p-2 text-right">₹{order.order_amount}</td>
                 {/* <td className="p-2 text-right">₹0.00</td> */}
               </tr>
               <tr>
-                <td colSpan="4" className="p-2 text-right">Shipping:</td>
+                <td colSpan={isUniletOrder ? 5 : 4} className="p-2 text-right">Shipping:</td>
                 {/* <td className="p-2 text-right">₹{order.shipping_fee}</td> */}
                 <td className="p-2 text-right">₹0.00</td>
               </tr>
               <tr className="font-bold bg-gray-100">
-                <td colSpan="4" className="p-2 text-right">Total:</td>
+                <td colSpan={isUniletOrder ? 5 : 4} className="p-2 text-right">Total:</td>
                 <td className="p-2 text-right">₹{order.order_amount}</td>
               </tr>
             </tbody>
