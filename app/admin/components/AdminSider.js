@@ -112,6 +112,14 @@ const menuItems = [
   // }
 ];
 
+const UNILET_VIEW_MENUS = ['Dashboard', 'Category', 'Product', 'Unilet Products', 'Sales', 'Stores'];
+
+function visibleMenuItems(uniletView) {
+  return uniletView
+    ? menuItems.filter((item) => UNILET_VIEW_MENUS.includes(item.label))
+    : menuItems.filter((item) => item.label !== 'Unilet Products');
+}
+
 function setSidebarFlyoutTop(event) {
   const rect = event.currentTarget.getBoundingClientRect();
   event.currentTarget.style.setProperty('--sidebar-flyout-top', `${rect.top}px`);
@@ -136,7 +144,12 @@ export default function AdminSider({ collapsed }) {
   const pathname = usePathname();
   const [activeMenu, setActiveMenu] = useState('Dashboard');
   const [openMenus, setOpenMenus] = useState([]);
+  const [uniletView, setUniletView] = useState(false);
   const router = useRouter();
+
+  useEffect(() => {
+    setUniletView(/(?:^|;\s*)session_store=unilet(?:;|$)/.test(document.cookie));
+  }, []);
 
   useEffect(() => {
     if (!pathname) return;
@@ -178,7 +191,7 @@ export default function AdminSider({ collapsed }) {
     >
       <nav className="py-3">
         <ul className="space-y-1 px-3">
-          {menuItems.map((item) =>
+          {visibleMenuItems(uniletView).map((item) =>
             item.submenu ? (
               <SidebarItemWithDropdown
                 key={item.label}
