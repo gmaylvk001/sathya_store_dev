@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import dbConnect from "@/lib/db";
 import StoreListing, { STORE_LISTING_FIELDS, STORE_LISTING_NUMBER_FIELDS } from "@/models/store_listings";
 import { parseExistId, parseNumberValue, slugify, stringifyValue } from "@/lib/storeImportHelpers";
+import { branchConflictMessage, findBranchConflict, normalizeOwner } from "@/lib/storeListingBranch";
 
 function buildListingUpdate(body) {
   const update = {};
@@ -67,6 +68,21 @@ export async function PUT(req) {
       }).lean();
       if (conflict) {
         return NextResponse.json({ error: "exist_id already exists" }, { status: 409 });
+      }
+    }
+
+    if ("branch_code" in update || "store_owner" in update) {
+      const current = await StoreListing.findById(id).select("branch_code store_owner").lean();
+      if (!current) {
+        return NextResponse.json({ error: "Listing not found" }, { status: 404 });
+      }
+      const nextCode = "branch_code" in update ? update.branch_code : current.branch_code;
+      const nextOwner = "store_owner" in update ? update.store_owner : current.store_owner;
+      const changed =
+        String(nextCode || "").trim().toLowerCase() !== String(current.branch_code || "").trim().toLowerCase() ||
+        normalizeOwner(nextOwner) !== normalizeOwner(current.store_owner);
+      if (changed && (await findBranchConflict({ branchCode: nextCode, storeOwner: nextOwner, excludeId: id }))) {
+        return NextResponse.json({ error: branchConflictMessage(nextCode, nextOwner) }, { status: 409 });
       }
     }
 

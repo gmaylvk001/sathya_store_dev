@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import StoreListing, { STORE_LISTING_FIELDS, STORE_LISTING_NUMBER_FIELDS } from "@/models/store_listings";
 import { parseExistId, parseNumberValue, slugify, stringifyValue } from "@/lib/storeImportHelpers";
+import { branchConflictMessage, findBranchConflict } from "@/lib/storeListingBranch";
 
 function buildListingPayload(body) {
   const payload = {};
@@ -57,6 +58,13 @@ export async function POST(req) {
       if (exists) {
         return NextResponse.json({ error: "exist_id already exists" }, { status: 409 });
       }
+    }
+
+    if (await findBranchConflict({ branchCode: payload.branch_code, storeOwner: payload.store_owner })) {
+      return NextResponse.json(
+        { error: branchConflictMessage(payload.branch_code, payload.store_owner) },
+        { status: 409 }
+      );
     }
 
     const listing = await StoreListing.create(payload);

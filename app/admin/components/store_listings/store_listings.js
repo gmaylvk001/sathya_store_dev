@@ -88,7 +88,6 @@ export default function StoreListingsComponent() {
   const [rows, setRows] = useState([]);
   const [zones, setZones] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [ownerFilter, setOwnerFilter] = useState("");
   const [approvedFilter, setApprovedFilter] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -106,11 +105,50 @@ export default function StoreListingsComponent() {
   const [form, setForm] = useState(EMPTY_FORM);
   const [isSaving, setIsSaving] = useState(false);
   const [viewRow, setViewRow] = useState(null);
+  const [uniletView, setUniletView] = useState(false);
+  const [editOriginal, setEditOriginal] = useState(null);
+  const [branchError, setBranchError] = useState("");
+  const [branchChecking, setBranchChecking] = useState(false);
 
   useEffect(() => {
+    setUniletView(/(?:^|;\s*)session_store=unilet(?:;|$)/.test(document.cookie));
     fetchRows();
     fetchZones();
   }, []);
+
+  useEffect(() => {
+    setBranchError("");
+    if (!isModalOpen) return;
+    const code = String(form.branch_code || "").trim();
+    const owner = uniletView ? "unilet" : form.store_owner || "sathya";
+    if (!code) return;
+    if (
+      editOriginal &&
+      code.toLowerCase() === String(editOriginal.branch_code || "").trim().toLowerCase() &&
+      owner === editOriginal.store_owner
+    ) {
+      return;
+    }
+    let cancelled = false;
+    setBranchChecking(true);
+    const timer = setTimeout(async () => {
+      try {
+        const params = new URLSearchParams({ branch_code: code, store_owner: owner });
+        if (editingId) params.set("id", String(editingId));
+        const response = await axios.get(`/api/store_listings/check-branch?${params.toString()}`);
+        if (!cancelled) setBranchError(response.data?.exists ? response.data.message : "");
+      } catch (error) {
+        console.error("Error checking branch code:", error);
+      } finally {
+        if (!cancelled) setBranchChecking(false);
+      }
+    }, 400);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+      setBranchChecking(false);
+    };
+  }, [form.branch_code, form.store_owner, isModalOpen, editingId, editOriginal, uniletView]);
 
   const showMsg = (message) => {
     setAlertMessage(message);
@@ -121,7 +159,9 @@ export default function StoreListingsComponent() {
   const fetchRows = async () => {
     setIsLoading(true);
     try {
-      const response = await axios.get("/api/store_listings/get");
+      const response = await axios.get("/api/store_listings/get?scope=admin", {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token") || ""}` },
+      });
       setRows(Array.isArray(response.data) ? response.data : []);
     } catch (error) {
       console.error("Error fetching store listings:", error);
@@ -157,12 +197,17 @@ export default function StoreListingsComponent() {
 
   const openAdd = () => {
     setEditingId(null);
-    setForm(EMPTY_FORM);
+    setEditOriginal(null);
+    setForm(uniletView ? { ...EMPTY_FORM, store_owner: "unilet" } : EMPTY_FORM);
     setIsModalOpen(true);
   };
 
   const openEdit = (row) => {
     setEditingId(row._id);
+    setEditOriginal({
+      branch_code: row.branch_code || "",
+      store_owner: String(row.store_owner || "").toLowerCase() === "unilet" ? "unilet" : "sathya",
+    });
     setForm({
       exist_id: row.exist_id || "",
       branch_code: row.branch_code || "",
@@ -184,7 +229,7 @@ export default function StoreListingsComponent() {
       zipcode: row.zipcode ?? "",
       zone_code: row.zone_code ?? "",
       is_WH: row.is_WH ?? 0,
-      store_owner: row.store_owner || "sathya",
+      store_owner: uniletView ? "unilet" : row.store_owner || "sathya",
       meta_title: row.meta_title || "",
       meta_description: row.meta_description || "",
       tags: row.tags || "",
@@ -195,13 +240,15 @@ export default function StoreListingsComponent() {
 
   const handleSave = async (e) => {
     e.preventDefault();
+    if (branchError || branchChecking) return;
     setIsSaving(true);
+    const payload = uniletView ? { ...form, store_owner: "unilet" } : form;
     try {
       if (editingId) {
-        await axios.put("/api/store_listings/edit", { id: editingId, ...form });
+        await axios.put("/api/store_listings/edit", { id: editingId, ...payload });
         showMsg("✅ Listing updated");
       } else {
-        await axios.post("/api/store_listings/add", form);
+        await axios.post("/api/store_listings/add", payload);
         showMsg("✅ Listing added");
       }
       setIsModalOpen(false);
@@ -259,10 +306,9 @@ export default function StoreListingsComponent() {
       !q ||
       [row.exist_id, row.branch_code, row.title, row.slug, row.phone, row.email, row.city, row.address, row.zipcode]
         .some((v) => v != null && String(v).toLowerCase().includes(q));
-    const matchesOwner = ownerFilter === "" || String(row.store_owner || "") === ownerFilter;
     const matchesApproved =
       approvedFilter === "" || String(row.approved ?? "") === approvedFilter;
-    return matchesSearch && matchesOwner && matchesApproved;
+    return matchesSearch && matchesApproved;
   });
 
   const indexOfLastItem = currentPage * itemsPerPage;
@@ -335,7 +381,7 @@ export default function StoreListingsComponent() {
         <p>Loading...</p>
       ) : (
         <div className="bg-white shadow-md rounded-lg p-5 mb-5 border border-gray-200">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end mb-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end mb-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
               <input
@@ -348,21 +394,6 @@ export default function StoreListingsComponent() {
                 }}
                 className="w-full p-2 border border-gray-300 rounded-md"
               />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Store Owner</label>
-              <select
-                value={ownerFilter}
-                onChange={(e) => {
-                  setOwnerFilter(e.target.value);
-                  setCurrentPage(1);
-                }}
-                className="w-full p-2 border border-gray-300 rounded-md"
-              >
-                <option value="">All</option>
-                <option value="sathya">sathya</option>
-                <option value="unilet">unilet</option>
-              </select>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Approved</label>
@@ -531,7 +562,7 @@ export default function StoreListingsComponent() {
             {showAlert && <div className="bg-green-500 text-white px-3 py-2 rounded mb-3 text-center text-sm">{alertMessage}</div>}
             <form onSubmit={handleSave} className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {[
-                ["exist_id", "Exist ID"],
+                ["exist_id", "Exist ID (optional)"],
                 ["branch_code", "Branch Code"],
                 ["title", "Title"],
                 ["slug", "Slug"],
@@ -552,10 +583,17 @@ export default function StoreListingsComponent() {
                 <div key={key}>
                   <label className="block text-sm mb-1">{label}</label>
                   <input
-                    className="w-full border rounded p-2"
+                    className={`w-full border rounded p-2 ${key === "branch_code" && branchError ? "border-red-500" : ""}`}
                     value={form[key] ?? ""}
+                    maxLength={key === "branch_code" ? 5 : undefined}
                     onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
                   />
+                  {key === "branch_code" && branchError && (
+                    <p className="mt-1 text-xs text-red-600">{branchError}</p>
+                  )}
+                  {key === "branch_code" && !branchError && branchChecking && (
+                    <p className="mt-1 text-xs text-gray-500">Checking branch code...</p>
+                  )}
                 </div>
               ))}
               <div>
@@ -573,17 +611,19 @@ export default function StoreListingsComponent() {
                   ))}
                 </select>
               </div>
-              <div>
-                <label className="block text-sm mb-1">Store Owner</label>
-                <select
-                  className="w-full border rounded p-2"
-                  value={form.store_owner}
-                  onChange={(e) => setForm((f) => ({ ...f, store_owner: e.target.value }))}
-                >
-                  <option value="sathya">sathya</option>
-                  <option value="unilet">unilet</option>
-                </select>
-              </div>
+              {!uniletView && (
+                <div>
+                  <label className="block text-sm mb-1">Store Owner</label>
+                  <select
+                    className="w-full border rounded p-2"
+                    value={form.store_owner}
+                    onChange={(e) => setForm((f) => ({ ...f, store_owner: e.target.value }))}
+                  >
+                    <option value="sathya">sathya</option>
+                    <option value="unilet">unilet</option>
+                  </select>
+                </div>
+              )}
               <div>
                 <label className="block text-sm mb-1">Approved</label>
                 <select
@@ -637,7 +677,11 @@ export default function StoreListingsComponent() {
               </div>
               <div className="md:col-span-2 flex justify-end gap-2 pt-2">
                 <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 border rounded">Cancel</button>
-                <button type="submit" disabled={isSaving} className="px-4 py-2 bg-green-500 text-white rounded disabled:opacity-50">
+                <button
+                  type="submit"
+                  disabled={isSaving || Boolean(branchError) || branchChecking}
+                  className="px-4 py-2 bg-green-500 text-white rounded disabled:opacity-50"
+                >
                   {isSaving ? "Saving..." : "Save"}
                 </button>
               </div>
