@@ -4,12 +4,14 @@ import OrderDetailsNew from "@/models/order_details_new";
 import OrderHistoryNew from "@/models/order_history_new";
 import PaymentNewLive from "@/models/payment_new_live";
 import Product from "@/models/product";
+import OwnerProduct from "@/models/OwnerProduct";
 import mongoose from "mongoose";
 import Coupon from "@/models/ecom_offer_info";
 import Usedcoupon from "@/models/ecom_coupon_track_info";
 import Notification from "@/models/Notification.js";
 import { sendOrderData } from "@/lib/sendOrderData";
 import { sendOrderConfirmationSms } from "@/lib/orderConfirmSms";
+import { isKarnatakaPincode } from "@/lib/regionHelper";
 
 const ORDER_STATUS_ENUM = [
   "Billed",
@@ -59,6 +61,16 @@ function toNumber(value, fallback = null) {
 function makeOrderNumber(base, index) {
   const raw = stringify(base) || `ORD${Date.now()}`;
   if (index === 0) return raw;
+  if (raw.endsWith("-UL")) {
+    const root = raw.slice(0, -3);
+    const prefixMatch = root.match(/^(ORD)/i);
+    const prefix = prefixMatch ? prefixMatch[1] : "ORD";
+    const numeric = root.replace(/^ORD/i, "");
+    if (/^\d+$/.test(numeric)) {
+      return `${prefix}${String(BigInt(numeric) + BigInt(index))}-UL`;
+    }
+    return `${root}-${index + 1}-UL`;
+  }
   const prefixMatch = raw.match(/^(ORD)/i);
   const prefix = prefixMatch ? prefixMatch[1] : "ORD";
   const numeric = raw.replace(/^ORD/i, "");
@@ -111,11 +123,20 @@ function buildOrderDetailRows(order_item, order_details, savedOrder, userId) {
   }).filter((row) => row.product_name || row.item_code || row.product_id);
 }
 
-async function applyItemSideEffects(item, user_id) {
+async function applyItemSideEffects(item, user_id, isKarnatakaOrder = false) {
   const productId = item.productId || item.id || item.product_id;
-  if (!productId) return;
+  const rawCode = item.item_code || item.itemCode || "";
+  const itemCode = rawCode
+    ? (String(rawCode).startsWith("ITEM") ? String(rawCode) : `ITEM${rawCode}`)
+    : null;
 
-  const product = await Product.findById(productId);
+  let product = null;
+  if (productId && mongoose.isValidObjectId(productId)) {
+    product = await Product.findById(productId);
+  } else if (itemCode) {
+    product = await Product.findOne({ item_code: itemCode });
+  }
+
   const discount = item.discount;
 
   if (
@@ -139,9 +160,45 @@ async function applyItemSideEffects(item, user_id) {
     }
   }
 
-  if (product && product.quantity > 0) {
-    product.quantity = product.quantity - item.quantity;
-    await product.save();
+  const qty = toNumber(item.quantity, 1) || 1;
+
+  if (isKarnatakaOrder) {
+    // Decrement Unilet inventory in OwnerProduct
+    const ownerQuery = { owner_id: "unilet" };
+    if (product?._id) {
+      ownerQuery.product_id = product._id;
+    } else if (productId && mongoose.isValidObjectId(productId)) {
+      ownerQuery.product_id = productId;
+    } else if (itemCode) {
+      ownerQuery.product_item_code = itemCode;
+    }
+
+    let ownerProd = await OwnerProduct.findOne(ownerQuery);
+    if (!ownerProd && itemCode) {
+      ownerProd = await OwnerProduct.findOne({
+        owner_id: "unilet",
+        $or: [{ product_item_code: itemCode }, { vendor_item_code: itemCode }],
+      });
+    }
+
+    if (ownerProd) {
+      const remainingStock = Math.max(0, (ownerProd.stock || 0) - qty);
+      ownerProd.stock = remainingStock;
+      if (remainingStock === 0) {
+        ownerProd.stock_status = "Out of Stock";
+      }
+      await ownerProd.save();
+    }
+  } else {
+    // Decrement Sathya Product inventory
+    if (product && product.quantity > 0) {
+      const remainingQty = Math.max(0, product.quantity - qty);
+      product.quantity = remainingQty;
+      if (remainingQty === 0 && product.movement !== "CUS-Order") {
+        product.stock_status = "Out of Stock";
+      }
+      await product.save();
+    }
   }
 }
 
@@ -213,8 +270,22 @@ export async function POST(req) {
       );
     }
 
+    const pinMatch = String(order_deliveryaddress || "").match(/\b\d{6}\b/);
+    const hasKarnatakaPin = pinMatch
+      ? isKarnatakaPincode(pinMatch[0])
+      : body.pincode
+      ? isKarnatakaPincode(body.pincode)
+      : false;
+
     const isKarnatakaOrder =
+      hasKarnatakaPin ||
+      String(order_number || "").endsWith("-UL") ||
+      body.order_owner === "unilet" ||
+      body.region === "karnataka" ||
+      isKarnatakaPincode(body.pincode) ||
       /karnataka/i.test(order_deliveryaddress || "") ||
+      /karnataka/i.test(body.region || "") ||
+      /karnataka/i.test(body.pickup_store || "") ||
       (order_item &&
         order_item.some((item) => item.store_id === "unilet" || item.isUnilet)) ||
       store_id === "unilet";
@@ -226,7 +297,13 @@ export async function POST(req) {
 
     const mappedStatus = mapOrderStatus(order_status, payment_status);
     const mappedDelivery = mapDeliveryType(delivery_type);
-    const baseOrderNumber = stringify(order_number) || `ORD${Date.now()}`;
+    let baseOrderNumber = stringify(order_number);
+    if (!baseOrderNumber) {
+      baseOrderNumber = `ORD${Date.now()}`;
+    }
+    if (isKarnatakaOrder && !baseOrderNumber.endsWith("-UL")) {
+      baseOrderNumber = `${baseOrderNumber}-UL`;
+    }
     const detailsList = Array.isArray(order_details) ? order_details : [];
 
     const sharedFields = {
@@ -262,6 +339,76 @@ export async function POST(req) {
     const existingByNumber = new Map(
       existingOrders.map((order) => [order.order_number, order])
     );
+
+    // Pre-order stock re-validation to prevent overselling on initial order placement
+    if (existingOrders.length === 0) {
+      for (const item of order_item) {
+        const requiredQty = toNumber(item.quantity, 1) || 1;
+        const productId = item.productId || item.id || item.product_id;
+        const rawCode = item.item_code || item.itemCode || "";
+        const itemCode = rawCode
+          ? (String(rawCode).startsWith("ITEM") ? String(rawCode) : `ITEM${rawCode}`)
+          : null;
+
+        if (isKarnatakaOrder) {
+          const ownerQuery = { owner_id: "unilet", is_active: true };
+          if (productId && mongoose.isValidObjectId(productId)) {
+            ownerQuery.product_id = productId;
+          } else if (itemCode) {
+            ownerQuery.product_item_code = itemCode;
+          }
+
+          let ownerProd = await OwnerProduct.findOne(ownerQuery);
+          if (!ownerProd && itemCode) {
+            ownerProd = await OwnerProduct.findOne({
+              owner_id: "unilet",
+              $or: [{ product_item_code: itemCode }, { vendor_item_code: itemCode }],
+              is_active: true,
+            });
+          }
+
+          if (ownerProd) {
+            if (Number(ownerProd.stock || 0) < requiredQty || ownerProd.stock_status === "Out of Stock") {
+              return Response.json(
+                {
+                  success: false,
+                  message: `Item "${item.name || item.product_name || itemCode}" is out of stock in Karnataka (${ownerProd.stock || 0} available).`,
+                },
+                { status: 400 }
+              );
+            }
+          } else {
+            return Response.json(
+              {
+                success: false,
+                message: `Item "${item.name || item.product_name || itemCode}" is currently unavailable for delivery in Karnataka.`,
+              },
+              { status: 400 }
+            );
+          }
+        } else {
+          let prod = null;
+          if (productId && mongoose.isValidObjectId(productId)) {
+            prod = await Product.findById(productId);
+          } else if (itemCode) {
+            prod = await Product.findOne({ item_code: itemCode });
+          }
+
+          if (prod) {
+            const isCustomOrder = prod.movement === "CUS-Order";
+            if (!isCustomOrder && (Number(prod.quantity || 0) < requiredQty || prod.stock_status === "Out of Stock")) {
+              return Response.json(
+                {
+                  success: false,
+                  message: `Item "${prod.name || item.product_name || itemCode}" is out of stock (${prod.quantity || 0} available).`,
+                },
+                { status: 400 }
+              );
+            }
+          }
+        }
+      }
+    }
 
     const savedOrders = [];
     let createdAny = false;
@@ -323,7 +470,7 @@ export async function POST(req) {
       }
 
       if (isNew) {
-        await applyItemSideEffects(item, user_id);
+        await applyItemSideEffects(item, user_id, isKarnatakaOrder);
         await saveOrderHistory(savedOrder);
 
         try {

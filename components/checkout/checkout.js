@@ -7,6 +7,8 @@ import { useRouter } from 'next/navigation';
 import { AuthModal } from '@/components/AuthModal';
 import { ga4BeginCheckout, ga4Purchase } from "@/utils/nextjs-event-tracking.js";
 import { useModal } from "@/context/ModalContext";
+import { isKarnatakaPincode } from "@/lib/regionHelper";
+import { useRegion } from "@/context/RegionContext";
 
 const loadRazorpay = () => {
   return new Promise((resolve) => {
@@ -37,7 +39,7 @@ const toCheckoutEmail = (value) => {
 
 const FloatInput = ({ label, name, type = 'text', required, readOnly, value, onChange, onBlur, error, inputMode, maxLength, showLock, hint }) => (
   <div>
-    <div className="relative">
+      <div className="relative">
       <input
         type={type}
         name={name}
@@ -91,6 +93,10 @@ const DeliveryOptions = ({
   stores, nearestStores, setNearestStores,
   selectedPickupStore, setSelectedPickupStore,
   cartItems,
+  hasPincodeMismatch,
+  normDeliveryPin,
+  normHeaderPin,
+  setPincode,
 }) => {
   const firstProduct = cartItems?.[0];
   const productLink = firstProduct
@@ -235,16 +241,43 @@ const DeliveryOptions = ({
 
       {/* Save and Continue */}
       {!isDeliverySaved && (
-        <button
-          type="button"
-          onClick={() => {
-            toast.success('Delivery method saved');
-            setIsDeliverySaved(true);
-          }}
-          className="mt-4 bg-red-600 text-white px-6 py-2.5 rounded-lg text-sm font-medium hover:bg-red-700 transition"
-        >
-          Save and continue
-        </button>
+        <>
+          {formData.deliveryType === 'home' && hasPincodeMismatch && (
+            <div className="mt-3 p-3 rounded-lg border border-red-200 bg-red-50 text-xs text-red-700 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+              <span>
+                Delivery location pincode (<strong>{normDeliveryPin}</strong>) and selected store location (<strong>{normHeaderPin}</strong>) do not match.
+              </span>
+              <button
+                type="button"
+                onClick={async () => {
+                  if (setPincode && normDeliveryPin) {
+                    await setPincode(normDeliveryPin);
+                    toast.success(`Location synced to ${normDeliveryPin}`);
+                  }
+                }}
+                className="px-2.5 py-1 bg-red-600 hover:bg-red-700 text-white font-semibold rounded text-[11px] whitespace-nowrap transition cursor-pointer"
+              >
+                Sync Location to {normDeliveryPin}
+              </button>
+            </div>
+          )}
+          <button
+            type="button"
+            onClick={() => {
+              if (formData.deliveryType === 'home' && hasPincodeMismatch) {
+                toast.error(
+                  `Delivery pincode (${normDeliveryPin}) and selected location (${normHeaderPin}) do not match. Please update your address or sync your location to proceed.`
+                );
+                return;
+              }
+              toast.success('Delivery method saved');
+              setIsDeliverySaved(true);
+            }}
+            className="mt-4 bg-red-600 text-white px-6 py-2.5 rounded-lg text-sm font-medium hover:bg-red-700 transition cursor-pointer"
+          >
+            Save and continue
+          </button>
+        </>
       )}
 
       {isDeliverySaved && (
@@ -260,10 +293,321 @@ const DeliveryOptions = ({
   );
 };
 
+// ─── Add / Edit Address Form Component ────────────────────────────────────────
+const AddressModalForm = ({
+  addressModalType,
+  editAddressId,
+  savedAddresses,
+  headerPincode,
+  onSuccess,
+  onCancel,
+}) => {
+  const isKarnatakaHeader = isKarnatakaPincode(headerPincode);
+
+  let initialVals = {
+    firstName: '',
+    lastName: '',
+    phone: '',
+    alternate_phone: '',
+    pincode: headerPincode || '',
+    locality: '',
+    address_line1: '',
+    address_line2: '',
+    city: '',
+    state: isKarnatakaHeader ? 'Karnataka' : 'Tamil Nadu',
+    landmark: '',
+  };
+
+  if (addressModalType === 'edit' && editAddressId) {
+    const addr = savedAddresses.find((a) => a._id === editAddressId);
+    if (addr) {
+      const cleanVal = (val) => (!val || String(val).toUpperCase() === 'NULL' ? '' : val);
+      const parts = cleanVal(addr.username).split(' ');
+      initialVals = {
+        firstName: parts[0] || '',
+        lastName: parts.slice(1).join(' ') || '',
+        phone: cleanVal(addr.phonenumber),
+        alternate_phone: cleanVal(addr.altnumber),
+        pincode: cleanVal(addr.pincode),
+        locality: cleanVal(addr.locality),
+        address_line1: cleanVal(addr.address1),
+        address_line2: cleanVal(addr.address2),
+        city: cleanVal(addr.city),
+        state: cleanVal(addr.state) || (isKarnatakaPincode(addr.pincode) ? 'Karnataka' : 'Tamil Nadu'),
+        landmark: cleanVal(addr.landmark),
+      };
+    }
+  }
+
+  const [formVals, setFormVals] = useState(initialVals);
+  const [loadingPincode, setLoadingPincode] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormVals((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handlePincodeChange = async (e) => {
+    const pin = e.target.value.replace(/\D/g, '').slice(0, 6);
+    let resolvedState = formVals.state;
+    if (isKarnatakaPincode(pin)) {
+      resolvedState = 'Karnataka';
+    } else if (pin.startsWith('60') || pin.startsWith('61') || pin.startsWith('62') || pin.startsWith('63') || pin.startsWith('64')) {
+      resolvedState = 'Tamil Nadu';
+    } else if (pin.startsWith('67') || pin.startsWith('68') || pin.startsWith('69')) {
+      resolvedState = 'Kerala';
+    } else if (pin.startsWith('50')) {
+      resolvedState = 'Telangana';
+    } else if (pin.startsWith('51') || pin.startsWith('52') || pin.startsWith('53')) {
+      resolvedState = 'Andhra Pradesh';
+    }
+
+    setFormVals((prev) => ({ ...prev, pincode: pin, state: resolvedState }));
+
+    if (pin.length === 6) {
+      setLoadingPincode(true);
+      try {
+        const res = await fetch('/api/pincode/check-state', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ pincode: pin }),
+        });
+        const data = await res.json();
+        if (data.status && data.city && data.city !== 'unknown') {
+          setFormVals((prev) => ({
+            ...prev,
+            city: prev.city || (data.city.charAt(0).toUpperCase() + data.city.slice(1)),
+            state: data.state || resolvedState,
+          }));
+        }
+      } catch (err) {
+        console.error('Pincode check error:', err);
+      } finally {
+        setLoadingPincode(false);
+      }
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const token = localStorage.getItem('token');
+    if (!token) {
+      toast.error('Session expired. Please log in.');
+      return;
+    }
+
+    if (!formVals.pincode || formVals.pincode.length !== 6) {
+      toast.error('Please enter a valid 6-digit postal pincode');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const payload = {
+        full_name: `${formVals.firstName.trim()} ${formVals.lastName.trim()}`.trim(),
+        phone: formVals.phone,
+        alternate_phone: formVals.alternate_phone || '',
+        pincode: formVals.pincode,
+        locality: formVals.locality || '',
+        address_line1: formVals.address_line1,
+        address_line2: formVals.address_line2 || '',
+        city: formVals.city,
+        state: formVals.state || (isKarnatakaPincode(formVals.pincode) ? 'Karnataka' : 'Tamil Nadu'),
+        landmark: formVals.landmark || '',
+        is_default_shipping: false,
+        is_default_billing: false,
+      };
+
+      const url = addressModalType === 'edit' ? `/api/saved-address/${editAddressId}` : '/api/saved-address';
+      const method = addressModalType === 'edit' ? 'PUT' : 'POST';
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (data.success && data.address) {
+        await onSuccess(data.address);
+      } else {
+        toast.error(data.message || 'Failed to save address');
+      }
+    } catch (err) {
+      console.error('Save address error:', err);
+      toast.error('Failed to save address');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      {formVals.pincode && (
+        <div className="p-2.5 rounded-lg border border-gray-200 bg-gray-50 text-xs flex items-center justify-between text-gray-700">
+          <span className="font-medium">Delivery Pincode: <strong>{formVals.pincode}</strong></span>
+          <span className="text-[11px] text-gray-500">{isKarnatakaPincode(formVals.pincode) ? 'Karnataka' : 'Tamil Nadu'}</span>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-xs font-medium text-gray-700 mb-1">First Name *</label>
+          <input
+            name="firstName"
+            value={formVals.firstName}
+            onChange={handleInputChange}
+            required
+            className="w-full px-3 py-2 border border-gray-300 rounded focus:border-red-500 outline-none text-sm"
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-700 mb-1">Last Name</label>
+          <input
+            name="lastName"
+            value={formVals.lastName}
+            onChange={handleInputChange}
+            className="w-full px-3 py-2 border border-gray-300 rounded focus:border-red-500 outline-none text-sm"
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-xs font-medium text-gray-700 mb-1">Phone Number *</label>
+          <input
+            name="phone"
+            value={formVals.phone}
+            onChange={handleInputChange}
+            required
+            type="tel"
+            pattern="[0-9]{10}"
+            maxLength="10"
+            className="w-full px-3 py-2 border border-gray-300 rounded focus:border-red-500 outline-none text-sm"
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-700 mb-1">Alternate Phone</label>
+          <input
+            name="alternate_phone"
+            value={formVals.alternate_phone}
+            onChange={handleInputChange}
+            type="tel"
+            pattern="[0-9]{10}"
+            maxLength="10"
+            className="w-full px-3 py-2 border border-gray-300 rounded focus:border-red-500 outline-none text-sm"
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-xs font-medium text-gray-700 mb-1 flex items-center justify-between">
+            <span>Pincode *</span>
+            {loadingPincode && <span className="text-[10px] text-gray-400">Detecting location…</span>}
+          </label>
+          <input
+            name="pincode"
+            value={formVals.pincode}
+            onChange={handlePincodeChange}
+            required
+            pattern="[0-9]{6}"
+            maxLength="6"
+            placeholder="e.g. 560020 or 600001"
+            className="w-full px-3 py-2 border border-gray-300 rounded focus:border-red-500 outline-none text-sm font-medium"
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-700 mb-1">Locality</label>
+          <input
+            name="locality"
+            value={formVals.locality}
+            onChange={handleInputChange}
+            className="w-full px-3 py-2 border border-gray-300 rounded focus:border-red-500 outline-none text-sm"
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4">
+        <div>
+          <label className="block text-xs font-medium text-gray-700 mb-1">Address Line 1 *</label>
+          <textarea
+            name="address_line1"
+            value={formVals.address_line1}
+            onChange={handleInputChange}
+            required
+            className="w-full px-3 py-2 border border-gray-300 rounded focus:border-red-500 outline-none text-sm"
+            rows="2"
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-700 mb-1">Address Line 2</label>
+          <textarea
+            name="address_line2"
+            value={formVals.address_line2}
+            onChange={handleInputChange}
+            className="w-full px-3 py-2 border border-gray-300 rounded focus:border-red-500 outline-none text-sm"
+            rows="2"
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div>
+          <label className="block text-xs font-medium text-gray-700 mb-1">City *</label>
+          <input
+            name="city"
+            value={formVals.city}
+            onChange={handleInputChange}
+            required
+            className="w-full px-3 py-2 border border-gray-300 rounded focus:border-red-500 outline-none text-sm"
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-700 mb-1">State *</label>
+          <input
+            name="state"
+            value={formVals.state}
+            onChange={handleInputChange}
+            required
+            className="w-full px-3 py-2 border border-gray-300 rounded focus:border-red-500 outline-none text-sm font-semibold"
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-700 mb-1">Landmark</label>
+          <input
+            name="landmark"
+            value={formVals.landmark}
+            onChange={handleInputChange}
+            className="w-full px-3 py-2 border border-gray-300 rounded focus:border-red-500 outline-none text-sm"
+          />
+        </div>
+      </div>
+
+      <div className="pt-4 flex justify-end gap-3 border-t border-gray-100">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-600 hover:bg-gray-50"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 disabled:opacity-50"
+        >
+          {isSubmitting ? 'Saving…' : 'Save Address'}
+        </button>
+      </div>
+    </form>
+  );
+};
+
 // ─── Main CheckoutPage ───────────────────────────────────────────────────────
 export default function CheckoutPage() {
   const { openLiveDemoModal } = useModal();
   const { cartCount, updateCartCount } = useCart();
+  const { pincode: headerPincode, region: headerRegion, selectedRegion, setPincode } = useRegion();
   const router = useRouter();
   const [stores, setStores] = useState([]);
   const [nearestStores, setNearestStores] = useState([]);
@@ -353,6 +697,45 @@ export default function CheckoutPage() {
     }
   }, [cartItems, orderSummary.total]);
 
+  const currentShipping = savedAddresses.find((a) => a._id === shippingAddressId);
+  const rawDeliveryPin = currentShipping?.pincode || formData.postCode || '';
+  const normDeliveryPin = String(rawDeliveryPin).replace(/\D/g, '').trim();
+  const normHeaderPin = String(headerPincode || '').replace(/\D/g, '').trim();
+  const currentSt = currentShipping?.state || formData.state || '';
+
+  const selectedStoreObj = stores.find(
+    (s) => s.branch_code === formData.selectedStore || s._id === formData.selectedStore
+  );
+
+  const isKarnatakaDelivery =
+    isKarnatakaPincode(normDeliveryPin) ||
+    /karnataka/i.test(currentSt);
+
+  const isKarnatakaStorePickup =
+    formData.deliveryType === 'store' &&
+    (
+      isKarnatakaPincode(normHeaderPin) ||
+      isKarnatakaPincode(selectedStoreObj?.pincode || selectedStoreObj?.zip || '') ||
+      /karnataka/i.test(selectedStoreObj?.state || '') ||
+      /karnataka/i.test(selectedStoreObj?.city || '') ||
+      isKarnatakaPincode(normDeliveryPin)
+    );
+
+  const isKarnataka = formData.deliveryType === 'store' ? Boolean(isKarnatakaStorePickup) : Boolean(isKarnatakaDelivery);
+
+  const hasPincodeMismatch = Boolean(
+    formData.deliveryType === 'home' &&
+    normDeliveryPin.length === 6 &&
+    normHeaderPin.length === 6 &&
+    normDeliveryPin !== normHeaderPin
+  );
+
+  useEffect(() => {
+    if (formData.deliveryType === 'home' && hasPincodeMismatch && isDeliverySaved) {
+      setIsDeliverySaved(false);
+    }
+  }, [formData.deliveryType, hasPincodeMismatch, isDeliverySaved]);
+
   const fetchData = async (skipCartFetch = false) => {
     const token = localStorage.getItem('token');
     if (!token) { setShowAuthModal(true); setLoading(false); return; }
@@ -400,8 +783,15 @@ export default function CheckoutPage() {
           const addresses = addrData?.addresses || [];
           setSavedAddresses(addresses);
           if (addresses.length > 0) {
-            const defaultShip = addresses.find(a => a.is_default_shipping) || addresses[0];
-            const defaultBill = addresses.find(a => a.is_default_billing) || addresses[0];
+            const normHeader = String(headerPincode || '').replace(/\D/g, '').trim();
+            const isKarnatakaHeader = isKarnatakaPincode(normHeader) || headerRegion === 'karnataka';
+            const matchedPin = normHeader ? addresses.find(a => String(a.pincode || '').replace(/\D/g, '').trim() === normHeader) : null;
+            const matchedRegion = isKarnatakaHeader
+              ? addresses.find(a => isKarnatakaPincode(String(a.pincode || '').replace(/\D/g, '')) || /karnataka/i.test(a.state))
+              : addresses.find(a => !isKarnatakaPincode(String(a.pincode || '').replace(/\D/g, '')) && !/karnataka/i.test(a.state));
+
+            const defaultShip = matchedPin || matchedRegion || addresses.find(a => a.is_default_shipping) || addresses[0];
+            const defaultBill = matchedPin || matchedRegion || addresses.find(a => a.is_default_billing) || addresses[0];
             if (!contactPhone) {
               contactPhone = toCheckoutPhone(defaultShip.phonenumber);
             }
@@ -440,10 +830,8 @@ export default function CheckoutPage() {
     // Visual-only convenience: when switching to store pickup, surface "Pay at store" as the
     // highlighted payment option to match the in-store collection flow shown in the design.
     if (name === 'deliveryType') {
-      if (value === 'store') {
+      if (value === 'store' && !paymentMethod) {
         setPaymentMethod('Cash on Delivery');
-      } else if (value === 'home' && paymentMethod === 'Cash on Delivery') {
-        setPaymentMethod('online');
       }
     }
   };
@@ -558,6 +946,55 @@ export default function CheckoutPage() {
     });
   };
 
+  const handlePayuPayment = async ({ orderNumber, totalAmount, userId, customerName, customerEmail, customerPhone }) => {
+    try {
+      const initRes = await fetch('/api/payu/init', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          order_number: orderNumber,
+          amount: totalAmount,
+          firstname: customerName || 'Customer',
+          email: customerEmail || 'customer@example.com',
+          phone: customerPhone || '',
+          productinfo: `Order #${orderNumber}`,
+          user_id: userId,
+        }),
+      });
+
+      const initData = await initRes.json();
+      if (!initRes.ok || !initData.success) {
+        const errMsg = initData?.error || 'Failed to initialize PayU payment';
+        toast.error(errMsg);
+        setIsSubmitting(false);
+        throw new Error(errMsg);
+      }
+
+      const { action, params } = initData;
+
+      // Dynamically submit form to PayU gateway
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = action;
+
+      for (const [key, val] of Object.entries(params)) {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = key;
+        input.value = val;
+        form.appendChild(input);
+      }
+
+      document.body.appendChild(form);
+      form.submit();
+      return new Promise(() => {}); // Hold while browser redirects
+    } catch (err) {
+      setIsSubmitting(false);
+      throw err;
+    }
+  };
+
+
   const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   const totalDiscount = cartItems.reduce((sum, item) => sum + (item.discount || 0), 0);
   const warrantyTotal = cartItems.reduce((sum, item) => sum + (item.warrantyData?.price || 0), 0);
@@ -598,6 +1035,14 @@ export default function CheckoutPage() {
       const userId = decoded.userId;
       const shippingAddress = savedAddresses.find(a => a._id === shippingAddressId);
       const billingAddress = billingSameAsShipping ? shippingAddress : savedAddresses.find(a => a._id === billingAddressId);
+
+      if (formData.deliveryType === 'home' && hasPincodeMismatch) {
+        toast.error(
+          `Delivery pincode (${normDeliveryPin}) and selected location (${normHeaderPin}) do not match. Please update your address or sync your location to proceed.`
+        );
+        setIsSubmitting(false);
+        return;
+      }
 
       if (formData.deliveryType === 'home' && !shippingAddress) {
         toast.error('Please select a shipping address.');
@@ -661,7 +1106,27 @@ export default function CheckoutPage() {
         ? (stores.find(s => s.branch_code === formData.selectedStore || s._id === formData.selectedStore)?.title || stores.find(s => s.branch_code === formData.selectedStore || s._id === formData.selectedStore)?.organisation_name)
         : undefined;
 
-      let order_number = 'ORD' + Date.now();
+      const isKarnataka = formData.deliveryType === 'store'
+        ? (
+            isKarnatakaPincode(normHeaderPin) ||
+            isKarnatakaPincode(selectedStoreObj?.pincode || selectedStoreObj?.zip || '') ||
+            /karnataka/i.test(selectedStoreObj?.state || '') ||
+            /karnataka/i.test(selectedStoreObj?.city || '') ||
+            isKarnatakaPincode(normDeliveryPin)
+          )
+        : (
+            isKarnatakaPincode(normDeliveryPin) ||
+            isKarnatakaPincode(normHeaderPin) ||
+            /karnataka/i.test(currentSt)
+          );
+
+      if (shippingAddress?.pincode) {
+        try {
+          setPincode(shippingAddress.pincode);
+        } catch {}
+      }
+
+      let order_number = 'ORD' + Date.now() + (isKarnataka ? '-UL' : '');
       let paymentId = '', paymentStatus = '', paymentMode = '';
 
       if (paymentMethod === 'Cash on Delivery') {
@@ -678,26 +1143,49 @@ export default function CheckoutPage() {
               user_addbillingid: savedBillingId,
               order_username: orderUserName,
               order_phonenumber: orderPhone, email_address: orderEmail,
-              order_item: cartItems.map(item => ({ ...item, warrantyData: item.warrantyData || null, store_id: formData.deliveryType === 'store' ? formData.selectedStore : null, coupondetails: Array.isArray(item.coupondetails) && item.coupondetails.length > 0 ? item.coupondetails.map(c => c.offer_code || String(c)) : [] })),
+              order_item: cartItems.map(item => ({ ...item, warrantyData: item.warrantyData || null, store_id: formData.deliveryType === 'store' ? formData.selectedStore : (isKarnataka ? 'unilet' : null), coupondetails: Array.isArray(item.coupondetails) && item.coupondetails.length > 0 ? item.coupondetails.map(c => c.offer_code || String(c)) : [] })),
               order_amount: totalAmount, order_deliveryaddress: deliveryAddress,
               order_billingaddress: billingAddressStr,
               promotion_code_applied: appliedCoupon?.offer_code || null,
               promotion_discount_applied: appliedCoupon ? (orderSummary.discount || 0) : 0,
 
-              customer_comments: comments, payment_method: paymentMethod, payment_type: paymentMode,
+              customer_comments: comments, payment_method: paymentMethod, payment_type: isKarnataka ? 'PayU' : paymentMode,
               order_status: 'payment_initialized',
               delivery_type: formData.deliveryType === 'store' ? 'store_pickup' : 'home',
               pickup_store: formData.deliveryType === 'store' ? formData.selectedStore : null,
               pickup_type: formData.deliveryType === 'store' ? formData.selectedStore : null,
-              store_id: formData.deliveryType === 'store' ? formData.selectedStore : null,
+              store_id: isKarnataka ? 'unilet' : (formData.deliveryType === 'store' ? formData.selectedStore : null),
+              region: isKarnataka ? 'karnataka' : 'tamilnadu',
+              order_owner: isKarnataka ? 'unilet' : 'sathya',
               gst_number: gstNumber,
               payment_id: '', payment_status: 'payment_initialized',
-              order_number: order_number || 'ORD' + Date.now(),
-              order_details: cartItems.map(item => ({ item_code: `ITEM${item.item_code}`, product_id: item.productId || item.id || item._id, product_name: item.name, product_price: item.price, model: 'N/A', user_id: userId, coupondiscount: 0, created_at: new Date(), updated_at: new Date(), quantity: item.quantity, store_id: formData.deliveryType === 'store' ? formData.selectedStore : 'STORE01', orderNumber: 'ORD' + Date.now() })),
+              order_number: order_number || 'ORD' + Date.now() + (isKarnataka ? '-UL' : ''),
+              pincode: normDeliveryPin || normHeaderPin,
+              order_details: cartItems.map(item => ({ item_code: `ITEM${item.item_code}`, product_id: item.productId || item.id || item._id, product_name: item.name, product_price: item.price, model: 'N/A', user_id: userId, coupondiscount: 0, created_at: new Date(), updated_at: new Date(), quantity: item.quantity, store_id: formData.deliveryType === 'store' ? formData.selectedStore : (isKarnataka ? 'unilet' : 'STORE01'), orderNumber: order_number || 'ORD' + Date.now() + (isKarnataka ? '-UL' : '') })),
             }),
           });
           const orderData = await orderRes.json();
-          order_number = orderData?.order?.order_number;
+          if (!orderRes.ok || !orderData.success) {
+            toast.error(orderData?.message || 'Failed to initialize order');
+            setIsSubmitting(false);
+            return;
+          }
+
+          order_number = orderData?.order?.order_number || orderData?.orders?.[0]?.order_number || order_number;
+
+          if (isKarnataka) {
+            // Karnataka orders proceed directly to PayU gateway
+            await handlePayuPayment({
+              orderNumber: order_number,
+              totalAmount,
+              userId,
+              customerName: orderUserName,
+              customerEmail: orderEmail,
+              customerPhone: orderPhone,
+            });
+            return;
+          }
+
           let result = await handleOnlinePayment(totalAmount, paymentMethod === 'emi');
           paymentId = result.paymentId; paymentStatus = result.status; paymentMode = result.mode;
         } catch (error) { toast.error(`Payment failed: ${error.message}`); setIsSubmitting(false); return; }
@@ -718,7 +1206,7 @@ export default function CheckoutPage() {
           user_addbillingid: savedBillingId,
           order_username: orderUserName,
           order_phonenumber: orderPhone, email_address: orderEmail,
-          order_item: cartItems.map(item => ({ ...item, warrantyData: item.warrantyData || null, store_id: formData.deliveryType === 'store' ? formData.selectedStore : null, coupondetails: Array.isArray(item.coupondetails) && item.coupondetails.length > 0 ? item.coupondetails.map(c => c.offer_code || String(c)) : [] })),
+          order_item: cartItems.map(item => ({ ...item, warrantyData: item.warrantyData || null, store_id: formData.deliveryType === 'store' ? formData.selectedStore : (isKarnataka ? 'unilet' : null), coupondetails: Array.isArray(item.coupondetails) && item.coupondetails.length > 0 ? item.coupondetails.map(c => c.offer_code || String(c)) : [] })),
           order_amount: totalAmount, order_deliveryaddress: deliveryAddress,
           order_billingaddress: billingAddressStr,
           promotion_code_applied: appliedCoupon?.offer_code || null,
@@ -729,11 +1217,14 @@ export default function CheckoutPage() {
           delivery_type: formData.deliveryType === 'store' ? 'store_pickup' : 'home',
           pickup_store: formData.deliveryType === 'store' ? formData.selectedStore : null,
           pickup_type: formData.deliveryType === 'store' ? formData.selectedStore : null,
-          store_id: formData.deliveryType === 'store' ? formData.selectedStore : null,
+          store_id: isKarnataka ? 'unilet' : (formData.deliveryType === 'store' ? formData.selectedStore : null),
+          region: isKarnataka ? 'karnataka' : 'tamilnadu',
+          order_owner: isKarnataka ? 'unilet' : 'sathya',
+          pincode: normDeliveryPin || normHeaderPin,
           gst_number: gstNumber,
           payment_id: paymentData.payment_id, payment_status: paymentData.status,
-          order_number: order_number || 'ORD' + Date.now(),
-          order_details: cartItems.map(item => ({ item_code: `ITEM${item.item_code}`, product_id: item.productId || item.id || item._id, product_name: item.name, product_price: item.price, model: 'N/A', user_id: userId, coupondiscount: 0, created_at: new Date(), updated_at: new Date(), quantity: item.quantity, store_id: formData.deliveryType === 'store' ? formData.selectedStore : 'STORE01', orderNumber: 'ORD' + Date.now() })),
+          order_number: order_number || 'ORD' + Date.now() + (isKarnataka ? '-UL' : ''),
+          order_details: cartItems.map(item => ({ item_code: `ITEM${item.item_code}`, product_id: item.productId || item.id || item._id, product_name: item.name, product_price: item.price, model: 'N/A', user_id: userId, coupondiscount: 0, created_at: new Date(), updated_at: new Date(), quantity: item.quantity, store_id: formData.deliveryType === 'store' ? formData.selectedStore : (isKarnataka ? 'unilet' : 'STORE01'), orderNumber: order_number || 'ORD' + Date.now() + (isKarnataka ? '-UL' : '') })),
         }),
       });
       if (!orderRes.ok) throw new Error('Order creation failed');
@@ -838,6 +1329,28 @@ export default function CheckoutPage() {
   const shippingCost = shippingMethod === 'express' ? 299 : 0;
   const finalTotal = orderSummary.total + shippingCost;
 
+  const handleAddressSaved = async (newOrUpdatedAddr) => {
+    if (addressModalType === 'edit') {
+      setSavedAddresses((prev) => prev.map((a) => (a._id === editAddressId ? newOrUpdatedAddr : a)));
+      if (shippingAddressId === editAddressId && newOrUpdatedAddr.pincode) {
+        await setPincode(newOrUpdatedAddr.pincode);
+      }
+      setAddressModalType('shipping');
+      toast.success('Address updated successfully');
+    } else {
+      setSavedAddresses((prev) => [newOrUpdatedAddr, ...prev]);
+      setShippingAddressId(newOrUpdatedAddr._id);
+      if (billingSameAsShipping) {
+        setBillingAddressId(newOrUpdatedAddr._id);
+      }
+      if (newOrUpdatedAddr.pincode) {
+        await setPincode(newOrUpdatedAddr.pincode);
+      }
+      setShowAddressModal(false);
+      toast.success('New address added & selected for delivery!');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50/40 text-gray-900 font-sans pb-16">
       {/* ── Top Step Progress Header ────────────────────────────────────────── */}
@@ -891,7 +1404,7 @@ export default function CheckoutPage() {
                   {formData.phonenumber?.length === 10 && (
                     <p className="text-green-600 text-xs mt-1 flex items-center gap-1">
                       <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
-                      We'll keep you updated on your order
+                      We&apos;ll keep you updated on your order
                     </p>
                   )}
                 </div>
@@ -919,30 +1432,43 @@ export default function CheckoutPage() {
                 selectedPickupStore={selectedPickupStore}
                 setSelectedPickupStore={setSelectedPickupStore}
                 cartItems={cartItems}
+                hasPincodeMismatch={hasPincodeMismatch}
+                normDeliveryPin={normDeliveryPin}
+                normHeaderPin={normHeaderPin}
+                setPincode={setPincode}
               />
 
               {/* Address Selection UI (replaces inline form) */}
               {formData.deliveryType === 'home' && (
-                <div className="mt-6 space-y-6">
+                <div className="mt-6 space-y-4">
                   {/* Shipping Address Box */}
                   <div className="border border-gray-200 rounded-xl p-5 bg-white shadow-sm">
-                    <div className="flex justify-between items-start mb-4">
-                      <h3 className="font-semibold text-gray-800 flex items-center gap-2">
-                        Shipping Address
-                      </h3>
-                      <button type="button" onClick={() => { setAddressModalType('shipping'); setShowAddressModal(true); }} className="text-red-600 text-sm font-medium hover:underline">
+                    <div className="flex justify-between items-start mb-3">
+                      <div>
+                        <h3 className="font-semibold text-gray-800 flex items-center gap-2">
+                          Shipping Address
+                        </h3>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setAddressModalType('shipping');
+                          setShowAddressModal(true);
+                        }}
+                        className="text-red-600 text-sm font-medium hover:underline"
+                      >
                         Change
                       </button>
                     </div>
 
-                    {shippingAddressId && savedAddresses.find(a => a._id === shippingAddressId) ? (() => {
-                      const addr = savedAddresses.find(a => a._id === shippingAddressId);
+                    {shippingAddressId && currentShipping ? (() => {
+                      const addr = currentShipping;
                       const cleanVal = (val) => (!val || String(val).toUpperCase() === 'NULL') ? '' : val;
                       return (
                         <div className="text-sm text-gray-600">
                           <p className="font-semibold text-gray-800">{cleanVal(addr.username)}</p>
                           <p>{cleanVal(addr.address1)} {cleanVal(addr.address2) ? `, ${cleanVal(addr.address2)}` : ''}</p>
-                          <p>{cleanVal(addr.city)}, {cleanVal(addr.state)} {cleanVal(addr.pincode)}</p>
+                          <p>{cleanVal(addr.city)}, {cleanVal(addr.state)} <strong>{cleanVal(addr.pincode)}</strong></p>
                           <p className="mt-1">Phone: {cleanVal(addr.phonenumber)}</p>
                         </div>
                       );
@@ -1090,60 +1616,75 @@ export default function CheckoutPage() {
                 <span className="w-6 h-6 rounded-full bg-red-600 text-white text-xs flex items-center justify-center font-bold">4</span>
                 Payment method
               </h2>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                {[
-                  {
-                    value: 'online', icon: (
-                      <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                      </svg>
-                    ), label: 'Online payment', sub: 'UPI, Cards, Netbanking'
-                  },
-                  {
-                    value: 'emi', icon: (
-                      <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                      </svg>
-                    ), label: 'EMI options', sub: 'Easy EMI from leading banks'
-                  },
-                  ...(formData.deliveryType === 'store' ? [{
-                    value: 'Cash on Delivery', icon: (
-                      <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
-                      </svg>
-                    ), label: 'Cash on delivery', sub: 'Pay when you pickup'
-                  }] : []),
-                ].map(opt => (
-                  <button
-                    key={opt.value}
-                    type="button"
-                    onClick={() => handlePaymentChange(opt.value)}
-                    className={`flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all text-center
-                      ${paymentMethod === opt.value
-                        ? 'border-red-600 bg-red-50'
-                        : 'border-gray-200 bg-white hover:border-gray-300'}`}
-                  >
-                    <span className={paymentMethod === opt.value ? 'text-red-600' : 'text-gray-500'}>
-                      {opt.icon}
-                    </span>
-                    <span className={`text-xs font-semibold ${paymentMethod === opt.value ? 'text-red-700' : 'text-gray-700'}`}>
-                      {opt.label}
-                    </span>
-                    <span className="text-[10px] text-gray-400 leading-tight">{opt.sub}</span>
-                  </button>
-                ))}
-              </div>
-              {paymentMethod === 'emi' && IS_RAZORPAY_TEST_MODE && (
-                <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-900 leading-relaxed">
-                  <p className="font-semibold mb-1">Razorpay test mode — EMI testing</p>
-                  <p>
-                    A separate EMI tab is usually not shown in test mode. After you continue, select{' '}
-                    <span className="font-semibold">Card</span> in Razorpay and pay with test card{' '}
-                    <span className="font-mono font-semibold">{RAZORPAY_EMI_TEST_CARD}</span>{' '}
-                    (any CVV, any future expiry). Order amount must be ₹3,000 or above.
-                  </p>
-                </div>
-              )}
+              {(() => {
+                const currentShipping = savedAddresses.find(a => a._id === shippingAddressId);
+                const currentPin = currentShipping?.pincode || formData.postCode || '';
+                const currentSt = currentShipping?.state || formData.state || '';
+                const isKarnatakaDelivery = isKarnatakaPincode(currentPin) || /karnataka/i.test(currentSt);
+
+                return (
+                  <>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                      {[
+                        {
+                          value: 'online', icon: (
+                            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                            </svg>
+                          ),
+                          label: 'Online payment',
+                          sub: 'UPI, Cards, Netbanking'
+                        },
+                        {
+                          value: 'Cash on Delivery', icon: (
+                            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                            </svg>
+                          ),
+                          label: 'Cash on delivery',
+                          sub: formData.deliveryType === 'store' ? 'Pay when you pickup at store' : 'Pay cash upon doorstep delivery'
+                        },
+                        {
+                          value: 'emi', icon: (
+                            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                            </svg>
+                          ), label: 'EMI options', sub: 'Easy EMI from leading banks'
+                        },
+                      ].map(opt => (
+                        <button
+                          key={opt.value}
+                          type="button"
+                          onClick={() => handlePaymentChange(opt.value)}
+                          className={`flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all text-center
+                            ${paymentMethod === opt.value
+                              ? 'border-red-600 bg-red-50'
+                              : 'border-gray-200 bg-white hover:border-gray-300'}`}
+                        >
+                          <span className={paymentMethod === opt.value ? 'text-red-600' : 'text-gray-500'}>
+                            {opt.icon}
+                          </span>
+                          <span className={`text-xs font-semibold ${paymentMethod === opt.value ? 'text-red-700' : 'text-gray-700'}`}>
+                            {opt.label}
+                          </span>
+                          <span className="text-[10px] text-gray-400 leading-tight">{opt.sub}</span>
+                        </button>
+                      ))}
+                    </div>
+                    {paymentMethod === 'emi' && !isKarnataka && IS_RAZORPAY_TEST_MODE && (
+                      <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-900 leading-relaxed">
+                        <p className="font-semibold mb-1">Razorpay test mode — EMI testing</p>
+                        <p>
+                          A separate EMI tab is usually not shown in test mode. After you continue, select{' '}
+                          <span className="font-semibold">Card</span> in Razorpay and pay with test card{' '}
+                          <span className="font-mono font-semibold">{RAZORPAY_EMI_TEST_CARD}</span>{' '}
+                          (any CVV, any future expiry). Order amount must be ₹3,000 or above.
+                        </p>
+                      </div>
+                    )}
+                  </>
+                );
+              })()}
             </section>
 
 
@@ -1247,16 +1788,18 @@ export default function CheckoutPage() {
               </div>
 
               {/* Sold by Sathya Stores */}
-              <div className="px-5 py-3 border-b border-gray-100 bg-emerald-50/50 flex items-center justify-between">
+              <div className="px-5 py-3 border-b border-gray-100 flex items-center justify-between bg-emerald-50/50">
                 <div className="flex items-center gap-2">
                   <svg className="w-4 h-4 text-emerald-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                   </svg>
-                  <span className="text-xs font-bold text-gray-800">Sathya Stores</span>
+                  <span className="text-xs font-bold text-gray-800">
+                    Sathya Stores
+                  </span>
                 </div>
-                <span className="text-[10px] text-emerald-800 bg-emerald-100/80 border border-emerald-200/80 px-2.5 py-0.5 rounded-full font-extrabold flex items-center gap-1">
+                <span className="text-[10px] border px-2.5 py-0.5 rounded-full font-extrabold flex items-center gap-1 text-emerald-800 bg-emerald-100/80 border-emerald-200/80">
                   <svg className="w-3 h-3 text-emerald-600" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
-                  Authorized Partner
+                  Authorized Store
                 </span>
               </div>
 
@@ -1399,9 +1942,9 @@ export default function CheckoutPage() {
               <div className="px-5 pb-5">
                 <button
                   onClick={handleSubmit}
-                  disabled={isSubmitting || loading || cartItems.length === 0 || !isDeliverySaved}
+                  disabled={isSubmitting || loading || cartItems.length === 0 || !isDeliverySaved || (formData.deliveryType === 'home' && hasPincodeMismatch)}
                   className={`w-full h-12 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all
-                    ${isSubmitting || loading || cartItems.length === 0 || !isDeliverySaved
+                    ${isSubmitting || loading || cartItems.length === 0 || !isDeliverySaved || (formData.deliveryType === 'home' && hasPincodeMismatch)
                       ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                       : 'bg-red-600 text-white hover:bg-red-700 active:scale-[0.98]'}`}
                 >
@@ -1525,23 +2068,53 @@ export default function CheckoutPage() {
             <div className="p-5">
               {addressModalType !== 'new' && addressModalType !== 'edit' && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                  {savedAddresses.map(addr => {
-                    const cleanVal = (val) => (!val || String(val).toUpperCase() === 'NULL') ? '' : val;
+                  {savedAddresses.map((addr) => {
+                    const cleanVal = (val) => (!val || String(val).toUpperCase() === 'NULL' ? '' : val);
+                    const isAddrKarnataka = isKarnatakaPincode(addr.pincode) || /karnataka/i.test(addr.state || '');
+                    const isSelected =
+                      addressModalType === 'shipping' ? shippingAddressId === addr._id : billingAddressId === addr._id;
+
                     return (
-                      <div key={addr._id}
-                        onClick={() => {
-                          if (addressModalType === 'shipping') setShippingAddressId(addr._id);
-                          if (addressModalType === 'billing') setBillingAddressId(addr._id);
+                      <div
+                        key={addr._id}
+                        onClick={async () => {
+                          if (addressModalType === 'shipping') {
+                            setShippingAddressId(addr._id);
+                            if (addr.pincode) {
+                              await setPincode(addr.pincode);
+                            }
+                          }
+                          if (addressModalType === 'billing') {
+                            setBillingAddressId(addr._id);
+                          }
                           setShowAddressModal(false);
                         }}
-                        className={`relative border-2 rounded-xl p-4 cursor-pointer hover:border-red-500 transition-colors ${(addressModalType === 'shipping' ? shippingAddressId === addr._id : billingAddressId === addr._id) ? 'border-red-500 bg-red-50' : 'border-gray-200'}`}>
-                        <p className="font-semibold text-gray-800">{cleanVal(addr.username)}</p>
-                        <p className="text-sm text-gray-600 mt-1">{cleanVal(addr.address1)} {cleanVal(addr.address2) ? `, ${cleanVal(addr.address2)}` : ''}</p>
-                        <p className="text-sm text-gray-600">{cleanVal(addr.city)}, {cleanVal(addr.state)} {cleanVal(addr.pincode)}</p>
-                        <p className="text-sm text-gray-600 mt-1">{cleanVal(addr.phonenumber)}</p>
+                        className={`relative border-2 rounded-xl p-4 cursor-pointer hover:border-red-500 transition-colors ${
+                          isSelected ? 'border-red-500 bg-red-50/60' : 'border-gray-200'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-1">
+                          <p className="font-semibold text-gray-800">{cleanVal(addr.username)}</p>
+                          <span
+                            className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                              isAddrKarnataka
+                                ? 'bg-amber-100 text-amber-800 border border-amber-200'
+                                : 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                            }`}
+                          >
+                            {isAddrKarnataka ? 'Karnataka' : 'Tamil Nadu'}
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-600 mt-1">
+                          {cleanVal(addr.address1)} {cleanVal(addr.address2) ? `, ${cleanVal(addr.address2)}` : ''}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          {cleanVal(addr.city)}, {cleanVal(addr.state)} <strong>{cleanVal(addr.pincode)}</strong>
+                        </p>
+                        <p className="text-sm text-gray-600 mt-1">Phone: {cleanVal(addr.phonenumber)}</p>
                         <button
                           type="button"
-                          className="absolute top-4 right-4 text-xs font-medium text-blue-600 hover:underline bg-white/80 px-2 py-1 rounded"
+                          className="absolute bottom-4 right-4 text-xs font-medium text-blue-600 hover:underline bg-white/80 px-2 py-1 rounded"
                           onClick={(e) => {
                             e.stopPropagation();
                             setEditAddressId(addr._id);
@@ -1551,140 +2124,39 @@ export default function CheckoutPage() {
                           Edit
                         </button>
                       </div>
-                    )
+                    );
                   })}
                 </div>
               )}
               {addressModalType !== 'new' && addressModalType !== 'edit' && (
-                <button type="button" onClick={() => { setEditAddressId(null); setAddressModalType('new'); }} className="text-red-600 font-medium hover:underline mb-4 inline-block">+ Add New Address</button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditAddressId(null);
+                    setAddressModalType('new');
+                  }}
+                  className="text-red-600 font-medium hover:underline mb-4 inline-block"
+                >
+                  + Add New Address
+                </button>
               )}
 
-              {(addressModalType === 'new' || addressModalType === 'edit') && (() => {
-                let defaultVals = { firstName: '', lastName: '', phone: '', alternate_phone: '', pincode: '', locality: '', address_line1: '', address_line2: '', city: '', state: 'Tamilnadu', landmark: '' };
-                if (addressModalType === 'edit' && editAddressId) {
-                  const addr = savedAddresses.find(a => a._id === editAddressId);
-                  if (addr) {
-                    const cleanVal = (val) => (!val || String(val).toUpperCase() === 'NULL') ? '' : val;
-                    const parts = cleanVal(addr.username).split(' ');
-                    defaultVals = {
-                      firstName: parts[0] || '',
-                      lastName: parts.slice(1).join(' ') || '',
-                      phone: cleanVal(addr.phonenumber),
-                      alternate_phone: cleanVal(addr.altnumber),
-                      pincode: cleanVal(addr.pincode),
-                      locality: cleanVal(addr.locality),
-                      address_line1: cleanVal(addr.address1),
-                      address_line2: cleanVal(addr.address2),
-                      city: cleanVal(addr.city),
-                      state: cleanVal(addr.state) || 'Tamilnadu',
-                      landmark: cleanVal(addr.landmark)
-                    };
-                  }
-                }
-                return (
-                  <form onSubmit={async (e) => {
-                    e.preventDefault();
-                    const fd = new FormData(e.target);
-                    const payload = {
-                      full_name: fd.get('firstName') + ' ' + fd.get('lastName'),
-                      phone: fd.get('phone'),
-                      alternate_phone: fd.get('alternate_phone') || '',
-                      pincode: fd.get('pincode'),
-                      locality: fd.get('locality') || '',
-                      address_line1: fd.get('address_line1'),
-                      address_line2: fd.get('address_line2') || '',
-                      city: fd.get('city'),
-                      state: fd.get('state') || 'Tamilnadu',
-                      landmark: fd.get('landmark') || '',
-                      is_default_shipping: false,
-                      is_default_billing: false
-                    };
-                    const token = localStorage.getItem('token');
-                    const url = addressModalType === 'edit' ? `/api/saved-address/${editAddressId}` : '/api/saved-address';
-                    const method = addressModalType === 'edit' ? 'PUT' : 'POST';
-                    const res = await fetch(url, {
-                      method,
-                      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                      body: JSON.stringify(payload)
-                    });
-                    const data = await res.json();
-                    if (data.success) {
-                      if (addressModalType === 'edit') {
-                        setSavedAddresses(prev => prev.map(a => a._id === editAddressId ? data.address : a));
-                        setAddressModalType('shipping');
-                        toast.success('Address updated successfully');
-                      } else {
-                        setSavedAddresses(prev => [data.address, ...prev]);
-                        if (!shippingAddressId) setShippingAddressId(data.address._id);
-                        if (!billingAddressId) setBillingAddressId(data.address._id);
-                        setShowAddressModal(false);
-                        toast.success('Address added successfully');
-                      }
+              {(addressModalType === 'new' || addressModalType === 'edit') && (
+                <AddressModalForm
+                  addressModalType={addressModalType}
+                  editAddressId={editAddressId}
+                  savedAddresses={savedAddresses}
+                  headerPincode={headerPincode}
+                  onSuccess={handleAddressSaved}
+                  onCancel={() => {
+                    if (savedAddresses.length > 0) {
+                      setAddressModalType('shipping');
                     } else {
-                      toast.error('Failed to save address');
+                      setShowAddressModal(false);
                     }
-                  }} className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1">First Name *</label>
-                        <input name="firstName" defaultValue={defaultVals.firstName} required className="w-full px-3 py-2 border border-gray-300 rounded focus:border-red-500 outline-none" />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1">Last Name</label>
-                        <input name="lastName" defaultValue={defaultVals.lastName} className="w-full px-3 py-2 border border-gray-300 rounded focus:border-red-500 outline-none" />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1">Phone Number *</label>
-                        <input name="phone" defaultValue={defaultVals.phone} required type="tel" pattern="[0-9]{10}" maxLength="10" className="w-full px-3 py-2 border border-gray-300 rounded focus:border-red-500 outline-none" />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1">Alternate Phone</label>
-                        <input name="alternate_phone" defaultValue={defaultVals.alternate_phone} type="tel" pattern="[0-9]{10}" maxLength="10" className="w-full px-3 py-2 border border-gray-300 rounded focus:border-red-500 outline-none" />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1">Pincode *</label>
-                        <input name="pincode" defaultValue={defaultVals.pincode} required pattern="[0-9]{6}" maxLength="6" className="w-full px-3 py-2 border border-gray-300 rounded focus:border-red-500 outline-none" />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1">Locality</label>
-                        <input name="locality" defaultValue={defaultVals.locality} className="w-full px-3 py-2 border border-gray-300 rounded focus:border-red-500 outline-none" />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-1 gap-4">
-                      <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1">Address Line 1 *</label>
-                        <textarea name="address_line1" defaultValue={defaultVals.address_line1} required className="w-full px-3 py-2 border border-gray-300 rounded focus:border-red-500 outline-none" rows="2"></textarea>
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1">Address Line 2</label>
-                        <textarea name="address_line2" defaultValue={defaultVals.address_line2} className="w-full px-3 py-2 border border-gray-300 rounded focus:border-red-500 outline-none" rows="2"></textarea>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1">City *</label>
-                        <input name="city" defaultValue={defaultVals.city} required className="w-full px-3 py-2 border border-gray-300 rounded focus:border-red-500 outline-none" />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1">State *</label>
-                        <input name="state" required defaultValue={defaultVals.state} className="w-full px-3 py-2 border border-gray-300 rounded focus:border-red-500 outline-none" />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1">Landmark</label>
-                        <input name="landmark" defaultValue={defaultVals.landmark} className="w-full px-3 py-2 border border-gray-300 rounded focus:border-red-500 outline-none" />
-                      </div>
-                    </div>
-                    <div className="pt-4 flex justify-end gap-3 border-t border-gray-100">
-                      <button type="button" onClick={() => savedAddresses.length > 0 ? setAddressModalType('shipping') : setShowAddressModal(false)} className="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-600 hover:bg-gray-50">Cancel</button>
-                      <button type="submit" className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700">Save Address</button>
-                    </div>
-                  </form>
-                )
-              })()}
+                  }}
+                />
+              )}
             </div>
           </div>
         </div>
