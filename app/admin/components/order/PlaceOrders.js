@@ -110,7 +110,9 @@ export default function PlaceOrders() {
         params.set("startDate", dateFilter.startDate);
         params.set("endDate", dateFilter.endDate);
       }
-      const response = await fetch(`/api/orders_new/place-orders?${params.toString()}`);
+      const response = await fetch(`/api/orders_new/place-orders?${params.toString()}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token") || ""}` },
+      });
       const data = await response.json();
       setOrders(Array.isArray(data?.orders) ? data.orders : []);
     } catch (error) {

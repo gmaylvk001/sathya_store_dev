@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import mongoose from "mongoose";
 import dbConnect from "@/lib/db";
-import { verifyToken } from "@/lib/verifyToken";
+import { isUniletView } from "@/lib/storeView";
 import CancelOrders from "@/models/cancel_orders_live";
 import { ensureAppCancelsMoved } from "@/lib/cancelOrdersLive";
 import OrderNew from "@/models/orders_new";
@@ -11,21 +11,6 @@ import "@/models/Role";
 function toText(value) {
   if (value === undefined || value === null) return "";
   return String(value).trim();
-}
-
-async function isUniletAdmin(req) {
-  const authHeader = req.headers.get("authorization") || "";
-  const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
-  if (!token) return false;
-  try {
-    const decoded = verifyToken(token);
-    if (!decoded?.userId || !mongoose.Types.ObjectId.isValid(decoded.userId)) return false;
-    const admin = await User.findById(decoded.userId).populate("role", "name slug").lean();
-    const roleText = `${toText(admin?.role?.name)} ${toText(admin?.role?.slug)}`.toLowerCase();
-    return roleText.includes("unilet");
-  } catch {
-    return false;
-  }
 }
 
 function splitIds(values) {
@@ -46,7 +31,7 @@ export async function GET(req) {
   try {
     await dbConnect();
 
-    const uniletOnly = await isUniletAdmin(req);
+    const uniletOnly = await isUniletView(req);
     await ensureAppCancelsMoved();
 
     const requests = await CancelOrders.find({ order_status: { $regex: /^billed$/i } })

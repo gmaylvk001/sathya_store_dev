@@ -11,7 +11,22 @@ const AdminHeader = ({ toggleSidebar, sidebarCollapsed = true, mobileOpen = fals
   const [notifications, setNotifications] = useState([]);
   const [notifOpen, setNotifOpen] = useState(false);
   const unreadCount = notifications.filter(n => !n.read).length;
+  const [uniletView, setUniletView] = useState(false);
   const router = useRouter();
+
+  useEffect(() => {
+    setUniletView(/(?:^|;\s*)session_store=unilet(?:;|$)/.test(document.cookie));
+  }, []);
+
+  const toggleUniletView = () => {
+    const next = !uniletView;
+    document.cookie = next
+      ? 'session_store=unilet; path=/; SameSite=Lax'
+      : 'session_store=; path=/; max-age=0; SameSite=Lax';
+    setUniletView(next);
+    alert(next ? 'Unilet Admin View' : 'Sathya Admin View');
+    window.location.href = '/admin';
+  };
 
   const toggleDropdown = () => {
     setNotifOpen(false);
@@ -41,6 +56,7 @@ const AdminHeader = ({ toggleSidebar, sidebarCollapsed = true, mobileOpen = fals
   const handleSignOut = (e) => {
     e.preventDefault();
     try {
+      document.cookie = 'session_store=; path=/; max-age=0; SameSite=Lax';
       localStorage.clear();
       sessionStorage.clear();
       router.push('/admin/login');
@@ -116,6 +132,23 @@ const AdminHeader = ({ toggleSidebar, sidebarCollapsed = true, mobileOpen = fals
         </div>
 
         <div className="flex shrink-0 items-center gap-5 sm:gap-5">
+          <div className="unilet-view-wrap relative">
+            <button
+              type="button"
+              onClick={toggleUniletView}
+              className="flex flex-col items-center gap-1"
+              aria-label="Unilet View"
+              aria-pressed={uniletView}
+              title={uniletView ? 'Unilet View On - click for Sathya View' : 'Unilet View'}
+            >
+              <div className={`relative flex h-5 w-5 lg:h-8 lg:w-8 items-center justify-center rounded-xl transition ${uniletView ? 'bg-[#0988f0] hover:bg-[#0777d4] text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}>
+                <svg className={`h-4 w-4 ${uniletView ? 'text-white' : 'text-gray-700'}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 9l1.5-5h15L21 9M3 9h18M3 9v1a3 3 0 006 0V9m0 1a3 3 0 006 0V9m0 1a3 3 0 006 0V9M5 13v7h14v-7M10 20v-4h4v4" />
+                </svg>
+              </div>
+              <span className={`hidden lg:block text-[9px] font-medium ${uniletView ? 'text-[#0988f0]' : 'text-gray-500'}`}>Unilet View</span>
+            </button>
+          </div>
           <OrderStatsIcons />
           <div className="communication-dropdown relative">
             <button

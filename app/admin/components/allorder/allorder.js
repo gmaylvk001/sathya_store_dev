@@ -50,7 +50,9 @@ const OrdersTable = () => {
 
   useEffect(() => {
     const fetchOrders = async () => {
-      const res = await fetch("/api/orders_new");
+      const res = await fetch("/api/orders_new", {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token") || ""}` },
+      });
       const data = await res.json();
       const list = Array.isArray(data) ? data : [];
       setOrders(list);

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import OrderNew from "@/models/orders_new";
+import { isUniletView, orderOwnerFilter } from "@/lib/storeView";
 
 function parseDay(value, endOfDay) {
   if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(String(value))) return null;
@@ -30,6 +31,7 @@ export async function GET(req) {
       order_status: { $regex: /^order placed$/i },
       archive: archived ? { $in: [1, "1"] } : { $in: [0, "0", null] },
       created_at: { $gte: start, $lte: end },
+      ...orderOwnerFilter(await isUniletView(req)),
     };
 
     const orders = await OrderNew.find(filter)

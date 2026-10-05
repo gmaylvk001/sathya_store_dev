@@ -37,7 +37,9 @@ const OrdersTable_abon = () => {
   const [isCheckingPayment, setIsCheckingPayment] = useState(false);
 
   const fetchOrders = async () => {
-    const res = await fetch("/api/orders_new");
+    const res = await fetch("/api/orders_new", {
+      headers: { Authorization: `Bearer ${localStorage.getItem("token") || ""}` },
+    });
     const data = await res.json();
     const list = Array.isArray(data) ? data : [];
     const abandoned = list.filter((order) => order.order_status === "Payment Initiated");
