@@ -19,7 +19,8 @@ export async function POST(req) {
       return NextResponse.json({ error: "Store name already exists" }, { status: 400 });
     }
 
-    await StoreOwners.create(data);
+    // Price On / Stock On are hidden in the form; new store owners always start off.
+    await StoreOwners.create({ ...data, price_on: 0, stock_on: 0 });
     return NextResponse.json({ success: true, message: "Store owner created successfully" }, { status: 201 });
   } catch (error) {
     if (error.code === 11000) {

@@ -58,6 +58,11 @@ export default function StoreOwnersComponent() {
 
   useEffect(() => {
     fetchRows();
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("add") === "unilet") {
+      openAdd();
+      window.history.replaceState(null, "", window.location.pathname);
+    }
   }, []);
 
   const flash = (message) => {
@@ -222,8 +227,8 @@ export default function StoreOwnersComponent() {
                   <th className="p-2">Payment Gateway</th>
                   <th className="p-2">State Name</th>
                   <th className="p-2">Active</th>
-                  <th className="p-2">Price On</th>
-                  <th className="p-2">Stock On</th>
+                  {/* <th className="p-2">Price On</th>
+                  <th className="p-2">Stock On</th> */}
                   <th className="p-2">Created At</th>
                   <th className="p-2">Updated At</th>
                   <th className="p-2">Action</th>
@@ -238,8 +243,8 @@ export default function StoreOwnersComponent() {
                       <td className="p-2">{row.payment_gateway || "-"}</td>
                       <td className="p-2">{row.state_name || "-"}</td>
                       <td className="p-2"><FlagBadge value={row.is_active} onLabel="Active" offLabel="Inactive" /></td>
-                      <td className="p-2"><FlagBadge value={row.price_on} /></td>
-                      <td className="p-2"><FlagBadge value={row.stock_on} /></td>
+                      {/* <td className="p-2"><FlagBadge value={row.price_on} /></td>
+                      <td className="p-2"><FlagBadge value={row.stock_on} /></td> */}
                       <td className="p-2 whitespace-nowrap">{formatDateTime(row.created_at)}</td>
                       <td className="p-2 whitespace-nowrap">{formatDateTime(row.updated_at)}</td>
                       <td className="p-2">
@@ -264,7 +269,7 @@ export default function StoreOwnersComponent() {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="10" className="p-2 text-center text-gray-500">No store owners found.</td>
+                    <td colSpan="8" className="p-2 text-center text-gray-500">No store owners found.</td>
                   </tr>
                 )}
               </tbody>
@@ -353,6 +358,7 @@ export default function StoreOwnersComponent() {
                   <input type="checkbox" name="is_active" checked={formData.is_active === 1} onChange={handleChange} />
                   Active
                 </label>
+                {/* Price On / Stock On hidden for now; new store owners are saved with both off.
                 <label className="inline-flex items-center gap-2 text-sm">
                   <input type="checkbox" name="price_on" checked={formData.price_on === 1} onChange={handleChange} />
                   Price On
@@ -361,6 +367,7 @@ export default function StoreOwnersComponent() {
                   <input type="checkbox" name="stock_on" checked={formData.stock_on === 1} onChange={handleChange} />
                   Stock On
                 </label>
+                */}
               </div>
 
               {formError && (

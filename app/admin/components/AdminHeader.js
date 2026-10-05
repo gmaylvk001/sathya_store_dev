@@ -12,10 +12,23 @@ const AdminHeader = ({ toggleSidebar, sidebarCollapsed = true, mobileOpen = fals
   const [notifOpen, setNotifOpen] = useState(false);
   const unreadCount = notifications.filter(n => !n.read).length;
   const [uniletView, setUniletView] = useState(false);
+  const [uniletAvailable, setUniletAvailable] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
-    setUniletView(/(?:^|;\s*)session_store=unilet(?:;|$)/.test(document.cookie));
+    const cookieOn = /(?:^|;\s*)session_store=unilet(?:;|$)/.test(document.cookie);
+    setUniletView(cookieOn);
+    fetch('/api/store_owners/unilet-exists')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data?.exists) {
+          setUniletAvailable(true);
+        } else if (cookieOn) {
+          document.cookie = 'session_store=; path=/; max-age=0; SameSite=Lax';
+          window.location.reload();
+        }
+      })
+      .catch(() => setUniletAvailable(false));
   }, []);
 
   const toggleUniletView = () => {
@@ -132,6 +145,7 @@ const AdminHeader = ({ toggleSidebar, sidebarCollapsed = true, mobileOpen = fals
         </div>
 
         <div className="flex shrink-0 items-center gap-5 sm:gap-5">
+          {uniletAvailable && (
           <div className="unilet-view-wrap relative">
             <button
               type="button"
@@ -149,6 +163,7 @@ const AdminHeader = ({ toggleSidebar, sidebarCollapsed = true, mobileOpen = fals
               <span className={`hidden lg:block text-[9px] font-medium ${uniletView ? 'text-[#0988f0]' : 'text-gray-500'}`}>Unilet View</span>
             </button>
           </div>
+          )}
           <OrderStatsIcons />
           <div className="communication-dropdown relative">
             <button

@@ -84,6 +84,27 @@ export default function CategoryComponent() {
     });
   };
 
+  const [checkingUniletStore, setCheckingUniletStore] = useState(false);
+
+  const handleAddToUnilet = async (product) => {
+    if (checkingUniletStore) return;
+    try {
+      setCheckingUniletStore(true);
+      const res = await fetch('/api/store_owners/unilet-exists');
+      const data = await res.json();
+      if (data?.exists) {
+        handleOpenUniletModal(product);
+      } else {
+        toast.error('Unilet store not found. Please create the Unilet store first.');
+        window.location.href = '/admin/store-owners?add=unilet';
+      }
+    } catch (err) {
+      toast.error('Unable to check Unilet store. Please try again.');
+    } finally {
+      setCheckingUniletStore(false);
+    }
+  };
+
   const handleOpenUniletModal = (product) => {
     setSelectedUniletProduct(product);
     const defaultVendorCode = product.item_code ? `${product.item_code}_U` : '';
@@ -2004,14 +2025,23 @@ export default function CategoryComponent() {
                   <td className="p-2 text-center align-middle whitespace-nowrap">
                     {!isProductInUnilet(product) ? (
                       <button
-                        onClick={() => handleOpenUniletModal(product)}
-                        className="inline-flex items-center space-x-1 bg-[#d72828] hover:bg-red-700 text-white text-xs font-medium px-2.5 py-1 rounded shadow-sm transition-colors cursor-pointer"
+                        onClick={() => handleAddToUnilet(product)}
+                        disabled={checkingUniletStore}
+                        className="inline-flex items-center space-x-1 bg-[#d72828] hover:bg-red-700 text-white text-xs font-medium px-2.5 py-1 rounded shadow-sm transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-wait"
                         title="Add to Unilet"
                       >
                         <Icon icon="mdi:plus" className="text-sm" />
                         <span>Add to Unilet</span>
                       </button>
-                    ) : null}
+                    ) : (
+                      <span
+                        className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-green-100 text-green-600"
+                        title="Already mapped to Unilet"
+                        aria-label="Already mapped to Unilet"
+                      >
+                        <Icon icon="mdi:check-bold" className="text-lg" />
+                      </span>
+                    )}
                   </td>
 
                   {/* Price Column */}
