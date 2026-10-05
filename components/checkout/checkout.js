@@ -841,8 +841,10 @@ export default function CheckoutPage() {
     // Visual-only convenience: when switching to store pickup, surface "Pay at store" as the
     // highlighted payment option to match the in-store collection flow shown in the design.
     if (name === 'deliveryType') {
-      if (value === 'store' && !paymentMethod) {
+      if (value === 'store') {
         setPaymentMethod('Cash on Delivery');
+      } else if (value === 'home' && paymentMethod === 'Cash on Delivery') {
+        setPaymentMethod('online');
       }
     }
   };
@@ -1051,6 +1053,13 @@ export default function CheckoutPage() {
         toast.error(
           `Delivery pincode (${normDeliveryPin}) and selected location (${normHeaderPin}) do not match. Please update your address or sync your location to proceed.`
         );
+        setIsSubmitting(false);
+        return;
+      }
+
+      if (formData.deliveryType === 'home' && paymentMethod === 'Cash on Delivery') {
+        toast.error('Cash on delivery is not available for home delivery. Please select online payment.');
+        setPaymentMethod('online');
         setIsSubmitting(false);
         return;
       }
@@ -1646,15 +1655,15 @@ export default function CheckoutPage() {
                           label: 'Online payment',
                           sub: 'UPI, Cards, Netbanking'
                         },
-                        {
+                        ...(formData.deliveryType === 'store' ? [{
                           value: 'Cash on Delivery', icon: (
                             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
                               <path strokeLinecap="round" strokeLinejoin="round" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
                             </svg>
                           ),
                           label: 'Cash on delivery',
-                          sub: formData.deliveryType === 'store' ? 'Pay when you pickup at store' : 'Pay cash upon doorstep delivery'
-                        },
+                          sub: 'Pay when you pickup at store'
+                        }] : []),
                         {
                           value: 'emi', icon: (
                             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
