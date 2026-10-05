@@ -31,8 +31,8 @@ export async function POST(req) {
     const { key, actionUrl } = getPayuConfig();
     const txnid = `TXN_${order_number}_${Date.now()}`;
     const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
-    const surl = `${baseUrl}/api/payu/status`;
-    const furl = `${baseUrl}/api/payu/status`;
+    const surl = `${baseUrl}/api/payu/status?txnid=${encodeURIComponent(txnid)}`;
+    const furl = `${baseUrl}/api/payu/status?txnid=${encodeURIComponent(txnid)}`;
 
     const {
       hash,

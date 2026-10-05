@@ -692,6 +692,14 @@ export default function CheckoutPage() {
   }, []);
 
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const paymentError = params.get('error');
+    if (!paymentError) return;
+    toast.error(paymentError, { autoClose: 8000 });
+    window.history.replaceState(null, '', window.location.pathname);
+  }, []);
+
+  useEffect(() => {
     if (cartItems.length > 0 && orderSummary.total > 0) {
       ga4BeginCheckout({ items: cartItems, value: orderSummary.total });
     }

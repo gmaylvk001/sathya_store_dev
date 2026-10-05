@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
-import { verifyPayuHash } from "@/lib/payu";
+import { verifyPayuHash, verifyPayuTransaction } from "@/lib/payu";
 import OrderNew from "@/models/orders_new";
 import OrderHistoryNew from "@/models/order_history_new";
 import PaymentNewLive from "@/models/payment_new_live";
@@ -79,35 +79,53 @@ async function restoreOrderStock(order) {
   }
 }
 
+// The request body can only be read once, so pick the parser up front.
+async function readPayuParams(req) {
+  const params = {};
+  const contentType = req.headers.get("content-type") || "";
+  try {
+    if (contentType.includes("multipart/form-data")) {
+      const formData = await req.formData();
+      for (const [key, value] of formData.entries()) params[key] = String(value);
+    } else {
+      const text = await req.text();
+      for (const [key, value] of new URLSearchParams(text).entries()) params[key] = String(value);
+    }
+  } catch (err) {
+    console.error("[PayU Callback] Failed to parse request body:", err);
+  }
+  for (const [key, value] of new URL(req.url).searchParams.entries()) {
+    if (!(key in params)) params[key] = String(value);
+  }
+  return params;
+}
+
+function escapeRegex(value) {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+const PAYU_FAILED_STATUSES = ["failure", "failed", "usercancelled", "cancelled", "dropped", "bounced"];
+
 /**
  * POST /api/payu/status
  * Handles PayU payment callback/webhook for Unilet orders.
  */
 export async function POST(req) {
+  return handlePayuReturn(req);
+}
+
+export async function GET(req) {
+  return handlePayuReturn(req);
+}
+
+async function handlePayuReturn(req) {
   try {
     await dbConnect();
 
-    // Extract form parameters posted by PayU
-    const params = {};
-    try {
-      const formData = await req.formData();
-      for (const [key, value] of formData.entries()) {
-        params[key] = String(value);
-      }
-    } catch {
-      try {
-        const text = await req.text();
-        const searchParams = new URLSearchParams(text);
-        for (const [key, value] of searchParams.entries()) {
-          params[key] = String(value);
-        }
-      } catch (err) {
-        console.error("[PayU Callback] Failed to parse request body:", err);
-      }
-    }
+    const params = await readPayuParams(req);
 
-    const {
-      status,
+    let {
+      status = "",
       txnid = "",
       amount,
       mihpayid = "",
@@ -118,19 +136,47 @@ export async function POST(req) {
 
     const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
-    // Verify hash integrity
-    const { isValid } = verifyPayuHash(params);
+    let isValid = params.hash ? verifyPayuHash(params).isValid : false;
+
+    // PayU's posted data missing or unsigned: ask PayU for the real transaction status.
+    if (!isValid && txnid) {
+      const verified = await verifyPayuTransaction(txnid);
+      if (!verified || !(verified.status === "success" || PAYU_FAILED_STATUSES.includes(verified.status))) {
+        console.warn("[PayU Callback] Could not confirm transaction with PayU:", txnid, verified?.status || "no response");
+        return NextResponse.redirect(
+          new URL(`/checkout?error=${encodeURIComponent("We could not confirm your payment yet. Please check My Orders before paying again.")}`, baseUrl),
+          303
+        );
+      }
+      status = verified.status;
+      mihpayid = verified.mihpayid || mihpayid;
+      amount = verified.amount || amount;
+      udf1 = verified.udf1 || udf1;
+      udf2 = verified.udf2 || udf2;
+      error_Message = verified.error_Message || error_Message;
+      isValid = true;
+    }
+
     const isSuccess = String(status || "").toLowerCase() === "success";
 
-    const baseOrderNumber = udf1 || txnid.replace(/^TXN_/, "").replace(/_\d+$/, "");
+    const baseOrderNumber = String(udf1 || txnid.replace(/^TXN_/, "").replace(/_\d+$/, "")).trim();
 
-    // Find all matching orders
+    if (!baseOrderNumber || !txnid) {
+      console.error("[PayU Callback] Missing order number / txnid; no orders updated. Keys:", Object.keys(params));
+      return NextResponse.redirect(
+        new URL(`/checkout?error=${encodeURIComponent("Payment response was empty. Please check your order status before retrying.")}`, baseUrl),
+        303
+      );
+    }
+
+    // Only this transaction's orders that are still waiting for payment
     const orders = await OrderNew.find({
       $or: [
-        { order_number: baseOrderNumber },
-        { order_number: { $regex: new RegExp(`^${baseOrderNumber}`) } },
         { online_pay_refid: txnid },
+        { order_number: baseOrderNumber },
+        { order_number: { $regex: new RegExp(`^${escapeRegex(baseOrderNumber)}`) } },
       ],
+      payment_status: "payment_initialized",
     });
 
     if (isSuccess && isValid) {
