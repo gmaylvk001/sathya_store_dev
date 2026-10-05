@@ -31,6 +31,7 @@ export default function UserComponent() {
   const [selectedIds, setSelectedIds] = useState([]);
   const [isBulkDeleting, setIsBulkDeleting] = useState(false);
   const [fetchingUserId, setFetchingUserId] = useState(null);
+  const [fetchingOrdersUserId, setFetchingOrdersUserId] = useState(null);
 
   useEffect(() => {
     fetchUsers();
@@ -89,6 +90,39 @@ export default function UserComponent() {
       setTimeout(() => setShowAlert(false), 4000);
     } finally {
       setFetchingUserId(null);
+    }
+  };
+
+  const handleFetchOrders = async (user) => {
+    if (!user?._id) return;
+    if (!String(user.exist_id || "").trim()) {
+      setAlertMessage("❌ This user has no Exist ID");
+      setShowAlert(true);
+      setTimeout(() => setShowAlert(false), 4000);
+      return;
+    }
+
+    const alreadyFetched = Number(user.orders_fetched) === 1;
+    const confirmed = window.confirm(
+      alreadyFetched
+        ? "Fetch exist orders again into orders_new? Already-copied order numbers will be skipped. Missing live payments, history and cancel requests will be filled if needed."
+        : "Fetch exist orders into orders_new and order_details_new, insert payment_new_live, link order_history_new and copy cancel requests to cancel_orders_live?"
+    );
+    if (!confirmed) return;
+
+    setFetchingOrdersUserId(user._id);
+    try {
+      const response = await axios.post("/api/users/fetch-orders", { userId: user._id }, { timeout: 300000 });
+      setAlertMessage(`✅ ${response.data.message || "Orders fetched successfully"}`);
+      setShowAlert(true);
+      setTimeout(() => setShowAlert(false), 4000);
+      fetchUsers();
+    } catch (error) {
+      setAlertMessage(error.response?.data?.error || "❌ Failed to fetch orders");
+      setShowAlert(true);
+      setTimeout(() => setShowAlert(false), 4000);
+    } finally {
+      setFetchingOrdersUserId(null);
     }
   };
 
@@ -506,6 +540,7 @@ export default function UserComponent() {
                   <th className="p-2">Created At</th>
                   <th className="p-2">Updated At</th>
                   <th className="p-2">User Details</th>
+                  <th className="p-2">Orders fetched</th>
                   <th className="p-2">Action</th>
                 </tr>
               </thead>
@@ -564,6 +599,36 @@ export default function UserComponent() {
                         )}
                       </td>
                       <td className="p-2">
+                        <div className="inline-flex items-center gap-1 justify-center">
+                          {Number(user.orders_fetched) === 1 ? (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
+                              Fetched
+                            </span>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => handleFetchOrders(user)}
+                              disabled={fetchingOrdersUserId === user._id || isBulkDeleting}
+                              className="inline-flex items-center justify-center text-gray-400 disabled:opacity-50"
+                              title={fetchingOrdersUserId === user._id ? "Fetching orders..." : "Fetch exist orders"}
+                            >
+                              <Icon icon="mdi:close-circle-outline" width="20" />
+                            </button>
+                          )}
+                          {Number(user.orders_fetched) === 1 && String(user.exist_id || "").trim() ? (
+                            <button
+                              type="button"
+                              onClick={() => handleFetchOrders(user)}
+                              disabled={fetchingOrdersUserId === user._id || isBulkDeleting}
+                              className="px-2 h-6 bg-blue-100 text-blue-700 rounded-full text-xs font-medium disabled:opacity-50"
+                              title={fetchingOrdersUserId === user._id ? "Fetching orders..." : "Fetch exist orders again"}
+                            >
+                              {fetchingOrdersUserId === user._id ? "Fetching..." : "Fetch"}
+                            </button>
+                          ) : null}
+                        </div>
+                      </td>
+                      <td className="p-2">
                         <div className="flex items-center gap-2 justify-center">
                           <button
                             onClick={() => handleEdit(user)}
@@ -602,7 +667,7 @@ export default function UserComponent() {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="13" className="p-2 text-center text-gray-500">No users found.</td>
+                    <td colSpan="14" className="p-2 text-center text-gray-500">No users found.</td>
                   </tr>
                 )}
               </tbody>
