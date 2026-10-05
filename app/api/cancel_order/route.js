@@ -2,9 +2,10 @@ import { NextResponse } from "next/server";
 import mongoose from "mongoose";
 import dbConnect from "@/lib/db";
 import OrderNew from "@/models/orders_new";
-import CancelOrders from "@/models/cancel_orders";
+import CancelOrders from "@/models/cancel_orders_live";
 import OrderDetailsNew from "@/models/order_details_new";
 import { cancelOrder } from "@/lib/cancelOrder";
+import { ensureAppCancelsMoved } from "@/lib/cancelOrdersLive";
 
 export async function POST(req) {
   try {
@@ -48,6 +49,7 @@ export async function POST(req) {
     // --- Server-side spec guards ---
 
     // 1. Duplicate cancel request check
+    await ensureAppCancelsMoved();
     const existingCancel = await CancelOrders.findOne({
       $or: [
         { order_id: String(order._id) },

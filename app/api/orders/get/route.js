@@ -44,7 +44,8 @@ import dbConnect from "@/lib/db";
 import OrderNew from "@/models/orders_new";
 import OrderDetailsNew from "@/models/order_details_new";
 import PaymentNewLive from "@/models/payment_new_live";
-import CancelOrders from "@/models/cancel_orders";
+import CancelOrders from "@/models/cancel_orders_live";
+import { ensureAppCancelsMoved } from "@/lib/cancelOrdersLive";
 import product from "@/models/product";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
@@ -152,6 +153,7 @@ export async function GET(req) {
     const cancelQuery = [];
     if (cancelOrderIds.length) cancelQuery.push({ order_id: { $in: cancelOrderIds } });
     if (cancelOrderNumbers.length) cancelQuery.push({ order_number: { $in: cancelOrderNumbers } });
+    if (cancelQuery.length) await ensureAppCancelsMoved();
     const cancelRows = cancelQuery.length
       ? await CancelOrders.find({ $or: cancelQuery }).select("order_id order_number").lean()
       : [];

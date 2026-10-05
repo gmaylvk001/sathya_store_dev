@@ -11,11 +11,6 @@ export default function CancelledOrders() {
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [openActionId, setOpenActionId] = useState(null);
-  const [isImportOpen, setIsImportOpen] = useState(false);
-  const [importFile, setImportFile] = useState(null);
-  const [isImporting, setIsImporting] = useState(false);
-  const [importResult, setImportResult] = useState(null);
-  const [importError, setImportError] = useState("");
   const actionMenuRef = useRef(null);
   const itemsPerPage = 20;
 
@@ -85,59 +80,6 @@ export default function CancelledOrders() {
     }
   };
 
-  const openImport = () => {
-    setImportFile(null);
-    setImportResult(null);
-    setImportError("");
-    setIsImportOpen(true);
-  };
-
-  const closeImport = () => {
-    if (isImporting) return;
-    setIsImportOpen(false);
-  };
-
-  const handleImportSubmit = async (e) => {
-    e.preventDefault();
-    setImportError("");
-    setImportResult(null);
-
-    if (!importFile) {
-      setImportError("Please choose an Excel or CSV file");
-      return;
-    }
-    const name = importFile.name.toLowerCase();
-    if (!name.endsWith(".xlsx") && !name.endsWith(".xls") && !name.endsWith(".csv")) {
-      setImportError("Only .xlsx, .xls and .csv files are allowed");
-      return;
-    }
-
-    const data = new FormData();
-    data.append("file", importFile);
-    setIsImporting(true);
-    try {
-      const token = localStorage.getItem("token");
-      const response = await fetch("/api/cancel_orders/import", {
-        method: "POST",
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-        body: data,
-      });
-      const result = await response.json().catch(() => null);
-      if (!response.ok || !result?.success) {
-        setImportError(result?.error || result?.details || "Import failed");
-        return;
-      }
-      setImportResult(result);
-      setImportFile(null);
-      fetchRequests();
-    } catch (error) {
-      console.error("Cancel orders import error:", error);
-      setImportError("Import failed");
-    } finally {
-      setIsImporting(false);
-    }
-  };
-
   const handleView = (row) => {
     setOpenActionId(null);
     if (!row.order_ref_id) {
@@ -160,95 +102,7 @@ export default function CancelledOrders() {
 
       <div className="flex justify-between items-center mb-5">
         <h2 className="text-2xl font-bold">Cancel Request Orders</h2>
-        <button
-          type="button"
-          onClick={openImport}
-          className="p-2 border border-red-500 text-red-500 hover:bg-red-50 rounded-md transition text-sm"
-        >
-          Import Excel/CSV
-        </button>
       </div>
-
-      {isImportOpen && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-          <div className="bg-white p-5 rounded-lg w-[28rem] max-w-[95vw] relative max-h-[90vh] overflow-y-auto">
-            <h2 className="text-lg font-bold text-center">Import Cancel Orders</h2>
-            <button
-              type="button"
-              onClick={closeImport}
-              className="absolute top-3 right-3 text-red-500 text-xl"
-              aria-label="Close"
-            >
-              ×
-            </button>
-
-            <p className="text-sm text-gray-600 mt-4 mb-2">
-              Import exist <b>cancel_orders</b> records. Columns: <b>id</b>, order_number, order_id,
-              customer_id, order_status, reason, comments, created_at, updated_at.
-              Column <b>id</b> is saved as <b>exist_id</b>; rows with an id that was already imported are skipped.
-              Dates like <b>21-09-2026 17:28</b> are kept as they are; empty dates use today.
-            </p>
-            <div className="flex gap-4 mb-3 text-sm">
-              <a href="/api/cancel_orders/import/sample" className="text-red-500 hover:underline">
-                Download Excel sample
-              </a>
-              <a href="/api/cancel_orders/import/sample?format=csv" className="text-red-500 hover:underline">
-                Download CSV sample
-              </a>
-            </div>
-
-            <form onSubmit={handleImportSubmit}>
-              <input
-                type="file"
-                accept=".xlsx,.xls,.csv"
-                onChange={(e) => setImportFile(e.target.files?.[0] || null)}
-                className="w-full border p-2 mb-3 rounded"
-              />
-              <button
-                type="submit"
-                disabled={isImporting}
-                className="bg-red-500 text-white px-4 py-2 rounded w-full disabled:opacity-50"
-              >
-                {isImporting ? "Importing..." : "Import File"}
-              </button>
-            </form>
-
-            {importError && (
-              <div className="mt-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded px-3 py-2">
-                {importError}
-              </div>
-            )}
-
-            {importResult && (
-              <div className="mt-4 text-sm space-y-1">
-                <div className="bg-green-50 border border-green-200 text-green-700 rounded px-3 py-2 mb-2">
-                  {importResult.message}
-                </div>
-                <p>Total rows: {importResult.totalRows || 0}</p>
-                <p>Added: {importResult.addedCount || 0}</p>
-                <p>Skipped existing: {importResult.skippedExistingCount || 0}</p>
-                <p>Invalid: {importResult.invalidCount || 0}</p>
-                {importResult.skippedRows?.length > 0 && (
-                  <div className="mt-2 max-h-40 overflow-y-auto border rounded p-2 text-gray-600">
-                    {importResult.skippedRows.map((item, index) => (
-                      <div key={index}>
-                        Row {item.row}: id {item.exist_id} ({item.order_number}) already exists
-                      </div>
-                    ))}
-                  </div>
-                )}
-                {importResult.errors?.length > 0 && (
-                  <div className="mt-2 max-h-40 overflow-y-auto border rounded p-2 text-red-600">
-                    {importResult.errors.map((item, index) => (
-                      <div key={index}>Row {item.row}: {item.error}</div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
 
       <div className="bg-white shadow-md rounded-lg p-5 overflow-x-auto border border-gray-200">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end mb-4">

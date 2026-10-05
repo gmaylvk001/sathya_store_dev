@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 import mongoose from "mongoose";
 import dbConnect from "@/lib/db";
 import { verifyToken } from "@/lib/verifyToken";
-import CancelOrders from "@/models/cancel_orders";
+import CancelOrders from "@/models/cancel_orders_live";
+import { ensureAppCancelsMoved } from "@/lib/cancelOrdersLive";
 import OrderNew from "@/models/orders_new";
 import User from "@/models/User";
 import "@/models/Role";
@@ -46,6 +47,7 @@ export async function GET(req) {
     await dbConnect();
 
     const uniletOnly = await isUniletAdmin(req);
+    await ensureAppCancelsMoved();
 
     const requests = await CancelOrders.find({ order_status: { $regex: /^billed$/i } })
       .sort({ created_at: -1 })

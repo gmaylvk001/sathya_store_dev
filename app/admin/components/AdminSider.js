@@ -36,6 +36,7 @@ const menuItems = [
       { icon: 'mdi:clipboard-list-outline', label: 'Sathya Exist Orders Details', link: 'sathya-exist-orders-details', dotColor: 'bg-yellow-500' },
       { icon: 'mdi:credit-card-outline', label: 'Sathya Exist Payments', link: 'sathya-exist-payments', dotColor: 'bg-yellow-500' },
       { icon: 'mdi:history', label: 'Sathya Exist Order History', link: 'sathya-exist-order-history', dotColor: 'bg-yellow-500' },
+      { icon: 'mdi:cancel', label: 'Sathya Exist Cancel Orders', link: 'sathya-exist-cancel-orders', dotColor: 'bg-yellow-500' },
     ]
   },
   // { icon: 'mdi:note-text-outline', label: 'Blog', link: 'blog' },
