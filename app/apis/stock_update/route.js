@@ -1,92 +1,95 @@
-import { NextResponse } from 'next/server';
-import path from 'path';
-import fs from 'fs';
-import mongoose from 'mongoose';
-
+import { NextResponse } from "next/server";
+import path from "path";
+import fs from "fs";
+import dbConnect from "@/lib/db";
 import Product from "@/models/product";
-import Brand from "@/models/ecom_brand_info";
-import Product_all from "@/models/Product_all";
-import md5 from "md5";
-import ProductStore from '@/models/product_store';
-import ZTrackApi from '@/models/z_track_api';
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};
+import ProductStore from "@/models/product_store";
+import ZTrackApi from "@/models/z_track_api";
 
-/* stock_update */
+export const dynamic = "force-dynamic";
+
+const RESERVED_STORE_KEYS = new Set(["_id", "__v", "item_code"]);
+
+function todayInKolkata() {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(new Date());
+}
+
+// Private copy of the pushed data (not under public/), one file per day like exist storage.
+function saveStockLog(data) {
+  try {
+    const dir = path.join(process.cwd(), "storage", "stock_update");
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(path.join(dir, `stock_${todayInKolkata()}.json`), JSON.stringify(data));
+  } catch (err) {
+    console.warn("[stock_update] Could not save stock log:", err.message);
+  }
+}
+
+function toQty(value) {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : 0;
+}
+
+/**
+ * POST /apis/stock_update
+ * Exist HomeController::stockUpdate
+ * Body: { api_token, data: [{ ItemCode, totalQty, sku: [{ store, quantity }] }] }
+ */
 export async function POST(req) {
   try {
-    const body = await req.json();
-    const API_SECRET = process.env.MY_SECRET_TOKEN;
-    //const API_SECRET = 'HziubjPvy1BDc2FQQxO97u4dFD6UgN82GOfUf2w8mq5EuN1F47';
+    const body = await req.json().catch(() => null);
+    const expectedToken = process.env.STOCK_UPDATE_API_TOKEN;
 
-    if (API_SECRET !== body.api_token) {
-      return NextResponse.json({ error: 'Invalid API token' }, { status: 401 });
+    if (!body || !expectedToken || body.api_token !== expectedToken) {
+      return NextResponse.json({ status: "Unauthorized" }, { status: 401 });
+    }
+    if (!Array.isArray(body.data)) {
+      return NextResponse.json({ status: "Error", message: "data must be an array" }, { status: 400 });
     }
 
-    const filePath = path.join(process.cwd(), 'public', 'uploads', 'stock_update');
-    if (!fs.existsSync(filePath)) {
-      fs.mkdirSync(filePath, { recursive: true });
-    }
+    await dbConnect();
+    saveStockLog(body.data);
 
-    const filename = `stock_${Date.now()}.json`;
-    fs.writeFileSync(path.join(filePath, filename), JSON.stringify(body, null, 2));
+    for (const da of body.data) {
+      const itemCode = String(da?.ItemCode ?? "").trim();
+      if (!itemCode) continue;
 
-     const data = body.data;
+      await Product.updateMany({ item_code: itemCode }, { $set: { quantity: toQty(da.totalQty) } });
 
-    if (!Array.isArray(data)) {
-      return NextResponse.json({ error: 'Invalid payload format' }, { status: 400 });
-    }
-    const allStoreKeys = new Set();
-    for (const item of data) {
-      for (const sku of item.sku) {
-        allStoreKeys.add(sku.store);
+      // Every store field on this item starts at 0, then the pushed store quantities are applied.
+      const existing = await ProductStore.findOne({ item_code: itemCode }).lean();
+      const storeStock = {};
+      if (existing) {
+        for (const key of Object.keys(existing)) {
+          if (!RESERVED_STORE_KEYS.has(key)) storeStock[key] = 0;
+        }
+      }
+
+      const pushed = {};
+      for (const db of Array.isArray(da.sku) ? da.sku : []) {
+        const store = String(db?.store ?? "").trim();
+        if (!store || RESERVED_STORE_KEYS.has(store) || store.startsWith("$") || store.includes(".")) continue;
+        if (!(store in storeStock)) storeStock[store] = 0;
+        const qty = toQty(db.quantity);
+        if (qty) pushed[store] = qty;
+      }
+
+      if (existing) {
+        await ProductStore.updateOne(
+          { _id: existing._id },
+          { $set: { ...storeStock, ...pushed } },
+          { strict: false }
+        );
+      } else if (Object.keys(pushed).length) {
+        await ProductStore.collection.insertOne({ item_code: itemCode, ...storeStock, ...pushed });
       }
     }
 
-    // Process each item
-    for (const item of data) {
-      const itemCode = item.ItemCode;
-      const totalQty = parseFloat(item.totalQty);
-      const productStock = {};
+    await ZTrackApi.create({ type: "Delta_updtae" });
 
-
-      // Fill in actual quantities
-      for (const sku of item.sku) {
-        const storeKey = sku.store;
-        const quantity = parseFloat(sku.quantity);
-        productStock[storeKey] = quantity;
-      }
-
-      productStock.item_code = itemCode;
-
-      // Update or insert in product_store
-      const existingStore = await ProductStore.findOne({ item_code: itemCode });
-      if (existingStore) {
-        await ProductStore.updateOne({ item_code: itemCode }, { $set: productStock });
-      } else {
-        await ProductStore.create(productStock);
-      }
-
-      await Product.updateOne(
-        { item_code: itemCode },
-        { $set: { quantity: totalQty } },
-        { upsert: false }
-      );
-    }
-
-    await ZTrackApi.create({ type: 'Delta_update' });
-
-    return NextResponse.json({
-      message: 'Stock stored successfully',
-    });
+    return NextResponse.json({ status: "Success" }, { status: 201 });
   } catch (error) {
-    console.error('Sap stock file upload error:', error);
-    return NextResponse.json(
-      { error: 'Failed to process upload: ' + error.message },
-      { status: 500 }
-    );
+    console.error("[stock_update] Error:", error);
+    return NextResponse.json({ status: "Error", message: error.message }, { status: 500 });
   }
 }
