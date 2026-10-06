@@ -91,6 +91,9 @@ export async function GET(req) {
       { type: "offline", invoice: { $exists: true, $ne: null, $ne: "" } }
     ];
 
+    // Unpaid online attempts are not shown to the customer.
+    query.$and = [{ order_status: { $not: /^payment[\s_-]*initi(ated|alized)$/i } }];
+
     const orders = await OrderNew.find(query).sort({ created_at: -1 });
 
     const paymentObjectIds = [];
