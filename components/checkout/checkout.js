@@ -108,7 +108,12 @@ const DeliveryOptions = ({
 
   const [loadingStores, setLoadingStores] = useState(false);
   const [showAllStores, setShowAllStores] = useState(false);
+  const [pincodeError, setPincodeError] = useState('');
   const prevPincode = useRef('');
+
+  useEffect(() => {
+    if (!hasPincodeMismatch) setPincodeError('');
+  }, [hasPincodeMismatch]);
 
   // When postCode changes & store pickup selected → find nearest stores
   useEffect(() => {
@@ -242,34 +247,16 @@ const DeliveryOptions = ({
       {/* Save and Continue */}
       {!isDeliverySaved && (
         <>
-          {formData.deliveryType === 'home' && hasPincodeMismatch && (
-            <div className="mt-3 p-3 rounded-lg border border-red-200 bg-red-50 text-xs text-red-700 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-              <span>
-                Delivery location pincode (<strong>{normDeliveryPin}</strong>) and selected store location (<strong>{normHeaderPin}</strong>) do not match.
-              </span>
-              <button
-                type="button"
-                onClick={async () => {
-                  if (setPincode && normDeliveryPin) {
-                    await setPincode(normDeliveryPin);
-                    toast.success(`Location synced to ${normDeliveryPin}`);
-                  }
-                }}
-                className="px-2.5 py-1 bg-red-600 hover:bg-red-700 text-white font-semibold rounded text-[11px] whitespace-nowrap transition cursor-pointer"
-              >
-                Sync Location to {normDeliveryPin}
-              </button>
-            </div>
-          )}
           <button
             type="button"
             onClick={() => {
-              if (formData.deliveryType === 'home' && hasPincodeMismatch) {
-                toast.error(
-                  `Delivery pincode (${normDeliveryPin}) and selected location (${normHeaderPin}) do not match. Please update your address or sync your location to proceed.`
+              if (hasPincodeMismatch) {
+                setPincodeError(
+                  `Delivery pincode (${normDeliveryPin}) does not match your selected location pincode (${normHeaderPin}). Please change the shipping address or update the location pincode at the top.`
                 );
                 return;
               }
+              setPincodeError('');
               toast.success('Delivery method saved');
               setIsDeliverySaved(true);
             }}
@@ -277,6 +264,11 @@ const DeliveryOptions = ({
           >
             Save and continue
           </button>
+          {pincodeError && (
+            <div role="alert" className="mt-3 p-3 rounded-lg border border-red-200 bg-red-50 text-sm text-red-700">
+              {pincodeError}
+            </div>
+          )}
         </>
       )}
 
@@ -743,17 +735,16 @@ export default function CheckoutPage() {
   const isKarnataka = formData.deliveryType === 'store' ? Boolean(isKarnatakaStorePickup) : Boolean(isKarnatakaDelivery);
 
   const hasPincodeMismatch = Boolean(
-    formData.deliveryType === 'home' &&
     normDeliveryPin.length === 6 &&
     normHeaderPin.length === 6 &&
     normDeliveryPin !== normHeaderPin
   );
 
   useEffect(() => {
-    if (formData.deliveryType === 'home' && hasPincodeMismatch && isDeliverySaved) {
+    if (hasPincodeMismatch && isDeliverySaved) {
       setIsDeliverySaved(false);
     }
-  }, [formData.deliveryType, hasPincodeMismatch, isDeliverySaved]);
+  }, [hasPincodeMismatch, isDeliverySaved]);
 
   const fetchData = async (skipCartFetch = false) => {
     const token = localStorage.getItem('token');
@@ -1057,9 +1048,9 @@ export default function CheckoutPage() {
       const shippingAddress = savedAddresses.find(a => a._id === shippingAddressId);
       const billingAddress = billingSameAsShipping ? shippingAddress : savedAddresses.find(a => a._id === billingAddressId);
 
-      if (formData.deliveryType === 'home' && hasPincodeMismatch) {
+      if (hasPincodeMismatch) {
         toast.error(
-          `Delivery pincode (${normDeliveryPin}) and selected location (${normHeaderPin}) do not match. Please update your address or sync your location to proceed.`
+          `Delivery pincode (${normDeliveryPin}) does not match your selected location pincode (${normHeaderPin}).`
         );
         setIsSubmitting(false);
         return;
@@ -1072,11 +1063,11 @@ export default function CheckoutPage() {
         return;
       }
 
-      if (formData.deliveryType === 'home' && !shippingAddress) {
+      if (!shippingAddress) {
         toast.error('Please select a shipping address.');
         return;
       }
-      if (formData.deliveryType === 'home' && !billingAddress) {
+      if (!billingAddress) {
         toast.error('Please select a billing address.');
         return;
       }
@@ -1112,13 +1103,13 @@ export default function CheckoutPage() {
       let savedAddressId = shippingAddress?._id;
       let savedBillingId = billingAddress?._id;
 
-      const deliveryAddress = formData.deliveryType === 'home' && shippingAddress ? [
+      const deliveryAddress = shippingAddress ? [
         shippingAddress.address1, shippingAddress.address2,
         shippingAddress.locality, shippingAddress.landmark,
         shippingAddress.city, shippingAddress.state, "India", shippingAddress.pincode,
       ].filter(Boolean).join(', ') : [formData.address, formData.landmark, formData.city, formData.state, "India", formData.postCode].filter(Boolean).join(', ');
 
-      const billingAddressStr = formData.deliveryType === 'home' && billingAddress ? [
+      const billingAddressStr = billingAddress ? [
         billingAddress.address1, billingAddress.address2,
         billingAddress.locality, billingAddress.landmark,
         billingAddress.city, billingAddress.state, "India", billingAddress.pincode,
@@ -1467,7 +1458,7 @@ export default function CheckoutPage() {
               />
 
               {/* Address Selection UI (replaces inline form) */}
-              {formData.deliveryType === 'home' && (
+              {(formData.deliveryType === 'home' || formData.deliveryType === 'store') && (
                 <div className="mt-6 space-y-4">
                   {/* Shipping Address Box */}
                   <div className="border border-gray-200 rounded-xl p-5 bg-white shadow-sm">
@@ -1970,9 +1961,9 @@ export default function CheckoutPage() {
               <div className="px-5 pb-5">
                 <button
                   onClick={handleSubmit}
-                  disabled={isSubmitting || loading || cartItems.length === 0 || !isDeliverySaved || (formData.deliveryType === 'home' && hasPincodeMismatch)}
+                  disabled={isSubmitting || loading || cartItems.length === 0 || !isDeliverySaved || hasPincodeMismatch}
                   className={`w-full h-12 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all
-                    ${isSubmitting || loading || cartItems.length === 0 || !isDeliverySaved || (formData.deliveryType === 'home' && hasPincodeMismatch)
+                    ${isSubmitting || loading || cartItems.length === 0 || !isDeliverySaved || hasPincodeMismatch
                       ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                       : 'bg-red-600 text-white hover:bg-red-700 active:scale-[0.98]'}`}
                 >
