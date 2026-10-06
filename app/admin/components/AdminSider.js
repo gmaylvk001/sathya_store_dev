@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { Icon } from '@iconify/react';
+import { createPortal } from 'react-dom';
 
 const menuItems = [
   { icon: 'material-symbols:dashboard', label: 'Dashboard', link: 'dashboard' },
@@ -101,15 +102,6 @@ const menuItems = [
       { icon: "mdi:rocket-launch-outline", label: "New Product Launch", link: "design/new-product-launch", dotColor: "bg-blue-500" },
     ],
   },
-  // {
-  //   icon: 'mdi:bank',
-  //   label: 'Finance',
-  //   submenu: [
-  //     { icon: 'mdi:chevron-double-right', label: 'Finance Bank', link: 'finance/bank', permission: "finance-bank", dotColor: 'bg-blue-500' },
-  //     { icon: 'mdi:chevron-double-right', label: 'EMI Product', link: 'finance/emi-product', permission: "emi-product", dotColor: 'bg-green-500' },
-  //     { icon: 'mdi:chevron-double-right', label: 'EMI Scheme', link: 'finance/emi-scheme', permission: "emi-scheme", dotColor: 'bg-yellow-500' }
-  //   ]
-  // }
 ];
 
 const UNILET_VIEW_MENUS = ['Dashboard', 'Category', 'Product', 'Unilet Products', 'Sales', 'Stores'];
@@ -119,27 +111,6 @@ function visibleMenuItems(uniletView) {
     ? menuItems.filter((item) => UNILET_VIEW_MENUS.includes(item.label))
     : menuItems.filter((item) => item.label !== 'Unilet Products');
 }
-
-function setSidebarFlyoutTop(event) {
-  const rect = event.currentTarget.getBoundingClientRect();
-  event.currentTarget.style.setProperty('--sidebar-flyout-top', `${rect.top}px`);
-}
-
-function SidebarHoverBadge({ label }) {
-  return (
-    <span
-      role="tooltip"
-      className="pointer-events-none fixed z-[80] whitespace-nowrap rounded-lg bg-red-50 px-3 py-1.5 text-sm font-medium text-brandRed shadow-lg opacity-0 invisible transition-opacity duration-200 group-hover:visible group-hover:opacity-100"
-      style={{
-        left: '60px',
-        top: 'var(--sidebar-flyout-top, 0px)',
-      }}
-    >
-      {label}
-    </span>
-  );
-}
-
 export default function AdminSider({ collapsed }) {
   const pathname = usePathname();
   const [activeMenu, setActiveMenu] = useState('Dashboard');
@@ -157,7 +128,7 @@ export default function AdminSider({ collapsed }) {
       setActiveMenu('Unilet Products');
       return;
     }
-    // Check submenus first (more specific paths like /admin/blogs-faq before /admin/blog)
+    // Check submenus first
     for (const item of menuItems) {
       if (item.submenu) {
         const sub = item.submenu.find((s) => pathname.includes(`/admin/${s.link}`));
@@ -168,7 +139,7 @@ export default function AdminSider({ collapsed }) {
         }
       }
     }
-    // Then check top-level items with exact segment match
+    // Then check top-level items
     for (const item of menuItems) {
       if (item.link && (pathname === `/admin/${item.link}` || pathname.startsWith(`/admin/${item.link}/`))) {
         setActiveMenu(item.label);
@@ -224,22 +195,55 @@ export default function AdminSider({ collapsed }) {
 
 function SidebarItem({ icon, label, link, activeMenu, setActiveMenu, collapsed, router }) {
   const active = activeMenu === label;
+  const [isHovered, setIsHovered] = useState(false);
+  const [badgeTop, setBadgeTop] = useState(0);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => setMounted(true), []);
+
+  const handleMouseEnter = (e) => {
+    if (collapsed) {
+      const rect = e.currentTarget.getBoundingClientRect();
+      setBadgeTop(rect.top);
+      setIsHovered(true);
+    }
+  };
 
   return (
-    <li className="group relative" onMouseEnter={setSidebarFlyoutTop}>
+    <li 
+      className="relative" 
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={() => setIsHovered(false)}
+    >
       <button
         onClick={() => {
           setActiveMenu(label);
           router.push(`/admin/${link}`);
         }}
-        className={`w-full flex items-center px-1 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${active ? 'bg-brandRed text-white' : 'text-gray-700 hover:text-brandRed'
-          } ${collapsed ? 'justify-center' : 'space-x-3'}`}
+        className={`w-full flex items-center px-1 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
+          active 
+            ? 'bg-brandRed text-white' 
+            : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+        } ${collapsed ? 'justify-center' : 'space-x-3'}`}
         aria-label={label}
       >
         <Icon icon={icon} className="text-xl" />
         {!collapsed && <span>{label}</span>}
       </button>
-      {collapsed && <SidebarHoverBadge label={label} />}
+      
+      {collapsed && isHovered && mounted && createPortal(
+        <span
+          role="tooltip"
+          className="pointer-events-none fixed z-[9999] whitespace-nowrap rounded-lg bg-red-50 px-3 py-1.5 text-sm font-medium text-brandRed shadow-lg transition-opacity duration-200"
+          style={{
+            left: '60px',
+            top: `${badgeTop}px`,
+          }}
+        >
+          {label}
+        </span>,
+        document.body
+      )}
     </li>
   );
 }
@@ -254,20 +258,41 @@ function SidebarItemWithDropdown({
   router
 }) {
   const isOpen = openMenus.includes(item.label);
-  const [openUp, setOpenUp] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  const [flyoutTop, setFlyoutTop] = useState(0);
+  const [flyoutMaxHeight, setFlyoutMaxHeight] = useState(0);
+  const [mounted, setMounted] = useState(false);
+  const timerRef = useRef(null);
 
-  const setFlyoutTop = (event) => {
+  useEffect(() => setMounted(true), []);
+
+  const handleLiMouseEnter = (event) => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    if (!collapsed) return;
+    
     const rect = event.currentTarget.getBoundingClientRect();
-    const estimatedHeight = 44 + item.submenu.length * 42 + 8;
-    const spaceBelow = window.innerHeight - rect.top;
-    const shouldOpenUp = spaceBelow < estimatedHeight + 12;
+    
+    // Always align exactly with the icon's top edge
+    setFlyoutTop(rect.top);
+    
+    // Ensure it doesn't extend below the viewport
+    const availableSpaceBelow = window.innerHeight - rect.top - 16;
+    setFlyoutMaxHeight(Math.max(150, availableSpaceBelow)); // Minimum 150px height
+    
+    setIsHovered(true);
+  };
 
-    event.currentTarget.style.setProperty('--sidebar-flyout-top', `${rect.top}px`);
-    event.currentTarget.style.setProperty(
-      '--sidebar-flyout-bottom',
-      `${Math.max(8, window.innerHeight - rect.bottom)}px`
-    );
-    setOpenUp(shouldOpenUp);
+  const handlePortalMouseEnter = () => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    setIsHovered(true);
+  };
+
+  const handleMouseLeave = () => {
+    if (collapsed) {
+      timerRef.current = setTimeout(() => {
+        setIsHovered(false);
+      }, 150);
+    }
   };
 
   const toggleMenu = () => {
@@ -278,17 +303,24 @@ function SidebarItemWithDropdown({
     }
   };
 
+  const isActive = item.submenu.some((sub) => (sub.id || sub.label) === activeMenu);
+
   return (
-    <li className="group relative" onMouseEnter={collapsed ? setFlyoutTop : undefined}>
+    <li 
+      className="relative" 
+      onMouseEnter={handleLiMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
       <button
         onClick={() => {
           if (collapsed) return;
           toggleMenu();
         }}
-        className={`w-full flex items-center px-3 py-3 rounded-lg text-sm font-medium transition-colors duration-200 ${item.submenu.some((sub) => (sub.id || sub.label) === activeMenu)
-          ? 'bg-red-100 text-brandRed'
-          : 'text-gray-700 hover:text-brandRed'
-          } ${collapsed ? 'justify-center' : 'space-x-3'}`}
+        className={`w-full flex items-center px-3 py-3 rounded-lg text-sm font-medium transition-colors duration-200 ${
+          isActive
+            ? 'bg-red-100 text-brandRed'
+            : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+        } ${collapsed ? 'justify-center' : 'space-x-3'}`}
         aria-label={item.label}
         aria-haspopup="true"
       >
@@ -302,42 +334,49 @@ function SidebarItemWithDropdown({
         )}
       </button>
 
-      {collapsed && (
+      {collapsed && isHovered && mounted && createPortal(
         <div
-          className="invisible pointer-events-none fixed z-[90] group-hover:visible group-hover:pointer-events-auto"
-          style={
-            openUp
-              ? { left: '50px', bottom: 'var(--sidebar-flyout-bottom, 8px)', top: 'auto' }
-              : { left: '50px', top: 'var(--sidebar-flyout-top, 0px)', bottom: 'auto' }
-          }
+          className="fixed z-[99999]"
+          style={{
+            left: '70px',
+            top: `${flyoutTop}px`,
+          }}
+          onMouseEnter={handlePortalMouseEnter}
+          onMouseLeave={handleMouseLeave}
         >
           <div className="pl-2">
-            <div className="min-w-[200px] max-h-[min(24rem,calc(100vh-16px))] overflow-hidden overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-lg">
-              <div className="bg-red-50 px-4 pb-2 pt-3 text-xs font-semibold uppercase tracking-wide text-brandRed">
+            <div 
+              className="min-w-[210px] rounded-lg border border-gray-200 bg-white shadow-[0_4px_20px_rgba(0,0,0,0.15)] flex flex-col overflow-hidden"
+              style={{ maxHeight: `${flyoutMaxHeight}px` }}
+            >
+              <div className="shrink-0 bg-red-50 px-4 py-3 text-xs font-bold uppercase tracking-wider text-brandRed border-b border-gray-100">
                 {item.label}
               </div>
-              <ul>
+              <ul className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden pb-1 custom-scrollbar">
                 {item.submenu.map((sub) => (
                   <li key={sub.label}>
                     <button
                       onClick={() => {
                         setActiveMenu(sub.id || sub.label);
+                        setIsHovered(false);
                         router.push(`/admin/${sub.link}`);
                       }}
-                      className={`flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm transition-colors ${activeMenu === (sub.id || sub.label)
-                        ? 'bg-brandRed text-white'
-                        : 'text-gray-700 hover:bg-red-50 hover:text-brandRed'
-                        }`}
+                      className={`flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm transition-colors ${
+                        activeMenu === (sub.id || sub.label)
+                          ? 'bg-brandRed text-white'
+                          : 'text-gray-700 hover:bg-red-50 hover:text-brandRed'
+                      }`}
                     >
                       <Icon icon={sub.icon} className="h-4 w-4 shrink-0 text-[16px]" />
-                      <span>{sub.label}</span>
+                      <span className="truncate">{sub.label}</span>
                     </button>
                   </li>
                 ))}
               </ul>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {!collapsed && isOpen && (
@@ -349,10 +388,11 @@ function SidebarItemWithDropdown({
                   setActiveMenu(sub.id || sub.label);
                   router.push(`/admin/${sub.link}`);
                 }}
-                className={`w-full flex items-center px-3 py-2 rounded text-sm space-x-3 ${activeMenu === (sub.id || sub.label)
-                  ? 'bg-brandRed text-white'
-                  : 'text-gray-700 hover:text-brandRed'
-                  }`}
+                className={`w-full flex items-center px-3 py-2 rounded text-sm space-x-3 ${
+                  activeMenu === (sub.id || sub.label)
+                    ? 'bg-brandRed text-white'
+                    : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                }`}
               >
                 <Icon icon={sub.icon} className="text-lg" />
                 <span>{sub.label}</span>
@@ -364,3 +404,4 @@ function SidebarItemWithDropdown({
     </li>
   );
 }
+

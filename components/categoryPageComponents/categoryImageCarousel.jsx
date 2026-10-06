@@ -158,7 +158,7 @@ export default function CategoryImageCarousel({ config }) {
         moved: false,
         pointerId: e.pointerId,
       };
-      el.setPointerCapture?.(e.pointerId);
+      // Removed pointer capture to avoid swallowing click events on children
       el.style.scrollBehavior = "auto";
       el.style.cursor = "grabbing";
     };
@@ -177,12 +177,8 @@ export default function CategoryImageCarousel({ config }) {
       d.active = false;
       el.style.cursor = "grab";
       el.style.scrollBehavior = "smooth";
-      try {
-        if (d.pointerId != null) el.releasePointerCapture?.(d.pointerId);
-      } catch {
-        /* ignore */
-      }
-
+      // Removed pointer capture release
+      
       const w = el.clientWidth || 1;
       const idx = Math.round(el.scrollLeft / w);
       requestAnimationFrame(() => {

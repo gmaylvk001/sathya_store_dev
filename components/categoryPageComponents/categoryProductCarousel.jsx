@@ -151,7 +151,7 @@ export default function CategoryProductCarousel({ config }) {
         moved: false,
         pointerId: e.pointerId,
       };
-      el.setPointerCapture?.(e.pointerId);
+      // Removed pointer capture to avoid swallowing click events on children
       el.style.scrollBehavior = "auto";
       el.style.cursor = "grabbing";
     };

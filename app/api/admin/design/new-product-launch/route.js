@@ -47,14 +47,23 @@ export async function POST(req) {
     await dbConnect();
     const formData = await req.formData();
 
-    const product_name = formData.get("product_name");
-    const products = formData.get("products") || "";
+    const product_name = formData.get("product_name") || formData.get("title");
+    const products = formData.get("products") || formData.get("description") || "";
+    const highlights = formData.get("highlights") || "";
+    const features = formData.get("features") || "";
+    const in_the_box = formData.get("in_the_box") || "";
+    
     const stock_status = formData.get("stock_status") || "Choose";
     const status = formData.get("status") || "Choose";
     const page_design = formData.get("page_design") || "Choose";
+    const emi_starting_price = formData.get("emi_starting_price") || null;
+    
+    const seo_title = formData.get("seo_title") || "";
+    const seo_description = formData.get("seo_description") || "";
     
     const desktop_image_files = formData.getAll("desktop_images");
     const mobile_image_files = formData.getAll("mobile_images");
+    const prebook_modal_image_file = formData.get("prebook_modal_image");
 
     if (!product_name) {
       return NextResponse.json(
@@ -76,20 +85,43 @@ export async function POST(req) {
         mobile_images.push(await saveFile(file, "mobile"));
       }
     }
+    
+    let prebook_modal_image = "";
+    if (prebook_modal_image_file && prebook_modal_image_file.size > 0) {
+      prebook_modal_image = await saveFile(prebook_modal_image_file, "modal");
+    }
 
     const newProduct = new LaunchProduct({
-      product_name,
-      products,
-      stock_status,
-      status,
-      page_design,
-      desktop_images,
-      mobile_images,
+      title: product_name,
+      description: products,
+      highlights,
+      features,
+      in_the_box,
+      
+      stock_status: stock_status === "In Stock" ? "in_stock" 
+                  : stock_status === "Out Of Stock" ? "out_of_stock" 
+                  : stock_status === "pre_book" || stock_status === "Pre-Book" ? "pre_book"
+                  : stock_status === "coming_soon" ? "coming_soon"
+                  : "pre_book",
+                  
+      status: status === "Active" || status === "published" ? "published" 
+            : status === "Inactive" || status === "archived" ? "archived" 
+            : status === "scheduled" ? "scheduled"
+            : "draft",
+            
+      design_type: page_design === "New Design" || page_design === "new_iplanet" ? "new_iplanet" : "old",
+      emi_starting_price: emi_starting_price ? Number(emi_starting_price) : null,
+      seo_title,
+      seo_description,
+      
+      desktop_images: desktop_images.map(url => ({ url })),
+      mobile_images: mobile_images.map(url => ({ url })),
+      prebook_modal_image,
     });
 
     await newProduct.save();
 
-    return NextResponse.json({ success: true, data: newProduct });
+    return NextResponse.json({ success: true, data: newProduct, code: 200 });
   } catch (err) {
     console.error("POST ERROR in new-product-launch:", err);
     return NextResponse.json(

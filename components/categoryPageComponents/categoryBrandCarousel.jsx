@@ -45,6 +45,16 @@ function getPageStarts(total, perPage) {
   return starts;
 }
 
+function slugify(text) {
+  return text
+    ?.toString()
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, "-")
+    .replace(/[^\w\-]+/g, "")
+    .replace(/\-\-+/g, "-");
+}
+
 /**
  * Storefront Brand Carousel — same as Image Carousel:
  * auto-play + scrollable + L/R + dots. Brand logos with optional URLs.
@@ -159,7 +169,7 @@ export default function CategoryBrandCarousel({ config }) {
         moved: false,
         pointerId: e.pointerId,
       };
-      el.setPointerCapture?.(e.pointerId);
+      // Removed pointer capture to avoid swallowing click events on children
       el.style.scrollBehavior = "auto";
       el.style.cursor = "grabbing";
     };
@@ -178,11 +188,7 @@ export default function CategoryBrandCarousel({ config }) {
       d.active = false;
       el.style.cursor = "grab";
       el.style.scrollBehavior = "smooth";
-      try {
-        if (d.pointerId != null) el.releasePointerCapture?.(d.pointerId);
-      } catch {
-        /* ignore */
-      }
+      // Removed pointer capture release
 
       const w = el.clientWidth || 1;
       const idx = Math.round(el.scrollLeft / w);
@@ -240,13 +246,18 @@ export default function CategoryBrandCarousel({ config }) {
     const wrapClass =
       "box-border flex min-w-0 shrink-0 items-center justify-center p-1.5 sm:p-2";
 
-    if (item.url) {
-      const external = /^https?:\/\//i.test(item.url);
+    let targetUrl = item.url;
+    if (!targetUrl && item.notes) {
+      targetUrl = `/brand/${slugify(item.notes)}`;
+    }
+
+    if (targetUrl) {
+      const external = /^https?:\/\//i.test(targetUrl);
       if (external) {
         return (
           <a
             key={`brand-${idx}`}
-            href={item.url}
+            href={targetUrl}
             className={wrapClass}
             style={cellStyle}
           >
@@ -254,7 +265,7 @@ export default function CategoryBrandCarousel({ config }) {
           </a>
         );
       }
-      const href = item.url.startsWith("/") ? item.url : `/${item.url}`;
+      const href = targetUrl.startsWith("/") ? targetUrl : `/${targetUrl}`;
       return (
         <Link
           key={`brand-${idx}`}

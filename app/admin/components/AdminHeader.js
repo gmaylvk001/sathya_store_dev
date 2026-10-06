@@ -213,6 +213,20 @@ const AdminHeader = ({ toggleSidebar, sidebarCollapsed = true, mobileOpen = fals
                       <span>Feedback</span>
                     </button>
                   </li>
+                  <li>
+                    <button
+                      onClick={() => {
+                        setCommOpen(false);
+                        router.push('/admin/leads');
+                      }}
+                      className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm text-gray-700 transition hover:bg-red-50 hover:text-[#d72828]"
+                    >
+                      <svg className="h-4 w-4 shrink-0 text-[#d72828]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                      </svg>
+                      <span>Leads</span>
+                    </button>
+                  </li>
                 </ul>
               </div>
             )}

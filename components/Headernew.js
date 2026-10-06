@@ -1594,7 +1594,9 @@ const Header = () => {
   // DESKTOP specific renderer
   function renderDesktopSuggestionItem(item, idx) {
     const id = item._id || item.id || idx;
-    const price = item.special_price ?? item.price;
+    const price = (item.special_price && item.special_price > 0) 
+      ? item.special_price 
+      : (item.price && item.price > 0) ? item.price : item.mrp;
     const isActive = idx === activeSuggestion;
     const imageSrc = getSuggestionImage(item);
 

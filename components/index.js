@@ -1259,17 +1259,23 @@ export default function HomeComponent() {
                           className="p-2 flex justify-center items-center"
                           whileHover={{ scale: 1.05 }}
                         >
-                          <div className="w-full h-16 sm:h-18 max-w-[150px] px-3 py-2 bg-white rounded-xl border-2 border-gray-150/80 shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:border-[#ff9b9b] hover:ring-2 hover:ring-[#ffe4e6] hover:shadow-md transition-all duration-300 flex items-center justify-center overflow-hidden">
-                            <Link href={`/brand/${slugify(brand.brand_name)}`} className="w-full h-full flex items-center justify-center">
-                              <Image
-                                src={`/uploads/Brands/${brand.image}`}
-                                alt={brand.brand_name || "Brand Logo"}
-                                width={100}
-                                height={50}
-                                className="object-contain max-h-8 sm:max-h-9 max-w-[85px] sm:max-w-[105px] w-auto h-auto cursor-pointer"
-                                unoptimized
-                              />
-                            </Link>
+                          <div 
+                            className="w-full h-16 sm:h-18 max-w-[150px] px-3 py-2 bg-white rounded-xl border-2 border-gray-150/80 shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:border-[#ff9b9b] hover:ring-2 hover:ring-[#ffe4e6] hover:shadow-md transition-all duration-300 flex items-center justify-center overflow-hidden cursor-pointer"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              router.push(`/brand/${slugify(brand.brand_name)}`);
+                            }}
+                            onPointerDown={(e) => e.stopPropagation()}
+                          >
+                            <Image
+                              src={`/uploads/Brands/${brand.image}`}
+                              alt={brand.brand_name || "Brand Logo"}
+                              width={100}
+                              height={50}
+                              className="object-contain max-h-8 sm:max-h-9 max-w-[85px] sm:max-w-[105px] w-auto h-auto"
+                              unoptimized
+                            />
                           </div>
                         </motion.div>
                       ))}
