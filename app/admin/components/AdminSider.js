@@ -33,11 +33,17 @@ const menuItems = [
       { icon: 'mdi:cart-off', label: 'Abandoned Order', link: 'abandonedorder', dotColor: 'bg-yellow-500' },
       { icon: 'mdi:cancel', label: 'Cancel Order', link: 'order/cancel-order', dotColor: 'bg-[#d72828]' },
       { icon: 'mdi:clipboard-check-outline', label: 'Place Orders', link: 'order/place-order', dotColor: 'bg-blue-500' },
-      { icon: 'mdi:clipboard-list-outline', label: 'Sathya Exist Orders', link: 'sathya-exist-orders', dotColor: 'bg-yellow-500' },
-      { icon: 'mdi:clipboard-list-outline', label: 'Sathya Exist Orders Details', link: 'sathya-exist-orders-details', dotColor: 'bg-yellow-500' },
-      { icon: 'mdi:credit-card-outline', label: 'Sathya Exist Payments', link: 'sathya-exist-payments', dotColor: 'bg-yellow-500' },
-      { icon: 'mdi:history', label: 'Sathya Exist Order History', link: 'sathya-exist-order-history', dotColor: 'bg-yellow-500' },
-      { icon: 'mdi:cancel', label: 'Sathya Exist Cancel Orders', link: 'sathya-exist-cancel-orders', dotColor: 'bg-yellow-500' },
+      { icon: 'mdi:history', label: 'Order History', link: 'sathya-exist-order-history', dotColor: 'bg-yellow-500' },
+    ]
+  },
+  {
+    icon: 'mdi:archive-outline',
+    label: 'Exist Sales',
+    submenu: [
+      { icon: 'mdi:clipboard-list-outline', label: 'Orders', id: 'exist-sales-orders', link: 'sathya-exist-orders', dotColor: 'bg-yellow-500' },
+      { icon: 'mdi:clipboard-list-outline', label: 'Order Details', id: 'exist-sales-order-details', link: 'sathya-exist-orders-details', dotColor: 'bg-yellow-500' },
+      { icon: 'mdi:credit-card-outline', label: 'Payments', id: 'exist-sales-payments', link: 'sathya-exist-payments', dotColor: 'bg-yellow-500' },
+      { icon: 'mdi:cancel', label: 'Cancel Orders', id: 'exist-sales-cancel-orders', link: 'sathya-exist-cancel-orders', dotColor: 'bg-yellow-500' },
     ]
   },
   // { icon: 'mdi:note-text-outline', label: 'Blog', link: 'blog' },
@@ -104,7 +110,7 @@ const menuItems = [
   },
 ];
 
-const UNILET_VIEW_MENUS = ['Dashboard', 'Category', 'Product', 'Unilet Products', 'Sales', 'Stores'];
+const UNILET_VIEW_MENUS = ['Dashboard', 'Category', 'Product', 'Unilet Products', 'Sales', 'Exist Sales', 'Stores'];
 
 function visibleMenuItems(uniletView) {
   return uniletView
