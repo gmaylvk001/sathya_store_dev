@@ -18,7 +18,7 @@ import { FaShield } from "react-icons/fa6";
 import { FaShoppingCart, FaHeart, FaShareAlt, FaRupeeSign, FaCartPlus, FaBell } from "react-icons/fa";
 import { FiShoppingCart } from "react-icons/fi";
 import { TbTruckDelivery } from "react-icons/tb";
-import { IoFastFoodOutline, IoReload, IoCardOutline, IoShieldCheckmark, IoStorefront } from "react-icons/io5";
+import { IoFastFoodOutline, IoReload, IoCardOutline, IoShieldCheckmark, IoStorefront, IoLocationOutline } from "react-icons/io5";
 import Link from "next/link";
 import { useCart } from '@/context/CartContext';
 import { useModal } from '@/context/ModalContext';
@@ -30,7 +30,8 @@ import AddToWishlistButton from "@/components/ProductCard";
 import ProductBreadcrumb from "@/components/ProductBreadcrumb";
 import RecentlyViewedProducts from '@/components/RecentlyViewedProducts';
 import RelatedProducts from "@/components/RelatedProducts";
-import RazorpayOffers from "@/components/RazorpayOffers";
+import ProductOffersSection from "@/components/ProductOffersSection";
+import ProductInstallationWarrantySection from "@/components/ProductInstallationWarrantySection";
 import CompareButton from "@/components/CompareButton";
 import { v4 as uuidv4 } from "uuid";
 
@@ -152,6 +153,7 @@ export default function ProductClient() {
   const [deliveryPincode, setDeliveryPincode] = useState("");
   const [deliveryInfo, setDeliveryInfo] = useState(null);
   const [isCheckingDelivery, setIsCheckingDelivery] = useState(false);
+  const [isEditingPincode, setIsEditingPincode] = useState(false);
 
   useEffect(() => {
     if (globalPincode) {
@@ -1285,13 +1287,26 @@ const fetchBrand = async () => {
 {/* Standard Mobile/Desktop Shared Wrapper Container */}
 <div className="w-full block">
   {!isDesktop && (
-  <div className="mt-4 border border-gray-300 rounded-lg p-4 bg-white">
+  <div className="mt-4">
     <ExchangeOfferSection 
       productCategory={product.sub_category_new_name ? product.sub_category_new_name.replace(/##/g, ",") : (product.categoryName || "")} 
       onExchangeApply={handleExchangeApply} 
     />
-    <h3 className="font-semibold text-gray-800 text-sm mb-3 mt-4">Available Offers</h3>
-    <RazorpayOffers amount={Number(product.special_price) || Number(product.price)} />
+    <ProductOffersSection 
+      product={product} 
+      externalShowEmiModal={showEMIModal}
+      onExternalCloseEmiModal={() => setShowEMIModal(false)}
+    />
+    <ProductInstallationWarrantySection
+      product={product}
+      warranties={warranties}
+      selectedWarrantyData={selectedWarrantyData}
+      onSelectWarranty={(w, amount) => {
+        setSelectedWarrantyData(w);
+        setSelectedWarrantyAmount(amount);
+      }}
+      className="mt-3"
+    />
   </div>
 )}
 </div>
@@ -1681,101 +1696,121 @@ const fetchBrand = async () => {
         )}
       </div>
       <p className="text-[11px] text-gray-500 mt-0.5">Inclusive of all taxes</p>
-
-      {/* Effective Price Cards (Online / Store) */}
-      {product.special_price > 0 && (
-        <div className="grid grid-cols-2 gap-3 mt-3">
-          <div className="border border-green-500 rounded-lg p-2 bg-green-50/50 text-left">
-            <span className="text-xs font-bold text-gray-900 block">
-              ₹ {Number(product.special_price).toLocaleString('en-IN')}
-            </span>
-            <span className="text-[11px] text-gray-600 font-medium">Effective Price @ Online</span>
-          </div>
-          <div className="border border-green-500 rounded-lg p-2 bg-green-50/50 text-left">
-            <span className="text-xs font-bold text-gray-900 block">
-              ₹ {Number(product.special_price).toLocaleString('en-IN')}
-            </span>
-            <span className="text-[11px] text-gray-600 font-medium">Effective Price @ Store</span>
-          </div>
-        </div>
-      )}
-
-      {/* EMI Info Banner */}
-      <div className="mt-3 text-xs text-gray-700 flex items-center justify-between bg-gray-50 p-2.5 rounded-md border border-gray-200">
-        <span>Standard EMI starts from <strong className="text-[#d72828]">₹ 535/month</strong> for HDFC Bank Cards</span>
-        <button onClick={() => setShowEMIModal(true)} className="text-xs font-bold text-[#d72828] hover:underline">
-          View Plans
-        </button>
-      </div>
     </div>
 
     {/* Available Offers Component */}
-    <div className="border border-gray-200 rounded-lg p-3 bg-white shadow-sm mt-3">
+    <div className="mt-3">
       <ExchangeOfferSection 
         productCategory={product.sub_category_new_name ? product.sub_category_new_name.replace(/##/g, ",") : (product.categoryName || "")} 
         onExchangeApply={handleExchangeApply} 
       />
-      <h3 className="text-xs font-bold text-gray-900 flex items-center gap-1.5 mb-2 mt-3">
-        <span className="text-[#d72828] font-black">%</span> Available Offers
-      </h3>
-      <RazorpayOffers amount={Number(product.special_price) || Number(product.price)} />
+      <ProductOffersSection 
+        product={product} 
+        externalShowEmiModal={showEMIModal}
+        onExternalCloseEmiModal={() => setShowEMIModal(false)}
+      />
     </div>
 
-    {/* Delivery Options & Pincode Checker */}
-    <div className="border border-gray-200 rounded-lg p-3 bg-gray-50">
-      <div className="flex items-center justify-between mb-2">
+    {/* Delivery Options & Badges Card (Screenshot Reference Exact Match) */}
+    <div className="border border-gray-200 rounded-xl p-3.5 bg-white shadow-2xs mt-3">
+      <div className="flex items-center justify-between">
         <span className="text-xs font-bold text-gray-800">Delivery Options:</span>
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            handleCheckDelivery(deliveryPincode);
-          }}
-          className="flex items-center gap-1 bg-white border border-gray-300 rounded px-2 py-1"
-        >
-          <TbTruckDelivery className="text-[#d72828] w-4 h-4" />
-          <input
-            type="text"
-            value={deliveryPincode}
-            onChange={(e) => setDeliveryPincode(e.target.value.replace(/\D/g, "").slice(0, 6))}
-            placeholder="Enter Pincode"
-            maxLength={6}
-            className="w-24 text-xs focus:outline-none"
-          />
-          <button
-            type="submit"
-            disabled={isCheckingDelivery}
-            className="text-xs font-bold text-[#d72828] hover:underline ml-1 cursor-pointer disabled:opacity-50"
+        {!isEditingPincode ? (
+          <div className="flex items-center gap-2 border border-gray-200 rounded-md px-2.5 py-1 bg-white shadow-2xs">
+            <IoLocationOutline className="text-gray-500 w-3.5 h-3.5" />
+            <span className="text-xs font-bold text-gray-800">
+              {deliveryPincode || globalPincode || "400001"}
+            </span>
+            <button
+              type="button"
+              onClick={() => setIsEditingPincode(true)}
+              className="text-xs font-bold text-[#d72828] hover:underline ml-1 cursor-pointer"
+            >
+              Change
+            </button>
+          </div>
+        ) : (
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleCheckDelivery(deliveryPincode);
+              setIsEditingPincode(false);
+            }}
+            className="flex items-center gap-1.5 bg-white border border-gray-300 rounded px-2 py-1 shadow-2xs"
           >
-            {isCheckingDelivery ? "..." : "Check"}
-          </button>
-        </form>
+            <IoLocationOutline className="text-gray-500 w-3.5 h-3.5" />
+            <input
+              type="text"
+              value={deliveryPincode}
+              onChange={(e) =>
+                setDeliveryPincode(e.target.value.replace(/\D/g, "").slice(0, 6))
+              }
+              placeholder="Enter Pincode"
+              maxLength={6}
+              autoFocus
+              className="w-20 text-xs focus:outline-none"
+            />
+            <button
+              type="submit"
+              disabled={isCheckingDelivery}
+              className="text-xs font-bold text-[#d72828] hover:underline ml-1 cursor-pointer disabled:opacity-50"
+            >
+              {isCheckingDelivery ? "..." : "Check"}
+            </button>
+          </form>
+        )}
       </div>
 
-      <div className="grid grid-cols-2 gap-2 mt-2">
-        <div className="bg-white border border-gray-200 rounded-md p-2 text-center">
-          <span className="text-xs font-bold text-gray-800 block">REGULAR DELIVERY</span>
-          <span className={`text-[10px] font-medium ${deliveryInfo?.available === false ? 'text-red-600' : 'text-green-600'}`}>
-            {deliveryInfo?.message || "Delivery in 2 - 4 Days"}
+      {/* Regular Delivery | Store Pickup Split Box */}
+      <div className="border border-gray-200 rounded-lg grid grid-cols-2 divide-x divide-gray-200 bg-white mt-2.5">
+        <div className="p-2.5 text-center">
+          <span className="text-xs font-black text-gray-900 block tracking-tight">
+            REGULAR DELIVERY
+          </span>
+          <span
+            className={`text-[11px] font-medium block mt-0.5 ${
+              deliveryInfo?.available === false
+                ? "text-red-600"
+                : "text-green-600"
+            }`}
+          >
+            {deliveryInfo?.message || "Delivery in 2 Days"}
           </span>
         </div>
-        <div className="bg-white border border-gray-200 rounded-md p-2 text-center">
-          <span className="text-xs font-bold text-gray-800 block">STORE PICKUP</span>
-          <span className="text-[10px] text-green-600 font-medium">Reserve & Collect at Store</span>
+        <div className="p-2.5 text-center">
+          <span className="text-xs font-black text-gray-900 block tracking-tight">
+            STORE PICKUP
+          </span>
+          <span className="text-[11px] text-green-600 font-medium block mt-0.5">
+            Reserve &amp; Collect at Store
+          </span>
+        </div>
+      </div>
+
+      {/* GST Invoice & Genuine Badges (Inside Card 2) */}
+      <div className="flex items-center justify-between text-xs text-gray-600 mt-3 pt-1">
+        <div className="flex items-center gap-1.5 font-medium">
+          <IoCardOutline className="text-[#d72828] w-4 h-4 flex-shrink-0" />
+          <span>GST Invoice Available</span>
+        </div>
+        <div className="flex items-center gap-1.5 font-medium">
+          <IoShieldCheckmark className="text-green-600 w-4 h-4 flex-shrink-0" />
+          <span>100% Genuine Product</span>
         </div>
       </div>
     </div>
 
-    {/* GST Invoice & Genuine Badges */}
-    <div className="grid grid-cols-2 gap-2 text-xs text-gray-700">
-      <div className="border border-gray-200 rounded p-2 flex items-center gap-2 bg-white">
-        <IoCardOutline className="text-[#d72828] w-4 h-4 flex-shrink-0" />
-        <span className="font-medium">GST Invoice Available</span>
-      </div>
-      <div className="border border-gray-200 rounded p-2 flex items-center gap-2 bg-white">
-        <IoShieldCheckmark className="text-green-600 w-4 h-4 flex-shrink-0" />
-        <span className="font-medium">100% Genuine Product</span>
-      </div>
-    </div>
+    {/* Installation & Protection Service and Extended Warranty (Screenshot Reference Clone) */}
+    <ProductInstallationWarrantySection
+      product={product}
+      warranties={warranties}
+      selectedWarrantyData={selectedWarrantyData}
+      onSelectWarranty={(w, amount) => {
+        setSelectedWarrantyData(w);
+        setSelectedWarrantyAmount(amount);
+      }}
+      className="mt-3"
+    />
 
 
 
