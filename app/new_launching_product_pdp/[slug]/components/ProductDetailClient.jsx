@@ -9,8 +9,32 @@ export default function ProductDetailClient({ product }) {
   const [activeTab, setActiveTab] = useState("description"); // description, specifications, inTheBox
   const [showPreBookModal, setShowPreBookModal] = useState(false);
   const [preBookForm, setPreBookForm] = useState({ name: '', email: '', mobile: '', store: '', product: product.name });
+  const [formErrors, setFormErrors] = useState({});
   const [submitStatus, setSubmitStatus] = useState({ loading: false, message: '', success: false });
   const [storesList, setStoresList] = useState([]);
+
+  const validateField = (field, value) => {
+    let error = "";
+    if (field === "name") {
+      if (!value.trim()) error = "Name is required";
+    } else if (field === "email") {
+      if (!value) error = "Email is required";
+      else if (!/^\S+@\S+\.\S+$/.test(value)) error = "Invalid email format";
+    } else if (field === "mobile") {
+      if (!value) error = "Mobile number is required";
+      else if (!/^[0-9]{10}$/.test(value)) error = "Must be 10 digits";
+    } else if (field === "store") {
+      if (!value) error = "Please select a store";
+    }
+    setFormErrors(prev => ({ ...prev, [field]: error }));
+    return !error;
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setPreBookForm(prev => ({ ...prev, [name]: value }));
+    validateField(name, value);
+  };
 
   useEffect(() => {
     const fetchStores = async () => {
@@ -32,8 +56,17 @@ export default function ProductDetailClient({ product }) {
     fetchStores();
   }, []);
 
+  const validateForm = () => {
+    const isNameValid = validateField('name', preBookForm.name);
+    const isEmailValid = validateField('email', preBookForm.email);
+    const isMobileValid = validateField('mobile', preBookForm.mobile);
+    const isStoreValid = validateField('store', preBookForm.store);
+    return isNameValid && isEmailValid && isMobileValid && isStoreValid;
+  };
+
   const handlePreBookSubmit = async (e) => {
     e.preventDefault();
+    if (!validateForm()) return;
     setSubmitStatus({ loading: true, message: '', success: false });
     try {
       const res = await fetch('/api/pre-book', {
@@ -393,25 +426,29 @@ export default function ProductDetailClient({ product }) {
               
               <form onSubmit={handlePreBookSubmit} className="space-y-4">
                 <div>
-                  <input type="text" required placeholder="Name" className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:border-[#D7191F] focus:ring-1 focus:ring-[#D7191F] transition-colors" value={preBookForm.name} onChange={(e) => setPreBookForm({...preBookForm, name: e.target.value})} />
+                  <input type="text" name="name" required placeholder="Name" className={`w-full px-4 py-3 rounded-xl border ${formErrors.name ? 'border-red-500' : preBookForm.name ? 'border-green-500' : 'border-slate-200'} focus:outline-none focus:border-[#D7191F] focus:ring-1 focus:ring-[#D7191F] transition-colors`} value={preBookForm.name} onChange={handleInputChange} />
+                  {formErrors.name && <p className="text-red-500 text-xs mt-1 ml-1">{formErrors.name}</p>}
                 </div>
                 <div>
-                  <input type="email" required placeholder="Email" className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:border-[#D7191F] focus:ring-1 focus:ring-[#D7191F] transition-colors" value={preBookForm.email} onChange={(e) => setPreBookForm({...preBookForm, email: e.target.value})} />
+                  <input type="email" name="email" required placeholder="Email" className={`w-full px-4 py-3 rounded-xl border ${formErrors.email ? 'border-red-500' : preBookForm.email ? 'border-green-500' : 'border-slate-200'} focus:outline-none focus:border-[#D7191F] focus:ring-1 focus:ring-[#D7191F] transition-colors`} value={preBookForm.email} onChange={handleInputChange} />
+                  {formErrors.email && <p className="text-red-500 text-xs mt-1 ml-1">{formErrors.email}</p>}
                 </div>
                 <div>
-                  <input type="tel" required placeholder="Mobile" pattern="[0-9]{10}" title="Please enter 10 digit mobile number" className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:border-[#D7191F] focus:ring-1 focus:ring-[#D7191F] transition-colors" value={preBookForm.mobile} onChange={(e) => setPreBookForm({...preBookForm, mobile: e.target.value})} />
+                  <input type="tel" name="mobile" required placeholder="Mobile" pattern="[0-9]{10}" title="Please enter 10 digit mobile number" className={`w-full px-4 py-3 rounded-xl border ${formErrors.mobile ? 'border-red-500' : preBookForm.mobile ? 'border-green-500' : 'border-slate-200'} focus:outline-none focus:border-[#D7191F] focus:ring-1 focus:ring-[#D7191F] transition-colors`} value={preBookForm.mobile} onChange={handleInputChange} />
+                  {formErrors.mobile && <p className="text-red-500 text-xs mt-1 ml-1">{formErrors.mobile}</p>}
                 </div>
                 <div>
-                  <select required className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:border-[#D7191F] focus:ring-1 focus:ring-[#D7191F] transition-colors appearance-none bg-white" value={preBookForm.store} onChange={(e) => setPreBookForm({...preBookForm, store: e.target.value})}>
+                  <select name="store" required className={`w-full px-4 py-3 rounded-xl border ${formErrors.store ? 'border-red-500' : preBookForm.store ? 'border-green-500' : 'border-slate-200'} focus:outline-none focus:border-[#D7191F] focus:ring-1 focus:ring-[#D7191F] transition-colors appearance-none bg-white`} value={preBookForm.store} onChange={handleInputChange}>
                     <option value="" disabled>Select store near you</option>
                     {storesList.map(store => (
                       <option key={store._id} value={store._id}>{store.title || store.branch || store.name}</option>
                     ))}
                     <option value="Online">Online Team</option>
                   </select>
+                  {formErrors.store && <p className="text-red-500 text-xs mt-1 ml-1">{formErrors.store}</p>}
                 </div>
                 <div>
-                  <select required className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:border-[#D7191F] focus:ring-1 focus:ring-[#D7191F] transition-colors appearance-none bg-white" value={preBookForm.product} onChange={(e) => setPreBookForm({...preBookForm, product: e.target.value})}>
+                  <select name="product" required className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:border-[#D7191F] focus:ring-1 focus:ring-[#D7191F] transition-colors appearance-none bg-white" value={preBookForm.product} onChange={handleInputChange}>
                     <option value={product.name}>{product.name}</option>
                   </select>
                 </div>
@@ -430,15 +467,15 @@ export default function ProductDetailClient({ product }) {
             
             {/* Right side Image */}
             <div className="hidden md:block w-5/12 bg-slate-100 relative">
-              <button onClick={() => setShowPreBookModal(false)} className="absolute top-4 right-4 w-10 h-10 bg-white rounded-full flex items-center justify-center text-slate-500 hover:text-slate-900 shadow-sm z-10 transition-colors">
-                <Icon icon="ph:x-bold" className="w-5 h-5" />
+              <button onClick={() => setShowPreBookModal(false)} className="absolute top-4 right-4 w-8 h-8 bg-white rounded-full flex items-center justify-center text-slate-500 hover:text-slate-900 shadow-sm z-10 transition-colors">
+                <Icon icon="ph:x-bold" className="w-4 h-4" />
               </button>
               <img src={currentImage} alt={product.name} className="w-full h-full object-cover mix-blend-multiply opacity-90 p-8" />
             </div>
             
             {/* Mobile close button */}
-            <button onClick={() => setShowPreBookModal(false)} className="md:hidden absolute top-4 right-4 w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center text-slate-500 shadow-sm z-10">
-              <Icon icon="ph:x-bold" className="w-5 h-5" />
+            <button onClick={() => setShowPreBookModal(false)} className="md:hidden absolute top-4 right-4 w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center text-slate-500 shadow-sm z-10">
+              <Icon icon="ph:x-bold" className="w-4 h-4" />
             </button>
             
           </div>
