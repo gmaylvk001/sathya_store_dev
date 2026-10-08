@@ -1042,7 +1042,7 @@ const Header = () => {
       }
 
       const res = await fetch(`/api/search/suggestions?${qs}`, { signal: controller.signal });
-      
+
       // Cancelled or superseded by newer request
       if (requestId !== searchRequestIdRef.current) return;
 
@@ -1489,7 +1489,12 @@ const Header = () => {
   const renderSuggestionItem = useCallback((item, idx) => {
     const id = item._id || item.id || idx;
     const slug = item.slug || item._id || item.id || '';
-    const price = item.special_price ?? item.price;
+
+    const pSpecial = parseFloat(item.special_price) || 0;
+    const pPrice = parseFloat(item.price) || 0;
+    const pMrp = parseFloat(item.mrp) || 0;
+    const bestPrice = pSpecial > 0 ? pSpecial : (pPrice > 0 ? pPrice : pMrp);
+
     const imageSrc = getSuggestionImage(item);
     return (
       <Link
@@ -1522,9 +1527,13 @@ const Header = () => {
               {renderHighlightedText(item.name, searchQuery)}
             </div>
             <div className="mt-1 flex items-center justify-between">
-              {price !== undefined && price !== null && (
+              {bestPrice > 0 ? (
                 <span className="text-[12px] font-medium text-gray-700 group-hover:text-brandRed">
-                  {formatPrice(price)}
+                  {typeof formatPrice === 'function' ? formatPrice(bestPrice) : `₹${Number(bestPrice).toLocaleString('en-IN')}`}
+                </span>
+              ) : (
+                <span className="text-[12px] font-medium text-gray-500 italic">
+                  Coming Soon
                 </span>
               )}
               {item.sub_category_new_name && (
@@ -1594,9 +1603,11 @@ const Header = () => {
   // DESKTOP specific renderer
   function renderDesktopSuggestionItem(item, idx) {
     const id = item._id || item.id || idx;
-    const price = (item.special_price && item.special_price > 0) 
-      ? item.special_price 
-      : (item.price && item.price > 0) ? item.price : item.mrp;
+
+    const pSpecial = parseFloat(item.special_price) || 0;
+    const pPrice = parseFloat(item.price) || 0;
+    const pMrp = parseFloat(item.mrp) || 0;
+    const bestPrice = pSpecial > 0 ? pSpecial : (pPrice > 0 ? pPrice : pMrp);
     const isActive = idx === activeSuggestion;
     const imageSrc = getSuggestionImage(item);
 
@@ -1607,9 +1618,8 @@ const Header = () => {
         aria-selected={isActive}
         onMouseEnter={() => setActiveSuggestion(idx)}
         onMouseDown={() => selectSuggestion(idx)}
-        className={`flex gap-4 px-4 py-3 cursor-pointer rounded-lg transition-all group ${
-          isActive ? 'bg-red-50/70 border border-red-200' : 'bg-[#f7f7f8] hover:bg-white border border-transparent hover:border-gray-200'
-        }`}
+        className={`flex gap-4 px-4 py-3 cursor-pointer rounded-lg transition-all group ${isActive ? 'bg-red-50/70 border border-red-200' : 'bg-[#f7f7f8] hover:bg-white border border-transparent hover:border-gray-200'
+          }`}
       >
         <div className="w-[52px] h-[52px] rounded-lg overflow-hidden bg-white flex items-center justify-center border border-gray-200 shrink-0 p-1">
           {imageSrc ? (
@@ -1629,17 +1639,20 @@ const Header = () => {
         </div>
         <div className="flex-1 min-w-0">
           <div
-            className={`text-[13px] font-medium leading-snug line-clamp-2 transition-colors ${
-              isActive ? 'text-brandRed' : 'text-gray-800 group-hover:text-gray-900'
-            }`}
+            className={`text-[13px] font-medium leading-snug line-clamp-2 transition-colors ${isActive ? 'text-brandRed' : 'text-gray-800 group-hover:text-gray-900'
+              }`}
           >
             {renderHighlightedText(item.name, searchQuery)}
           </div>
           <div className="mt-1 flex items-center justify-between">
-            {price !== undefined && price !== null && (
+            {bestPrice > 0 ? (
               <div className="text-[13px] font-semibold text-brandRed">
-                ₹{Number(price).toLocaleString('en-IN')}
+                ₹{Number(bestPrice).toLocaleString('en-IN')}
               </div>
+            ) : (
+              <span className="text-[12px] font-medium text-gray-500 italic">
+                Coming Soon
+              </span>
             )}
             {item.sub_category_new_name && (
               <span className="text-[11px] text-gray-400 truncate max-w-[200px]">
@@ -1968,9 +1981,6 @@ const Header = () => {
                 <span className="truncate">{pincode ? pincode : (selectedRegion?.code || 'TN')}</span>
                 <span className="text-[9px] opacity-70">▾</span>
               </button>
-              {effectiveOfferTimer && (
-                <HeaderOfferTimer timer={effectiveOfferTimer} isMobile={true} />
-              )}
             </div>
             <div className="flex items-center gap-1.5 text-brandRed flex-shrink-0">
               <Link href="/wishlist" className={`${HEADER_ACTION_LINK_CLASS} relative min-w-[36px]`}>
@@ -1980,7 +1990,7 @@ const Header = () => {
                     {wishlistCount}
                   </span>
                 </div>
-                <span className={`text-[8px] ${HEADER_ACTION_LABEL_CLASS}`}>Wishlist</span>
+                <span className={`text-[8px] hidden ${HEADER_ACTION_LABEL_CLASS}`}>Wishlist</span>
               </Link>
               <Link href="/cart" className={`${HEADER_ACTION_LINK_CLASS} relative min-w-[36px]`}>
                 <div className={HEADER_ACTION_ICON_WRAP_SM_CLASS}>
@@ -1989,7 +1999,7 @@ const Header = () => {
                     {cartCount}
                   </span>
                 </div>
-                <span className={`text-[8px] ${HEADER_ACTION_LABEL_CLASS}`}>Cart</span>
+                <span className={`text-[8px] hidden ${HEADER_ACTION_LABEL_CLASS}`}>Cart</span>
               </Link>
               <div className="relative flex-shrink-0 px-0.5">
                 {userData ? (
@@ -2014,6 +2024,11 @@ const Header = () => {
           </div>
           {/* MOBILE SEARCH BAR */}
           <div className="sm:hidden mt-2 w-full max-w-full">
+            {effectiveOfferTimer && (
+              <div className="flex justify-center w-full mb-2">
+                <HeaderOfferTimer timer={effectiveOfferTimer} isMobile={true} mobileForceDesktopStyle={true} />
+              </div>
+            )}
             <div className="header-search" role="search">
               <div className="header-search-select-wrap">
                 <select
