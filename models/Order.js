@@ -24,6 +24,7 @@ const OrderSchema = new mongoose.Schema({
   delivery_type: { type: String },
   payment_id: { type: String },
   order_number: { type: String, unique: true },
+  appliedPaymentOffer: { type: mongoose.Schema.Types.Mixed, default: null },
 }, { timestamps: true });
 
 export default mongoose.models.Order || mongoose.model("Order", OrderSchema);

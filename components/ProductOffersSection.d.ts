@@ -14,6 +14,7 @@ export interface ProductOffersSectionProps {
     sub_category_new_name?: string;
     [key: string]: any;
   };
+  productId?: string | null;
   /**
    * Optional external control to trigger EMI plans modal
    */

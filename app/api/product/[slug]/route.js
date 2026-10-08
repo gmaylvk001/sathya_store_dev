@@ -7,6 +7,7 @@ import {
   attachVariantGroupToProduct,
   applyRegionPricingToVariantGroup,
 } from "@/lib/variantGroup";
+import { resolveBestPriceForProduct } from "@/lib/bestPriceResolver";
 
 export async function GET(request, context) {
   const { params } = await context;
@@ -78,6 +79,10 @@ export async function GET(request, context) {
 
     await attachVariantGroupToProduct(responseProduct);
     await applyRegionPricingToVariantGroup(responseProduct, region);
+
+    const bestPriceDetails = await resolveBestPriceForProduct(responseProduct);
+    responseProduct.bestPriceDetails = bestPriceDetails;
+    responseProduct.best_price = bestPriceDetails.bestPriceDisplay;
 
     return new Response(JSON.stringify(responseProduct), {
       status: 200,

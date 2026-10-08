@@ -848,7 +848,11 @@ const fetchBrand = async () => {
 {/* <h4><b>Available offers</b></h4> */}
                   
                            
-                           <RazorpayOffers amount={product.special_price} />
+                           <RazorpayOffers
+                             amount={product.special_price}
+                             product={product}
+                             productId={product?._id}
+                           />
  
  
 

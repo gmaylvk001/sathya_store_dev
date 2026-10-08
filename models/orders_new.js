@@ -105,6 +105,8 @@ const OrderNewSchema = new mongoose.Schema({
     enum: ["unilet", "sathya"],
     default: "sathya",
   },
+  applied_payment_offer: optionalMixed,
+  appliedPaymentOffer: optionalMixed,
 }, {
   timestamps: { createdAt: "created_at", updatedAt: "updated_at" },
   collection: "orders_new",
