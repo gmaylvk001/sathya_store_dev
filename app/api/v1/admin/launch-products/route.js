@@ -16,7 +16,7 @@ export async function GET(request) {
     const stock_status = searchParams.get("stock_status") || "";
 
     const result = await getLaunchProducts({ page, limit, search, status, design, stock_status });
-    
+
     return NextResponse.json({
       code: 200,
       message: "Success",
@@ -35,9 +35,9 @@ export async function POST(request) {
     // Assuming you have middleware or next-auth to get the actorId
     const actorId = null; // Mock actor ID
     const body = await request.json();
-    
+
     const saved = await createLaunchProduct(body, actorId, request);
-    
+
     return NextResponse.json({
       code: 201,
       message: "Launch product created successfully",

@@ -9,6 +9,8 @@ export default function LaunchProductList() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+  const [stockStatusFilter, setStockStatusFilter] = useState("");
   
   // Delete Modal State
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -18,7 +20,7 @@ export default function LaunchProductList() {
   const fetchProducts = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`/api/v1/admin/launch-products?search=${search}`);
+      const res = await fetch(`/api/v1/admin/launch-products?search=${search}&status=${statusFilter}&stock_status=${stockStatusFilter}`);
       const data = await res.json();
       if (data.code === 200) {
         setProducts(data.data);
@@ -34,7 +36,7 @@ export default function LaunchProductList() {
 
   useEffect(() => {
     fetchProducts();
-  }, [search]);
+  }, [search, statusFilter, stockStatusFilter]);
 
   const triggerDelete = (id) => {
     setProductToDelete(id);
@@ -79,19 +81,43 @@ export default function LaunchProductList() {
       </div>
       
       <div className="flex justify-between items-center mb-4">
-        <div className="relative w-64">
-          <Icon icon="mdi:magnify" className="absolute left-3 top-2.5 text-gray-400 text-lg" />
-          <input
-            type="text"
-            placeholder="Search..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:border-brandRed"
-          />
+        <div className="flex gap-3 items-center">
+          <div className="relative w-64">
+            <Icon icon="mdi:magnify" className="absolute left-3 top-2.5 text-gray-400 text-lg" />
+            <input
+              type="text"
+              placeholder="Search..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:border-brandRed"
+            />
+          </div>
+          
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 focus:outline-none focus:border-brandRed bg-white min-w-[120px]"
+          >
+            <option value="">All Status</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
+          
+          <select
+            value={stockStatusFilter}
+            onChange={(e) => setStockStatusFilter(e.target.value)}
+            className="border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 focus:outline-none focus:border-brandRed bg-white min-w-[140px]"
+          >
+            <option value="">All Stock</option>
+            <option value="pre_book">Pre Book</option>
+            <option value="in_stock">In Stock</option>
+            <option value="out_of_stock">Out of Stock</option>
+          </select>
         </div>
+
         <Link 
           href="/admin/design/new-product-launch/create"
-          className="inline-flex items-center px-4 py-2 border border-gray-300 rounded text-sm bg-white hover:bg-gray-50 text-gray-700 font-medium shadow-sm transition"
+          className="inline-flex items-center px-4 py-2 border border-gray-300 rounded text-sm bg-white hover:bg-gray-50 text-gray-700 font-medium shadow-sm transition whitespace-nowrap"
         >
           <Icon icon="mdi:plus" className="mr-2 text-lg font-bold" />
           New Launch Product

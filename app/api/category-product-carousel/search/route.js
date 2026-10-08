@@ -171,7 +171,7 @@ export async function GET(req) {
           { brand: String(brand._id) },
         ],
       };
-      const products = await Product.find({
+      let products = await Product.find({
         status: "Active",
         $and: [brandMatch, textMatch],
       })
@@ -180,6 +180,20 @@ export async function GET(req) {
         )
         .limit(120)
         .lean();
+
+      // Fallback: If no products found within strict brand match, search broadly with textMatch
+      if (products.length === 0) {
+        const fallbackQuery = {
+          status: "Active",
+          $and: [textMatch],
+        };
+        products = await Product.find(fallbackQuery)
+          .select(
+            "name slug images price special_price model_number item_code stock_status quantity brand search_keywords"
+          )
+          .limit(60)
+          .lean();
+      }
 
       const ranked = products
         .map((p) => ({ ...p, _score: scoreProduct(p, q) }))
