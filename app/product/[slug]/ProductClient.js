@@ -1624,8 +1624,11 @@ const fetchBrand = async () => {
   </div>
 
 
-  {/* ==================== COLUMN 2: PRODUCT INFORMATION & DETAILS (5 cols / ~42% width, MAIN SCROLLING COLUMN) ==================== */}
-  <div className="lg:col-span-5 flex flex-col gap-3 min-w-0 self-stretch">
+  {/* ==================== RIGHT SIDE: COLUMNS 2 + 3 AREA (8 cols / ~67% width) ==================== */}
+  <div className="lg:col-span-8 flex flex-col gap-4 min-w-0 self-stretch">
+    <div className="grid grid-cols-8 gap-6 items-start">
+      {/* ==================== COLUMN 2: PRODUCT INFORMATION & DETAILS (5 cols) ==================== */}
+      <div className="col-span-5 flex flex-col gap-3 min-w-0">
     {/* 1. BREADCRUMBS AT TOP OF COLUMN 2 */}
     <ProductBreadcrumb product={product} className="mb-1 text-xs w-full overflow-hidden" />
 
@@ -1800,25 +1803,11 @@ const fetchBrand = async () => {
       </div>
     </div>
 
-    {/* Installation & Protection Service and Extended Warranty (Screenshot Reference Clone) */}
-    <ProductInstallationWarrantySection
-      product={product}
-      warranties={warranties}
-      selectedWarrantyData={selectedWarrantyData}
-      onSelectWarranty={(w, amount) => {
-        setSelectedWarrantyData(w);
-        setSelectedWarrantyAmount(amount);
-      }}
-      className="mt-3"
-    />
-
-
-
   </div>
 
 
-  {/* ==================== COLUMN 3: FREQUENTLY BOUGHT TOGETHER & CTAS (3 cols / ~25% width) ==================== */}
-  <div className="lg:col-span-3 min-w-0 self-stretch">
+  {/* ==================== COLUMN 3: FREQUENTLY BOUGHT TOGETHER & CTAS (3 cols) ==================== */}
+  <div className="col-span-3 min-w-0">
     <div className="flex flex-col gap-4">
 
     {/* 1. FREQUENTLY BOUGHT TOGETHER (EXACTLY 2 PRODUCTS, BACKEND CONTROLLED) */}
@@ -1991,6 +1980,21 @@ const fetchBrand = async () => {
     </div>
 
     </div>
+  </div>
+
+    </div>
+
+    {/* ==================== EXTENDED WARRANTY & INSTALLATION (Spans Columns 2 + 3) ==================== */}
+    <ProductInstallationWarrantySection
+      product={product}
+      warranties={warranties}
+      selectedWarrantyData={selectedWarrantyData}
+      onSelectWarranty={(w, amount) => {
+        setSelectedWarrantyData(w);
+        setSelectedWarrantyAmount(amount);
+      }}
+      className="mt-1"
+    />
   </div>
 
 </div>

@@ -239,105 +239,7 @@ export default function ProductInstallationWarrantySection({
   return (
     <div className={`w-full space-y-3 font-sans text-gray-900 ${className}`}>
       {/* ========================================================
-          1. INSTALLATION & PROTECTION SERVICE SECTION
-         ======================================================== */}
-      <div className="w-full rounded-xl border border-gray-200 bg-white overflow-hidden shadow-2xs">
-        {/* Accordion Header */}
-        <div
-          onClick={() => setIsInstallationExpanded((prev) => !prev)}
-          className="w-full px-4 py-3 flex items-center justify-between cursor-pointer select-none bg-white hover:bg-gray-50/70 transition-colors"
-          role="button"
-          tabIndex={0}
-          aria-expanded={isInstallationExpanded}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault();
-              setIsInstallationExpanded((prev) => !prev);
-            }
-          }}
-        >
-          <div>
-            <h4 className="text-xs sm:text-[13px] font-bold text-gray-900 tracking-tight leading-tight">
-              Installation & Protection Service
-            </h4>
-            <p className="text-[11px] text-gray-500 font-normal mt-0.5 leading-tight">
-              Product Installation and demo
-            </p>
-          </div>
-
-          {/* Expand/Collapse Arrow */}
-          <div className="p-1 text-gray-400 hover:text-gray-600 transition-transform duration-200">
-            <svg
-              viewBox="0 0 20 20"
-              fill="currentColor"
-              className={`w-4 h-4 transform transition-transform duration-200 ${
-                isInstallationExpanded ? "rotate-180" : "rotate-0"
-              }`}
-              aria-hidden="true"
-            >
-              <path
-                fillRule="evenodd"
-                d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                clipRule="evenodd"
-              />
-            </svg>
-          </div>
-        </div>
-
-        {/* Collapsible Content */}
-        {isInstallationExpanded && (
-          <div className="p-3.5 sm:p-4 pt-1 sm:pt-1 bg-white">
-            {/* Highlighted Service Card with Royal Blue Accent Border */}
-            <div className="w-full rounded-xl border-2 border-blue-600 bg-white p-3.5 sm:p-4 shadow-2xs">
-              {/* Logo + Service Title */}
-              <div className="flex items-start gap-3">
-                <ResQYellowIcon className="w-8 h-8" />
-                <div className="flex-1 min-w-0">
-                  <h5 className="text-xs sm:text-[13px] font-bold text-gray-900 leading-snug">
-                    resQ Installation Service for {categoryLabel} / Demo
-                  </h5>
-                </div>
-              </div>
-
-              {/* 3 Short Service Details */}
-              <ul className="mt-2.5 space-y-1.5 text-[11px] sm:text-xs text-gray-600 pl-1">
-                <li className="flex items-start gap-1.5">
-                  <span className="text-gray-400 font-bold leading-none">•</span>
-                  <span>Installation location feasibility check</span>
-                </li>
-                <li className="flex items-start gap-1.5">
-                  <span className="text-gray-400 font-bold leading-none">•</span>
-                  <span>Unboxing, leveling & setup to power source</span>
-                </li>
-                <li className="flex items-start gap-1.5">
-                  <span className="text-gray-400 font-bold leading-none">•</span>
-                  <span>Product demonstration & usage instructions</span>
-                </li>
-              </ul>
-
-              {/* Free Label */}
-              <div className="mt-3">
-                <span className="text-sm font-bold text-green-600 block leading-tight">
-                  Free
-                </span>
-              </div>
-
-              {/* Read more about benefits link with info icon */}
-              <button
-                type="button"
-                onClick={() => setShowBenefitsModal(true)}
-                className="mt-1 inline-flex items-center gap-1 text-[11px] sm:text-xs font-semibold text-teal-700 hover:text-teal-800 hover:underline cursor-pointer transition-colors"
-              >
-                <span>Read more about benefits</span>
-                <InfoCircleIcon className="w-3.5 h-3.5 text-teal-600" />
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* ========================================================
-          2. EXTENDED WARRANTY SECTION
+          1. EXTENDED WARRANTY SECTION
          ======================================================== */}
       <div className="w-full rounded-xl border border-gray-200 bg-white overflow-hidden shadow-2xs">
         {/* Accordion Header */}
@@ -494,6 +396,104 @@ export default function ProductInstallationWarrantySection({
                   </div>
                 );
               })}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ========================================================
+          2. INSTALLATION & PROTECTION SERVICE SECTION
+         ======================================================== */}
+      <div className="w-full rounded-xl border border-gray-200 bg-white overflow-hidden shadow-2xs">
+        {/* Accordion Header */}
+        <div
+          onClick={() => setIsInstallationExpanded((prev) => !prev)}
+          className="w-full px-4 py-3 flex items-center justify-between cursor-pointer select-none bg-white hover:bg-gray-50/70 transition-colors"
+          role="button"
+          tabIndex={0}
+          aria-expanded={isInstallationExpanded}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              setIsInstallationExpanded((prev) => !prev);
+            }
+          }}
+        >
+          <div>
+            <h4 className="text-xs sm:text-[13px] font-bold text-gray-900 tracking-tight leading-tight">
+              Installation & Protection Service
+            </h4>
+            <p className="text-[11px] text-gray-500 font-normal mt-0.5 leading-tight">
+              Product Installation and demo
+            </p>
+          </div>
+
+          {/* Expand/Collapse Arrow */}
+          <div className="p-1 text-gray-400 hover:text-gray-600 transition-transform duration-200">
+            <svg
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              className={`w-4 h-4 transform transition-transform duration-200 ${
+                isInstallationExpanded ? "rotate-180" : "rotate-0"
+              }`}
+              aria-hidden="true"
+            >
+              <path
+                fillRule="evenodd"
+                d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </div>
+        </div>
+
+        {/* Collapsible Content */}
+        {isInstallationExpanded && (
+          <div className="p-3.5 sm:p-4 pt-1 sm:pt-1 bg-white">
+            {/* Highlighted Service Card with Royal Blue Accent Border */}
+            <div className="w-full rounded-xl border-2 border-blue-600 bg-white p-3.5 sm:p-4 shadow-2xs">
+              {/* Logo + Service Title */}
+              <div className="flex items-start gap-3">
+                <ResQYellowIcon className="w-8 h-8" />
+                <div className="flex-1 min-w-0">
+                  <h5 className="text-xs sm:text-[13px] font-bold text-gray-900 leading-snug">
+                    resQ Installation Service for {categoryLabel} / Demo
+                  </h5>
+                </div>
+              </div>
+
+              {/* 3 Short Service Details */}
+              <ul className="mt-2.5 space-y-1.5 text-[11px] sm:text-xs text-gray-600 pl-1">
+                <li className="flex items-start gap-1.5">
+                  <span className="text-gray-400 font-bold leading-none">•</span>
+                  <span>Installation location feasibility check</span>
+                </li>
+                <li className="flex items-start gap-1.5">
+                  <span className="text-gray-400 font-bold leading-none">•</span>
+                  <span>Unboxing, leveling & setup to power source</span>
+                </li>
+                <li className="flex items-start gap-1.5">
+                  <span className="text-gray-400 font-bold leading-none">•</span>
+                  <span>Product demonstration & usage instructions</span>
+                </li>
+              </ul>
+
+              {/* Free Label */}
+              <div className="mt-3">
+                <span className="text-sm font-bold text-green-600 block leading-tight">
+                  Free
+                </span>
+              </div>
+
+              {/* Read more about benefits link with info icon */}
+              <button
+                type="button"
+                onClick={() => setShowBenefitsModal(true)}
+                className="mt-1 inline-flex items-center gap-1 text-[11px] sm:text-xs font-semibold text-teal-700 hover:text-teal-800 hover:underline cursor-pointer transition-colors"
+              >
+                <span>Read more about benefits</span>
+                <InfoCircleIcon className="w-3.5 h-3.5 text-teal-600" />
+              </button>
             </div>
           </div>
         )}
