@@ -21,10 +21,12 @@ export default function ClientLayout({ children }) {
           <WishlistProvider>
             <CartProvider>
               <AuthProvider>
-                {!pathname?.startsWith("/admin") && <CustomHeader />}
-                <main className="relative">{children}</main>
-                {!pathname?.startsWith("/admin") && <CustomFooter />}
-                {!pathname?.startsWith("/admin") && <GlobalModals />}
+                <div className="flex flex-col min-h-screen">
+                  {!pathname?.startsWith("/admin") && <CustomHeader />}
+                  <main className="relative flex-grow min-h-[calc(100vh-280px)]">{children}</main>
+                  {!pathname?.startsWith("/admin") && <CustomFooter />}
+                  {!pathname?.startsWith("/admin") && <GlobalModals />}
+                </div>
               </AuthProvider>
             </CartProvider>
           </WishlistProvider>

@@ -96,10 +96,11 @@ const RecentlyViewedCard = ({ product, brandMap = {}, onProductClick }) => {
   const ratingValue = Number(product.avgRating || product.rating || product.average_rating || 0);
   const reviewCount = Number(product.reviewCount || product.reviews_count || product.numReviews || 0);
 
-  const tempURL = "https://www.sathya.store/img/product/";
   const imagepathname = (Array.isArray(product.images) ? product.images[0] : null) || product.imgSrc || "";
   const imgSrc = imagepathname
-    ? (imagepathname.startsWith("http") ? imagepathname : `${tempURL}${imagepathname.replace(/^\/?(uploads\/products\/)?/, "").replace(/^\/+/, "")}`)
+    ? (imagepathname.startsWith("http")
+        ? imagepathname
+        : `/uploads/products/${imagepathname.replace(/^\/?(uploads\/products\/)?/, "").replace(/^\/+/, "")}`)
     : (product.imgSrc || '/uploads/products/placeholder.jpg');
 
   const productUrl = `/product/${product.slug || product._id}`;

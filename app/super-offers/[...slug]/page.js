@@ -132,9 +132,7 @@ function SuperOfferProductCard({ product, brandMap }) {
   const initialImg = rawImage
     ? rawImage.startsWith("http")
       ? rawImage
-      : rawImage.startsWith("/")
-        ? rawImage
-        : `/uploads/products/${rawImage}`
+      : `/uploads/products/${rawImage.replace(/^\/?(uploads\/products\/)?/, "").replace(/^\/+/, "")}`
     : "/uploads/sathya-header-logo.webp";
 
   const [imgSrc, setImgSrc] = useState(initialImg);
@@ -144,12 +142,7 @@ function SuperOfferProductCard({ product, brandMap }) {
   }, [initialImg]);
 
   const handleImageError = () => {
-    if (rawImage && !imgSrc.includes("sathya.store")) {
-      const cleanPath = rawImage.replace(/^\/?(uploads\/products\/)?/, "").replace(/^\/+/, "");
-      setImgSrc(`https://www.sathya.store/img/product/${cleanPath}`);
-    } else {
-      setImgSrc("/uploads/sathya-header-logo.webp");
-    }
+    setImgSrc("/uploads/sathya-header-logo.webp");
   };
 
   return (

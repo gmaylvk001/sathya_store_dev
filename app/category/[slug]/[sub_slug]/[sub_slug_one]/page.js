@@ -1,25 +1,26 @@
 import ProductClient from "@/app/product/[slug]/ProductClient";
+import dbConnect from "@/lib/db";
+import Product from "@/models/product";
 
 export async function generateMetadata({ params }) {
   const awaitedParams = await params;
   const slug = awaitedParams.slug;
   const sub_slug = awaitedParams.sub_slug;
   const sub_slug_one = awaitedParams.sub_slug_one;
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL;
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL || "https://www.sathya.store";
 
   try {
-    const response = await fetch(`${baseUrl}/api/product/${sub_slug_one}`, {
-      cache: "no-store",
-    });
+    await dbConnect();
+    const product = await Product.findOne({ slug: sub_slug_one })
+      .select("name meta_title meta_description description images search_keywords")
+      .lean();
 
-    if (!response.ok) {
+    if (!product) {
       return {
         title: "Product not found",
         description: "This product is unavailable",
       };
     }
-
-    const product = await response.json();
 
     const title = product.meta_title || product.name;
     const description =

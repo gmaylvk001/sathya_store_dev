@@ -20,7 +20,6 @@ import { X, CheckCircle2, XCircle, ShoppingCart, Zap, Award, ChevronDown, Chevro
 import { useCompare } from '@/context/CompareContext';
 import { normalizeAttributes, parseNumericValue } from '@/utils/compareHelpers';
 
-const PRODUCT_IMG_BASE = 'https://www.sathya.store/img/product/';
 const BRAND_RED = '#d72828';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -29,7 +28,7 @@ function getImageSrc(product) {
   const img = product?.images?.[0] || '';
   if (!img) return '/uploads/products/placeholder.jpg';
   if (img.startsWith('http')) return img;
-  return `${PRODUCT_IMG_BASE}${img.replace(/^\/?(?:uploads\/products\/)?/, '').replace(/^\/+/, '')}`;
+  return `/uploads/products/${img.replace(/^\/?(?:uploads\/products\/)?/, '').replace(/^\/+/, '')}`;
 }
 
 function getPrice(product) {

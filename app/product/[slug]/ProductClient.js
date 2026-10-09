@@ -4,6 +4,7 @@
 import ProductDetailsSection from "@/components/ProductDetailsSection";
 import OfferRibbonBadge from "@/components/OfferRibbonBadge";
 import FlixMediaLoader from "@/components/FlixMediaLoader";
+import ProductSkeleton from "@/components/ProductSkeleton";
 import ProductVariantSelector from "@/components/ProductVariantSelector";
 import ExchangeOfferSection from "@/components/ExchangeOfferSection";
 // import RelatedProducts from "@/components/RelatedProducts";
@@ -1038,14 +1039,8 @@ export default function ProductClient() {
   }, [lightboxOpen, lightboxIndex]);
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#d72828]"></div>
-      </div>
-    );
+    return <ProductSkeleton />;
   }
-
-
 
   if (error) {
     return (
@@ -1060,21 +1055,25 @@ export default function ProductClient() {
     );
   }
 
-  if (!product || !product.name) {
+  if (!product) {
+    return <ProductSkeleton />;
+  }
+
+  if (!product.name) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-2xl font-bold">Product not found</h2>
           <Link href="/" className="mt-4 inline-flex items-center text-[#d72828] hover:underline">
-            ← Back to Homee
+            ← Back to Home
           </Link>
         </div>
       </div>
     );
   }
 
-  if (!product || !product.images) {
-    return null; // or return a skeleton/loading spinner
+  if (!product.images) {
+    return <ProductSkeleton />;
   }
 
 

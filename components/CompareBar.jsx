@@ -13,7 +13,6 @@ import { X, GitCompare, ArrowRight, Layers } from 'lucide-react';
 import { useCompare } from '@/context/CompareContext';
 import { trackCompareView } from '@/utils/compareHelpers';
 
-const PRODUCT_IMG_BASE = 'https://www.sathya.store/img/product/';
 const MAX_SLOTS = 4;
 const BRAND_RED = '#d72828';
 
@@ -22,7 +21,7 @@ function getImageSrc(product) {
   const img = product.images?.[0] || '';
   if (!img) return null;
   if (img.startsWith('http')) return img;
-  return `${PRODUCT_IMG_BASE}${img.replace(/^\/?(?:uploads\/products\/)?/, '').replace(/^\/+/, '')}`;
+  return `/uploads/products/${img.replace(/^\/?(?:uploads\/products\/)?/, '').replace(/^\/+/, '')}`;
 }
 
 export default function CompareBar() {
