@@ -34,14 +34,107 @@ export async function GET(request) {
 
     const banks = await Bank.find({ isActive: true }).sort({ name: 1 }).lean();
 
+    // Map fallbacks if bank logoUrl is missing or points to stale missing path
+    const fallbackMap = {
+      HDFC: "/images/banks/hdfc.svg",
+      SBI: "/images/banks/sbi.svg",
+      AXIS: "/images/banks/axis.svg",
+      ICICI: "/images/banks/icici.svg",
+      KOTAK: "/images/banks/kotak.svg",
+      SCB: "/images/banks/scb.svg",
+      RBL: "/images/banks/rbl.svg",
+    };
+
+    const resolveBankLogo = (b) => {
+      if (!b) return "";
+      const code = (b.code || b.shortCode || "").toUpperCase();
+      if (!b.logoUrl || b.logoUrl === `/uploads/banks/${code.toLowerCase()}.png`) {
+        return fallbackMap[code] || b.logoUrl || b.logo || "";
+      }
+      return b.logoUrl || b.logo || "";
+    };
+
+    const resolvedBanks = banks.map((b) => ({
+      ...b,
+      logoUrl: resolveBankLogo(b),
+    }));
+
+    const resolvedOffers = offers.map((o) => {
+      if (o.bank) {
+        return {
+          ...o,
+          bank: {
+            ...o.bank,
+            logoUrl: resolveBankLogo(o.bank),
+          },
+        };
+      }
+      return o;
+    });
+
     return NextResponse.json({
       success: true,
-      data: offers,
-      banks,
-      count: offers.length,
+      data: resolvedOffers,
+      banks: resolvedBanks,
+      count: resolvedOffers.length,
     });
   } catch (error) {
     console.error("Error fetching payment offers:", error);
+    return NextResponse.json(
+      { success: false, error: error.message },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PUT(request) {
+  try {
+    await dbConnect();
+    const body = await request.json();
+    const { id, ...updates } = body;
+
+    if (!id) {
+      return NextResponse.json(
+        { success: false, error: "Offer ID is required" },
+        { status: 400 }
+      );
+    }
+
+    if (updates.emiDetails) {
+      updates.emiDetails = {
+        tenureMonths: Number(updates.emiDetails?.tenureMonths) || 0,
+        annualInterestRate: Number(updates.emiDetails?.annualInterestRate) || 0,
+        isNoCost: Boolean(updates.emiDetails?.isNoCost),
+      };
+    }
+    if (updates.discountValue !== undefined) updates.discountValue = Number(updates.discountValue) || 0;
+    if (updates.maxDiscountLimit !== undefined) updates.maxDiscountLimit = Number(updates.maxDiscountLimit) || 0;
+    if (updates.minOrderValue !== undefined) updates.minOrderValue = Number(updates.minOrderValue) || 0;
+    if (updates.priority !== undefined) updates.priority = Number(updates.priority) || 0;
+    if (updates.bank) updates.bankId = updates.bank;
+
+    const updated = await PaymentOffer.findByIdAndUpdate(
+      id,
+      { $set: updates },
+      { new: true, runValidators: true }
+    )
+      .populate("bank")
+      .lean();
+
+    if (!updated) {
+      return NextResponse.json(
+        { success: false, error: "Payment offer not found" },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: "Payment offer updated successfully",
+      data: updated,
+    });
+  } catch (error) {
+    console.error("Error updating payment offer:", error);
     return NextResponse.json(
       { success: false, error: error.message },
       { status: 500 }

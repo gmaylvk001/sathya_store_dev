@@ -51,16 +51,29 @@ const BankSchema = new mongoose.Schema(
   }
 );
 
+const DEFAULT_BANK_LOGOS = {
+  HDFC: "/images/banks/hdfc.svg",
+  SBI: "/images/banks/sbi.svg",
+  AXIS: "/images/banks/axis.svg",
+  ICICI: "/images/banks/icici.svg",
+  KOTAK: "/images/banks/kotak.svg",
+  SCB: "/images/banks/scb.svg",
+  RBL: "/images/banks/rbl.svg",
+};
+
 // Synchronize backward-compatible aliases on save
 BankSchema.pre("save", function (next) {
   if (!this.code && this.shortCode) this.code = this.shortCode.toUpperCase();
   if (!this.shortCode && this.code) this.shortCode = this.code.toUpperCase();
-  if (
-    (this.code === "HDFC" || this.shortCode === "HDFC") &&
-    (!this.logoUrl || this.logoUrl.includes("uploads/banks/hdfc"))
-  ) {
-    this.logoUrl = "/images/banks/hdfc.svg";
+  
+  const bankCode = (this.code || this.shortCode || "").toUpperCase();
+  if (DEFAULT_BANK_LOGOS[bankCode]) {
+    // If logoUrl is missing or points to the old missing uploads directory
+    if (!this.logoUrl || this.logoUrl.startsWith("/uploads/banks/")) {
+      this.logoUrl = DEFAULT_BANK_LOGOS[bankCode];
+    }
   }
+
   if (!this.logoUrl && this.logo) this.logoUrl = this.logo;
   if (!this.logo && this.logoUrl) this.logo = this.logoUrl;
   if (this.isActive === undefined && this.status) {
@@ -75,11 +88,9 @@ BankSchema.virtual("effectiveCode").get(function () {
 });
 
 BankSchema.virtual("effectiveLogoUrl").get(function () {
-  if (
-    (this.code === "HDFC" || this.shortCode === "HDFC") &&
-    (!this.logoUrl || this.logoUrl.includes("uploads/banks/hdfc"))
-  ) {
-    return "/images/banks/hdfc.svg";
+  const bankCode = (this.code || this.shortCode || "").toUpperCase();
+  if (!this.logoUrl || this.logoUrl === `/uploads/banks/${bankCode.toLowerCase()}.png`) {
+    return DEFAULT_BANK_LOGOS[bankCode] || this.logoUrl || this.logo || "";
   }
   return this.logoUrl || this.logo || "";
 });
