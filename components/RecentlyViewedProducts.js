@@ -51,32 +51,56 @@ const RecentlyViewedCard = ({ product, brandMap = {}, onProductClick }) => {
 
   const hasDiscount =
     Number(product.special_price) > 0 &&
-    Number(product.special_price) < Number(product.price);
+    Number(product.special_price) < Number(product.price || product.originalPrice);
 
   const discountPercent = hasDiscount
-    ? Math.round(100 - (Number(product.special_price) / Number(product.price)) * 100)
-    : 0;
+    ? Math.round(100 - (Number(product.special_price) / Number(product.price || product.originalPrice)) * 100)
+    : (product.discountPercent || 0);
 
-  const currentPrice = hasDiscount ? product.special_price : product.price || 0;
-  const originalPrice = product.price || 0;
+  const currentPrice = hasDiscount
+    ? product.special_price
+    : (product.currentPrice ?? product.price ?? product.originalPrice ?? 0);
+  const originalPrice = product.originalPrice ?? product.price ?? 0;
 
-  const brandName = brandMap[product.brand] || product.brand_name || product.brand || '';
+  const brandId = product.brand?._id || (typeof product.brand === 'string' ? product.brand : null);
+  const resolvedBrandMap = brandId && brandMap[brandId] ? brandMap[brandId] : '';
 
-  const inStock = product.stock_status === 'In Stock' && Number(product.quantity) > 0;
+  let brandName =
+    product.brand?.name ||
+    product.brand?.brand_name ||
+    product.brand_name ||
+    resolvedBrandMap ||
+    (typeof product.brand === 'string' && !/^[0-9a-fA-F]{24}$/.test(product.brand) && product.brand.toUpperCase() !== 'SATHYA' ? product.brand : '') ||
+    (product.brandName && product.brandName.toUpperCase() !== 'SATHYA' ? product.brandName : '') ||
+    product.manufacturer_name ||
+    '';
+
+  if (!brandName && product.name) {
+    const firstWord = product.name.trim().split(/\s+/)[0];
+    const matchedBrand = Object.values(brandMap).find(
+      (b) => b && b.toLowerCase() === firstWord.toLowerCase()
+    );
+    if (matchedBrand) {
+      brandName = matchedBrand;
+    } else if (/^windzy/i.test(product.name)) {
+      brandName = 'WINDZY';
+    } else if (/^acer/i.test(product.name)) {
+      brandName = 'Acer';
+    }
+  }
+
+  const inStock = product.inStock !== undefined
+    ? Boolean(product.inStock)
+    : (product.stock_status === 'In Stock' && Number(product.quantity) > 0);
 
   const ratingValue = Number(product.avgRating || product.rating || product.average_rating || 0);
   const reviewCount = Number(product.reviewCount || product.reviews_count || product.numReviews || 0);
 
-  // const imgSrc = product.images?.[0]
-  //   ? product.images[0].startsWith('http')
-  //     ? product.images[0]
-  //     : `/uploads/products/${product.images[0]}`
-  //   : '/uploads/products/placeholder.jpg';
   const tempURL = "https://www.sathya.store/img/product/";
-  const imagepathname = product.images?.[0] || "";
+  const imagepathname = (Array.isArray(product.images) ? product.images[0] : null) || product.imgSrc || "";
   const imgSrc = imagepathname
     ? (imagepathname.startsWith("http") ? imagepathname : `${tempURL}${imagepathname.replace(/^\/?(uploads\/products\/)?/, "").replace(/^\/+/, "")}`)
-    : '/uploads/products/placeholder.jpg';
+    : (product.imgSrc || '/uploads/products/placeholder.jpg');
 
   const productUrl = `/product/${product.slug || product._id}`;
 
@@ -132,7 +156,7 @@ const RecentlyViewedCard = ({ product, brandMap = {}, onProductClick }) => {
       {/* Content Area */}
       <div className="p-3 sm:p-4 flex flex-col flex-1 bg-white">
         <span className="text-[10px] font-extrabold text-gray-400 uppercase tracking-wider truncate mb-1 block">
-          {brandName || 'SATHYA'}
+          {brandName || ''}
         </span>
 
         <Link href={productUrl} onClick={handleClick} className="block mb-1.5">
@@ -250,7 +274,7 @@ const RecentlyViewedProducts = ({ products: initialProducts }) => {
         }
 
         const validProducts = stored.filter(
-          (product) => product && product._id && Number(product.quantity) > 0
+          (product) => product && product._id
         );
 
         setRecentProducts(validProducts);

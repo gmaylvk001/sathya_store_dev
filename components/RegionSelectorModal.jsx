@@ -139,7 +139,14 @@ export default function RegionSelectorModal() {
   const [searchQuery, setSearchQuery] = useState("");
   const [hoveredRegionId, setHoveredRegionId] = useState(null);
   const [showAllCities, setShowAllCities] = useState(false);
+  const [viewportMetrics, setViewportMetrics] = useState({
+    height: typeof window !== "undefined" ? window.innerHeight : 800,
+    offsetTop: 0,
+    isKeyboardOpen: false,
+  });
+  const [isInputFocused, setIsInputFocused] = useState(false);
   const modalRef = useRef(null);
+  const inputRef = useRef(null);
 
   // Close modal on Escape key
   useEffect(() => {
@@ -158,22 +165,66 @@ export default function RegionSelectorModal() {
       const scrollBarWidth =
         window.innerWidth - document.documentElement.clientWidth;
       document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
       if (scrollBarWidth > 0) {
         document.body.style.paddingRight = `${scrollBarWidth}px`;
       }
       setHoveredRegionId(null);
     } else {
       document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
       document.body.style.paddingRight = "";
       setSearchQuery("");
       setShowAllCities(false);
       setHoveredRegionId(null);
+      setIsInputFocused(false);
     }
     return () => {
       document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
       document.body.style.paddingRight = "";
     };
   }, [isRegionModalOpen]);
+
+  // Visual Viewport & Mobile Keyboard Detection for Responsive Positioning
+  useEffect(() => {
+    if (typeof window === "undefined" || !isRegionModalOpen) return;
+
+    const updateMetrics = () => {
+      const vv = window.visualViewport;
+      const vh = vv ? vv.height : window.innerHeight;
+      const offsetTop = vv ? vv.offsetTop : 0;
+      const fullHeight = window.innerHeight;
+
+      // On mobile viewports (< 768px), keyboard is open when visual viewport shrinks significantly
+      const isMobile = window.innerWidth < 768;
+      const diff = fullHeight - vh;
+      const keyboardOpen = isMobile && (diff > 120 || (isInputFocused && vh < fullHeight - 100));
+
+      setViewportMetrics({
+        height: vh,
+        offsetTop: Math.max(0, offsetTop),
+        isKeyboardOpen: keyboardOpen,
+      });
+    };
+
+    updateMetrics();
+
+    const vv = window.visualViewport;
+    if (vv) {
+      vv.addEventListener("resize", updateMetrics);
+      vv.addEventListener("scroll", updateMetrics);
+    }
+    window.addEventListener("resize", updateMetrics);
+
+    return () => {
+      if (vv) {
+        vv.removeEventListener("resize", updateMetrics);
+        vv.removeEventListener("scroll", updateMetrics);
+      }
+      window.removeEventListener("resize", updateMetrics);
+    };
+  }, [isRegionModalOpen, isInputFocused]);
 
   // Active hovered region object
   const activeHoveredRegion = useMemo(() => {
@@ -234,19 +285,40 @@ export default function RegionSelectorModal() {
   if (!isRegionModalOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[99999] flex justify-center items-start pt-5 sm:pt-8 p-3 sm:p-4 overflow-hidden select-none">
+    <div
+      className={`fixed left-0 right-0 z-[99999] flex justify-center ${
+        viewportMetrics.isKeyboardOpen
+          ? "items-start pt-2 xs:pt-3"
+          : "items-center"
+      } p-2.5 xs:p-3 sm:p-4 select-none overflow-y-auto transition-[padding,top] duration-200`}
+      style={{
+        top: viewportMetrics.isKeyboardOpen
+          ? `${viewportMetrics.offsetTop}px`
+          : "0px",
+        height: viewportMetrics.isKeyboardOpen
+          ? `${viewportMetrics.height}px`
+          : "100%",
+        maxHeight: viewportMetrics.isKeyboardOpen
+          ? `${viewportMetrics.height}px`
+          : "100dvh",
+      }}
+    >
       {/* Blurred Backdrop */}
       <div
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity duration-300"
+        className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity duration-300 touch-none"
         onClick={closeRegionModal}
       />
 
       {/* Main Modal Card */}
       <div
         ref={modalRef}
-        className="relative w-full max-w-[580px] bg-white rounded-xl shadow-2xl overflow-hidden z-10 border border-gray-100/90 transition-all duration-300 p-5 sm:p-6 animate-fadeIn"
-        onClick={(e) => e.stopPropagation()}
+        className={`relative w-full max-w-[560px] bg-white rounded-2xl sm:rounded-xl shadow-2xl z-10 border border-gray-100/90 transition-all duration-200 p-3.5 sm:p-6 overflow-y-auto overflow-x-hidden animate-fadeIn ${
+          viewportMetrics.isKeyboardOpen ? "my-0" : "my-auto"
+        }`}
         style={{
+          maxHeight: viewportMetrics.isKeyboardOpen
+            ? `${Math.max(viewportMetrics.height - 16, 220)}px`
+            : "calc(100dvh - 1.5rem)",
           boxShadow:
             "0 20px 50px -10px rgba(0, 0, 0, 0.35), 0 0 1px 1px rgba(0, 0, 0, 0.05)",
         }}
@@ -261,21 +333,26 @@ export default function RegionSelectorModal() {
           }}
           className="relative flex items-center w-full"
         >
-          <FiSearch className="absolute left-3.5 sm:left-4 text-gray-400 text-base sm:text-lg pointer-events-none" />
+          <FiSearch className="absolute left-3 sm:left-3.5 text-gray-400 text-base sm:text-lg pointer-events-none" />
           <input
+            ref={inputRef}
             type="text"
             value={searchQuery}
+            onFocus={() => setIsInputFocused(true)}
+            onBlur={() => setIsInputFocused(false)}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search by city or enter 6-digit pincode"
             autoFocus
             maxLength={20}
-            className="w-full pl-10 sm:pl-11 pr-24 py-2.5 bg-white border border-gray-300 hover:border-gray-400 focus:border-red-500 rounded-lg text-xs sm:text-sm text-gray-800 placeholder-gray-400 focus:outline-none transition-colors"
+            className={`w-full pl-9 sm:pl-10 ${
+              isValidPincode(searchQuery) ? "pr-24 sm:pr-24" : "pr-9 sm:pr-10"
+            } h-11 sm:h-11 bg-white border border-gray-300 hover:border-gray-400 focus:border-red-500 rounded-lg text-xs sm:text-sm text-gray-800 placeholder-gray-400 placeholder:text-[11px] xs:placeholder:text-[11.5px] sm:placeholder:text-sm focus:outline-none transition-colors`}
           />
           {isValidPincode(searchQuery) && (
             <button
               type="submit"
               disabled={isDetecting}
-              className="absolute right-9 px-2.5 py-1 bg-red-600 hover:bg-red-700 text-white rounded text-xs font-semibold cursor-pointer transition-colors"
+              className="absolute right-9 sm:right-10 px-2.5 py-1 bg-red-600 hover:bg-red-700 text-white rounded text-xs font-semibold cursor-pointer transition-colors"
             >
               Apply
             </button>
@@ -289,28 +366,28 @@ export default function RegionSelectorModal() {
                 closeRegionModal();
               }
             }}
-            className="absolute right-3 text-gray-400 hover:text-gray-600 p-1 transition-colors cursor-pointer"
+            className="absolute right-1 sm:right-2 w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-600 active:text-gray-800 transition-colors cursor-pointer touch-manipulation"
             aria-label="Close or clear"
           >
-            <FiX size={17} />
+            <FiX size={18} />
           </button>
         </form>
 
         {/* Sub-header: Detect Location & Selected State */}
-        <div className="flex items-center justify-between mt-2.5 sm:mt-3 text-xs">
+        <div className="flex items-center justify-between mt-2.5 sm:mt-3 text-xs gap-2 min-h-[26px]">
           <button
             type="button"
             onClick={detectLocation}
             disabled={isDetecting}
-            className="text-[#dc2626] hover:text-[#b91c1c] font-normal flex items-center gap-1 cursor-pointer active:scale-95 transition-all disabled:opacity-60 text-xs"
+            className="text-[#dc2626] hover:text-[#b91c1c] font-medium flex items-center gap-1 cursor-pointer active:scale-95 transition-all disabled:opacity-60 text-[11px] sm:text-xs py-1 touch-manipulation shrink-0"
           >
-            <span className="text-[#dc2626] text-xs">✦</span>
+            <span className="text-[#dc2626] text-xs leading-none">✦</span>
             <span>
               {isDetecting ? "Detecting location..." : "Detect my location"}
             </span>
           </button>
 
-          <div className="text-gray-500 text-xs">
+          <div className="text-gray-500 text-[11px] sm:text-xs text-right truncate shrink-0">
             <span>Selected: </span>
             <strong className="text-gray-900 font-semibold">
               {selectedRegion?.name || "Tamil Nadu"}
@@ -334,7 +411,7 @@ export default function RegionSelectorModal() {
         {/* Content View: Search Results OR 5 States */}
         {searchQuery ? (
           /* Search Results View */
-          <div className="mt-4 pt-3 border-t border-gray-100 min-h-[120px] max-h-[220px] overflow-hidden">
+          <div className="mt-3.5 sm:mt-4 pt-3 border-t border-gray-100 min-h-[120px] max-h-[240px] overflow-hidden">
             {searchResults && searchResults[0]?.isPincode ? (
               <div className="py-4 text-center">
                 <p className="text-xs text-gray-600 mb-2">
@@ -356,12 +433,12 @@ export default function RegionSelectorModal() {
                   Matching Cities & States ({searchResults?.length || 0}):
                 </p>
                 {searchResults && searchResults.length > 0 ? (
-                  <div className="flex flex-wrap gap-1.5 max-h-[160px] overflow-y-auto">
+                  <div className="flex flex-wrap gap-1.5 max-h-[180px] overflow-y-auto">
                     {searchResults.slice(0, 15).map(({ city, region }, idx) => (
                       <button
                         key={`${region.id}-${city}-${idx}`}
                         onClick={() => handleSelectCity(region, city)}
-                        className="flex items-center gap-1 px-3 py-1.5 bg-gray-50 hover:bg-red-50 hover:text-red-600 hover:border-red-200 border border-gray-200 rounded-md text-xs font-medium text-gray-700 transition-all active:scale-95 cursor-pointer"
+                        className="flex items-center gap-1 px-2.5 py-1.5 bg-gray-50 hover:bg-red-50 hover:text-red-600 hover:border-red-200 border border-gray-200 rounded-md text-xs font-medium text-gray-700 transition-all active:scale-95 cursor-pointer touch-manipulation"
                       >
                         <span>{city}</span>
                         <span className="text-[10px] text-gray-400 font-normal">
@@ -380,7 +457,7 @@ export default function RegionSelectorModal() {
           </div>
         ) : showAllCities ? (
           /* All Cities Directory View */
-          <div className="mt-4 pt-3 border-t border-gray-100">
+          <div className="mt-3.5 sm:mt-4 pt-3 border-t border-gray-100">
             <div className="flex items-center justify-between mb-3">
               <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
                 All Cities
@@ -392,7 +469,7 @@ export default function RegionSelectorModal() {
                 Back to States
               </button>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 max-h-[220px] sm:max-h-none overflow-y-auto">
               {allRegions.map((region) => (
                 <div key={region.id} className="space-y-1">
                   <div
@@ -421,13 +498,13 @@ export default function RegionSelectorModal() {
           </div>
         ) : (
           /* Default 5 States Layout */
-          <div className="mt-4" onMouseLeave={() => setHoveredRegionId(null)}>
-            <div className="text-center text-xs text-gray-500 font-normal mb-3">
+          <div className="mt-3 sm:mt-4" onMouseLeave={() => setHoveredRegionId(null)}>
+            <div className="text-center text-[11px] sm:text-xs text-gray-500 font-normal mb-2.5 sm:mb-3">
               Select Your State or Location
             </div>
 
             {/* Exactly 5 South Indian States */}
-            <div className="grid grid-cols-5 gap-1.5 sm:gap-2 items-start justify-center">
+            <div className="grid grid-cols-5 gap-1 sm:gap-2 items-start justify-center">
               {allRegions.map((region) => {
                 const isHovered = hoveredRegionId === region.id;
                 const isSelected = selectedRegion?.id === region.id;
@@ -436,7 +513,7 @@ export default function RegionSelectorModal() {
                 return (
                   <div
                     key={region.id}
-                    className="flex flex-col items-center justify-center cursor-pointer group select-none py-1.5 px-1 rounded-lg transition-all border border-transparent hover:border-gray-200"
+                    className="flex flex-col items-center justify-start cursor-pointer group select-none py-1.5 px-0.5 sm:px-1 rounded-lg transition-all border border-transparent hover:border-gray-200 active:scale-95 touch-manipulation min-w-0"
                     onMouseEnter={() => setHoveredRegionId(region.id)}
                     onClick={() => {
                       selectRegion(region);
@@ -452,13 +529,13 @@ export default function RegionSelectorModal() {
                       <StateLineArt
                         type={region.iconType}
                         isSelected={isActive}
-                        className="w-10 h-10 sm:w-11 sm:h-11 transition-colors duration-150"
+                        className="w-9 h-9 sm:w-11 sm:h-11 transition-colors duration-150"
                       />
                     </div>
 
                     {/* State Name */}
                     <span
-                      className={`mt-1.5 text-[11px] sm:text-xs text-center leading-tight transition-colors duration-150 ${
+                      className={`mt-1 sm:mt-1.5 text-[10px] sm:text-xs text-center leading-[1.2] transition-colors duration-150 break-words w-full px-0.5 ${
                         isActive
                           ? "text-gray-900 font-bold"
                           : "text-gray-600 group-hover:text-gray-900"
@@ -475,10 +552,15 @@ export default function RegionSelectorModal() {
             {(() => {
               const currentDisplayRegion = activeHoveredRegion || selectedRegion || allRegions[0];
               return (
-                <div className="mt-4 min-h-[36px] flex flex-col items-center justify-center gap-2">
+                <div className="mt-3 sm:mt-4 min-h-[36px] flex flex-col items-center justify-center gap-2">
                   {currentDisplayRegion && (
                     <div
-                      className="w-full bg-[#f4f4f4] rounded-md px-3.5 py-2 flex items-center justify-center gap-3 sm:gap-4 text-[11px] sm:text-xs text-gray-700 overflow-x-hidden whitespace-nowrap animate-fadeIn"
+                      className="w-full bg-[#f4f4f4] rounded-lg px-2.5 py-1.5 sm:px-4 sm:py-2 flex items-center justify-start sm:justify-center gap-2 sm:gap-4 text-[11px] sm:text-xs text-gray-700 overflow-x-auto whitespace-nowrap scrollbar-none animate-fadeIn"
+                      style={{
+                        scrollbarWidth: "none",
+                        msOverflowStyle: "none",
+                        WebkitOverflowScrolling: "touch",
+                      }}
                       onMouseEnter={() => setHoveredRegionId(currentDisplayRegion.id)}
                     >
                       {currentDisplayRegion.popularCities
@@ -493,9 +575,9 @@ export default function RegionSelectorModal() {
                               onClick={() =>
                                 handleSelectCity(currentDisplayRegion, city)
                               }
-                              className={`transition-colors cursor-pointer text-left whitespace-nowrap flex-shrink-0 ${
+                              className={`py-1 px-1.5 sm:px-0 transition-colors cursor-pointer text-left whitespace-nowrap flex-shrink-0 text-[11px] sm:text-xs touch-manipulation active:scale-95 ${
                                 isSelectedCity
-                                  ? "text-[#dc2626] font-bold underline"
+                                  ? "text-[#dc2626] font-bold underline underline-offset-4 decoration-2"
                                   : "text-gray-700 hover:text-[#dc2626] hover:font-semibold"
                               }`}
                             >

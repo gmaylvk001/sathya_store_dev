@@ -31,11 +31,32 @@ export default function StorefrontProductCard({
   const currentPrice = hasDiscount ? product.special_price : product.price || 0;
   const originalPrice = product.price || 0;
 
-  const brandName =
-    brandMap[product.brand] ||
+  const brandId = product.brand?._id || (typeof product.brand === "string" ? product.brand : null);
+  const resolvedBrandMap = brandId && brandMap[brandId] ? brandMap[brandId] : "";
+
+  let brandName =
+    product.brand?.name ||
+    product.brand?.brand_name ||
     product.brand_name ||
-    (typeof product.brand === "string" ? product.brand : "") ||
+    resolvedBrandMap ||
+    (typeof product.brand === "string" && !/^[0-9a-fA-F]{24}$/.test(product.brand) && product.brand.toUpperCase() !== "SATHYA" ? product.brand : "") ||
+    (product.brandName && product.brandName.toUpperCase() !== "SATHYA" ? product.brandName : "") ||
+    product.manufacturer_name ||
     "";
+
+  if (!brandName && product.name) {
+    const firstWord = product.name.trim().split(/\s+/)[0];
+    const matchedBrand = Object.values(brandMap).find(
+      (b) => b && b.toLowerCase() === firstWord.toLowerCase()
+    );
+    if (matchedBrand) {
+      brandName = matchedBrand;
+    } else if (/^windzy/i.test(product.name)) {
+      brandName = "WINDZY";
+    } else if (/^acer/i.test(product.name)) {
+      brandName = "Acer";
+    }
+  }
 
   const inStock =
     product.stock_status === "In Stock" && Number(product.quantity) > 0;
@@ -124,7 +145,7 @@ export default function StorefrontProductCard({
       {/* Content Area */}
       <div className="p-3 sm:p-4 flex flex-col flex-1 bg-white">
         <span className="text-[10px] font-extrabold text-gray-400 uppercase tracking-wider truncate mb-1 block">
-          {brandName || "SATHYA"}
+          {brandName || ""}
         </span>
 
         <Link href={productUrl} onClick={handleClick} className="block mb-1.5">

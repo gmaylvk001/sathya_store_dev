@@ -13,7 +13,6 @@ import {
   isValidPincode,
   isKarnatakaPincode,
   lookupPincode,
-  normalizeRegion,
 } from "@/lib/regionHelper";
 
 export async function GET(req) {
@@ -29,34 +28,166 @@ export async function GET(req) {
         {
           status: 0,
           available: false,
+          serviceable: false,
+          deliveryAvailable: false,
           message: "Please enter a valid 6-digit pincode",
+          deliveryMessage: "Please enter a valid 6-digit pincode",
+          pickupAvailable: false,
+          pickupMessage: "Not Available",
+          codAvailable: false,
+          isCodAvailable: false,
         },
         { status: 400 }
       );
     }
 
-    // 1. Resolve target location and state
+    // Invalid / unserviceable civil pincode prefix check (Indian postal pincodes start with 1-8)
+    if (pincode.startsWith("0") || pincode.startsWith("9")) {
+      return NextResponse.json({
+        status: 0,
+        available: false,
+        serviceable: false,
+        deliveryAvailable: false,
+        days: 0,
+        deliveryDays: 0,
+        message: "Not Available for Delivery at Your Location",
+        deliveryMessage: "Not Available for Delivery at Your Location",
+        pickupAvailable: false,
+        pickupMessage: "Not Available",
+        codAvailable: false,
+        isCodAvailable: false,
+      });
+    }
+
+    // 1. Resolve target location and verify actual existence & serviceability
     let targetLat = null;
     let targetLng = null;
     let region = "tamilnadu";
+    let stateName = "Tamil Nadu";
+    let isPincodeVerified = false;
 
-    const cachedLoc = await PincodeLocation.findOne({ pincode }).lean();
-    if (cachedLoc && cachedLoc.latitude && cachedLoc.longitude) {
-      targetLat = cachedLoc.latitude;
-      targetLng = cachedLoc.longitude;
-      region = cachedLoc.region || "tamilnadu";
-    } else {
-      const geo = await lookupPincode(pincode);
-      region = geo.region || "tamilnadu";
-      if (geo.latitude && geo.longitude) {
-        targetLat = geo.latitude;
-        targetLng = geo.longitude;
+    // Check physical stores first for exact store match
+    const stores = await Store.find({ status: "Active" }).lean();
+    const exactMatch = stores.find((s) => s.zipcode === pincode);
+    if (exactMatch) {
+      isPincodeVerified = true;
+      targetLat = exactMatch.location_map?.lat || null;
+      targetLng = exactMatch.location_map?.lng || null;
+      region = exactMatch.region || "tamilnadu";
+      stateName = exactMatch.state || "Tamil Nadu";
+    }
+
+    if (!isPincodeVerified) {
+      const cachedLoc = await PincodeLocation.findOne({ pincode }).lean();
+      if (cachedLoc && cachedLoc.latitude && cachedLoc.longitude) {
+        isPincodeVerified = true;
+        targetLat = cachedLoc.latitude;
+        targetLng = cachedLoc.longitude;
+        region = cachedLoc.region || "tamilnadu";
+        stateName = cachedLoc.state || "Tamil Nadu";
       }
+    }
+
+    if (!isPincodeVerified) {
+      const geo = await lookupPincode(pincode);
+      if (geo.status !== "success" || !geo.isValid || !geo.latitude || !geo.longitude) {
+        // STOP HERE! Pincode is invalid, unknown, or non-existent
+        return NextResponse.json({
+          status: 0,
+          available: false,
+          serviceable: false,
+          deliveryAvailable: false,
+          days: 0,
+          deliveryDays: 0,
+          message: "Not Available for Delivery at Your Location",
+          deliveryMessage: "Not Available for Delivery at Your Location",
+          pickupAvailable: false,
+          pickupMessage: "Not Available",
+          codAvailable: false,
+          isCodAvailable: false,
+        });
+      }
+
+      isPincodeVerified = true;
+      targetLat = geo.latitude;
+      targetLng = geo.longitude;
+      region = geo.region || "tamilnadu";
+      stateName = geo.stateName || "Tamil Nadu";
+
+      // Cache verified pincode in PincodeLocation
+      await PincodeLocation.findOneAndUpdate(
+        { pincode },
+        {
+          pincode,
+          latitude: targetLat,
+          longitude: targetLng,
+          district: geo.city || "unknown",
+          state: stateName,
+          region,
+        },
+        { upsert: true, new: true }
+      ).catch((err) => console.error("Cache location error:", err.message));
+    }
+
+    // 2. Distance calculation & store pickup eligibility (radius <= 35 km)
+    let minDistance = 9999;
+    const eligiblePickupStores = [];
+
+    if (stores.length > 0) {
+      for (const store of stores) {
+        let dist = 9999;
+        if (store.zipcode === pincode) {
+          dist = 0;
+        } else if (targetLat && targetLng && store.location_map?.lat && store.location_map?.lng) {
+          dist = calculateHaversineDistance(
+            targetLat,
+            targetLng,
+            store.location_map.lat,
+            store.location_map.lng
+          );
+        }
+
+        if (dist < minDistance) {
+          minDistance = dist;
+        }
+
+        if (dist <= 35) {
+          eligiblePickupStores.push({
+            _id: store._id,
+            name: store.organisation_name || "Sathya Store",
+            city: store.city || "",
+            zipcode: store.zipcode || "",
+            distanceKm: Math.round(dist),
+          });
+        }
+      }
+    }
+
+    // 3. Serviceability check (Sathya covered territory: South Indian states or within 600km)
+    const southIndianStates = ["tamil nadu", "kerala", "karnataka", "andhra", "telangana", "puducherry"];
+    const targetStateLower = (stateName || "").toLowerCase();
+    const isSouthIndianState = southIndianStates.some((s) => targetStateLower.includes(s));
+
+    if (!exactMatch && (!isSouthIndianState || minDistance > 600 || minDistance === 9999)) {
+      return NextResponse.json({
+        status: 0,
+        available: false,
+        serviceable: false,
+        deliveryAvailable: false,
+        days: 0,
+        deliveryDays: 0,
+        message: "Not Available for Delivery at Your Location",
+        deliveryMessage: "Not Available for Delivery at Your Location",
+        pickupAvailable: false,
+        pickupMessage: "Not Available",
+        codAvailable: false,
+        isCodAvailable: false,
+      });
     }
 
     const isKarnataka = region === "karnataka" || isKarnatakaPincode(pincode);
 
-    // 2. Fetch Product
+    // 4. Fetch Product and inventory check
     let product = null;
     if (itemCode) {
       product = await Product.findOne({ item_code: itemCode, status: "Active" }).lean();
@@ -76,9 +207,19 @@ export async function GET(req) {
           return NextResponse.json({
             status: 0,
             available: false,
+            serviceable: false,
+            deliveryAvailable: false,
+            days: 0,
+            deliveryDays: 0,
             message: "Not Available for Delivery at Your Location",
+            deliveryMessage: "Not Available for Delivery at Your Location",
+            pickupAvailable: false,
+            pickupMessage: "Not Available",
+            codAvailable: false,
+            isCodAvailable: false,
             state: "Karnataka",
             isKarnataka: true,
+            region,
           });
         }
       } else {
@@ -87,55 +228,69 @@ export async function GET(req) {
           return NextResponse.json({
             status: 0,
             available: false,
+            serviceable: false,
+            deliveryAvailable: false,
+            days: 0,
+            deliveryDays: 0,
             message: "Out of Stock",
+            deliveryMessage: "Out of Stock",
+            pickupAvailable: false,
+            pickupMessage: "Not Available",
+            codAvailable: false,
+            isCodAvailable: false,
+            region,
           });
         }
       }
     }
 
-    // 3. Find closest store/warehouse to compute delivery time
-    const stores = await Store.find({ status: "Active" }).lean();
+    // 5. Server cutoff evaluation (5:00 PM / 17:00 IST)
+    const now = new Date();
+    const utcMs = now.getTime() + now.getTimezoneOffset() * 60000;
+    const istDate = new Date(utcMs + 330 * 60000); // UTC+5:30
+    const isCutoffPassed = istDate.getHours() >= 17;
+    const cutoffOffset = isCutoffPassed ? 1 : 0;
 
-    // Check exact store zipcode match
-    const exactMatch = stores.find((s) => s.zipcode === pincode);
+    // 6. Delivery SLA days
+    let baseDays = 2;
     if (exactMatch) {
-      return NextResponse.json({
-        status: 1,
-        available: true,
-        days: 1,
-        message: "Delivery in One Day",
-        region,
-      });
+      baseDays = 1;
+      minDistance = 0;
+    } else if (minDistance < 9999) {
+      baseDays = calculateDeliveryDays(minDistance, 100, 1);
     }
-
-    // Calculate minimum distance from available physical stores
-    let minDistance = 9999;
-
-    if (targetLat && targetLng && stores.length > 0) {
-      for (const store of stores) {
-        if (store.location_map?.lat && store.location_map?.lng) {
-          const dist = calculateHaversineDistance(
-            targetLat,
-            targetLng,
-            store.location_map.lat,
-            store.location_map.lng
-          );
-          if (dist < minDistance) {
-            minDistance = dist;
-          }
-        }
-      }
-    }
-
-    const days = minDistance < 9999 ? calculateDeliveryDays(minDistance, 100, 1) : 2;
+    const days = baseDays + cutoffOffset;
     const message = formatDeliveryMessage(days, false);
+
+    // 7. Store Pickup availability
+    const pickupAvailable = eligiblePickupStores.length > 0;
+    const pickupMessage = pickupAvailable
+      ? "Reserve & Collect at Store"
+      : "Not Available";
+
+    // 8. COD availability (serviceable & selling price <= 50,000)
+    const sellingPrice = product
+      ? Number(product.special_price) > 0
+        ? Number(product.special_price)
+        : Number(product.price) || 0
+      : 0;
+    const isCodAvailable = sellingPrice <= 50000;
 
     return NextResponse.json({
       status: 1,
       available: true,
+      serviceable: true,
+      deliveryAvailable: true,
       days,
+      deliveryDays: days,
       distanceKm: minDistance < 9999 ? Math.round(minDistance) : null,
       message,
+      deliveryMessage: message,
+      pickupAvailable,
+      pickupMessage,
+      pickupStores: eligiblePickupStores.slice(0, 5),
+      codAvailable: isCodAvailable,
+      isCodAvailable,
       region,
     });
   } catch (err) {
@@ -144,7 +299,14 @@ export async function GET(req) {
       {
         status: 0,
         available: false,
+        serviceable: false,
+        deliveryAvailable: false,
         message: "Unable to calculate delivery estimate at this time",
+        deliveryMessage: "Unable to calculate delivery estimate at this time",
+        pickupAvailable: false,
+        pickupMessage: "Not Available",
+        codAvailable: false,
+        isCodAvailable: false,
       },
       { status: 500 }
     );
