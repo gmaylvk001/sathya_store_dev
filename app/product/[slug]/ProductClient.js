@@ -65,6 +65,13 @@ export default function ProductClient() {
   const router = useRouter();
   const params = useParams();
   const slug = params?.sub_slug_one || params?.slug;
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+    }
+  }, [slug]);
+
   const [relatedProductsLoading, setRelatedProductsLoading] = useState(false);
   const [relatedProducts, setRelatedProducts] = useState([]);
   const [brand, setBrand] = useState([]);

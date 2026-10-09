@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 import CustomHeader from "@/components/Headernew";
 import CustomFooter from "@/components/Footer";
@@ -13,6 +14,12 @@ import { RegionProvider } from "@/context/RegionContext";
 
 export default function ClientLayout({ children }) {
   const pathname = usePathname();
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+    }
+  }, [pathname]);
 
   return (
     <RegionProvider>
