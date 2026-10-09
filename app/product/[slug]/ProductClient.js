@@ -34,6 +34,7 @@ import RelatedProducts from "@/components/RelatedProducts";
 import ProductOffersSection from "@/components/ProductOffersSection";
 import ProductInstallationWarrantySection from "@/components/ProductInstallationWarrantySection";
 import CompareButton from "@/components/CompareButton";
+import { isExtendedWarrantyEligible } from "@/lib/productServiceEligibility";
 import { v4 as uuidv4 } from "uuid";
 
 
@@ -446,9 +447,11 @@ export default function ProductClient() {
         body: JSON.stringify({
           productId: product._id,
           quantity,
-          selectedWarranty: selectedWarranty,
-          selectedExtendedWarranty: selectedExtendedWarranty,
-          warrantyData: selectedWarrantyData,
+          selectedWarranty: Number(selectedWarranty || 0),
+          selectedExtendedWarranty: isExtendedWarrantyEligible(product)
+            ? Number(selectedWarrantyAmount || selectedExtendedWarranty || selectedWarrantyData?.amount || selectedWarrantyData?.price || 0)
+            : 0,
+          warrantyData: isExtendedWarrantyEligible(product) ? (selectedWarrantyData || null) : null,
           ...(guestCartId && { guestCartId }),
         }),
       });
@@ -517,8 +520,8 @@ export default function ProductClient() {
           price: resolvePrice(product),           // actual selling price for checkout subtotal
           quantity,
           warranty: selectedWarranty || 0,
-          extendedWarranty: selectedWarrantyAmount || 0,
-          warrantyData: selectedWarrantyData || null,
+          extendedWarranty: isExtendedWarrantyEligible(product) ? (selectedWarrantyAmount || 0) : 0,
+          warrantyData: isExtendedWarrantyEligible(product) ? (selectedWarrantyData || null) : null,
           exchangeOffer: exchangeOffer || null,
         },
         ...selectedFrequentProducts.map((p) => ({
@@ -536,10 +539,9 @@ export default function ProductClient() {
       const total = items.reduce((sum, item) => {
         const basePrice = item.price * item.quantity;
         const warrantyCost = (item.warranty || 0) * item.quantity;
-        const extendedCost = (item.extendedWarranty || 0) * item.quantity;
-        const warrantyDataCost = (item.warrantyData?.price || 0) * item.quantity;
+        const extendedCost = (Number(item.extendedWarranty) || Number(item.warrantyData?.amount) || Number(item.warrantyData?.price) || 0) * item.quantity;
         const exchangeDiscount = (item.exchangeOffer?.price || 0) * item.quantity;
-        return sum + basePrice + warrantyCost + extendedCost + warrantyDataCost - exchangeDiscount;
+        return sum + basePrice + warrantyCost + extendedCost - exchangeDiscount;
       }, 0);
       // ✅ Save Buy Now state so checkout can read the correct price
       localStorage.setItem(
@@ -589,6 +591,16 @@ export default function ProductClient() {
   const [cartTotal, setCartTotal] = useState(0);
   const [selectedWarranty, setSelectedWarranty] = useState(null);
   const [selectedExtendedWarranty, setSelectedExtendedWarranty] = useState(null);
+
+  // Auto-reset warranty selection whenever product is not eligible for extended warranty
+  useEffect(() => {
+    if (product && !isExtendedWarrantyEligible(product)) {
+      setSelectedWarrantyAmount(0);
+      setSelectedExtendedWarranty(null);
+      setSelectedWarranty(null);
+      setSelectedWarrantyData(null);
+    }
+  }, [product]);
 
   const handleExchangeApply = (offer) => {
     if (offer) {
@@ -696,11 +708,28 @@ export default function ProductClient() {
       total += (item.special_price || item.price);
     });
 
-    if (selectedWarranty) total += selectedWarranty;
-    if (selectedExtendedWarranty) total += selectedExtendedWarranty;
+    if (selectedWarranty) total += Number(selectedWarranty);
+    const isEligibleWarranty = isExtendedWarrantyEligible(product);
+    const extAmt = isEligibleWarranty ? Number(
+      selectedWarrantyAmount ||
+      selectedExtendedWarranty ||
+      selectedWarrantyData?.amount ||
+      selectedWarrantyData?.price ||
+      0
+    ) : 0;
+    if (extAmt > 0) total += extAmt;
 
     setCartTotal(total);
-  }, [selectedFrequentProducts, selectedRelatedProducts, product, quantity, selectedWarranty, selectedExtendedWarranty]);
+  }, [
+    selectedFrequentProducts,
+    selectedRelatedProducts,
+    product,
+    quantity,
+    selectedWarranty,
+    selectedExtendedWarranty,
+    selectedWarrantyAmount,
+    selectedWarrantyData,
+  ]);
 
   useEffect(() => {
     const fetchFeaturedProducts = async () => {
@@ -1184,10 +1213,16 @@ export default function ProductClient() {
             <div className="mt-3 border-t border-gray-200 pt-3">
               <div className="flex flex-col leading-tight">
                 <span className="text-2xl font-bold text-[#d72828]">
-                  ₹ {Number(product.special_price > 0 ? product.special_price : product.price).toLocaleString('en-IN')}
+                  ₹ {Number((product.special_price > 0 ? product.special_price : product.price) + (selectedWarrantyAmount || 0)).toLocaleString('en-IN')}
                 </span>
-                {product.special_price > 0 && (
-                  <span className="text-xs text-gray-500 mt-0.5">Special Price</span>
+                {selectedWarrantyAmount > 0 ? (
+                  <span className="text-xs font-semibold text-blue-700 mt-0.5">
+                    Includes Onsitego Warranty (+₹{selectedWarrantyAmount.toLocaleString('en-IN')})
+                  </span>
+                ) : (
+                  product.special_price > 0 && (
+                    <span className="text-xs text-gray-500 mt-0.5">Special Price</span>
+                  )
                 )}
               </div>
 
@@ -1292,6 +1327,16 @@ export default function ProductClient() {
                 {quantityWarning && <p className="text-red-500 text-xs">Max {product.quantity} only</p>}
               </div>
 
+              {/* Live Price Summary above Mobile Actions if Warranty Selected */}
+              {isExtendedWarrantyEligible(product) && selectedWarrantyAmount > 0 && (
+                <div className="flex items-center justify-between py-1.5 px-3 bg-blue-50/70 border border-blue-100 rounded-md mb-2.5 text-xs">
+                  <span className="text-gray-700 font-medium">Total (with Warranty):</span>
+                  <span className="font-bold text-[#d72828] text-sm">
+                    ₹ {Number(((product.special_price > 0 ? product.special_price : product.price) * quantity) + selectedWarrantyAmount).toLocaleString("en-IN")}
+                  </span>
+                </div>
+              )}
+
               {product.stock_status === "In Stock" && product.quantity > 0 && (
                 <div className="flex gap-3">
                   <button
@@ -1312,10 +1357,10 @@ export default function ProductClient() {
                       stockQuantity={product.quantity}
                       quantity={quantity}
                       additionalProducts={[...selectedFrequentProducts.map((p) => p._id), ...selectedRelatedProducts.map((p) => p._id)]}
-                      extendedWarranty={selectedWarrantyAmount}
+                      extendedWarranty={isExtendedWarrantyEligible(product) ? selectedWarrantyAmount : 0}
                       selectedFrequentProducts={selectedFrequentProducts}
                       selectedRelatedProducts={selectedRelatedProducts}
-                      warrantyData={selectedWarrantyData}
+                      warrantyData={isExtendedWarrantyEligible(product) ? selectedWarrantyData : null}
                       buttonLabel="Add to Cart"
                       buttonClassName={addToCartOutlineClass}
                       movement={product.movement}
@@ -1346,8 +1391,10 @@ export default function ProductClient() {
                   warranties={warranties}
                   selectedWarrantyData={selectedWarrantyData}
                   onSelectWarranty={(w, amount) => {
+                    const numericAmount = Number(amount || w?.amount || w?.price || 0);
                     setSelectedWarrantyData(w);
-                    setSelectedWarrantyAmount(amount);
+                    setSelectedWarrantyAmount(numericAmount);
+                    setSelectedExtendedWarranty(numericAmount);
                   }}
                   className="mt-3"
                 />
@@ -1383,7 +1430,7 @@ export default function ProductClient() {
             </div>
           )}
           {/* Extended Warranty — Mobile */}
-          {warranties.length > 0 && (
+          {warranties.length > 0 && isExtendedWarrantyEligible(product) && (
             <div className="border border-gray-200 rounded-lg p-4 mt-3">
               <div className="flex items-center gap-2 mb-3">
                 <FaShield className="text-[#d72828] w-5 h-5" />
@@ -1726,14 +1773,19 @@ export default function ProductClient() {
 
                 {/* Price & Offer Block */}
                 <div className="border-t border-b border-gray-200 py-3 my-1">
-                  <div className="flex items-baseline gap-3">
+                  <div className="flex items-baseline gap-3 flex-wrap">
                     <span className="text-3xl font-black text-[#d72828]">
-                      ₹ {Number(product.special_price > 0 ? product.special_price : product.price).toLocaleString('en-IN')}
+                      ₹ {Number((product.special_price > 0 ? product.special_price : product.price) + (isExtendedWarrantyEligible(product) ? (selectedWarrantyAmount || 0) : 0)).toLocaleString('en-IN')}
                     </span>
+                    {isExtendedWarrantyEligible(product) && selectedWarrantyAmount > 0 && (
+                      <span className="text-xs font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
+                        Includes Extended Warranty (+₹{selectedWarrantyAmount.toLocaleString('en-IN')})
+                      </span>
+                    )}
                     {product.special_price > 0 && product.price > product.special_price && (
                       <>
                         <span className="text-sm text-gray-400 line-through font-medium">
-                          M.R.P: ₹ {Number(product.price).toLocaleString('en-IN')}
+                          M.R.P: ₹ {Number(product.price + (isExtendedWarrantyEligible(product) ? (selectedWarrantyAmount || 0) : 0)).toLocaleString('en-IN')}
                         </span>
                         <span className="bg-green-600 text-white text-xs font-bold px-2 py-0.5 rounded">
                           {Math.round(((product.price - product.special_price) / product.price) * 100)}% OFF
@@ -1814,19 +1866,18 @@ export default function ProductClient() {
                         REGULAR DELIVERY
                       </span>
                       <span
-                        className={`text-[11px] font-medium block mt-0.5 ${
-                          isCheckingDelivery
+                        className={`text-[11px] font-medium block mt-0.5 ${isCheckingDelivery
                             ? "text-gray-500"
                             : deliveryInfo?.available === false
-                            ? "text-red-600"
-                            : "text-green-600"
-                        }`}
+                              ? "text-red-600"
+                              : "text-green-600"
+                          }`}
                       >
                         {isCheckingDelivery
                           ? "Checking delivery..."
                           : deliveryInfo?.available === false
-                          ? (deliveryInfo?.message || "Not Available for Delivery at Your Location")
-                          : (deliveryInfo?.message || "Delivery in 2 Days")}
+                            ? (deliveryInfo?.message || "Not Available for Delivery at Your Location")
+                            : (deliveryInfo?.message || "Delivery in 2 Days")}
                       </span>
                     </div>
                     <div className="p-2.5 text-center">
@@ -1834,19 +1885,18 @@ export default function ProductClient() {
                         STORE PICKUP
                       </span>
                       <span
-                        className={`text-[11px] font-medium block mt-0.5 ${
-                          isCheckingDelivery
+                        className={`text-[11px] font-medium block mt-0.5 ${isCheckingDelivery
                             ? "text-gray-500"
                             : deliveryInfo?.pickupAvailable === false || deliveryInfo?.available === false
-                            ? "text-gray-400"
-                            : "text-green-600"
-                        }`}
+                              ? "text-gray-400"
+                              : "text-green-600"
+                          }`}
                       >
                         {isCheckingDelivery
                           ? "Checking..."
                           : deliveryInfo?.pickupAvailable === false || deliveryInfo?.available === false
-                          ? (deliveryInfo?.pickupMessage || "Not Available")
-                          : "Reserve & Collect at Store"}
+                            ? (deliveryInfo?.pickupMessage || "Not Available")
+                            : "Reserve & Collect at Store"}
                       </span>
                     </div>
                   </div>
@@ -1920,7 +1970,7 @@ export default function ProductClient() {
                   )}
 
                   {/* 2. PROTECTION / EXTENDED WARRANTY (MIDDLE OF COLUMN 3) */}
-                  {warranties.length > 0 && (
+                  {warranties.length > 0 && isExtendedWarrantyEligible(product) && (
                     <div className="border border-gray-200 rounded-lg shadow-sm bg-white p-3">
                       <div className="flex items-center gap-1.5 mb-2 border-b border-gray-200 pb-2">
                         <FaShield className="text-[#d72828] w-4 h-4" />
@@ -1976,6 +2026,16 @@ export default function ProductClient() {
                   {/* 3. PRIMARY ACTION BUTTONS: BUY NOW & ADD TO CART (INSIDE COLUMN 3) */}
                   {product.stock_status === "In Stock" && product.quantity > 0 && (
                     <div className="flex flex-col gap-2 bg-white border border-gray-200 p-3 rounded-lg shadow-sm">
+                      {/* Live Price Summary */}
+                      <div className="flex items-center justify-between pb-2 border-b border-gray-100 text-xs">
+                        <span className="text-gray-600 font-medium">
+                          {isExtendedWarrantyEligible(product) && selectedWarrantyAmount > 0 ? "Total (with Warranty):" : "Total Price:"}
+                        </span>
+                        <span className="font-extrabold text-base text-[#d72828]">
+                          ₹ {Number(((product.special_price > 0 ? product.special_price : product.price) * quantity) + (isExtendedWarrantyEligible(product) ? (selectedWarrantyAmount || 0) : 0)).toLocaleString("en-IN")}
+                        </span>
+                      </div>
+
                       {/* Quantity selector */}
                       <div className="flex items-center justify-between text-xs bg-gray-50 border border-gray-200 rounded p-2 mb-1">
                         <span className="font-medium text-gray-700">Quantity:</span>
@@ -2006,10 +2066,10 @@ export default function ProductClient() {
                         stockQuantity={product.quantity}
                         quantity={quantity}
                         additionalProducts={[...selectedFrequentProducts.map((p) => p._id), ...selectedRelatedProducts.map((p) => p._id)]}
-                        extendedWarranty={selectedWarrantyAmount}
+                        extendedWarranty={isExtendedWarrantyEligible(product) ? selectedWarrantyAmount : 0}
                         selectedFrequentProducts={selectedFrequentProducts}
                         selectedRelatedProducts={selectedRelatedProducts}
-                        warrantyData={selectedWarrantyData}
+                        warrantyData={isExtendedWarrantyEligible(product) ? selectedWarrantyData : null}
                         buttonLabel="Add To Cart"
                         buttonClassName="w-full border-2 border-[#d72828] text-[#d72828] hover:bg-red-50 font-bold py-2.5 rounded-lg text-sm transition-all shadow-none"
                         movement={product.movement}
@@ -2051,8 +2111,10 @@ export default function ProductClient() {
               warranties={warranties}
               selectedWarrantyData={selectedWarrantyData}
               onSelectWarranty={(w, amount) => {
+                const numericAmount = Number(amount || w?.amount || w?.price || 0);
                 setSelectedWarrantyData(w);
-                setSelectedWarrantyAmount(amount);
+                setSelectedWarrantyAmount(numericAmount);
+                setSelectedExtendedWarranty(numericAmount);
               }}
               className="mt-1"
             />

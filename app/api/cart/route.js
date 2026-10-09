@@ -6,6 +6,7 @@ import OwnerProduct from "@/models/OwnerProduct";
 import jwt from "jsonwebtoken";
 import { normalizeRegion, isKarnatakaPincode } from "@/lib/regionHelper";
 import { resolveProductPrice } from "@/lib/priceResolver";
+import { isExtendedWarrantyEligible } from "@/lib/productServiceEligibility";
 
 /** Extract token from Authorization header **/
 const extractToken = (req) => {
@@ -52,8 +53,13 @@ const calculateCartTotals = (items = []) => {
 
   for (const item of items) {
     const base = (item.price || 0) * (item.quantity || 1);
-    const warranty = item.warranty || 0;
-    const extended = item.extendedWarranty || 0;
+    const warranty = Number(item.warranty || 0);
+    const extended = Number(
+      item.extendedWarranty ||
+      item.warrantyData?.amount ||
+      item.warrantyData?.price ||
+      0
+    );
     const upsells = item.upsells?.reduce((uSum, u) => uSum + (u.price || 0), 0) || 0;
 
     totalItems += item.quantity || 1;
@@ -105,7 +111,7 @@ export async function POST(req) {
       try {
         const parsed = JSON.parse(cookieLoc);
         userRegion = normalizeRegion(parsed.region || parsed.state || parsed.stateName);
-      } catch {}
+      } catch { }
     } else if (reqRegion) {
       userRegion = normalizeRegion(reqRegion);
     } else if (reqPincode && isKarnatakaPincode(reqPincode)) {
@@ -158,16 +164,29 @@ export async function POST(req) {
       }
       cart.items[existingItemIndex].price = itemEffectivePrice;
       cart.items[existingItemIndex].actual_price = priceInfo.price;
-      cart.items[existingItemIndex].warranty = selectedWarranty;
-      cart.items[existingItemIndex].extendedWarranty = selectedExtendedWarranty;
-      cart.items[existingItemIndex].warrantyData = warrantyData;
+      const isWarrantyEligible = isExtendedWarrantyEligible(product);
+      const effectiveExtendedWarranty = isWarrantyEligible
+        ? Number(selectedExtendedWarranty || warrantyData?.amount || warrantyData?.price || 0)
+        : 0;
+      const effectiveWarranty = isWarrantyEligible ? Number(selectedWarranty || 0) : 0;
+      const effectiveWarrantyData = isWarrantyEligible ? warrantyData : null;
+
+      cart.items[existingItemIndex].warranty = effectiveWarranty;
+      cart.items[existingItemIndex].extendedWarranty = effectiveExtendedWarranty;
+      cart.items[existingItemIndex].warrantyData = effectiveWarrantyData;
     } else {
+      const isWarrantyEligible = isExtendedWarrantyEligible(product);
+      const effectiveExtendedWarranty = isWarrantyEligible
+        ? Number(selectedExtendedWarranty || warrantyData?.amount || warrantyData?.price || 0)
+        : 0;
+      const effectiveWarranty = isWarrantyEligible ? Number(selectedWarranty || 0) : 0;
+      const effectiveWarrantyData = isWarrantyEligible ? warrantyData : null;
       const productImage =
         Array.isArray(product.images) && product.images.length > 0
           ? product.images[0]
           : typeof product.images === "string"
-          ? product.images
-          : "";
+            ? product.images
+            : "";
 
       cart.items.push({
         item_code: product.item_code || "",
@@ -176,9 +195,9 @@ export async function POST(req) {
         price: itemEffectivePrice,
         name: product.name,
         image: productImage,
-        warranty: selectedWarranty,
-        extendedWarranty: selectedExtendedWarranty,
-        warrantyData: warrantyData,
+        warranty: effectiveWarranty,
+        extendedWarranty: effectiveExtendedWarranty,
+        warrantyData: effectiveWarrantyData,
         actual_price: priceInfo.price,
       });
     }

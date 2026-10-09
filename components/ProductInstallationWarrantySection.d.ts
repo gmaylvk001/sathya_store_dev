@@ -26,6 +26,10 @@ export interface ProductInstallationWarrantySectionProps {
    */
   warranties?: WarrantyItem[];
   /**
+   * Extended warranty array from product or DB
+   */
+  extend_warranty?: { year: number; amount: number;[key: string]: any }[] | null;
+  /**
    * Currently selected warranty plan object
    */
   selectedWarrantyData?: WarrantyItem | null;
@@ -41,4 +45,4 @@ export interface ProductInstallationWarrantySectionProps {
 
 export default function ProductInstallationWarrantySection(
   props: ProductInstallationWarrantySectionProps
-): ReactElement;
+): ReactElement | null;

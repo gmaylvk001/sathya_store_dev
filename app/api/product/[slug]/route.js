@@ -8,6 +8,8 @@ import {
   applyRegionPricingToVariantGroup,
 } from "@/lib/variantGroup";
 import { resolveBestPriceForProduct } from "@/lib/bestPriceResolver";
+import ExtendedWarranty from "@/models/ecom_products_extended_warrent";
+import { isExtendedWarrantyEligible } from "@/lib/productServiceEligibility";
 
 export async function GET(request, context) {
   const { params } = await context;
@@ -41,8 +43,8 @@ export async function GET(request, context) {
       }
     }
 
-    let product = await Product.findOne({ 
-      slug, 
+    let product = await Product.findOne({
+      slug,
       status: "Active" // ✅ Only return active products
     }).lean();
 
@@ -83,6 +85,26 @@ export async function GET(request, context) {
     const bestPriceDetails = await resolveBestPriceForProduct(responseProduct);
     responseProduct.bestPriceDetails = bestPriceDetails;
     responseProduct.best_price = bestPriceDetails.bestPriceDisplay;
+
+    // Ensure extend_warranty is populated only if product is eligible, or emptied if ineligible
+    if (!isExtendedWarrantyEligible(responseProduct)) {
+      responseProduct.extend_warranty = [];
+    } else if (
+      (!responseProduct.extend_warranty || responseProduct.extend_warranty.length === 0) &&
+      product.item_code
+    ) {
+      try {
+        const extWarranty = await ExtendedWarranty.findOne({
+          item_code: product.item_code,
+          status: "Active",
+        }).lean();
+        if (extWarranty?.extend_warranty?.length) {
+          responseProduct.extend_warranty = extWarranty.extend_warranty;
+        }
+      } catch (err) {
+        console.error("Error fetching extended warranty:", err);
+      }
+    }
 
     return new Response(JSON.stringify(responseProduct), {
       status: 200,

@@ -18,6 +18,7 @@ import ProductBreadcrumb from "@/components/ProductBreadcrumb";
 import RecentlyViewedProducts from '@/components/RecentlyViewedProducts';
 import RelatedProducts from "@/components/RelatedProducts";
 import RazorpayOffers from "@/components/RazorpayOffers";
+import { isExtendedWarrantyEligible } from "@/lib/productServiceEligibility";
 
 export default function ProductPage(currentProductId) {
   const router = useRouter(); 
@@ -80,6 +81,13 @@ const [selectedFrequentProducts, setSelectedFrequentProducts] = useState([]);
 const [cartTotal, setCartTotal] = useState(0);
 const [selectedWarranty, setSelectedWarranty] = useState(null);
 const [selectedExtendedWarranty, setSelectedExtendedWarranty] = useState(null);
+
+useEffect(() => {
+  if (product && !isExtendedWarrantyEligible(product)) {
+    setSelectedWarranty(null);
+    setSelectedExtendedWarranty(null);
+  }
+}, [product]);
 
   const [quantityWarning, setQuantityWarning] = useState(false);
 
@@ -148,8 +156,9 @@ const toggleFrequentProduct = (product) => {
       total += (item.special_price || item.price);
     });
 
-    if (selectedWarranty) total += selectedWarranty;
-    if (selectedExtendedWarranty) total += selectedExtendedWarranty;
+    const isWarrantyEligible = isExtendedWarrantyEligible(product);
+    if (isWarrantyEligible && selectedWarranty) total += selectedWarranty;
+    if (isWarrantyEligible && selectedExtendedWarranty) total += selectedExtendedWarranty;
 
     setCartTotal(total);
   }, [selectedFrequentProducts, selectedRelatedProducts, product, quantity, selectedWarranty, selectedExtendedWarranty]);

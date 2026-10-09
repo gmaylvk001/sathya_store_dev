@@ -1,6 +1,10 @@
 "use client";
 
 import React, { useState, useMemo, useEffect, useCallback } from "react";
+import {
+  isExtendedWarrantyEligible,
+  isInstallationEligible,
+} from "@/lib/productServiceEligibility";
 
 /**
  * ResQ Yellow Square Logo Component
@@ -22,16 +26,16 @@ function ResQYellowIcon({ className = "w-8 h-8" }) {
 }
 
 /**
- * ResQ Blue Square Logo Component
+ * Onsitego Logo / Badge Component
  */
-function ResQBlueIcon({ className = "w-7 h-7" }) {
+function OnsitegoIcon({ className = "shrink-0 w-8 h-8" }) {
   return (
     <div
-      className={`${className} rounded-md bg-[#0082cb] flex items-center justify-center shrink-0 shadow-2xs select-none`}
-      aria-label="resQ Plan Logo"
+      className={`${className} rounded-md bg-[#251b5c] flex items-center justify-center shrink-0 shadow-2xs select-none`}
+      aria-label="Onsitego Extended Warranty"
     >
-      <span className="text-[10px] font-black tracking-tight text-white leading-none">
-        resQ
+      <span className="text-[9px] font-black tracking-tight text-white leading-none">
+        onsite<span className="text-[#ff455b]">go</span>
       </span>
     </div>
   );
@@ -84,6 +88,7 @@ const formatCurrency = (val) => {
 export default function ProductInstallationWarrantySection({
   product = {},
   warranties = [],
+  extend_warranty = null,
   selectedWarrantyData = null,
   onSelectWarranty,
   className = "",
@@ -93,13 +98,30 @@ export default function ProductInstallationWarrantySection({
   const [showBenefitsModal, setShowBenefitsModal] = useState(false);
   const [expandedCardDetails, setExpandedCardDetails] = useState({});
 
+  // Real-world E-Commerce Category & Blacklist Eligibility
+  const warrantyEligible = useMemo(
+    () => isExtendedWarrantyEligible(product),
+    [product]
+  );
+  const installationEligible = useMemo(
+    () => isInstallationEligible(product),
+    [product]
+  );
+
+  // Auto-cleanup: If product is not eligible for warranty, prevent any lingering selection
+  useEffect(() => {
+    if (!warrantyEligible && selectedWarrantyData !== null && onSelectWarranty) {
+      onSelectWarranty(null, 0);
+    }
+  }, [warrantyEligible, selectedWarrantyData, onSelectWarranty]);
+
   // Base price extraction
   const productPrice = useMemo(() => {
     const sp = Number(product?.special_price);
     const p = Number(product?.price);
     if (sp > 0) return sp;
     if (p > 0) return p;
-    return 40990;
+    return 35000;
   }, [product?.special_price, product?.price]);
 
   // Product category name for contextual title
@@ -110,8 +132,14 @@ export default function ProductInstallationWarrantySection({
     if (product?.categoryName) {
       return product.categoryName;
     }
-    return "Appliance";
-  }, [product?.sub_category_new_name, product?.categoryName]);
+    if (product?.category_name) {
+      return product.category_name;
+    }
+    if (typeof product?.category === "object" && product?.category?.name) {
+      return product.category.name;
+    }
+    return "Product";
+  }, [product?.sub_category_new_name, product?.categoryName, product?.category_name, product?.category]);
 
   // Toggle expandable details on individual warranty card
   const toggleCardDetails = (cardId, e) => {
@@ -122,126 +150,162 @@ export default function ProductInstallationWarrantySection({
     }));
   };
 
+  // Determine available warranty source array:
+  // 1. Explicit prop `extend_warranty`
+  // 2. `product.extend_warranty`
+  // 3. Fallback `warranties` prop
+  const sourceWarrantyList = useMemo(() => {
+    if (Array.isArray(extend_warranty) && extend_warranty.length > 0) {
+      return extend_warranty;
+    }
+    if (Array.isArray(product?.extend_warranty) && product.extend_warranty.length > 0) {
+      return product.extend_warranty;
+    }
+    if (Array.isArray(warranties) && warranties.length > 0) {
+      return warranties;
+    }
+    return [];
+  }, [extend_warranty, product?.extend_warranty, warranties]);
+
   // Build the 3 standard warranty cards (1 Year, 2 Years, 3 Years)
-  // Reuses DB warranties if available; otherwise uses calculated defaults
+  // Maps over existing extend_warranty array ({ year, amount }) or uses Onsitego slabs
   const warrantyCards = useMemo(() => {
     const findByYear = (yr) =>
-      Array.isArray(warranties) ? warranties.find((w) => w.year === yr) : null;
+      sourceWarrantyList.find((w) => Number(w.year) === yr) || null;
 
-    const w1 = findByYear(1);
-    const w2 = findByYear(2);
-    const w3 = findByYear(3);
+    // Official Onsitego Slab Calculator fallback for Large Appliances
+    const getOnsitegoSlabPrice = (yr, price) => {
+      const p = Math.round(Number(price) || 0);
+      if (p >= 25001 && p <= 30000) {
+        return yr === 1 ? 2399 : yr === 2 ? 3299 : 4499;
+      }
+      if (p >= 30001 && p <= 35000) {
+        return yr === 1 ? 2799 : yr === 2 ? 3999 : 5299;
+      }
+      if (p >= 35001 && p <= 40000) {
+        return yr === 1 ? 3199 : yr === 2 ? 4499 : 5999;
+      }
+      if (p >= 20001 && p <= 25000) {
+        return yr === 1 ? 1999 : yr === 2 ? 2799 : 3799;
+      }
+      if (p >= 15001 && p <= 20000) {
+        return yr === 1 ? 1599 : yr === 2 ? 2299 : 3099;
+      }
+      if (p >= 40001 && p <= 50000) {
+        return yr === 1 ? 3699 : yr === 2 ? 5199 : 6999;
+      }
+      if (p >= 50001 && p <= 75000) {
+        return yr === 1 ? 4499 : yr === 2 ? 6399 : 8599;
+      }
+      if (p > 75000) {
+        return yr === 1 ? 5499 : yr === 2 ? 7799 : 10499;
+      }
+      return yr === 1 ? 1299 : yr === 2 ? 1799 : 2499;
+    };
 
-    // Derived prices if DB has no explicit record
-    const defaultP1 = Math.round(productPrice * 0.1) || 4099;
-    const defaultP2 = Math.round(productPrice * 0.15) || 6099;
-    const defaultP3 = Math.round(productPrice * 0.23) || 9599;
+    const years = [1, 2, 3];
 
-    return [
-      {
-        id: "w-1yr",
-        year: 1,
-        title: "1 Year - resQ Care Plan (RCP)",
+    return years.map((yr) => {
+      const dbItem = findByYear(yr);
+      const price =
+        dbItem && (dbItem.amount != null || dbItem.price != null)
+          ? Number(dbItem.amount ?? dbItem.price) || 0
+          : getOnsitegoSlabPrice(yr, productPrice);
+
+      const yearText = yr === 1 ? "1 Year" : `${yr} Years`;
+      const mrp = Math.round(price * 1.15);
+      const discountPercent =
+        mrp > price ? Math.round(((mrp - price) / mrp) * 100) : null;
+
+      return {
+        id: `w-${yr}yr`,
+        year: yr,
+        title: `${yearText} - Onsitego Extended Warranty`,
         subtitle: "Extended Warranty",
-        dbItem: w1 || {
-          item_no: `W-1Y-${product?._id || "DEF"}`,
-          year: 1,
-          price: defaultP1,
-          name: "1 Year Extended Warranty",
+        dbItem: {
+          item_no:
+            dbItem?.item_no ||
+            `ONSITEGO-${yr}Y-${product?.item_code || product?._id || "DEF"}`,
+          item_code: product?.item_code || "",
+          year: yr,
+          price: price,
+          amount: price,
+          name: `${yearText} Onsitego Extended Warranty`,
+          brand: "Onsitego",
+          status: "Active",
+          ...(typeof dbItem === "object" ? dbItem : {}),
         },
-        price: w1?.price || defaultP1,
-        mrp: null,
-        discountPercent: null,
-        mrpLabel: "MRP (Inclusive of all taxes)",
+        price: price,
+        mrp: yr > 1 ? mrp : null,
+        discountPercent: yr > 1 ? discountPercent : null,
+        mrpLabel: yr === 1 ? "MRP (Inclusive of all taxes)" : null,
         features: [
-          "Multiple repair requests can be availed up to invoice value",
+          "100% Cashless Repairs & Service",
+          "Repair or Replacement Guarantee",
+        ],
+        extraBenefits: [
+          "Zero Depreciation",
+          "Free Pick & Drop",
           "Extended Warranty activates after expiry of Brand warranty.",
+          "Unlimited repair visits by brand-authorized experts",
         ],
-        extraBenefits: [
-          "100% Cashless repairs at brand authorized service centers",
-          "Free doorstep pickup & drop for eligible products",
-          "Genuine OEM spare parts replacement guarantee",
-          "Priority customer support and quick turnaround time",
-        ],
-      },
-      {
-        id: "w-2yr",
-        year: 2,
-        title: "2 Years - resQ Care Plan (RCP)",
-        subtitle: "Extended Warranty",
-        dbItem: w2 || {
-          item_no: `W-2Y-${product?._id || "DEF"}`,
-          year: 2,
-          price: defaultP2,
-          name: "2 Years Extended Warranty",
-        },
-        price: w2?.price || defaultP2,
-        mrp: Math.round((w2?.price || defaultP2) * 1.1) || 6720,
-        discountPercent: 9,
-        mrpLabel: null,
-        features: [
-          "Multiple repair requests can be availed up to invoice value",
-          "Extended Warranty activates after expiry of Brand warranty.",
-        ],
-        extraBenefits: [
-          "100% Cashless repairs at brand authorized service centers",
-          "Free doorstep pickup & drop for eligible products",
-          "Genuine OEM spare parts replacement guarantee",
-          "Comprehensive coverage against electrical & mechanical breakdowns",
-        ],
-      },
-      {
-        id: "w-3yr",
-        year: 3,
-        title: "3 Years - resQ Care Plan",
-        subtitle: "Extended Warranty",
-        dbItem: w3 || {
-          item_no: `W-3Y-${product?._id || "DEF"}`,
-          year: 3,
-          price: defaultP3,
-          name: "3 Years Extended Warranty",
-        },
-        price: w3?.price || defaultP3,
-        mrp: Math.round((w3?.price || defaultP3) * 1.15) || 11000,
-        discountPercent: null,
-        mrpLabel: null,
-        features: [
-          "Multiple repair requests up to full value",
-          "Zero depreciated repairs covered.",
-        ],
-        extraBenefits: [
-          "Complete peace of mind for 3 full years post brand warranty",
-          "No salvage deduction or hidden repair deductions",
-          "Free annual preventive maintenance check",
-          "Unlimited repair visits by certified technicians",
-        ],
-      },
-    ];
-  }, [warranties, productPrice, product?._id]);
+      };
+    });
+  }, [sourceWarrantyList, productPrice, product?._id, product?.item_code]);
 
   // Handle plan Add / Remove
   const handleTogglePlan = (card) => {
     if (!onSelectWarranty) return;
 
+    // Check if the clicked plan is already selected
     const isCurrent =
-      selectedWarrantyData?.item_no === card.dbItem.item_no ||
-      selectedWarrantyData?.year === card.year;
+      Number(selectedWarrantyData?.year) === Number(card.year) ||
+      (selectedWarrantyData?.item_no &&
+        selectedWarrantyData.item_no === card.dbItem?.item_no);
 
     if (isCurrent) {
-      // Unselect
+      // Unselect: reset payload and amount back to 0
       onSelectWarranty(null, 0);
     } else {
-      // Select
-      onSelectWarranty(card.dbItem, card.price);
+      // Extract exact numeric amount from card or dbItem
+      const exactAmount = Number(
+        card.dbItem?.amount ?? card.price ?? card.dbItem?.price ?? 0
+      );
+
+      const payload = {
+        item_no:
+          card.dbItem?.item_no ||
+          `ONSITEGO-${card.year}Y-${product?.item_code || product?._id || "DEF"}`,
+        item_code: product?.item_code || "",
+        year: Number(card.year),
+        amount: exactAmount,
+        price: exactAmount,
+        name: `${card.year} Year${card.year > 1 ? "s" : ""} Onsitego Extended Warranty`,
+        brand: "Onsitego",
+        status: "Active",
+        ...(typeof card.dbItem === "object" ? card.dbItem : {}),
+      };
+      // Overwrite to ensure pure numeric values
+      payload.amount = exactAmount;
+      payload.price = exactAmount;
+      payload.year = Number(card.year);
+
+      // Select new plan with exact numeric amount (switches from previous plan seamlessly)
+      onSelectWarranty(payload, exactAmount);
     }
   };
+
+  if (!warrantyEligible && !installationEligible) {
+    return null;
+  }
 
   return (
     <div className={`w-full space-y-3 font-sans text-gray-900 ${className}`}>
       {/* ========================================================
           1. EXTENDED WARRANTY SECTION
          ======================================================== */}
-      <div className="w-full rounded-xl border border-gray-200 bg-white overflow-hidden shadow-2xs">
+      {warrantyEligible && (
+        <div className="w-full rounded-xl border border-gray-200 bg-white overflow-hidden shadow-2xs">
         {/* Accordion Header */}
         <div
           onClick={() => setIsWarrantyExpanded((prev) => !prev)}
@@ -270,9 +334,8 @@ export default function ProductInstallationWarrantySection({
             <svg
               viewBox="0 0 20 20"
               fill="currentColor"
-              className={`w-4 h-4 transform transition-transform duration-200 ${
-                isWarrantyExpanded ? "rotate-180" : "rotate-0"
-              }`}
+              className={`w-4 h-4 transform transition-transform duration-200 ${isWarrantyExpanded ? "rotate-180" : "rotate-0"
+                }`}
               aria-hidden="true"
             >
               <path
@@ -291,30 +354,33 @@ export default function ProductInstallationWarrantySection({
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3">
               {warrantyCards.map((card) => {
                 const isSelected =
-                  selectedWarrantyData?.item_no === card.dbItem.item_no ||
-                  selectedWarrantyData?.year === card.year;
+                  (selectedWarrantyData?.item_no &&
+                    selectedWarrantyData.item_no === card.dbItem.item_no) ||
+                  Number(selectedWarrantyData?.year) === Number(card.year);
                 const isExpanded = Boolean(expandedCardDetails[card.id]);
 
                 return (
                   <div
                     key={card.id}
-                    className={`flex flex-col justify-between rounded-xl p-3 sm:p-3.5 bg-white transition-all ${
-                      isSelected
+                    className={`flex flex-col justify-between rounded-xl p-3 sm:p-3.5 bg-white transition-all ${isSelected
                         ? "border-2 border-blue-600 ring-2 ring-blue-50 shadow-sm"
                         : "border border-gray-200 hover:border-gray-300 hover:shadow-xs"
-                    }`}
+                      }`}
                   >
-                    {/* Top: Icon + Title + Subtitle */}
+                    {/* Top: Icon + Title + Subtitle (Strict Two-Column Layout) */}
                     <div>
-                      <div className="flex items-start gap-2">
-                        <ResQBlueIcon className="w-7 h-7" />
+                      <div className="flex items-start gap-3 min-w-0 mb-2">
+                        {/* Left Column: Fixed Icon */}
+                        <div className="shrink-0 w-8 h-8 rounded-md overflow-hidden flex items-center justify-center">
+                          <OnsitegoIcon className="w-8 h-8" />
+                        </div>
+
+                        {/* Right Column: Title & Plan Info */}
                         <div className="flex-1 min-w-0">
-                          <h5 className="text-[11px] sm:text-xs font-bold text-gray-900 leading-snug line-clamp-2">
-                            {card.title}
-                          </h5>
-                          <span className="text-[10px] text-gray-400 font-medium block mt-0.5">
-                            {card.subtitle}
-                          </span>
+                          <h4 className="font-semibold text-sm text-gray-900 leading-snug break-words">
+                            {card.year} {card.year === 1 ? "Year" : "Years"} - Onsitego Plan
+                          </h4>
+                          <p className="text-xs text-gray-500 mt-0.5">Extended Warranty</p>
                         </div>
                       </div>
 
@@ -383,11 +449,10 @@ export default function ProductInstallationWarrantySection({
                       <button
                         type="button"
                         onClick={() => handleTogglePlan(card)}
-                        className={`text-xs font-bold px-3 py-1.5 rounded-md transition-all cursor-pointer shrink-0 select-none ${
-                          isSelected
+                        className={`text-xs font-bold px-3 py-1.5 rounded-md transition-all cursor-pointer shrink-0 select-none ${isSelected
                             ? "bg-blue-600 border border-blue-600 text-white shadow-2xs hover:bg-blue-700"
                             : "border border-blue-600 text-blue-600 bg-white hover:bg-blue-50 active:scale-95"
-                        }`}
+                          }`}
                         aria-pressed={isSelected}
                       >
                         {isSelected ? "Added ✓" : "Add"}
@@ -400,10 +465,12 @@ export default function ProductInstallationWarrantySection({
           </div>
         )}
       </div>
+      )}
 
       {/* ========================================================
           2. INSTALLATION & PROTECTION SERVICE SECTION
          ======================================================== */}
+      {installationEligible && (
       <div className="w-full rounded-xl border border-gray-200 bg-white overflow-hidden shadow-2xs">
         {/* Accordion Header */}
         <div
@@ -433,9 +500,8 @@ export default function ProductInstallationWarrantySection({
             <svg
               viewBox="0 0 20 20"
               fill="currentColor"
-              className={`w-4 h-4 transform transition-transform duration-200 ${
-                isInstallationExpanded ? "rotate-180" : "rotate-0"
-              }`}
+              className={`w-4 h-4 transform transition-transform duration-200 ${isInstallationExpanded ? "rotate-180" : "rotate-0"
+                }`}
               aria-hidden="true"
             >
               <path
@@ -498,6 +564,7 @@ export default function ProductInstallationWarrantySection({
           </div>
         )}
       </div>
+      )}
 
       {/* ========================================================
           3. BENEFITS INFORMATION MODAL
