@@ -1,4 +1,4 @@
-import AdminPageShell from "../../components/AdminPageShell";
+import AdminPageShell from "../components/AdminPageShell";
 import EmiScheme from "../components/emi-scheme/EmiScheme";
 
 export default function EmiSchemePage() {
