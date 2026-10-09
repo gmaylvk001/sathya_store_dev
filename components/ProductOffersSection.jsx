@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useMemo, useEffect, useCallback, useRef } from "react";
+import Image from "next/image";
 import { calculateBestPrice, getSellingPrice } from "@/lib/bestPriceResolver";
 import { buildSafePaymentOffersData } from "@/lib/paymentOfferFallback";
 
@@ -76,9 +77,32 @@ function CreditCardIcon({ className = "w-4 h-4", color = "#dc2626" }) {
 }
 
 /**
+ * Official HDFC Bank Logo SVG (Circular white base with red outer frame corners and central blue square)
+ */
+function HDFCLogoIcon({ className = "w-7 h-7" }) {
+  return (
+    <svg
+      viewBox="0 0 100 100"
+      fill="none"
+      className={className}
+      xmlns="http://www.w3.org/2000/svg"
+      aria-label="HDFC Bank"
+      role="img"
+    >
+      <circle cx="50" cy="50" r="48" fill="#ffffff" stroke="#e5e7eb" strokeWidth="1.5" />
+      <rect x="44.4" y="44.4" width="11.2" height="11.2" fill="#004c8f" rx="0.5" />
+      <path d="M22 22 H44.4 V33.2 H33.2 V44.4 H22 Z" fill="#ed1c24" />
+      <path d="M55.6 22 H78 V44.4 H66.8 V33.2 H55.6 Z" fill="#ed1c24" />
+      <path d="M22 55.6 H33.2 V66.8 H44.4 V78 H22 Z" fill="#ed1c24" />
+      <path d="M66.8 55.6 H78 V78 H55.6 V66.8 H66.8 Z" fill="#ed1c24" />
+    </svg>
+  );
+}
+
+/**
  * Dynamic Bank Logo Badge Component
  */
-function BankLogoBadge({ bankShortCode, bankName, className = "w-6 h-6" }) {
+function BankLogoBadge({ bankShortCode, bankName, logoUrl, className = "w-7 h-7" }) {
   const code = (bankShortCode || "").toUpperCase();
 
   if (code === "KOTAK") {
@@ -105,6 +129,22 @@ function BankLogoBadge({ bankShortCode, bankName, className = "w-6 h-6" }) {
     return <AxisLogoIcon className={className} />;
   }
   if (code === "HDFC") {
+    const effectiveLogo = logoUrl || "/images/banks/hdfc.svg";
+    if (effectiveLogo) {
+      return (
+        <div className={`${className} relative rounded-full overflow-hidden flex items-center justify-center bg-white border border-gray-100 shadow-2xs shrink-0`}>
+          <Image
+            src={effectiveLogo}
+            alt={bankName || "HDFC Bank"}
+            width={28}
+            height={28}
+            className="w-full h-full object-contain"
+            unoptimized
+          />
+        </div>
+      );
+    }
+    // Graceful fallback if logo URL is completely missing
     return (
       <div className={`${className} rounded bg-[#004c8f] flex items-center justify-center text-[7.5px] font-black text-white shrink-0`}>
         HDFC
@@ -115,6 +155,22 @@ function BankLogoBadge({ bankShortCode, bankName, className = "w-6 h-6" }) {
     return (
       <div className={`${className} rounded bg-[#b02a30] flex items-center justify-center text-[7.5px] font-black text-white shrink-0`}>
         ICICI
+      </div>
+    );
+  }
+
+  // Graceful fallback with logoUrl for any custom bank
+  if (logoUrl) {
+    return (
+      <div className={`${className} relative rounded-full overflow-hidden flex items-center justify-center bg-white border border-slate-200 shrink-0`}>
+        <Image
+          src={logoUrl}
+          alt={bankName || code}
+          width={28}
+          height={28}
+          className="w-full h-full object-contain"
+          unoptimized
+        />
       </div>
     );
   }
@@ -273,13 +329,20 @@ export default function ProductOffersSection({
   const bestEmiOffer = paymentOffersData?.bestEmiOffer || emiOffersList[0] || null;
   const bestBankOffer = paymentOffersData?.bestBankOffer || bankOffersList[0] || null;
 
-  // Header display price (lowest effective price between Best Bank Offer and calculated Best Price)
+  // Header display price (lowest effective price from API or Best Bank Offer or calculated Best Price)
   const headerBestPrice = useMemo(() => {
+    if (
+      paymentOffersData?.bestPrice !== undefined &&
+      Number(paymentOffersData.bestPrice) > 0 &&
+      Number(paymentOffersData.bestPrice) < basePrice
+    ) {
+      return Number(paymentOffersData.bestPrice);
+    }
     if (bestBankOffer?.effectivePrice && bestBankOffer.effectivePrice < basePrice) {
       return bestBankOffer.effectivePrice;
     }
     return bestPriceData.bestPrice;
-  }, [bestBankOffer, bestPriceData, basePrice]);
+  }, [paymentOffersData, bestBankOffer, bestPriceData, basePrice]);
 
   return (
     <div
@@ -399,7 +462,8 @@ export default function ProductOffersSection({
                               <BankLogoBadge
                                 bankShortCode={offer.bankShortCode}
                                 bankName={offer.bankName}
-                                className="w-6 h-6"
+                                logoUrl={offer.bankLogoUrl}
+                                className="w-7 h-7 sm:w-7 sm:h-7"
                               />
                             </div>
                             {isBest ? (
@@ -482,7 +546,8 @@ export default function ProductOffersSection({
                               <BankLogoBadge
                                 bankShortCode={offer.bankShortCode}
                                 bankName={offer.bankName}
-                                className="w-6 h-6"
+                                logoUrl={offer.bankLogoUrl}
+                                className="w-7 h-7 sm:w-7 sm:h-7"
                               />
                             </div>
                             {isBest ? (
@@ -510,15 +575,7 @@ export default function ProductOffersSection({
 
                           {/* Bottom: Effective Price */}
                           <div className="text-[9px] sm:text-[10px] text-slate-600 font-medium tracking-tight">
-                            {offer.calculatedDiscount > 0 ? (
-                              <span>
-                                Save ₹{formatIndianCurrency(offer.calculatedDiscount, 2)} • Effective: ₹{formatIndianCurrency(offer.effectivePrice, 2)}
-                              </span>
-                            ) : (
-                              <span>
-                                Effective Price: ₹{formatIndianCurrency(offer.effectivePrice, 2)}
-                              </span>
-                            )}
+                            Effective Price: ₹{formatIndianCurrency(offer.effectivePrice, 2)}
                           </div>
                         </div>
                       );
@@ -800,7 +857,8 @@ function BankOffersModal({
                     <BankLogoBadge
                       bankShortCode={offer.bankShortCode}
                       bankName={offer.bankName}
-                      className="w-5 h-5"
+                      logoUrl={offer.bankLogoUrl}
+                      className="w-6 h-6"
                     />
                     <span className="text-xs font-bold text-gray-900">
                       {offer.bankName}
