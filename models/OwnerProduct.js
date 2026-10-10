@@ -12,6 +12,7 @@ const OwnerProductSchema = new mongoose.Schema(
     product_item_code: { type: String, index: true },
     vendor_item_code: { type: String },
     vendor_product_name: { type: String },
+    movement: { type: String, trim: true, default: null },
     price: { type: Number, required: true },
     offer_price: { type: Number, default: 0 },
     stock: { type: Number, default: 0 },

@@ -236,8 +236,38 @@ export default function ExistCancelOrdersComponent() {
 
   return (
     <div className="container mx-auto">
-      <div className="flex justify-between items-center mb-5 mt-5">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5 mt-5">
         <h2 className="text-2xl font-bold">Sathya Exist Cancel Orders</h2>
+
+        <div className="flex items-center gap-2.5 flex-wrap">
+          <button
+            type="button"
+            onClick={fetchRows}
+            disabled={isLoading}
+            className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg border border-gray-300 transition disabled:opacity-60"
+          >
+            <Icon icon="mdi:refresh" className={`text-base ${isLoading ? "animate-spin" : ""}`} />
+            Refresh
+          </button>
+
+          <a
+            href="/api/cancel_orders/import/sample?format=csv"
+            download="cancel_orders_sample.csv"
+            className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-lg border border-gray-300 transition"
+          >
+            <Icon icon="mdi:download" className="text-base text-gray-600" />
+            Sample CSV
+          </a>
+
+          <button
+            type="button"
+            onClick={openImport}
+            className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold bg-[#d72828] hover:bg-red-700 text-white rounded-lg shadow-sm transition"
+          >
+            <Icon icon="mdi:cloud-upload" className="text-lg" />
+            Import (Excel / CSV)
+          </button>
+        </div>
       </div>
 
       {isLoading ? (
@@ -290,12 +320,6 @@ export default function ExistCancelOrdersComponent() {
               </select>
             </div>
             <div className="flex flex-wrap justify-end gap-2">
-              <button
-                onClick={openImport}
-                className="p-2 border border-red-500 text-red-500 hover:bg-red-50 rounded-md transition"
-              >
-                Import Excel/CSV
-              </button>
               <button
                 onClick={handleDeleteAll}
                 disabled={isBulkDeleting || rows.length === 0}

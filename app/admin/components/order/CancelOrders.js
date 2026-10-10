@@ -17,12 +17,6 @@ export default function CancelOrders() {
   const [openActionId, setOpenActionId] = useState(null);
   const [viewRow, setViewRow] = useState(null);
 
-  // Import Modal States
-  const [isImportOpen, setIsImportOpen] = useState(false);
-  const [importFile, setImportFile] = useState(null);
-  const [isImporting, setIsImporting] = useState(false);
-  const [importResult, setImportResult] = useState(null);
-
   const actionMenuRef = useRef(null);
   const itemsPerPage = 20;
 
@@ -69,57 +63,6 @@ export default function CancelOrders() {
       showAlert("Error fetching cancel orders", "error");
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleImportSubmit = async (e) => {
-    e.preventDefault();
-    if (!importFile) {
-      showAlert("❌ Please choose an Excel or CSV file", "error");
-      return;
-    }
-
-    const name = importFile.name.toLowerCase();
-    if (
-      !name.endsWith(".xlsx") &&
-      !name.endsWith(".xls") &&
-      !name.endsWith(".csv") &&
-      !name.endsWith(".json")
-    ) {
-      showAlert("❌ Only .xlsx, .xls, .csv, and .json files are supported", "error");
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append("excel", importFile);
-
-    setIsImporting(true);
-    setImportResult(null);
-
-    try {
-      const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-      const response = await fetch("/api/cancel_orders/import", {
-        method: "POST",
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-        body: formData,
-      });
-
-      const resData = await response.json();
-
-      if (!response.ok || !resData.success) {
-        showAlert(resData.error || "❌ Import failed", "error");
-        setImportResult(resData);
-      } else {
-        setImportResult(resData);
-        showAlert(resData.message || "✅ Import completed successfully!", "success", 5000);
-        setImportFile(null);
-        fetchRequests();
-      }
-    } catch (error) {
-      console.error("Import error:", error);
-      showAlert("❌ Import failed due to a network or server error", "error");
-    } finally {
-      setIsImporting(false);
     }
   };
 
@@ -217,42 +160,8 @@ export default function CancelOrders() {
         <div>
           <h2 className="text-2xl font-bold text-gray-800">Cancel Orders</h2>
           <p className="text-xs sm:text-sm text-gray-500 mt-0.5">
-            Manage, review, and import cancelled orders with complete customer and order details
+            Review cancel requests with complete customer and order details
           </p>
-        </div>
-
-        <div className="flex items-center gap-2.5 flex-wrap">
-          <button
-            type="button"
-            onClick={fetchRequests}
-            disabled={loading}
-            className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg border border-gray-300 transition"
-          >
-            <Icon icon="mdi:refresh" className={`text-base ${loading ? "animate-spin" : ""}`} />
-            Refresh
-          </button>
-
-          <a
-            href="/api/cancel_orders/import/sample"
-            download="cancel_orders_sample.xlsx"
-            className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-lg border border-gray-300 transition"
-          >
-            <Icon icon="mdi:download" className="text-base text-gray-600" />
-            Sample Excel
-          </a>
-
-          <button
-            type="button"
-            onClick={() => {
-              setIsImportOpen(true);
-              setImportFile(null);
-              setImportResult(null);
-            }}
-            className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold bg-[#d72828] hover:bg-red-700 text-white rounded-lg shadow-sm transition"
-          >
-            <Icon icon="mdi:cloud-upload" className="text-lg" />
-            Import (Excel / CSV)
-          </button>
         </div>
       </div>
 
@@ -662,157 +571,6 @@ export default function CancelOrders() {
         </div>
       )}
 
-      {/* Import Modal */}
-      {isImportOpen && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-[2px] z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md relative max-h-[90vh] overflow-y-auto border border-gray-200">
-            {/* Modal Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-              <div className="flex items-center gap-2">
-                <Icon icon="mdi:file-excel" className="text-2xl text-emerald-600" />
-                <h3 className="text-lg font-bold text-gray-800">
-                  Import Cancel Orders
-                </h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  setIsImportOpen(false);
-                  setImportFile(null);
-                  setImportResult(null);
-                }}
-                className="text-gray-400 hover:text-gray-700 text-2xl font-bold leading-none"
-              >
-                ×
-              </button>
-            </div>
-
-            {/* Modal Body */}
-            <div className="p-6">
-              <p className="text-xs sm:text-sm text-gray-600 mb-3 leading-relaxed">
-                Upload your Excel (<b>.xlsx / .xls</b>) or <b>.csv</b> file containing cancel order records.
-                Duplicate rows by <code className="bg-gray-100 px-1 py-0.5 rounded text-[11px]">id</code> or <code className="bg-gray-100 px-1 py-0.5 rounded text-[11px]">order_number</code> are safely skipped.
-              </p>
-
-              {/* Sample Download Banner */}
-              <div className="mb-4 p-3 bg-red-50/70 border border-red-200/80 rounded-xl flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Icon icon="mdi:file-download-outline" className="text-xl text-[#d72828]" />
-                  <span className="text-xs font-semibold text-gray-700">Need sample format?</span>
-                </div>
-                <a
-                  href="/api/cancel_orders/import/sample"
-                  download="cancel_orders_sample.xlsx"
-                  className="text-xs font-bold text-[#d72828] hover:underline"
-                >
-                  Download Sample
-                </a>
-              </div>
-
-              {/* Form */}
-              <form onSubmit={handleImportSubmit} className="space-y-4">
-                <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1.5">
-                    Choose Excel / CSV File
-                  </label>
-                  <input
-                    type="file"
-                    accept=".xlsx,.xls,.csv,.json"
-                    onChange={(e) => setImportFile(e.target.files?.[0] || null)}
-                    className="w-full text-xs text-gray-500 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-[#d72828] file:text-white hover:file:bg-red-700 border border-gray-300 rounded-lg p-1.5 cursor-pointer"
-                    required
-                  />
-                  {importFile && (
-                    <div className="mt-1 text-[11px] text-gray-500">
-                      Selected: <b>{importFile.name}</b> ({(importFile.size / 1024).toFixed(1)} KB)
-                    </div>
-                  )}
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={isImporting || !importFile}
-                  className="w-full py-2.5 px-4 bg-[#d72828] hover:bg-red-700 disabled:opacity-50 text-white font-bold text-xs sm:text-sm rounded-lg transition flex items-center justify-center gap-2 shadow-sm"
-                >
-                  {isImporting ? (
-                    <>
-                      <Icon icon="mdi:loading" className="animate-spin text-lg" />
-                      <span>Importing...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Icon icon="mdi:cloud-upload" className="text-lg" />
-                      <span>Import File</span>
-                    </>
-                  )}
-                </button>
-              </form>
-
-              {/* Import Results Summary */}
-              {importResult && (
-                <div className="mt-5 pt-4 border-t border-gray-200">
-                  <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">
-                    Import Result Summary
-                  </h4>
-
-                  <div className="grid grid-cols-2 gap-2 text-xs mb-3">
-                    <div className="p-2.5 bg-green-50 border border-green-200 rounded-lg">
-                      <div className="text-gray-500">Successfully Added</div>
-                      <div className="text-lg font-bold text-green-700">
-                        {importResult.addedCount || 0}
-                      </div>
-                    </div>
-
-                    <div className="p-2.5 bg-amber-50 border border-amber-200 rounded-lg">
-                      <div className="text-gray-500">Skipped (Duplicates)</div>
-                      <div className="text-lg font-bold text-amber-700">
-                        {importResult.skippedExistingCount || 0}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Skipped Orders list */}
-                  {importResult.skippedOrders?.length > 0 && (
-                    <div className="mt-2">
-                      <div className="text-[11px] font-semibold text-gray-500 mb-1">
-                        Skipped Existing Orders:
-                      </div>
-                      <div className="max-h-32 overflow-y-auto border border-gray-200 rounded-lg p-2 text-[11px] text-gray-600 space-y-1 bg-gray-50">
-                        {importResult.skippedOrders.slice(0, 50).map((item, idx) => (
-                          <div key={idx} className="truncate">
-                            Row {item.row}: {item.order_number || item.exist_id || item.order_id} ({item.reason})
-                          </div>
-                        ))}
-                        {importResult.skippedOrders.length > 50 && (
-                          <div className="text-gray-400 italic">
-                            ...and {importResult.skippedOrders.length - 50} more
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Errors */}
-                  {importResult.errors?.length > 0 && (
-                    <div className="mt-2">
-                      <div className="text-[11px] font-semibold text-red-600 mb-1">
-                        Errors:
-                      </div>
-                      <div className="max-h-28 overflow-y-auto border border-red-200 rounded-lg p-2 text-[11px] text-red-600 space-y-1 bg-red-50">
-                        {importResult.errors.map((item, idx) => (
-                          <div key={idx}>
-                            Row {item.row}: {item.error}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
