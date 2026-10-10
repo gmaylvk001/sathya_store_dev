@@ -46,6 +46,19 @@ export default function UniletProductsPage() {
     region: 'karnataka',
   });
 
+  // Import Excel/CSV Modal State
+  const [importModalOpen, setImportModalOpen] = useState(false);
+  const [importFile, setImportFile] = useState(null);
+  const [importRegion, setImportRegion] = useState('karnataka');
+  const [isImporting, setIsImporting] = useState(false);
+  const [importError, setImportError] = useState('');
+  const [importResult, setImportResult] = useState(null);
+
+  // Bulk Delete State
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
+
   const showToast = (text, type = 'success') => {
     setToastMessage({ text, type });
     setTimeout(() => {
@@ -70,6 +83,7 @@ export default function UniletProductsPage() {
         setProducts([]);
         setTotalCount(0);
       }
+      setSelectedIds([]);
     } catch (err) {
       console.error('Failed to fetch Unilet products:', err);
       showToast('Failed to load Unilet products', 'error');
@@ -316,6 +330,89 @@ export default function UniletProductsPage() {
     }
   };
 
+  const allVisibleIds = products.map((item) => item._id).filter(Boolean);
+  const allSelected = allVisibleIds.length > 0 && allVisibleIds.every((id) => selectedIds.includes(id));
+
+  const toggleSelectAll = () => {
+    setSelectedIds(allSelected ? [] : allVisibleIds);
+  };
+
+  const toggleSelectOne = (id) => {
+    setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+  };
+
+  const handleBulkDelete = async () => {
+    if (!selectedIds.length) return;
+    try {
+      setIsBulkDeleting(true);
+      const res = await fetch('/api/admin/owner-product/bulk-delete', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-auth': 'true',
+        },
+        body: JSON.stringify({ ids: selectedIds }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast(data.message || 'Selected products deleted');
+        setBulkDeleteOpen(false);
+        fetchUniletProducts(activeSearch);
+      } else {
+        showToast(data.message || 'Bulk delete failed', 'error');
+      }
+    } catch (err) {
+      showToast(err.message || 'Bulk delete failed', 'error');
+    } finally {
+      setIsBulkDeleting(false);
+    }
+  };
+
+  const handleOpenImport = () => {
+    setImportFile(null);
+    setImportRegion('karnataka');
+    setImportError('');
+    setImportResult(null);
+    setImportModalOpen(true);
+  };
+
+  const handleImport = async (e) => {
+    e.preventDefault();
+    setImportError('');
+    setImportResult(null);
+
+    if (!importFile) {
+      setImportError('Please choose an Excel or CSV file.');
+      return;
+    }
+
+    try {
+      setIsImporting(true);
+      const formData = new FormData();
+      formData.append('file', importFile);
+      formData.append('region', importRegion);
+
+      const res = await fetch('/api/admin/owner-product/import', {
+        method: 'POST',
+        headers: { 'x-admin-auth': 'true' },
+        body: formData,
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        setImportResult(data);
+        showToast(data.message || 'Import completed');
+        fetchUniletProducts(activeSearch);
+      } else {
+        setImportError(data.message || 'Import failed');
+      }
+    } catch (err) {
+      setImportError(err.message || 'Import failed');
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
   return (
     <div className="py-6 space-y-6">
       {/* Toast Notification */}
@@ -344,18 +441,28 @@ export default function UniletProductsPage() {
           </p>
         </div>
 
-        <button
-          onClick={() => {
-            setSelectedCatalogProduct(null);
-            setCatalogSearch('');
-            setCatalogResults([]);
-            setAddModalOpen(true);
-          }}
-          className="inline-flex items-center space-x-1.5 bg-brandRed hover:bg-red-700 text-white text-sm font-medium px-4 py-2 rounded-md shadow-sm transition-colors self-start md:self-auto"
-        >
-          <Icon icon="mdi:plus" className="text-lg" />
-          <span>Add Unilet Product</span>
-        </button>
+        <div className="flex items-center gap-2 self-start md:self-auto">
+          <button
+            onClick={handleOpenImport}
+            className="inline-flex items-center space-x-1.5 bg-green-600 hover:bg-green-700 text-white text-sm font-medium px-4 py-2 rounded-md shadow-sm transition-colors"
+          >
+            <Icon icon="mdi:file-excel-outline" className="text-lg" />
+            <span>Import Excel/CSV</span>
+          </button>
+
+          <button
+            onClick={() => {
+              setSelectedCatalogProduct(null);
+              setCatalogSearch('');
+              setCatalogResults([]);
+              setAddModalOpen(true);
+            }}
+            className="inline-flex items-center space-x-1.5 bg-brandRed hover:bg-red-700 text-white text-sm font-medium px-4 py-2 rounded-md shadow-sm transition-colors"
+          >
+            <Icon icon="mdi:plus" className="text-lg" />
+            <span>Add Unilet Product</span>
+          </button>
+        </div>
       </div>
 
       {/* Search & Actions Bar (Matching Reference Image 2) */}
@@ -398,8 +505,20 @@ export default function UniletProductsPage() {
           )}
         </form>
 
-        <div className="text-sm font-semibold text-gray-700 whitespace-nowrap self-end md:self-center">
-          Total Products: <span className="text-gray-900 font-bold">{totalCount}</span>
+        <div className="flex items-center gap-3 self-end md:self-center">
+          {selectedIds.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setBulkDeleteOpen(true)}
+              className="inline-flex items-center space-x-1.5 bg-[#d72828] hover:bg-red-700 text-white text-sm font-medium px-4 py-2 rounded-md shadow-sm transition-colors whitespace-nowrap"
+            >
+              <Icon icon="mdi:trash-can-outline" className="text-lg" />
+              <span>Delete Selected ({selectedIds.length})</span>
+            </button>
+          )}
+          <div className="text-sm font-semibold text-gray-700 whitespace-nowrap">
+            Total Products: <span className="text-gray-900 font-bold">{totalCount}</span>
+          </div>
         </div>
       </div>
 
@@ -409,6 +528,16 @@ export default function UniletProductsPage() {
           <table className="w-full text-left text-sm text-gray-700 border-collapse">
             <thead className="bg-gray-50 border-b border-gray-200 text-xs font-semibold text-gray-600 uppercase tracking-wider">
               <tr>
+                <th className="py-3 px-3 w-10 text-center">
+                  <input
+                    type="checkbox"
+                    checked={allSelected}
+                    onChange={toggleSelectAll}
+                    disabled={isLoading || allVisibleIds.length === 0}
+                    className="w-4 h-4 rounded cursor-pointer"
+                    aria-label="Select all"
+                  />
+                </th>
                 <th className="py-3 px-3 w-12 text-center">ID</th>
                 <th className="py-3 px-3 whitespace-nowrap">Product ID</th>
                 <th className="py-3 px-4 min-w-[240px]">Title</th>
@@ -427,13 +556,13 @@ export default function UniletProductsPage() {
             <tbody className="divide-y divide-gray-100">
               {isLoading ? (
                 <tr>
-                  <td colSpan="12" className="py-12 text-center text-gray-500">
+                  <td colSpan="13" className="py-12 text-center text-gray-500">
                     <AdminLoader label="Loading Unilet products..." />
                   </td>
                 </tr>
               ) : products.length === 0 ? (
                 <tr>
-                  <td colSpan="12" className="py-16 text-center">
+                  <td colSpan="13" className="py-16 text-center">
                     <div className="flex flex-col items-center justify-center space-y-3">
                       <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center text-gray-400">
                         <Icon icon="mdi:package-variant-remove" className="text-2xl" />
@@ -472,7 +601,21 @@ export default function UniletProductsPage() {
                   const location = item.region || 'Karnataka';
 
                   return (
-                    <tr key={item._id || index} className="hover:bg-gray-50/80 transition-colors">
+                    <tr
+                      key={item._id || index}
+                      className={`transition-colors ${selectedIds.includes(item._id) ? 'bg-red-50/60' : 'hover:bg-gray-50/80'}`}
+                    >
+                      {/* Select */}
+                      <td className="py-3 px-3 text-center">
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.includes(item._id)}
+                          onChange={() => toggleSelectOne(item._id)}
+                          className="w-4 h-4 rounded cursor-pointer"
+                          aria-label={`Select ${title}`}
+                        />
+                      </td>
+
                       {/* ID */}
                       <td className="py-3 px-3 text-center text-gray-500 font-medium text-xs">
                         {index + 1}
@@ -753,6 +896,152 @@ export default function UniletProductsPage() {
                 >
                   {isSaving && <Icon icon="eos-icons:loading" className="text-sm animate-spin" />}
                   <span>{isSaving ? 'Saving...' : 'Save Changes'}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* BULK DELETE CONFIRM MODAL */}
+      {bulkDeleteOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+            <div className="p-6 text-center">
+              <div className="mx-auto w-12 h-12 rounded-full bg-red-100 flex items-center justify-center text-[#d72828] mb-4">
+                <Icon icon="mdi:alert-outline" className="text-2xl" />
+              </div>
+              <h3 className="text-lg font-bold text-gray-900">Delete selected products?</h3>
+              <p className="text-sm text-gray-600 mt-2">
+                You are about to remove <b>{selectedIds.length}</b> Unilet product mapping(s). Sathya products are not
+                affected. This cannot be undone.
+              </p>
+            </div>
+            <div className="flex items-center justify-end space-x-3 px-6 py-4 border-t border-gray-200 bg-gray-50">
+              <button
+                type="button"
+                onClick={() => setBulkDeleteOpen(false)}
+                disabled={isBulkDeleting}
+                className="px-4 py-2 border border-gray-300 text-gray-700 text-xs font-medium rounded-md hover:bg-gray-100 disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleBulkDelete}
+                disabled={isBulkDeleting}
+                className="px-5 py-2 bg-[#d72828] hover:bg-red-700 text-white text-xs font-medium rounded-md shadow-sm disabled:opacity-50 flex items-center space-x-1.5"
+              >
+                {isBulkDeleting && <Icon icon="eos-icons:loading" className="text-sm animate-spin" />}
+                <span>{isBulkDeleting ? 'Deleting...' : `Yes, Delete ${selectedIds.length}`}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* IMPORT EXCEL / CSV MODAL */}
+      {importModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-gray-50">
+              <div>
+                <h3 className="text-lg font-bold text-gray-900">Import Unilet Products</h3>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  Map vendor item codes using <span className="font-mono">reference_item_code</span> (product item code).
+                </p>
+              </div>
+              <button
+                onClick={() => setImportModalOpen(false)}
+                className="text-gray-400 hover:text-gray-600 p-1 rounded-md"
+              >
+                <Icon icon="mdi:close" className="text-xl" />
+              </button>
+            </div>
+
+            <form onSubmit={handleImport} className="p-6 space-y-4">
+              {importError && (
+                <div className="p-3 text-xs bg-red-50 text-red-700 rounded-md border border-red-200">
+                  {importError}
+                </div>
+              )}
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">
+                  Delivery Location <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={importRegion}
+                  onChange={(e) => setImportRegion(e.target.value)}
+                  className="w-full text-sm border border-gray-300 rounded-md px-3 py-1.5 bg-white capitalize focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                >
+                  <option value="karnataka">Karnataka</option>
+                  <option value="tamilnadu">Tamil Nadu</option>
+                  <option value="andhra">Andhra Pradesh</option>
+                  <option value="telangana">Telangana</option>
+                  <option value="kerala">Kerala</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">
+                  Excel / CSV File <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="file"
+                  accept=".xlsx,.xls,.csv"
+                  onChange={(e) => setImportFile(e.target.files?.[0] || null)}
+                  className="w-full text-xs border border-gray-300 rounded-md px-3 py-2 file:mr-3 file:py-1 file:px-3 file:rounded file:border-0 file:bg-gray-100 file:text-gray-700"
+                />
+                <p className="text-[11px] text-gray-500 mt-1">
+                  Uses <span className="font-mono">reference_item_code</span>,{' '}
+                  <span className="font-mono">vendor_item_code</span>, <span className="font-mono">stock</span> and{' '}
+                  <span className="font-mono">stock_status</span> (optional). Other columns are ignored.
+                </p>
+                <a
+                  href="/api/admin/owner-product/import/sample"
+                  className="inline-flex items-center space-x-1 text-xs text-blue-600 hover:text-blue-800 mt-1"
+                >
+                  <Icon icon="mdi:download" className="text-sm" />
+                  <span>Download sample file</span>
+                </a>
+              </div>
+
+              {importResult && (
+                <div className="p-3 text-xs bg-green-50 text-green-800 rounded-md border border-green-200 space-y-1">
+                  <div>Total rows: <b>{importResult.totalRows}</b></div>
+                  <div>Newly mapped: <b>{importResult.created}</b></div>
+                  <div>Updated (already mapped): <b>{importResult.updated}</b></div>
+                  <div>Not found in products (not mapped): <b>{importResult.notFoundCount}</b></div>
+                  <div>Empty / NULL codes skipped: <b>{importResult.skippedEmptyCount}</b></div>
+                  {importResult.notFound?.length > 0 && (
+                    <div className="pt-1 text-red-700 max-h-28 overflow-y-auto">
+                      <div className="font-semibold">Item codes not found:</div>
+                      {importResult.notFound.map((item) => (
+                        <div key={`${item.row}-${item.reference_item_code}`} className="font-mono">
+                          Row {item.row}: {item.reference_item_code}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <div className="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200">
+                <button
+                  type="button"
+                  onClick={() => setImportModalOpen(false)}
+                  className="px-4 py-2 border border-gray-300 text-gray-700 text-xs font-medium rounded-md hover:bg-gray-50"
+                >
+                  Close
+                </button>
+                <button
+                  type="submit"
+                  disabled={isImporting || !importFile}
+                  className="px-5 py-2 bg-green-600 hover:bg-green-700 text-white text-xs font-medium rounded-md shadow-sm disabled:opacity-50 flex items-center space-x-1.5"
+                >
+                  {isImporting && <Icon icon="eos-icons:loading" className="text-sm animate-spin" />}
+                  <span>{isImporting ? 'Importing...' : 'Upload & Map'}</span>
                 </button>
               </div>
             </form>
