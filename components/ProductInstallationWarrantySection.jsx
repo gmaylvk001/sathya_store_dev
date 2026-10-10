@@ -7,20 +7,26 @@ import {
 } from "@/lib/productServiceEligibility";
 
 /**
- * ResQ Yellow Square Logo Component
+ * Generic Service Icon
  */
-function ResQYellowIcon({ className = "w-8 h-8" }) {
+function ServiceIcon({ className = "w-8 h-8" }) {
   return (
     <div
-      className={`${className} rounded-md bg-[#facc15] flex flex-col items-center justify-center shrink-0 shadow-2xs select-none`}
-      aria-label="resQ Service Logo"
+      className={`${className} rounded-md bg-slate-100 flex flex-col items-center justify-center shrink-0 shadow-2xs select-none`}
+      aria-label="Service Icon"
     >
-      <span className="text-[10px] font-black tracking-tighter text-slate-900 leading-none">
-        res
-      </span>
-      <span className="text-[11px] font-black text-slate-900 leading-none">
-        Q
-      </span>
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="w-5 h-5 text-slate-700"
+      >
+        <circle cx="12" cy="12" r="3"></circle>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+      </svg>
     </div>
   );
 }
@@ -140,6 +146,44 @@ export default function ProductInstallationWarrantySection({
     }
     return "Product";
   }, [product?.sub_category_new_name, product?.categoryName, product?.category_name, product?.category]);
+
+  // Installation category logic
+  const { isLaptop, isAC } = useMemo(() => {
+    const cat = categoryLabel.toLowerCase();
+    return {
+      isLaptop: cat.includes("laptop") || cat.includes("computer"),
+      isAC: cat.includes("ac") || cat.includes("air conditioner") || cat.includes("air-conditioner"),
+    };
+  }, [categoryLabel]);
+
+  // Dynamic Service Bullets
+  const serviceBullets = useMemo(() => {
+    if (isLaptop) {
+      return [
+        "Unboxing & physical damage inspection",
+        "Initial OS boot-up & basic setup",
+        "Product demonstration & usage guidelines"
+      ];
+    }
+    if (isAC) {
+      return [
+        "Site feasibility & voltage check",
+        "Standard mounting & installation of Indoor/Outdoor units",
+        "Cooling check & feature demonstration"
+      ];
+    }
+    return [
+      "Installation location feasibility check",
+      "Unboxing, alignment, and leveling",
+      "Power source setup & demonstration"
+    ];
+  }, [isLaptop, isAC]);
+
+  // Installation Price Logic
+  const installationPrice = useMemo(() => {
+    const price = Number(product?.installation_price || product?.installation_charges || 0);
+    return isNaN(price) ? 0 : price;
+  }, [product?.installation_price, product?.installation_charges]);
 
   // Toggle expandable details on individual warranty card
   const toggleCardDetails = (cardId, e) => {
@@ -520,35 +564,43 @@ export default function ProductInstallationWarrantySection({
             <div className="w-full rounded-xl border-2 border-blue-600 bg-white p-3.5 sm:p-4 shadow-2xs">
               {/* Logo + Service Title */}
               <div className="flex items-start gap-3">
-                <ResQYellowIcon className="w-8 h-8" />
+                <ServiceIcon className="w-8 h-8" />
                 <div className="flex-1 min-w-0">
                   <h5 className="text-xs sm:text-[13px] font-bold text-gray-900 leading-snug">
-                    resQ Installation Service for {categoryLabel} / Demo
+                    {product?.brand 
+                      ? `${product.brand} Authorized Installation & Demo`
+                      : "Expert Installation & Demo Service"}
                   </h5>
                 </div>
               </div>
 
               {/* 3 Short Service Details */}
               <ul className="mt-2.5 space-y-1.5 text-[11px] sm:text-xs text-gray-600 pl-1">
-                <li className="flex items-start gap-1.5">
-                  <span className="text-gray-400 font-bold leading-none">•</span>
-                  <span>Installation location feasibility check</span>
-                </li>
-                <li className="flex items-start gap-1.5">
-                  <span className="text-gray-400 font-bold leading-none">•</span>
-                  <span>Unboxing, leveling & setup to power source</span>
-                </li>
-                <li className="flex items-start gap-1.5">
-                  <span className="text-gray-400 font-bold leading-none">•</span>
-                  <span>Product demonstration & usage instructions</span>
-                </li>
+                {serviceBullets.map((bullet, idx) => (
+                  <li key={idx} className="flex items-start gap-1.5">
+                    <span className="text-gray-400 font-bold leading-none">•</span>
+                    <span>{bullet}</span>
+                  </li>
+                ))}
               </ul>
+              
+              {isAC && (
+                <p className="mt-2 text-[10px] text-gray-500 italic pl-1">
+                  *Note: Core cutting, extra copper pipes, or scaffolding will incur additional charges at actuals.
+                </p>
+              )}
 
-              {/* Free Label */}
+              {/* Pricing Label */}
               <div className="mt-3">
-                <span className="text-sm font-bold text-green-600 block leading-tight">
-                  Free
-                </span>
+                {installationPrice === 0 || (isLaptop && installationPrice === 0) ? (
+                  <span className="text-sm font-bold text-green-600 block leading-tight">
+                    Free
+                  </span>
+                ) : (
+                  <span className="text-sm font-bold text-gray-900 block leading-tight">
+                    ₹{formatCurrency(installationPrice)}
+                  </span>
+                )}
               </div>
 
               {/* Read more about benefits link with info icon */}
@@ -610,9 +662,9 @@ function BenefitsModal({ onClose }) {
         "Walkthrough of key features, energy saving modes, operating do's and don'ts, and cleaning tips.",
     },
     {
-      title: "Zero Hidden Costs",
+      title: "Transparent Pricing",
       description:
-        "Standard installation service and demo are completely Free of charge at your doorstep.",
+        "Standard installation service and demo fees (if any) are clearly mentioned, with no hidden charges at your doorstep.",
     },
   ];
 
@@ -628,7 +680,7 @@ function BenefitsModal({ onClose }) {
         {/* Modal Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-gray-50/70">
           <div className="flex items-center gap-2.5">
-            <ResQYellowIcon className="w-6 h-6" />
+            <ServiceIcon className="w-6 h-6" />
             <h3 className="text-sm sm:text-base font-bold text-gray-900">
               Installation & Demo Benefits
             </h3>
