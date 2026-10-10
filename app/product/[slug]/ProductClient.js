@@ -31,7 +31,7 @@ import AddToWishlistButton from "@/components/ProductCard";
 import ProductBreadcrumb from "@/components/ProductBreadcrumb";
 import RecentlyViewedProducts from '@/components/RecentlyViewedProducts';
 import RelatedProducts from "@/components/RelatedProducts";
-import ProductOffersSection from "@/components/ProductOffersSection";
+import PaymentOffers from "@/components/product/PaymentOffers";
 import ProductInstallationWarrantySection from "@/components/ProductInstallationWarrantySection";
 import CompareButton from "@/components/CompareButton";
 import { isExtendedWarrantyEligible } from "@/lib/productServiceEligibility";
@@ -1381,7 +1381,7 @@ export default function ProductClient() {
                   productCategory={product.sub_category_new_name ? product.sub_category_new_name.replace(/##/g, ",") : (product.categoryName || "")}
                   onExchangeApply={handleExchangeApply}
                 />
-                <ProductOffersSection
+                <PaymentOffers
                   product={product}
                   externalShowEmiModal={showEMIModal}
                   onExternalCloseEmiModal={() => setShowEMIModal(false)}
@@ -1802,7 +1802,7 @@ export default function ProductClient() {
                     productCategory={product.sub_category_new_name ? product.sub_category_new_name.replace(/##/g, ",") : (product.categoryName || "")}
                     onExchangeApply={handleExchangeApply}
                   />
-                  <ProductOffersSection
+                  <PaymentOffers
                     product={product}
                     externalShowEmiModal={showEMIModal}
                     onExternalCloseEmiModal={() => setShowEMIModal(false)}
