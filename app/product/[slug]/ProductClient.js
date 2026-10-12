@@ -36,6 +36,7 @@ import ProductInstallationWarrantySection from "@/components/ProductInstallation
 import CompareButton from "@/components/CompareButton";
 import WarrantyBadge from "@/components/WarrantyBadge";
 import { isExtendedWarrantyEligible } from "@/lib/productServiceEligibility";
+import { ADD_CART_ALLOWED_MOVEMENTS } from "@/lib/addCartConfig";
 import { v4 as uuidv4 } from "uuid";
 
 
@@ -220,6 +221,10 @@ export default function ProductClient() {
     "flex items-center justify-center gap-2 border border-gray-300 rounded-md bg-white px-4 py-2 text-sm font-medium text-[#d72828] hover:border-red-400 hover:bg-red-50 transition-colors whitespace-nowrap";
   const addToCartOutlineClass =
     "w-full border border-gray-300 rounded-md bg-white px-4 py-2.5 text-sm font-medium text-[#d72828] hover:border-red-400 hover:bg-red-50 transition-colors shadow-none";
+
+  const isMovementAllowed = ADD_CART_ALLOWED_MOVEMENTS.includes(
+    String(product?.movement || "").trim()
+  );
 
   const addOnIds = Array.isArray(product?.add_ons)
     ? product.add_ons.map(id => id.toString())
@@ -1387,7 +1392,18 @@ export default function ProductClient() {
                 </div>
               )}
 
-              {product.stock_status === "In Stock" && product.quantity > 0 && (
+              {product.stock_status === "In Stock" && product.quantity > 0 && !isMovementAllowed && (
+                <div className="flex gap-3">
+                  <div className="flex-1 bg-gray-300 text-gray-600 font-semibold py-2.5 rounded-lg flex items-center justify-center gap-2 text-sm cursor-not-allowed">
+                    Sold Out Online
+                  </div>
+                  <div className="flex-1 border border-emerald-500 text-emerald-700 bg-emerald-50 font-semibold py-2.5 rounded-lg flex items-center justify-center gap-2 text-sm">
+                    <FaStore className="w-4 h-4" />
+                    Available in Store
+                  </div>
+                </div>
+              )}
+              {product.stock_status === "In Stock" && product.quantity > 0 && isMovementAllowed && (
                 <div className="flex gap-3">
                   <button
                     onClick={() => handleBuyNow()}
@@ -2103,6 +2119,18 @@ export default function ProductClient() {
                         </div>
                       </div>
 
+                      {!isMovementAllowed ? (
+                        <>
+                          <div className="w-full bg-gray-300 text-gray-600 font-extrabold py-3 rounded-lg flex items-center justify-center gap-2 text-sm uppercase tracking-wider cursor-not-allowed">
+                            Sold Out Online
+                          </div>
+                          <div className="w-full border-2 border-emerald-500 text-emerald-700 bg-emerald-50 font-bold py-2.5 rounded-lg flex items-center justify-center gap-2 text-sm">
+                            <FaStore className="w-4 h-4 flex-shrink-0" />
+                            Available in Store
+                          </div>
+                        </>
+                      ) : (
+                      <>
                       {/* BUY NOW Button (Primary Sathya Red) */}
                       <button
                         onClick={() => handleBuyNow()}
@@ -2133,6 +2161,8 @@ export default function ProductClient() {
                         productName={product.name}
                         productSlug={product.slug}
                       />
+                      </>
+                      )}
                     </div>
                   )}
 
