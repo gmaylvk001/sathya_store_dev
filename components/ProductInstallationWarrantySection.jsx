@@ -147,24 +147,35 @@ export default function ProductInstallationWarrantySection({
     return "Product";
   }, [product?.sub_category_new_name, product?.categoryName, product?.category_name, product?.category]);
 
-  // Installation category logic
-  const { isLaptop, isAC } = useMemo(() => {
+  // Installation category logic - strict AC matching to prevent false positives
+  const { isAC } = useMemo(() => {
     const cat = categoryLabel.toLowerCase();
     return {
-      isLaptop: cat.includes("laptop") || cat.includes("computer"),
-      isAC: cat.includes("ac") || cat.includes("air conditioner") || cat.includes("air-conditioner"),
+      isAC: /\bac\b/i.test(cat) || cat.includes("air conditioner") || cat.includes("air-conditioner"),
     };
   }, [categoryLabel]);
 
-  // Dynamic Service Bullets
-  const serviceBullets = useMemo(() => {
-    if (isLaptop) {
-      return [
-        "Unboxing & physical damage inspection",
-        "Initial OS boot-up & basic setup",
-        "Product demonstration & usage guidelines"
-      ];
+  // Clean brand title without raw 24-character hex ObjectIds
+  const brandTitle = useMemo(() => {
+    let raw = "";
+    if (typeof product?.brand === "string") {
+      raw = product.brand;
+    } else if (product?.brand && typeof product?.brand === "object") {
+      raw = product.brand.name || product.brand.title || "";
     }
+    if (!raw) {
+      raw = product?.brand_name || product?.brandName || "";
+    }
+
+    const cleaned = String(raw).replace(/^[0-9a-fA-F]{24}\s*/, "").trim();
+    if (!cleaned || /^[0-9a-fA-F]{24}$/.test(cleaned)) {
+      return "";
+    }
+    return cleaned;
+  }, [product]);
+
+  // Dynamic Service Bullets for physical installation appliances
+  const serviceBullets = useMemo(() => {
     if (isAC) {
       return [
         "Site feasibility & voltage check",
@@ -177,7 +188,7 @@ export default function ProductInstallationWarrantySection({
       "Unboxing, alignment, and leveling",
       "Power source setup & demonstration"
     ];
-  }, [isLaptop, isAC]);
+  }, [isAC]);
 
   // Installation Price Logic
   const installationPrice = useMemo(() => {
@@ -597,9 +608,9 @@ export default function ProductInstallationWarrantySection({
                   <ServiceIcon className="w-8 h-8" />
                   <div className="flex-1 min-w-0">
                     <h5 className="text-xs sm:text-[13px] font-bold text-gray-900 leading-snug">
-                      {product?.brand
-                        ? `${product.brand} Authorized Installation & Demo`
-                        : "Expert Installation & Demo Service"}
+                      {brandTitle
+                        ? `${brandTitle} Authorized Installation & Demo`
+                        : "Authorized Installation & Demo"}
                     </h5>
                   </div>
                 </div>
@@ -622,7 +633,7 @@ export default function ProductInstallationWarrantySection({
 
                 {/* Pricing Label */}
                 <div className="mt-3">
-                  {installationPrice === 0 || (isLaptop && installationPrice === 0) ? (
+                  {installationPrice === 0 ? (
                     <span className="text-sm font-bold text-green-600 block leading-tight">
                       Free
                     </span>

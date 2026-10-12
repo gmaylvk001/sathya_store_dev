@@ -366,192 +366,224 @@ export default function ProductClient() {
 
   const { updateCartCount } = useCart();
   const { openAuthModal } = useModal();
-  const handleBuyNow = async (exchangeOffer = null) => {
-    console.log("Buying now with warranty:", selectedWarranty, selectedExtendedWarranty, "exchange:", exchangeOffer);
-    try {
-      const token = localStorage.getItem("token");
+  const handleBuyNow = async (e = null) => {
+    if (e && typeof e.preventDefault === 'function') {
+      e.preventDefault();
+      e.stopPropagation();
+    }
 
+    // Only accept genuine plain exchangeOffer objects (no DOM elements or event wrappers)
+    let exchangeOffer = null;
+    if (
+      e &&
+      typeof e === 'object' &&
+      !('nativeEvent' in e) &&
+      !('target' in e) &&
+      !('currentTarget' in e) &&
+      typeof e.preventDefault !== 'function'
+    ) {
+      exchangeOffer = {
+        id: e._id || e.id || null,
+        title: e.title || e.name || e.product_name || null,
+        price: Number(e.price || e.discount || e.value || 0),
+        brand: typeof e.brand === 'string' ? e.brand : (e.brand?.name || null),
+        model: e.model || null,
+      };
+    }
+
+    try {
+      const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
       let isLoggedIn = false;
       let userData = null;
 
-      /*
-  
-      // ✅ Check authentication
-      const response = await fetch("/api/auth/check", {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: token ? `Bearer ${token}` : "",
-        },
-      });
-  
-      const data = await response.json();
-      if (!data.loggedIn) {
-        openAuthModal({
-          error: "Please log in to continue.",
-          onSuccess: () => handleBuyNow(), // retry on success
-        });
-        return;
-      }
-        */
-
       if (token) {
-        const response = await fetch("/api/auth/check", {
-          method: "GET",
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        });
-        const data = await response.json();
-        isLoggedIn = data.loggedIn;
-        userData = data.user;
-
-        //updateHeaderdetails({ user: data.user });
-        //setIsLoggedIn(true);
-        //const role = data.role;
-        //if(role == 'admin'){
-        //setIsAdmin(true);
-        //}
+        try {
+          const response = await fetch("/api/auth/check", {
+            method: "GET",
+            headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+          });
+          const data = await response.json();
+          isLoggedIn = data.loggedIn;
+          userData = data.user;
+        } catch (authErr) {
+          console.warn("Auth check failed:", authErr);
+        }
       }
 
       // ✅ If not logged in → use guestCartId
       let guestCartId = null;
-      if (!isLoggedIn) {
+      if (!isLoggedIn && typeof window !== "undefined") {
         guestCartId = localStorage.getItem("guestCartId") || uuidv4();
         localStorage.setItem("guestCartId", guestCartId);
       }
 
-      // ✅ Add main product
+      const productPrice = Number(
+        product?.special_price && Number(product.special_price) > 0
+          ? product.special_price
+          : product?.price || 0
+      );
 
-      /*
-      const cartResponse = await fetch("/api/cart", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          productId: product._id,
-          quantity,
-          selectedWarranty: selectedWarranty,
-          selectedExtendedWarranty: selectedExtendedWarranty,
-        }),
-      });
-  
-      */
+      const warrantyEligible = isExtendedWarrantyEligible(product);
+      const effectiveWarrantyAmount = warrantyEligible
+        ? Number(selectedWarrantyAmount || selectedExtendedWarranty || selectedWarrantyData?.amount || selectedWarrantyData?.price || 0)
+        : 0;
+
+      // Safe clean warranty object for checkout
+      const activeWarranty = (warrantyEligible && selectedWarrantyData) ? {
+        id: selectedWarrantyData._id || selectedWarrantyData.id || "ew-plan",
+        title: selectedWarrantyData.title || selectedWarrantyData.name || "Extended Warranty",
+        price: effectiveWarrantyAmount,
+        duration: selectedWarrantyData.duration || selectedWarrantyData.period || ""
+      } : null;
 
       // ✅ Add main product to cart
-      const cartResponse = await fetch("/api/cart", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(isLoggedIn && { Authorization: `Bearer ${token}` }),
-        },
-        body: JSON.stringify({
-          productId: product._id,
-          quantity,
-          selectedWarranty: Number(selectedWarranty || 0),
-          selectedExtendedWarranty: isExtendedWarrantyEligible(product)
-            ? Number(selectedWarrantyAmount || selectedExtendedWarranty || selectedWarrantyData?.amount || selectedWarrantyData?.price || 0)
-            : 0,
-          warrantyData: isExtendedWarrantyEligible(product) ? (selectedWarrantyData || null) : null,
-          ...(guestCartId && { guestCartId }),
-        }),
-      });
+      try {
+        const cartResponse = await fetch("/api/cart", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(isLoggedIn && { Authorization: `Bearer ${token}` }),
+          },
+          body: JSON.stringify({
+            productId: product?._id,
+            quantity: Number(quantity) || 1,
+            selectedWarranty: Number(selectedWarranty || 0),
+            selectedExtendedWarranty: effectiveWarrantyAmount,
+            warrantyData: activeWarranty,
+            ...(guestCartId && { guestCartId }),
+          }),
+        });
 
-      if (!cartResponse.ok) {
-        throw new Error("Failed to add main product to cart");
+        if (cartResponse.ok) {
+          const additionalProducts = [
+            ...selectedFrequentProducts.map((p) => p._id),
+            ...selectedRelatedProducts.map((p) => p._id),
+          ].filter(Boolean);
+
+          if (additionalProducts.length > 0) {
+            await Promise.all(
+              additionalProducts.map(async (id) => {
+                try {
+                  await fetch("/api/cart", {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                      ...(isLoggedIn && { Authorization: `Bearer ${token}` }),
+                    },
+                    body: JSON.stringify({
+                      productId: id,
+                      quantity: 1,
+                      ...(guestCartId && { guestCartId }),
+                    }),
+                  });
+                } catch (extraErr) {
+                  console.warn("Extra product cart add failed:", extraErr);
+                }
+              })
+            );
+          }
+
+          const cartData = await cartResponse.json();
+          if (cartData?.cart?.totalItems) {
+            updateCartCount(cartData.cart.totalItems + additionalProducts.length);
+          }
+        }
+      } catch (cartApiErr) {
+        console.warn("Cart API sync warning:", cartApiErr);
       }
 
-      // ✅ Add frequent & related products
-      const additionalProducts = [
-        ...selectedFrequentProducts.map((p) => p._id),
-        ...selectedRelatedProducts.map((p) => p._id),
-      ];
-
-      /*
-      if (additionalProducts.length > 0) {
-        await Promise.all(
-          additionalProducts.map(async (id) => {
-            const res = await fetch("/api/cart", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`,
-              },
-              body: JSON.stringify({ productId: id, quantity: 1 }),
-            });
-            if (!res.ok) throw new Error("Failed to add extra product");
-          })
-        );
-      } */
-
-
-      // ✅ Add additional products (if any)
-      if (additionalProducts.length > 0) {
-        await Promise.all(
-          additionalProducts.map(async (id) => {
-            const res = await fetch("/api/cart", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                ...(isLoggedIn && { Authorization: `Bearer ${token}` }),
-              },
-              body: JSON.stringify({
-                productId: id,
-                quantity: 1,
-                ...(guestCartId && { guestCartId }),
-              }),
-            });
-            if (!res.ok) throw new Error("Failed to add additional product");
-          })
-        );
-      }
-
-      const cartData = await cartResponse.json();
-      updateCartCount(cartData.cart.totalItems + additionalProducts.length);
-
-      // ✅ Build Buy Now items — use actual selling price in the price field
       const resolvePrice = (p) =>
-        p.special_price && Number(p.special_price) > 0
+        p?.special_price && Number(p.special_price) > 0
           ? Number(p.special_price)
-          : Number(p.price);
+          : Number(p?.price || 0);
 
-      const items = [
-        {
-          ...product,
-          price: resolvePrice(product),           // actual selling price for checkout subtotal
-          quantity,
-          warranty: selectedWarranty || 0,
-          extendedWarranty: isExtendedWarrantyEligible(product) ? (selectedWarrantyAmount || 0) : 0,
-          warrantyData: isExtendedWarrantyEligible(product) ? (selectedWarrantyData || null) : null,
-          exchangeOffer: exchangeOffer || null,
-        },
-        ...selectedFrequentProducts.map((p) => ({
-          ...p,
-          price: resolvePrice(p),
-          quantity: 1,
-        })),
-        ...selectedRelatedProducts.map((p) => ({
-          ...p,
-          price: resolvePrice(p),
-          quantity: 1,
-        })),
-      ];
+      // Clean, strictly serializable items array for checkout
+      const cleanMainItem = {
+        _id: product?._id,
+        id: product?._id || product?.id,
+        product: product?._id,
+        name: product?.name || product?.title || "",
+        title: product?.title || product?.name || "",
+        slug: product?.slug || "",
+        price: productPrice,
+        special_price: Number(product?.special_price) || 0,
+        quantity: Number(quantity) || 1,
+        images: Array.isArray(product?.images) ? product.images : [],
+        image: (product?.images && product.images[0]) || product?.image || "",
+        warranty: Number(selectedWarranty) || 0,
+        extendedWarranty: effectiveWarrantyAmount,
+        warrantyData: activeWarranty,
+        exchangeOffer: exchangeOffer ? {
+          id: exchangeOffer.id,
+          title: exchangeOffer.title,
+          price: Number(exchangeOffer.price) || 0,
+        } : null,
+      };
+
+      const cleanFrequentItems = selectedFrequentProducts.map((p) => ({
+        _id: p._id,
+        id: p._id || p.id,
+        product: p._id,
+        name: p.name || p.title || "",
+        title: p.title || p.name || "",
+        slug: p.slug || "",
+        price: resolvePrice(p),
+        quantity: 1,
+        images: Array.isArray(p.images) ? p.images : [],
+        image: (p.images && p.images[0]) || p.image || "",
+      }));
+
+      const cleanRelatedItems = selectedRelatedProducts.map((p) => ({
+        _id: p._id,
+        id: p._id || p.id,
+        product: p._id,
+        name: p.name || p.title || "",
+        title: p.title || p.name || "",
+        slug: p.slug || "",
+        price: resolvePrice(p),
+        quantity: 1,
+        images: Array.isArray(p.images) ? p.images : [],
+        image: (p.images && p.images[0]) || p.image || "",
+      }));
+
+      const items = [cleanMainItem, ...cleanFrequentItems, ...cleanRelatedItems];
 
       const total = items.reduce((sum, item) => {
         const basePrice = item.price * item.quantity;
-        const warrantyCost = (item.warranty || 0) * item.quantity;
-        const extendedCost = (Number(item.extendedWarranty) || Number(item.warrantyData?.amount) || Number(item.warrantyData?.price) || 0) * item.quantity;
-        const exchangeDiscount = (item.exchangeOffer?.price || 0) * item.quantity;
-        return sum + basePrice + warrantyCost + extendedCost - exchangeDiscount;
+        const wCost = (item.warranty || 0) * item.quantity;
+        const extCost = (item.extendedWarranty || 0) * item.quantity;
+        const exDiscount = (item.exchangeOffer?.price || 0) * item.quantity;
+        return sum + basePrice + wCost + extCost - exDiscount;
       }, 0);
-      // ✅ Save Buy Now state so checkout can read the correct price
-      localStorage.setItem(
-        "buyNowData",
-        JSON.stringify({ cart: { items }, total: Math.max(0, total) })
-      );
 
-      // ✅ Redirect
-      window.location.href = "/checkout";
+      const totalPrice = Math.max(0, total);
+
+      // Ensure ONLY serializable plain primitives are stringified
+      const checkoutItem = {
+        productId: product?._id || product?.id,
+        slug: product?.slug,
+        title: product?.title || product?.name,
+        price: productPrice,
+        quantity: Number(quantity) || 1,
+        selectedWarranty: activeWarranty,
+        totalAmount: totalPrice,
+      };
+
+      // Safe serialization without DOM / React synthetic event leaks
+      try {
+        sessionStorage.setItem("buyNowItem", JSON.stringify(checkoutItem));
+        localStorage.setItem(
+          "buyNowData",
+          JSON.stringify({ cart: { items }, total: totalPrice })
+        );
+        if (router && typeof router.push === "function") {
+          router.push("/checkout");
+        } else {
+          window.location.href = "/checkout";
+        }
+      } catch (err) {
+        console.error("Safe checkout serialization error:", err);
+      }
     } catch (err) {
       console.error("Buy Now error:", err);
     }
@@ -1358,7 +1390,7 @@ export default function ProductClient() {
               {product.stock_status === "In Stock" && product.quantity > 0 && (
                 <div className="flex gap-3">
                   <button
-                    onClick={handleBuyNow}
+                    onClick={() => handleBuyNow()}
                     disabled={(product.movement === "EOL" || product.movement === "FOCUS") && product.quantity <= 10}
                     className={`flex-1 font-semibold py-2.5 rounded-lg flex items-center justify-center gap-2 text-sm
     ${(product.movement === "EOL" || product.movement === "FOCUS") && product.quantity <= 10
@@ -2073,7 +2105,7 @@ export default function ProductClient() {
 
                       {/* BUY NOW Button (Primary Sathya Red) */}
                       <button
-                        onClick={handleBuyNow}
+                        onClick={() => handleBuyNow()}
                         disabled={(product.movement === "EOL" || product.movement === "FOCUS") && product.quantity <= 10}
                         className={`w-full font-extrabold py-3 rounded-lg flex items-center justify-center gap-2 text-sm uppercase tracking-wider shadow-md transition-all
             ${(product.movement === "EOL" || product.movement === "FOCUS") && product.quantity <= 10
