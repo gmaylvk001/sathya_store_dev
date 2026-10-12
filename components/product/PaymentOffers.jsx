@@ -2,6 +2,9 @@
 
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
+import BankLogo from "./BankLogo";
+import { usePaymentOffersModal } from "@/hooks/usePaymentOffersModal";
+import { EmiPlansModal, BankOffersModal } from "@/components/ProductOffersSection";
 
 /**
  * PaymentOffers Component
@@ -12,9 +15,24 @@ export default function PaymentOffers({ product, externalShowEmiModal, onExterna
   const [offersData, setOffersData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Isolated interactive modal and card selection state
+  const {
+    isEmiModalOpen,
+    isBankOffersModalOpen,
+    selectedBankKey,
+    setSelectedBankKey,
+    selectedOfferId,
+    openEmiModal,
+    openBankOffersModal,
+    closeModal,
+  } = usePaymentOffersModal({
+    externalShowEmiModal,
+    onExternalCloseEmiModal,
+  });
+
   // 1. Price Coercion & Debugging
   const price = Number(product?.special_price ?? product?.price ?? product?.sellingPrice ?? product?.finalPrice ?? 0);
-  
+
   useEffect(() => {
     // Temporary console logger for debugging as requested
     console.log("[PaymentOffers] Evaluated Price:", price);
@@ -25,7 +43,7 @@ export default function PaymentOffers({ product, externalShowEmiModal, onExterna
 
     let isMounted = true;
     setIsLoading(true);
-    
+
     // Fetch from the API which utilizes our refactored offerCalculator
     fetch(`/api/products/${product._id}/payment-offers?price=${price}`)
       .then(res => res.json())
@@ -73,16 +91,16 @@ export default function PaymentOffers({ product, externalShowEmiModal, onExterna
   const validBankOffers = rawBankOffers.filter(offer => {
     // Filter inactive offers
     if (offer.isActive === false) return false;
-    
+
     // Filter expired offers
     if (offer.validTill && new Date(offer.validTill) < new Date()) return false;
-    
+
     // Filter by minOrderValue
     if (price < (offer.minOrderValue || 0)) return false;
-    
+
     // Filter by calculated discount
     if ((offer.calculatedDiscount || 0) <= 0) return false;
-    
+
     // Filter out if effectivePrice >= price
     if ((offer.effectivePrice || price) >= price) return false;
 
@@ -108,7 +126,18 @@ export default function PaymentOffers({ product, externalShowEmiModal, onExterna
   return (
     <div className="w-full mt-4">
       {/* 1. TOP ACCORDION / BEST PRICE HEADER */}
-      <div className="bg-[#FFF5F5] border border-gray-200 rounded-xl px-3 py-2.5 flex items-center justify-between mb-4 cursor-pointer">
+      <div
+        onClick={() => openBankOffersModal()}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            openBankOffersModal();
+          }
+        }}
+        className="bg-[#FFF5F5] border border-gray-200 rounded-xl px-3 py-2.5 flex items-center justify-between mb-4 cursor-pointer hover:bg-pink-50/70 transition-all"
+      >
         <div className="flex items-center gap-2 flex-wrap">
           <span className="bg-pink-600 text-white text-[10px] font-bold px-2 py-0.5 rounded">
             BEST PRICE
@@ -138,40 +167,80 @@ export default function PaymentOffers({ product, externalShowEmiModal, onExterna
           <div>
             <div className="flex items-center justify-between mb-3">
               <h4 className="font-medium text-sm text-gray-800">EMI Offers</h4>
-              <button className="text-blue-600 text-sm font-medium hover:underline">View All</button>
+              <button
+                type="button"
+                onClick={() => openEmiModal("all")}
+                className="text-blue-600 text-sm font-medium hover:underline hover:text-blue-700 cursor-pointer focus:outline-hidden"
+              >
+                View All
+              </button>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              {rawEmiOffers.slice(0, 3).map((offer) => (
-                <div key={offer.offerId} className={`border rounded-xl p-3 flex flex-col justify-between ${offer.isBestDeal ? 'border-pink-500' : 'border-gray-200'}`}>
-                  <div className="flex items-start justify-between mb-2">
-                    {offer.bankLogoUrl ? (
-                      <div className="w-8 h-8 shrink-0 bg-white border border-gray-100 rounded-full flex items-center justify-center p-0.5 overflow-hidden">
-                        <img src={offer.bankLogoUrl} alt={offer.bankName} className="max-w-full max-h-full object-contain" />
-                      </div>
-                    ) : (
-                      <div className="w-8 h-8 shrink-0 bg-gray-100 rounded-full flex items-center justify-center text-gray-500 font-bold text-xs">
-                        {offer.bankShortCode?.[0] || 'B'}
-                      </div>
-                    )}
-                    {offer.isBestDeal ? (
-                      <span className="bg-pink-100 text-pink-600 text-[9px] font-bold px-2 py-0.5 rounded-full">Best Deal</span>
-                    ) : (
-                      <span className="bg-gray-100 text-gray-600 text-[9px] font-bold px-2 py-0.5 rounded-full">Standard EMI</span>
-                    )}
-                  </div>
-                  <div>
-                    <div className="font-bold text-gray-900 text-sm">
-                      ₹{offer.monthlyEmi.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/{offer.tenureMonths}m
+              {rawEmiOffers.slice(0, 3).map((offer) => {
+                const isSelected = selectedOfferId === offer.offerId;
+                return (
+                  <div
+                    key={offer.offerId}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => openEmiModal(offer)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        openEmiModal(offer);
+                      }
+                    }}
+                    className={`border rounded-xl p-3 flex flex-col justify-between transition-all cursor-pointer hover:shadow-md ${
+                      isSelected
+                        ? "ring-2 ring-primary border-pink-500 shadow-sm"
+                        : offer.isBestDeal
+                        ? "border-pink-500 hover:border-pink-600"
+                        : "border-gray-200 hover:border-gray-400"
+                    }`}
+                  >
+                    <div className="flex items-start justify-between mb-2">
+                      <BankLogo
+                        bankCode={offer.bankShortCode}
+                        bankName={offer.bankName || offer.bankShortCode || "Bank"}
+                        logoUrl={offer.bankLogoUrl}
+                        size={32}
+                      />
+                      {offer.isBestDeal ? (
+                        <span
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openEmiModal(offer);
+                          }}
+                          className="bg-pink-100 text-pink-600 text-[9px] font-bold px-2 py-0.5 rounded-full hover:bg-pink-200 cursor-pointer"
+                        >
+                          Best Deal
+                        </span>
+                      ) : (
+                        <span
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openEmiModal(offer);
+                          }}
+                          className="bg-gray-100 text-gray-600 text-[9px] font-bold px-2 py-0.5 rounded-full hover:bg-gray-200 cursor-pointer"
+                        >
+                          Standard EMI
+                        </span>
+                      )}
                     </div>
-                    <div className="text-[10px] text-gray-500 mt-1 uppercase line-clamp-2">
-                      {offer.bankName || 'BANK'} CREDIT CARD EMI ({offer.annualInterestRate}% P.A.)
+                    <div>
+                      <div className="font-bold text-gray-900 text-sm">
+                        ₹{offer.monthlyEmi.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/{offer.tenureMonths}m
+                      </div>
+                      <div className="text-[10px] text-gray-500 mt-1 uppercase line-clamp-2">
+                        {offer.bankName || 'BANK'} CREDIT CARD EMI ({offer.annualInterestRate}% P.A.)
+                      </div>
+                    </div>
+                    <div className="text-[10px] text-gray-400 mt-3">
+                      Effective Price: ₹{(offer.totalPayable || offer.effectivePrice || price).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </div>
                   </div>
-                  <div className="text-[10px] text-gray-400 mt-3">
-                    Effective Price: ₹{(offer.totalPayable || offer.effectivePrice || price).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}
@@ -181,41 +250,102 @@ export default function PaymentOffers({ product, externalShowEmiModal, onExterna
           <div>
             <div className="flex items-center justify-between mb-3">
               <h4 className="font-medium text-sm text-gray-800">Bank Offers</h4>
-              <button className="text-blue-600 text-sm font-medium hover:underline">View All</button>
+              <button
+                type="button"
+                onClick={() => openBankOffersModal()}
+                className="text-blue-600 text-sm font-medium hover:underline hover:text-blue-700 cursor-pointer focus:outline-hidden"
+              >
+                View All
+              </button>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              {validBankOffers.slice(0, 3).map((offer) => (
-                <div key={offer.offerId} className={`border rounded-xl p-3 flex flex-col justify-between ${offer.isBestOffer ? 'border-fuchsia-500' : 'border-gray-200'}`}>
-                  <div className="flex items-start justify-between mb-2">
-                    {offer.bankLogoUrl ? (
-                      <div className="w-8 h-8 shrink-0 bg-white border border-gray-100 rounded-full flex items-center justify-center p-0.5 overflow-hidden">
-                        <img src={offer.bankLogoUrl} alt={offer.bankName} className="max-w-full max-h-full object-contain" />
+              {validBankOffers.slice(0, 3).map((offer) => {
+                const isSelected = selectedOfferId === offer.offerId;
+                return (
+                  <div
+                    key={offer.offerId}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => openBankOffersModal(offer)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        openBankOffersModal(offer);
+                      }
+                    }}
+                    className={`border rounded-xl p-3 flex flex-col justify-between transition-all cursor-pointer hover:shadow-md ${
+                      isSelected
+                        ? "ring-2 ring-primary border-fuchsia-500 shadow-sm"
+                        : offer.isBestOffer
+                        ? "border-fuchsia-500 hover:border-fuchsia-600"
+                        : "border-gray-200 hover:border-gray-400"
+                    }`}
+                  >
+                    <div className="flex items-start justify-between mb-2">
+                      <BankLogo
+                        bankCode={offer.bankShortCode}
+                        bankName={offer.bankName || offer.bankShortCode || "Bank"}
+                        logoUrl={offer.bankLogoUrl}
+                        size={32}
+                      />
+                      {offer.isBestOffer ? (
+                        <span
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openBankOffersModal(offer);
+                          }}
+                          className="bg-fuchsia-50 text-fuchsia-600 text-[9px] font-bold px-2 py-0.5 rounded-full hover:bg-fuchsia-100 cursor-pointer"
+                        >
+                          Best Offer
+                        </span>
+                      ) : (
+                        <span
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openBankOffersModal(offer);
+                          }}
+                          className="bg-blue-50 text-blue-600 text-[9px] font-bold px-2 py-0.5 rounded-full hover:bg-blue-100 cursor-pointer"
+                        >
+                          Credit/Debit
+                        </span>
+                      )}
+                    </div>
+                    <div>
+                      <div className="font-medium text-gray-800 text-xs line-clamp-2 leading-tight">
+                        {offer.name}
                       </div>
-                    ) : (
-                      <div className="w-8 h-8 shrink-0 bg-gray-100 rounded-full flex items-center justify-center text-gray-500 font-bold text-xs">
-                        {offer.bankShortCode?.[0] || 'B'}
-                      </div>
-                    )}
-                    {offer.isBestOffer ? (
-                      <span className="bg-fuchsia-50 text-fuchsia-600 text-[9px] font-bold px-2 py-0.5 rounded-full">Best Offer</span>
-                    ) : (
-                      <span className="bg-blue-50 text-blue-600 text-[9px] font-bold px-2 py-0.5 rounded-full">Credit/Debit</span>
-                    )}
-                  </div>
-                  <div>
-                    <div className="font-medium text-gray-800 text-xs line-clamp-2 leading-tight">
-                      {offer.name}
+                    </div>
+                    <div className="text-[10px] text-gray-400 mt-3">
+                      Effective Price: ₹{offer.effectivePrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </div>
                   </div>
-                  <div className="text-[10px] text-gray-400 mt-3">
-                    Effective Price: ₹{offer.effectivePrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}
       </div>
+
+      {/* 5. REUSED EMI PLANS & DETAILS MODAL */}
+      {isEmiModalOpen && (
+        <EmiPlansModal
+          basePrice={price}
+          emiOffers={rawEmiOffers}
+          selectedBankKey={selectedBankKey}
+          onSelectBank={setSelectedBankKey}
+          onClose={closeModal}
+        />
+      )}
+
+      {/* 6. REUSED BANK OFFERS & TERMS MODAL */}
+      {isBankOffersModalOpen && (
+        <BankOffersModal
+          basePrice={price}
+          bankOffers={validBankOffers}
+          bankEffectivePrice={bestPrice}
+          onClose={closeModal}
+        />
+      )}
     </div>
   );
 }

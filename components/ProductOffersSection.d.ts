@@ -30,3 +30,5 @@ export interface ProductOffersSectionProps {
 }
 
 export default function ProductOffersSection(props: ProductOffersSectionProps): ReactElement;
+export function EmiPlansModal(props: any): ReactElement;
+export function BankOffersModal(props: any): ReactElement;

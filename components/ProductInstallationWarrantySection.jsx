@@ -350,272 +350,302 @@ export default function ProductInstallationWarrantySection({
          ======================================================== */}
       {warrantyEligible && (
         <div className="w-full rounded-xl border border-gray-200 bg-white overflow-hidden shadow-2xs">
-        {/* Accordion Header */}
-        <div
-          onClick={() => setIsWarrantyExpanded((prev) => !prev)}
-          className="w-full px-4 py-3 flex items-center justify-between cursor-pointer select-none bg-white hover:bg-gray-50/70 transition-colors"
-          role="button"
-          tabIndex={0}
-          aria-expanded={isWarrantyExpanded}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault();
-              setIsWarrantyExpanded((prev) => !prev);
-            }
-          }}
-        >
-          <div>
-            <h4 className="text-xs sm:text-[13px] font-bold text-gray-900 tracking-tight leading-tight">
-              Extended Warranty
-            </h4>
-            <p className="text-[11px] text-gray-500 font-normal mt-0.5 leading-tight">
-              Protect your purchase beyond manufacturer warranty
-            </p>
+          {/* Accordion Header */}
+          <div
+            onClick={() => setIsWarrantyExpanded((prev) => !prev)}
+            className="w-full px-4 py-3 flex items-center justify-between cursor-pointer select-none bg-white hover:bg-gray-50/70 transition-colors"
+            role="button"
+            tabIndex={0}
+            aria-expanded={isWarrantyExpanded}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                setIsWarrantyExpanded((prev) => !prev);
+              }
+            }}
+          >
+            <div>
+              <h4 className="text-xs sm:text-[13px] font-bold text-gray-900 tracking-tight leading-tight">
+                Extended Warranty
+              </h4>
+              <p className="text-[11px] text-gray-500 font-normal mt-0.5 leading-tight">
+                Protect your purchase beyond manufacturer warranty
+              </p>
+            </div>
+
+            {/* Expand/Collapse Arrow */}
+            <div className="p-1 text-gray-400 hover:text-gray-600 transition-transform duration-200">
+              <svg
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                className={`w-4 h-4 transform transition-transform duration-200 ${isWarrantyExpanded ? "rotate-180" : "rotate-0"
+                  }`}
+                aria-hidden="true"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </div>
           </div>
 
-          {/* Expand/Collapse Arrow */}
-          <div className="p-1 text-gray-400 hover:text-gray-600 transition-transform duration-200">
-            <svg
-              viewBox="0 0 20 20"
-              fill="currentColor"
-              className={`w-4 h-4 transform transition-transform duration-200 ${isWarrantyExpanded ? "rotate-180" : "rotate-0"
-                }`}
-              aria-hidden="true"
-            >
-              <path
-                fillRule="evenodd"
-                d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                clipRule="evenodd"
-              />
-            </svg>
-          </div>
-        </div>
+          {/* Collapsible Content */}
+          {isWarrantyExpanded && (
+            <div className="p-3.5 sm:p-4 pt-1 sm:pt-1 bg-white">
+              {/* 3 Warranty Plan Cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3">
+                {warrantyCards.map((card) => {
+                  const isSelected =
+                    (selectedWarrantyData?.item_no &&
+                      selectedWarrantyData.item_no === card.dbItem.item_no) ||
+                    Number(selectedWarrantyData?.year) === Number(card.year);
+                  const isExpanded = Boolean(expandedCardDetails[card.id]);
 
-        {/* Collapsible Content */}
-        {isWarrantyExpanded && (
-          <div className="p-3.5 sm:p-4 pt-1 sm:pt-1 bg-white">
-            {/* 3 Warranty Plan Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3">
-              {warrantyCards.map((card) => {
-                const isSelected =
-                  (selectedWarrantyData?.item_no &&
-                    selectedWarrantyData.item_no === card.dbItem.item_no) ||
-                  Number(selectedWarrantyData?.year) === Number(card.year);
-                const isExpanded = Boolean(expandedCardDetails[card.id]);
-
-                return (
-                  <div
-                    key={card.id}
-                    className={`flex flex-col justify-between rounded-xl p-3 sm:p-3.5 bg-white transition-all ${isSelected
-                        ? "border-2 border-blue-600 ring-2 ring-blue-50 shadow-sm"
+                  return (
+                    <div
+                      key={card.id}
+                      className={`relative flex flex-col justify-between rounded-xl p-3 sm:p-3.5 bg-white transition-all duration-200 ${isSelected
+                        ? "border-2 border-blue-600 bg-blue-50/20 shadow-md ring-1 ring-blue-500/20"
                         : "border border-gray-200 hover:border-gray-300 hover:shadow-xs"
-                      }`}
-                  >
-                    {/* Top: Icon + Title + Subtitle (Strict Two-Column Layout) */}
-                    <div>
-                      <div className="flex items-start gap-3 min-w-0 mb-2">
-                        {/* Left Column: Fixed Icon */}
-                        <div className="shrink-0 w-8 h-8 rounded-md overflow-hidden flex items-center justify-center">
-                          <OnsitegoIcon className="w-8 h-8" />
+                        }`}
+                    >
+                      {/* Selected Plan micro-badge on top-right */}
+                      {isSelected && (
+                        <span className="absolute -top-2.5 right-3 bg-blue-600 text-white text-[9.5px] font-bold px-2 py-0.5 rounded-full shadow-xs flex items-center gap-1 leading-tight tracking-tight">
+                          <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                          </svg>
+                          Selected Plan
+                        </span>
+                      )}
+
+                      {/* Top: Icon + Title + Subtitle (Strict Two-Column Layout) */}
+                      <div>
+                        <div className="flex items-start gap-3 min-w-0 mb-2">
+                          {/* Left Column: Fixed Icon */}
+                          <div className="shrink-0 w-8 h-8 rounded-md overflow-hidden flex items-center justify-center">
+                            <OnsitegoIcon className="w-8 h-8" />
+                          </div>
+
+                          {/* Right Column: Title & Plan Info */}
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-semibold text-sm text-gray-900 leading-snug break-words">
+                              {card.year} {card.year === 1 ? "Year" : "Years"} - Onsitego Plan
+                            </h4>
+                            <p className="text-xs text-gray-500 mt-0.5">Extended Warranty</p>
+                          </div>
                         </div>
 
-                        {/* Right Column: Title & Plan Info */}
-                        <div className="flex-1 min-w-0">
-                          <h4 className="font-semibold text-sm text-gray-900 leading-snug break-words">
-                            {card.year} {card.year === 1 ? "Year" : "Years"} - Onsitego Plan
-                          </h4>
-                          <p className="text-xs text-gray-500 mt-0.5">Extended Warranty</p>
-                        </div>
-                      </div>
-
-                      {/* Bullet points features */}
-                      <ul className="mt-2.5 space-y-1 text-[10px] sm:text-[10.5px] text-gray-600 pl-0.5">
-                        {card.features.map((feat, idx) => (
-                          <li key={idx} className="flex items-start gap-1">
-                            <span className="text-gray-400 font-bold leading-none">•</span>
-                            <span className="leading-snug">{feat}</span>
-                          </li>
-                        ))}
-                      </ul>
-
-                      {/* Expandable Extra Details (+4 More / Show Less) */}
-                      {isExpanded && (
-                        <ul className="mt-2 pt-2 border-t border-dashed border-gray-200 space-y-1 text-[10px] text-gray-600 pl-0.5 animate-in fade-in duration-150">
-                          {card.extraBenefits.map((b, idx) => (
-                            <li key={idx} className="flex items-start gap-1 text-slate-700">
-                              <span className="text-blue-500 font-bold leading-none">✓</span>
-                              <span className="leading-snug">{b}</span>
+                        {/* Bullet points features */}
+                        <ul className="mt-2.5 space-y-1 text-[10px] sm:text-[10.5px] text-gray-600 pl-0.5">
+                          {card.features.map((feat, idx) => (
+                            <li key={idx} className="flex items-start gap-1">
+                              <span className="text-gray-400 font-bold leading-none">•</span>
+                              <span className="leading-snug">{feat}</span>
                             </li>
                           ))}
                         </ul>
-                      )}
 
-                      {/* "+4 More" interaction link */}
-                      <button
-                        type="button"
-                        onClick={(e) => toggleCardDetails(card.id, e)}
-                        className="text-[10.5px] font-semibold text-blue-600 hover:text-blue-700 hover:underline cursor-pointer mt-1.5 block"
-                      >
-                        {isExpanded ? "Show Less" : "+4 More"}
-                      </button>
-                    </div>
-
-                    {/* Bottom: Divider + Price + Add Button */}
-                    <div className="mt-3 pt-2.5 border-t border-gray-100 flex items-end justify-between gap-2">
-                      {/* Price info */}
-                      <div className="min-w-0">
-                        <span className="text-xs sm:text-[13px] font-extrabold text-gray-900 block leading-tight">
-                          ₹{formatCurrency(card.price)}
-                        </span>
-
-                        {/* MRP / Discount label */}
-                        {card.mrpLabel && (
-                          <span className="text-[9px] text-gray-400 block leading-tight mt-0.5 truncate">
-                            {card.mrpLabel}
-                          </span>
+                        {/* Expandable Extra Details (+4 More / Show Less) */}
+                        {isExpanded && (
+                          <ul className="mt-2 pt-2 border-t border-dashed border-gray-200 space-y-1 text-[10px] text-gray-600 pl-0.5 animate-in fade-in duration-150">
+                            {card.extraBenefits.map((b, idx) => (
+                              <li key={idx} className="flex items-start gap-1 text-slate-700">
+                                <span className="text-blue-500 font-bold leading-none">✓</span>
+                                <span className="leading-snug">{b}</span>
+                              </li>
+                            ))}
+                          </ul>
                         )}
 
-                        {card.mrp && (
-                          <div className="flex items-center gap-1 mt-0.5 flex-wrap">
-                            {card.discountPercent && (
-                              <span className="text-[9px] font-bold text-green-700 bg-green-50 px-1 py-0.2 rounded leading-tight">
-                                {card.discountPercent}% OFF
-                              </span>
-                            )}
-                            <span className="text-[9px] text-gray-400 line-through leading-tight">
-                              MRP ₹{formatCurrency(card.mrp)}
-                            </span>
-                          </div>
-                        )}
+                        {/* "+4 More" interaction link */}
+                        <button
+                          type="button"
+                          onClick={(e) => toggleCardDetails(card.id, e)}
+                          className="text-[10.5px] font-semibold text-blue-600 hover:text-blue-700 hover:underline cursor-pointer mt-1.5 block"
+                        >
+                          {isExpanded ? "Show Less" : "+4 More"}
+                        </button>
                       </div>
 
-                      {/* Add Button */}
-                      <button
-                        type="button"
-                        onClick={() => handleTogglePlan(card)}
-                        className={`text-xs font-bold px-3 py-1.5 rounded-md transition-all cursor-pointer shrink-0 select-none ${isSelected
-                            ? "bg-blue-600 border border-blue-600 text-white shadow-2xs hover:bg-blue-700"
-                            : "border border-blue-600 text-blue-600 bg-white hover:bg-blue-50 active:scale-95"
-                          }`}
-                        aria-pressed={isSelected}
-                      >
-                        {isSelected ? "Added ✓" : "Add"}
-                      </button>
+                      {/* Bottom: Divider + Price + Add Button */}
+                      <div className="mt-3 pt-2.5 border-t border-gray-100 flex items-end justify-between gap-2">
+                        {/* Price info */}
+                        <div className="min-w-0">
+                          <span className="text-xs sm:text-[13px] font-extrabold text-gray-900 block leading-tight">
+                            ₹{formatCurrency(card.price)}
+                          </span>
+
+                          {/* MRP / Discount label */}
+                          {card.mrpLabel && (
+                            <span className="text-[9px] text-gray-400 block leading-tight mt-0.5 truncate">
+                              {card.mrpLabel}
+                            </span>
+                          )}
+
+                          {card.mrp && (
+                            <div className="flex items-center gap-1 mt-0.5 flex-wrap">
+                              {card.discountPercent && (
+                                <span className="text-[9px] font-bold text-green-700 bg-green-50 px-1 py-0.2 rounded leading-tight">
+                                  {card.discountPercent}% OFF
+                                </span>
+                              )}
+                              <span className="text-[9px] text-gray-400 line-through leading-tight">
+                                MRP ₹{formatCurrency(card.mrp)}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Add / Toggle Button */}
+                        {isSelected ? (
+                          <button
+                            type="button"
+                            onClick={() => handleTogglePlan(card)}
+                            className="group/wbtn relative text-xs font-semibold px-3 py-1.5 rounded-lg border border-blue-600 bg-blue-600 text-white shadow-2xs hover:bg-red-50 hover:text-red-600 hover:border-red-300 transition-all cursor-pointer shrink-0 select-none overflow-hidden"
+                            aria-pressed={true}
+                            title="Click to remove warranty plan"
+                          >
+                            <span className="inline-flex items-center gap-1 group-hover/wbtn:hidden">
+                              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                              </svg>
+                              Added
+                            </span>
+                            <span className="hidden items-center gap-1 group-hover/wbtn:inline-flex text-red-600 font-bold">
+                              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                              Remove
+                            </span>
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => handleTogglePlan(card)}
+                            className="text-xs font-medium px-3.5 py-1.5 rounded-lg border border-blue-600 text-blue-600 bg-white hover:bg-blue-50 active:scale-95 transition-all cursor-pointer shrink-0 select-none"
+                            aria-pressed={false}
+                          >
+                            Add
+                          </button>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
       )}
 
       {/* ========================================================
           2. INSTALLATION & PROTECTION SERVICE SECTION
          ======================================================== */}
       {installationEligible && (
-      <div className="w-full rounded-xl border border-gray-200 bg-white overflow-hidden shadow-2xs">
-        {/* Accordion Header */}
-        <div
-          onClick={() => setIsInstallationExpanded((prev) => !prev)}
-          className="w-full px-4 py-3 flex items-center justify-between cursor-pointer select-none bg-white hover:bg-gray-50/70 transition-colors"
-          role="button"
-          tabIndex={0}
-          aria-expanded={isInstallationExpanded}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault();
-              setIsInstallationExpanded((prev) => !prev);
-            }
-          }}
-        >
-          <div>
-            <h4 className="text-xs sm:text-[13px] font-bold text-gray-900 tracking-tight leading-tight">
-              Installation & Protection Service
-            </h4>
-            <p className="text-[11px] text-gray-500 font-normal mt-0.5 leading-tight">
-              Product Installation and demo
-            </p>
-          </div>
+        <div className="w-full rounded-xl border border-gray-200 bg-white overflow-hidden shadow-2xs">
+          {/* Accordion Header */}
+          <div
+            onClick={() => setIsInstallationExpanded((prev) => !prev)}
+            className="w-full px-4 py-3 flex items-center justify-between cursor-pointer select-none bg-white hover:bg-gray-50/70 transition-colors"
+            role="button"
+            tabIndex={0}
+            aria-expanded={isInstallationExpanded}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                setIsInstallationExpanded((prev) => !prev);
+              }
+            }}
+          >
+            <div>
+              <h4 className="text-xs sm:text-[13px] font-bold text-gray-900 tracking-tight leading-tight">
+                Installation & Protection Service
+              </h4>
+              <p className="text-[11px] text-gray-500 font-normal mt-0.5 leading-tight">
+                Product Installation and demo
+              </p>
+            </div>
 
-          {/* Expand/Collapse Arrow */}
-          <div className="p-1 text-gray-400 hover:text-gray-600 transition-transform duration-200">
-            <svg
-              viewBox="0 0 20 20"
-              fill="currentColor"
-              className={`w-4 h-4 transform transition-transform duration-200 ${isInstallationExpanded ? "rotate-180" : "rotate-0"
-                }`}
-              aria-hidden="true"
-            >
-              <path
-                fillRule="evenodd"
-                d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                clipRule="evenodd"
-              />
-            </svg>
-          </div>
-        </div>
-
-        {/* Collapsible Content */}
-        {isInstallationExpanded && (
-          <div className="p-3.5 sm:p-4 pt-1 sm:pt-1 bg-white">
-            {/* Highlighted Service Card with Royal Blue Accent Border */}
-            <div className="w-full rounded-xl border-2 border-blue-600 bg-white p-3.5 sm:p-4 shadow-2xs">
-              {/* Logo + Service Title */}
-              <div className="flex items-start gap-3">
-                <ServiceIcon className="w-8 h-8" />
-                <div className="flex-1 min-w-0">
-                  <h5 className="text-xs sm:text-[13px] font-bold text-gray-900 leading-snug">
-                    {product?.brand 
-                      ? `${product.brand} Authorized Installation & Demo`
-                      : "Expert Installation & Demo Service"}
-                  </h5>
-                </div>
-              </div>
-
-              {/* 3 Short Service Details */}
-              <ul className="mt-2.5 space-y-1.5 text-[11px] sm:text-xs text-gray-600 pl-1">
-                {serviceBullets.map((bullet, idx) => (
-                  <li key={idx} className="flex items-start gap-1.5">
-                    <span className="text-gray-400 font-bold leading-none">•</span>
-                    <span>{bullet}</span>
-                  </li>
-                ))}
-              </ul>
-              
-              {isAC && (
-                <p className="mt-2 text-[10px] text-gray-500 italic pl-1">
-                  *Note: Core cutting, extra copper pipes, or scaffolding will incur additional charges at actuals.
-                </p>
-              )}
-
-              {/* Pricing Label */}
-              <div className="mt-3">
-                {installationPrice === 0 || (isLaptop && installationPrice === 0) ? (
-                  <span className="text-sm font-bold text-green-600 block leading-tight">
-                    Free
-                  </span>
-                ) : (
-                  <span className="text-sm font-bold text-gray-900 block leading-tight">
-                    ₹{formatCurrency(installationPrice)}
-                  </span>
-                )}
-              </div>
-
-              {/* Read more about benefits link with info icon */}
-              <button
-                type="button"
-                onClick={() => setShowBenefitsModal(true)}
-                className="mt-1 inline-flex items-center gap-1 text-[11px] sm:text-xs font-semibold text-teal-700 hover:text-teal-800 hover:underline cursor-pointer transition-colors"
+            {/* Expand/Collapse Arrow */}
+            <div className="p-1 text-gray-400 hover:text-gray-600 transition-transform duration-200">
+              <svg
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                className={`w-4 h-4 transform transition-transform duration-200 ${isInstallationExpanded ? "rotate-180" : "rotate-0"
+                  }`}
+                aria-hidden="true"
               >
-                <span>Read more about benefits</span>
-                <InfoCircleIcon className="w-3.5 h-3.5 text-teal-600" />
-              </button>
+                <path
+                  fillRule="evenodd"
+                  d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                  clipRule="evenodd"
+                />
+              </svg>
             </div>
           </div>
-        )}
-      </div>
+
+          {/* Collapsible Content */}
+          {isInstallationExpanded && (
+            <div className="p-3.5 sm:p-4 pt-1 sm:pt-1 bg-white">
+              {/* Highlighted Service Card with Royal Blue Accent Border */}
+              <div className="w-full rounded-xl border-2 border-blue-600 bg-white p-3.5 sm:p-4 shadow-2xs">
+                {/* Logo + Service Title */}
+                <div className="flex items-start gap-3">
+                  <ServiceIcon className="w-8 h-8" />
+                  <div className="flex-1 min-w-0">
+                    <h5 className="text-xs sm:text-[13px] font-bold text-gray-900 leading-snug">
+                      {product?.brand
+                        ? `${product.brand} Authorized Installation & Demo`
+                        : "Expert Installation & Demo Service"}
+                    </h5>
+                  </div>
+                </div>
+
+                {/* 3 Short Service Details */}
+                <ul className="mt-2.5 space-y-1.5 text-[11px] sm:text-xs text-gray-600 pl-1">
+                  {serviceBullets.map((bullet, idx) => (
+                    <li key={idx} className="flex items-start gap-1.5">
+                      <span className="text-gray-400 font-bold leading-none">•</span>
+                      <span>{bullet}</span>
+                    </li>
+                  ))}
+                </ul>
+
+                {isAC && (
+                  <p className="mt-2 text-[10px] text-gray-500 italic pl-1">
+                    *Note: Core cutting, extra copper pipes, or scaffolding will incur additional charges at actuals.
+                  </p>
+                )}
+
+                {/* Pricing Label */}
+                <div className="mt-3">
+                  {installationPrice === 0 || (isLaptop && installationPrice === 0) ? (
+                    <span className="text-sm font-bold text-green-600 block leading-tight">
+                      Free
+                    </span>
+                  ) : (
+                    <span className="text-sm font-bold text-gray-900 block leading-tight">
+                      ₹{formatCurrency(installationPrice)}
+                    </span>
+                  )}
+                </div>
+
+                {/* Read more about benefits link with info icon */}
+                <button
+                  type="button"
+                  onClick={() => setShowBenefitsModal(true)}
+                  className="mt-1 inline-flex items-center gap-1 text-[11px] sm:text-xs font-semibold text-teal-700 hover:text-teal-800 hover:underline cursor-pointer transition-colors"
+                >
+                  <span>Read more about benefits</span>
+                  <InfoCircleIcon className="w-3.5 h-3.5 text-teal-600" />
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       )}
 
       {/* ========================================================

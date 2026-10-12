@@ -4,6 +4,7 @@ import React, { useState, useMemo, useEffect, useCallback, useRef } from "react"
 import Image from "next/image";
 import { calculateBestPrice, getSellingPrice } from "@/lib/bestPriceResolver";
 import { buildSafePaymentOffersData } from "@/lib/paymentOfferFallback";
+import BankLogo from "./product/BankLogo";
 
 /**
  * Classical Bank Icon (pediment with pillars)
@@ -625,7 +626,7 @@ export default function ProductOffersSection({
 /**
  * Detailed EMI Plans Modal Component with Dynamic Data
  */
-function EmiPlansModal({
+export function EmiPlansModal({
   basePrice,
   emiOffers = [],
   selectedBankKey,
@@ -801,7 +802,7 @@ function EmiPlansModal({
 /**
  * Detailed Bank Offers & Terms Modal Component with Dynamic Data
  */
-function BankOffersModal({
+export function BankOffersModal({
   basePrice,
   bankOffers = [],
   bankEffectivePrice,
@@ -854,11 +855,11 @@ function BankOffersModal({
               >
                 <div className="flex items-center justify-between mb-1.5">
                   <div className="flex items-center gap-2">
-                    <BankLogoBadge
-                      bankShortCode={offer.bankShortCode}
-                      bankName={offer.bankName}
+                    <BankLogo
+                      bankCode={offer.bankShortCode}
+                      bankName={offer.bankName || offer.bankShortCode || "Bank"}
                       logoUrl={offer.bankLogoUrl}
-                      className="w-6 h-6"
+                      size={24}
                     />
                     <span className="text-xs font-bold text-gray-900">
                       {offer.bankName}
