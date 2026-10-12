@@ -65,6 +65,7 @@ export async function POST(req) {
       status: true,
       pincode: result.pincode || DEFAULT_LOCATION.pincode,
       city: result.city || DEFAULT_LOCATION.city,
+      locality: result.locality || "",
       state: result.stateName || DEFAULT_LOCATION.stateName,
       region: result.region || DEFAULT_LOCATION.region,
       code: result.code || DEFAULT_LOCATION.code,

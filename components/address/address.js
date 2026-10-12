@@ -11,6 +11,7 @@ import { FaHeart } from "react-icons/fa6";
 import { FiEdit2, FiTrash2, FiMapPin, FiHome, FiBriefcase, FiUser, FiPhone } from 'react-icons/fi';
 import { ToastContainer, toast } from 'react-toastify';
 import { useHeaderdetails } from '@/context/HeaderContext';
+import useDetectLocation from '@/hooks/useDetectLocation';
 import 'react-toastify/dist/ReactToastify.css';
 
 export default function Address() {
@@ -21,6 +22,25 @@ export default function Address() {
   const [isEditingAddress, setIsEditingAddress] = useState(false);
   const [isAddingAddress, setIsAddingAddress] = useState(false);
   const [editId, setEditId] = useState(null);
+  const { isDetecting, detectLocation } = useDetectLocation();
+
+  const handleDetectAddressLocation = async () => {
+    const res = await detectLocation({
+      onSuccess: (loc) => {
+        setAddressData((prev) => ({
+          ...prev,
+          pincode: loc.pincode || prev.pincode,
+          locality: loc.locality || prev.locality,
+          city: loc.city ? (loc.city.charAt(0).toUpperCase() + loc.city.slice(1)) : prev.city,
+          state: loc.state || prev.state,
+        }));
+        toast.success(`Location detected: ${loc.city || loc.pincode}`);
+      },
+      onError: (errMsg) => {
+        toast.info(errMsg || 'Unable to retrieve location. Please type your pincode manually.');
+      },
+    });
+  };
 
   const [addressData, setAddressData] = useState({
     firstName: '',
@@ -285,7 +305,27 @@ export default function Address() {
                       <input type="tel" name="alternate_phone" value={addressData.alternate_phone} onChange={handleAddressChange} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-red-500 focus:border-red-500 outline-none transition-colors" placeholder="Alternate mobile number" />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Pincode *</label>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="block text-sm font-medium text-gray-700">Pincode *</label>
+                        <button
+                          type="button"
+                          onClick={handleDetectAddressLocation}
+                          disabled={isDetecting}
+                          className="bg-red-50 hover:bg-red-100 text-[#d72828] border border-red-200 text-xs font-semibold px-2.5 py-1 rounded-full flex items-center gap-1 transition-all cursor-pointer active:scale-95 disabled:opacity-60"
+                        >
+                          {isDetecting ? (
+                            <>
+                              <span className="w-3 h-3 border-2 border-[#d72828] border-t-transparent rounded-full animate-spin" />
+                              <span>Detecting...</span>
+                            </>
+                          ) : (
+                            <>
+                              <span>✦</span>
+                              <span>Detect my location</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
                       <input type="text" name="pincode" value={addressData.pincode} onChange={handleAddressChange} required className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-red-500 focus:border-red-500 outline-none transition-colors" placeholder="Pincode" />
                     </div>
                     <div>

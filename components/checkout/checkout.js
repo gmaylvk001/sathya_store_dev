@@ -9,6 +9,7 @@ import { ga4BeginCheckout, ga4Purchase } from "@/utils/nextjs-event-tracking.js"
 import { useModal } from "@/context/ModalContext";
 import { isKarnatakaPincode } from "@/lib/regionHelper";
 import { useRegion } from "@/context/RegionContext";
+import useDetectLocation from "@/hooks/useDetectLocation";
 
 const loadRazorpay = () => {
   return new Promise((resolve) => {
@@ -291,6 +292,7 @@ const AddressModalForm = ({
   editAddressId,
   savedAddresses,
   headerPincode,
+  initialDetectedLocation = null,
   onSuccess,
   onCancel,
 }) => {
@@ -301,12 +303,12 @@ const AddressModalForm = ({
     lastName: '',
     phone: '',
     alternate_phone: '',
-    pincode: headerPincode || '',
-    locality: '',
+    pincode: initialDetectedLocation?.pincode || headerPincode || '',
+    locality: initialDetectedLocation?.locality || '',
     address_line1: '',
     address_line2: '',
-    city: '',
-    state: isKarnatakaHeader ? 'Karnataka' : 'Tamil Nadu',
+    city: initialDetectedLocation?.city ? (initialDetectedLocation.city.charAt(0).toUpperCase() + initialDetectedLocation.city.slice(1)) : '',
+    state: initialDetectedLocation?.state || (isKarnatakaHeader ? 'Karnataka' : 'Tamil Nadu'),
     landmark: '',
   };
 
@@ -334,6 +336,33 @@ const AddressModalForm = ({
   const [formVals, setFormVals] = useState(initialVals);
   const [loadingPincode, setLoadingPincode] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [inlineNotice, setInlineNotice] = useState(null);
+
+  const { isDetecting, detectLocation, error: detectError, clearError } = useDetectLocation();
+
+  const handleDetectCurrentLocation = async () => {
+    setInlineNotice(null);
+    clearError();
+    const result = await detectLocation({
+      onSuccess: (loc) => {
+        setFormVals((prev) => ({
+          ...prev,
+          pincode: loc.pincode || prev.pincode,
+          locality: loc.locality || prev.locality,
+          city: loc.city ? (loc.city.charAt(0).toUpperCase() + loc.city.slice(1)) : prev.city,
+          state: loc.state || prev.state,
+        }));
+        toast.success(`Location detected: ${loc.city || loc.pincode}`);
+      },
+      onError: (errMsg) => {
+        setInlineNotice(errMsg || 'Unable to retrieve location. Please type your pincode manually.');
+      },
+    });
+
+    if (!result?.success) {
+      setInlineNotice(result?.error || 'Unable to retrieve location. Please type your pincode manually.');
+    }
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -370,6 +399,7 @@ const AddressModalForm = ({
           setFormVals((prev) => ({
             ...prev,
             city: prev.city || (data.city.charAt(0).toUpperCase() + data.city.slice(1)),
+            locality: prev.locality || data.locality || '',
             state: data.state || resolvedState,
           }));
         }
@@ -434,10 +464,60 @@ const AddressModalForm = ({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      {formVals.pincode && (
-        <div className="p-2.5 rounded-lg border border-gray-200 bg-gray-50 text-xs flex items-center justify-between text-gray-700">
-          <span className="font-medium">Delivery Pincode: <strong>{formVals.pincode}</strong></span>
-          <span className="text-[11px] text-gray-500">{isKarnatakaPincode(formVals.pincode) ? 'Karnataka' : 'Tamil Nadu'}</span>
+      {/* Top Delivery Pincode & Modern Detection Header Bar */}
+      <div className="p-3 rounded-xl border border-gray-200 bg-gray-50/90 flex flex-wrap items-center justify-between gap-2.5 text-xs text-gray-700 shadow-2xs">
+        <div className="flex items-center gap-2">
+          <span className="font-semibold text-gray-900">
+            Delivery Pincode:{" "}
+            <span className="text-[#d72828] font-bold">
+              {formVals.pincode || "Not set"}
+            </span>
+          </span>
+          <span className="text-gray-300">|</span>
+          <span className="text-gray-600 font-medium">
+            {formVals.state || (isKarnatakaPincode(formVals.pincode) ? "Karnataka" : "Tamil Nadu")}
+          </span>
+        </div>
+
+        {/* Sleek Modern Detection Trigger Button */}
+        <button
+          type="button"
+          onClick={handleDetectCurrentLocation}
+          disabled={isDetecting}
+          className="bg-red-50 hover:bg-red-100 text-[#d72828] border border-red-200 text-xs font-semibold px-3 py-1.5 rounded-full flex items-center gap-1.5 transition-all cursor-pointer active:scale-95 disabled:opacity-60 shadow-2xs"
+          title="Detect my current location"
+        >
+          {isDetecting ? (
+            <>
+              <span className="w-3.5 h-3.5 border-2 border-[#d72828] border-t-transparent rounded-full animate-spin" />
+              <span>Detecting...</span>
+            </>
+          ) : (
+            <>
+              <span className="text-[#d72828] text-xs leading-none">✦</span>
+              <span>Detect my location</span>
+            </>
+          )}
+        </button>
+      </div>
+
+      {/* Non-blocking inline error/warning notification */}
+      {(detectError || inlineNotice) && (
+        <div className="px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-800 flex items-center justify-between">
+          <span className="flex items-center gap-1.5">
+            <span className="text-amber-600 font-bold">ℹ</span>
+            <span>{detectError || inlineNotice}</span>
+          </span>
+          <button
+            type="button"
+            onClick={() => {
+              clearError();
+              setInlineNotice(null);
+            }}
+            className="text-amber-600 hover:text-amber-800 ml-2 font-bold cursor-pointer"
+          >
+            ✕
+          </button>
         </div>
       )}
 
@@ -493,10 +573,26 @@ const AddressModalForm = ({
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-xs font-medium text-gray-700 mb-1 flex items-center justify-between">
-            <span>Pincode *</span>
-            {loadingPincode && <span className="text-[10px] text-gray-400">Detecting location…</span>}
-          </label>
+          <div className="flex items-center justify-between mb-1">
+            <label className="block text-xs font-medium text-gray-700">
+              Pincode *
+            </label>
+            <button
+              type="button"
+              onClick={handleDetectCurrentLocation}
+              disabled={isDetecting}
+              className="text-[#d72828] hover:text-red-700 text-[11px] font-semibold flex items-center gap-1 cursor-pointer transition-colors"
+            >
+              {isDetecting ? (
+                <span className="text-gray-400">Detecting…</span>
+              ) : (
+                <>
+                  <span className="leading-none">✦</span>
+                  <span>Use current location</span>
+                </>
+              )}
+            </button>
+          </div>
           <input
             name="pincode"
             value={formVals.pincode}
@@ -636,6 +732,66 @@ export default function CheckoutPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [touched, setTouched] = useState({});
   const [shippingMethod, setShippingMethod] = useState('standard');
+
+  const [isDetectingCheckoutLoc, setIsDetectingCheckoutLoc] = useState(false);
+  const [locationPromptData, setLocationPromptData] = useState(null);
+  const [prefilledDetectedLocation, setPrefilledDetectedLocation] = useState(null);
+  const { detectLocation: triggerDetectLocation } = useDetectLocation();
+
+  const handleDetectCheckoutLocation = async () => {
+    setIsDetectingCheckoutLoc(true);
+    const result = await triggerDetectLocation();
+    setIsDetectingCheckoutLoc(false);
+
+    if (!result?.success || !result?.data) {
+      toast.info(result?.error || 'Unable to retrieve location. Please type your pincode manually.');
+      return;
+    }
+
+    const detected = result.data;
+    const detectedPin = String(detected.pincode).trim();
+
+    // Verify delivery availability for detected pincode
+    try {
+      const checkRes = await fetch(`/api/pincode/check-delivery?pincode=${encodeURIComponent(detectedPin)}`);
+      const checkData = await checkRes.json();
+      if (checkData && checkData.serviceable === false && checkData.deliveryAvailable === false) {
+        toast.warning(checkData.message || `Delivery may be limited for pincode ${detectedPin}.`);
+      } else {
+        toast.success(`Location detected: ${detected.city || detected.state} (${detectedPin})`);
+      }
+    } catch (checkErr) {
+      console.warn("Delivery check error:", checkErr);
+    }
+
+    // Sync header location
+    if (typeof setPincode === 'function' && detectedPin) {
+      setPincode(detectedPin);
+    }
+
+    // Check if user has an existing selected shipping address
+    if (currentShipping && currentShipping.pincode) {
+      const currentPin = String(currentShipping.pincode).trim();
+      if (currentPin !== detectedPin) {
+        const matchingSaved = savedAddresses.find(
+          (a) => String(a.pincode).trim() === detectedPin
+        );
+        setLocationPromptData({
+          detected,
+          matchingSaved,
+          currentShipping,
+        });
+        return;
+      }
+    }
+
+    // If no shipping address exists yet:
+    if (!shippingAddressId || !currentShipping) {
+      setPrefilledDetectedLocation(detected);
+      setAddressModalType('new');
+      setShowAddressModal(true);
+    }
+  };
 
   const extraCities = ["Ariyalur", "Chennai", "Coimbatore", "Cuddalore", "Dharmapuri", "Dindigul", "Erode", "Kanchipuram", "Kanyakumari", "Karur", "Krishnagiri", "Madurai", "Nagapattinam", "Namakkal", "Nilgiris", "Perambalur", "Pudukkottai", "Ramanathapuram", "Salem", "Sivaganga", "Thanjavur", "Theni", "Thoothukudi", "Tirunelveli", "Tiruvallur", "Tiruvannamalai", "Tiruvarur", "Vellore", "Viluppuram", "Virudhunagar", "Singanallur", "Sivananthapuram", "Vadavalli", "Annur", "Mettupalayam", "Thennur", "Ariyamangalam", "Komarapalayam", "Kattur"];
 
@@ -1462,22 +1618,43 @@ export default function CheckoutPage() {
                 <div className="mt-6 space-y-4">
                   {/* Shipping Address Box */}
                   <div className="border border-gray-200 rounded-xl p-5 bg-white shadow-sm">
-                    <div className="flex justify-between items-start mb-3">
+                    <div className="flex justify-between items-center mb-3">
                       <div>
                         <h3 className="font-semibold text-gray-800 flex items-center gap-2">
                           Shipping Address
                         </h3>
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setAddressModalType('shipping');
-                          setShowAddressModal(true);
-                        }}
-                        className="text-red-600 text-sm font-medium hover:underline"
-                      >
-                        Change
-                      </button>
+                      <div className="flex items-center gap-2.5">
+                        <button
+                          type="button"
+                          onClick={handleDetectCheckoutLocation}
+                          disabled={isDetectingCheckoutLoc}
+                          className="bg-red-50 hover:bg-red-100 text-[#d72828] border border-red-200 text-xs font-semibold px-3 py-1.5 rounded-full flex items-center gap-1.5 transition-all cursor-pointer active:scale-95 disabled:opacity-60 shadow-2xs"
+                          title="Detect location and check delivery serviceability"
+                        >
+                          {isDetectingCheckoutLoc ? (
+                            <>
+                              <span className="w-3.5 h-3.5 border-2 border-[#d72828] border-t-transparent rounded-full animate-spin" />
+                              <span>Detecting...</span>
+                            </>
+                          ) : (
+                            <>
+                              <span className="text-[#d72828] text-xs leading-none">✦</span>
+                              <span>Detect Location</span>
+                            </>
+                          )}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setAddressModalType('shipping');
+                            setShowAddressModal(true);
+                          }}
+                          className="text-red-600 text-sm font-medium hover:underline cursor-pointer"
+                        >
+                          Change
+                        </button>
+                      </div>
                     </div>
 
                     {shippingAddressId && currentShipping ? (() => {
@@ -2166,8 +2343,13 @@ export default function CheckoutPage() {
                   editAddressId={editAddressId}
                   savedAddresses={savedAddresses}
                   headerPincode={headerPincode}
-                  onSuccess={handleAddressSaved}
+                  initialDetectedLocation={prefilledDetectedLocation}
+                  onSuccess={(newAddr) => {
+                    setPrefilledDetectedLocation(null);
+                    handleAddressSaved(newAddr);
+                  }}
                   onCancel={() => {
+                    setPrefilledDetectedLocation(null);
                     if (savedAddresses.length > 0) {
                       setAddressModalType('shipping');
                     } else {
@@ -2176,6 +2358,77 @@ export default function CheckoutPage() {
                   }}
                 />
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Accessible Location Mismatch Confirmation Modal */}
+      {locationPromptData && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs px-4 animate-fadeIn">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 border border-gray-100">
+            <div className="flex items-start gap-3.5 mb-4">
+              <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center text-[#d72828] shrink-0 text-lg font-bold">
+                ✦
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-gray-900 leading-snug">
+                  Location Detected
+                </h3>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  Detected: <strong className="text-gray-800">{locationPromptData.detected.city || locationPromptData.detected.state} ({locationPromptData.detected.pincode})</strong>
+                </p>
+              </div>
+            </div>
+
+            <div className="p-3.5 rounded-xl bg-gray-50 border border-gray-200 text-xs text-gray-700 mb-5 space-y-1.5">
+              <p>
+                Your selected shipping address is currently set to pincode{" "}
+                <strong className="text-gray-900">{locationPromptData.currentShipping.pincode}</strong> (
+                {locationPromptData.currentShipping.city || locationPromptData.currentShipping.state}).
+              </p>
+              <p className="text-gray-500 pt-1 font-medium">
+                Would you like to switch to an address matching your detected location?
+              </p>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-2.5">
+              {locationPromptData.matchingSaved ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShippingAddressId(locationPromptData.matchingSaved._id);
+                    if (billingSameAsShipping) {
+                      setBillingAddressId(locationPromptData.matchingSaved._id);
+                    }
+                    toast.success("Switched to matching saved address");
+                    setLocationPromptData(null);
+                  }}
+                  className="flex-1 bg-[#d72828] hover:bg-red-700 text-white font-semibold text-xs py-2.5 px-4 rounded-lg transition-all cursor-pointer shadow-sm text-center"
+                >
+                  Switch to Saved Address
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPrefilledDetectedLocation(locationPromptData.detected);
+                    setAddressModalType('new');
+                    setShowAddressModal(true);
+                    setLocationPromptData(null);
+                  }}
+                  className="flex-1 bg-[#d72828] hover:bg-red-700 text-white font-semibold text-xs py-2.5 px-4 rounded-lg transition-all cursor-pointer shadow-sm text-center"
+                >
+                  Add Address for {locationPromptData.detected.pincode}
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => setLocationPromptData(null)}
+                className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold text-xs py-2.5 px-4 rounded-lg transition-all cursor-pointer text-center"
+              >
+                Keep Current
+              </button>
             </div>
           </div>
         </div>

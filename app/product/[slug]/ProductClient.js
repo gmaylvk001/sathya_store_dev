@@ -14,9 +14,10 @@ import { ShieldHalf } from 'lucide-react';
 import { Icon } from '@iconify/react';
 import { useParams } from "next/navigation";
 import { useRouter } from "next/navigation";
-import { FaStore } from "react-icons/fa";
+import { FaStore, FaPhoneAlt } from "react-icons/fa";
 import { FaShield } from "react-icons/fa6";
 import { FaShoppingCart, FaHeart, FaShareAlt, FaRupeeSign, FaCartPlus, FaBell } from "react-icons/fa";
+import { isOpenBoxEligible, CLEARANCE_PHONE } from "@/lib/openBoxHelper";
 import { FiShoppingCart } from "react-icons/fi";
 import { TbTruckDelivery } from "react-icons/tb";
 import { IoFastFoodOutline, IoReload, IoCardOutline, IoShieldCheckmark, IoStorefront, IoLocationOutline } from "react-icons/io5";
@@ -1158,6 +1159,7 @@ export default function ProductClient() {
     return <ProductSkeleton />;
   }
 
+  const isOpenBox = isOpenBoxEligible(product);
 
   return (
     <div className="bg-white min-h-screen">
@@ -1320,14 +1322,23 @@ export default function ProductClient() {
             {/* Stock */}
             <div className="mt-2">
               {product.stock_status === "In Stock" && product.quantity > 0 ? (
-                <span className="inline-flex items-center gap-1.5 bg-green-50 text-green-700 px-3 py-1 rounded-full text-sm font-semibold">
-                  <span className="flex items-center justify-center w-3 h-3 rounded-full bg-green-600 flex-shrink-0">
-                    <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={3}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="inline-flex items-center gap-1.5 bg-green-50 text-green-700 px-3 py-1 rounded-full text-sm font-semibold">
+                    <span className="flex items-center justify-center w-3 h-3 rounded-full bg-green-600 flex-shrink-0">
+                      <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={3}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                    </span>
+                    In Stock ({product.quantity} units)
                   </span>
-                  In Stock ({product.quantity} units)
-                </span>
+
+                  {isOpenBox && (
+                    <span className="inline-flex items-center gap-1.5 bg-amber-50 text-amber-800 border border-amber-200 text-xs px-2.5 py-1 rounded-full font-medium">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                      <span>Clearance / Open Box Item - Direct Store/Phone Purchase Only</span>
+                    </span>
+                  )}
+                </div>
               ) : (
                 <span className="text-red-600 font-semibold text-sm">✗ Out of Stock</span>
               )}
@@ -1405,18 +1416,27 @@ export default function ProductClient() {
               )}
               {product.stock_status === "In Stock" && product.quantity > 0 && isMovementAllowed && (
                 <div className="flex gap-3">
-                  <button
-                    onClick={() => handleBuyNow()}
-                    disabled={(product.movement === "EOL" || product.movement === "FOCUS") && product.quantity <= 10}
-                    className={`flex-1 font-semibold py-2.5 rounded-lg flex items-center justify-center gap-2 text-sm
-    ${(product.movement === "EOL" || product.movement === "FOCUS") && product.quantity <= 10
-                        ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                        : "bg-[#d72828] hover:bg-[#c02020] text-white cursor-pointer"
-                      }`}
-                  >
-                    <FaStore className="w-4 h-4" />
-                    Buy Now
-                  </button>
+                  {isOpenBox ? (
+                    <a
+                      href={`tel:${CLEARANCE_PHONE}`}
+                      className="flex-1 flex items-center justify-center gap-2.5 py-2.5 px-3 bg-amber-600 hover:bg-amber-700 text-white rounded-lg shadow-md transition-all duration-200 cursor-pointer active:scale-95 text-center"
+                      title="Call to Order Clearance Unit"
+                    >
+                      <FaPhoneAlt className="w-4 h-4 flex-shrink-0 text-white self-center" />
+                      <div className="flex flex-col items-center text-center leading-tight">
+                        <span className="text-xs sm:text-sm font-extrabold uppercase tracking-wider">CALL TO ORDER</span>
+                        <span className="text-[9px] sm:text-[10px] font-medium opacity-90 tracking-wide mt-0.5">(CLEARANCE UNIT)</span>
+                      </div>
+                    </a>
+                  ) : (
+                    <button
+                      onClick={() => handleBuyNow()}
+                      className="flex-1 font-semibold py-2.5 rounded-lg flex items-center justify-center gap-2 text-sm bg-[#d72828] hover:bg-[#c02020] text-white cursor-pointer"
+                    >
+                      <FaStore className="w-4 h-4" />
+                      Buy Now
+                    </button>
+                  )}
                   <div className="flex-1">
                     <ProductAddtoCart
                       productId={product._id}
@@ -1427,7 +1447,7 @@ export default function ProductClient() {
                       selectedFrequentProducts={selectedFrequentProducts}
                       selectedRelatedProducts={selectedRelatedProducts}
                       warrantyData={isExtendedWarrantyEligible(product) ? selectedWarrantyData : null}
-                      buttonLabel="Add to Cart"
+                      buttonLabel={isOpenBox ? "Enquire to Buy" : "Add to Cart"}
                       buttonClassName={addToCartOutlineClass}
                       movement={product.movement}
                       productName={product.name}
@@ -2131,19 +2151,28 @@ export default function ProductClient() {
                         </>
                       ) : (
                       <>
-                      {/* BUY NOW Button (Primary Sathya Red) */}
-                      <button
-                        onClick={() => handleBuyNow()}
-                        disabled={(product.movement === "EOL" || product.movement === "FOCUS") && product.quantity <= 10}
-                        className={`w-full font-extrabold py-3 rounded-lg flex items-center justify-center gap-2 text-sm uppercase tracking-wider shadow-md transition-all
-            ${(product.movement === "EOL" || product.movement === "FOCUS") && product.quantity <= 10
-                            ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                            : "bg-[#d72828] hover:bg-red-700 text-white cursor-pointer active:scale-95"
-                          }`}
-                      >
-                        <FaStore className="w-4 h-4 flex-shrink-0" />
-                        Buy Now
-                      </button>
+                      {/* BUY NOW Button or Call to Order for Clearance */}
+                      {isOpenBox ? (
+                        <a
+                          href={`tel:${CLEARANCE_PHONE}`}
+                          className="flex items-center justify-center gap-3 w-full py-3 px-5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg shadow-md transition-all duration-200 cursor-pointer active:scale-95 text-center"
+                          title="Call to Order Clearance Unit"
+                        >
+                          <FaPhoneAlt className="w-5 h-5 flex-shrink-0 text-white self-center" />
+                          <div className="flex flex-col items-center text-center leading-tight">
+                            <span className="text-sm font-extrabold uppercase tracking-wider">CALL TO ORDER</span>
+                            <span className="text-[10px] font-medium opacity-90 tracking-wide mt-0.5">(CLEARANCE UNIT)</span>
+                          </div>
+                        </a>
+                      ) : (
+                        <button
+                          onClick={() => handleBuyNow()}
+                          className="w-full font-extrabold py-3 rounded-lg flex items-center justify-center gap-2 text-sm uppercase tracking-wider shadow-md transition-all bg-[#d72828] hover:bg-red-700 text-white cursor-pointer active:scale-95"
+                        >
+                          <FaStore className="w-4 h-4 flex-shrink-0" />
+                          Buy Now
+                        </button>
+                      )}
 
                       {/* ADD TO CART Button */}
                       <ProductAddtoCart
@@ -2155,7 +2184,7 @@ export default function ProductClient() {
                         selectedFrequentProducts={selectedFrequentProducts}
                         selectedRelatedProducts={selectedRelatedProducts}
                         warrantyData={isExtendedWarrantyEligible(product) ? selectedWarrantyData : null}
-                        buttonLabel="Add To Cart"
+                        buttonLabel={isOpenBox ? "Enquire to Buy" : "Add To Cart"}
                         buttonClassName="w-full border-2 border-[#d72828] text-[#d72828] hover:bg-red-50 font-bold py-2.5 rounded-lg text-sm transition-all shadow-none"
                         movement={product.movement}
                         productName={product.name}
