@@ -7,11 +7,13 @@ import {
   FaShareAlt,
 } from "react-icons/fa";
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 import { useCart } from "@/context/CartContext";
 import { useModal } from "@/context/ModalContext";
 import { ToastContainer, toast } from "react-toastify";
 import { useHeaderdetails } from "@/context/HeaderContext";
 import { trackAddToCart, ga4AddToCart } from "@/utils/nextjs-event-tracking";
+import { ADD_CART_ALLOWED_MOVEMENTS } from "@/lib/addCartConfig";
 
 import { v4 as uuidv4 } from "uuid";
 
@@ -36,8 +38,10 @@ const AddToCartButton = ({
   // const [showAuthModal, setShowAuthModal] = useState(false);
   // const [authError, setAuthError] = useState('');
   const [cartSuccess, setCartSuccess] = useState(false);
+  const isHomePage = usePathname() === "/";
   const isOutOfStock = stockQuantity <= 0;
   const isOpenBox =
+    !isHomePage &&
     (movement === "FOCUS" || movement === "EOL") && stockQuantity < 10;
   const [showOpenBoxPopup, setShowOpenBoxPopup] = useState(false);
   // const isprice = special_price <= 0;
@@ -45,6 +49,21 @@ const AddToCartButton = ({
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
   const handleAddToCart = async () => {
     if (isOutOfStock) return;
+    if (isHomePage) {
+      let currentMovement = movement;
+      try {
+        const res = await fetch(
+          `/api/product/by-ids?ids=${encodeURIComponent(productId)}`,
+          { cache: "no-store" }
+        );
+        const data = await res.json();
+        if (data?.products?.[0]) currentMovement = data.products[0].movement;
+      } catch {}
+      if (!ADD_CART_ALLOWED_MOVEMENTS.includes(String(currentMovement || "").trim())) {
+        toast.error("Out of Stock");
+        return;
+      }
+    }
     if (isOpenBox) {
       if (productSlug) {
         // Check if we're already on the product detail page
