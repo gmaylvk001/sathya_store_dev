@@ -30,6 +30,7 @@ const AddToCartButton = ({
   productName,
   productSlug,
   className = "",
+  checkMovement = false,
 }) => {
   const { openAuthModal } = useModal();
   const { updateHeaderdetails, setIsLoggedIn, setUserData, setIsAdmin } =
@@ -38,7 +39,7 @@ const AddToCartButton = ({
   // const [showAuthModal, setShowAuthModal] = useState(false);
   // const [authError, setAuthError] = useState('');
   const [cartSuccess, setCartSuccess] = useState(false);
-  const isHomePage = usePathname() === "/";
+  const isHomePage = usePathname() === "/" || checkMovement;
   const isOutOfStock = stockQuantity <= 0;
   const isOpenBox =
     !isHomePage &&

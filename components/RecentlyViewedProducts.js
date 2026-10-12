@@ -219,6 +219,7 @@ const RecentlyViewedCard = ({ product, brandMap = {}, onProductClick }) => {
             movement={product.movement}
             productName={product.name}
             productSlug={product.slug}
+            checkMovement
           />
         </div>
       </div>
