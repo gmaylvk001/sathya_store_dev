@@ -5,28 +5,7 @@ import path from "path";
 import { NextResponse } from "next/server";
 import { normalizeRegion } from "@/lib/regionHelper";
 import mongoose from "mongoose";
-
-async function verifyAdminRequest(req) {
-  try {
-    const authHeader = req.headers.get("authorization");
-    const adminHeader = req.headers.get("x-admin-auth");
-    if (adminHeader === "true") return { authorized: true };
-    if (authHeader && authHeader.startsWith("Bearer ")) {
-      const token = authHeader.split(" ")[1];
-      const jwt = require("jsonwebtoken");
-      const decoded = jwt.verify(token, process.env.JWT_SECRET || "sathya_secret");
-      if (decoded) return { authorized: true, user: decoded };
-    }
-    const cookieHeader = req.headers.get("cookie") || "";
-    const tokenMatch = cookieHeader.match(/(?:admin_token|token)=([^;]+)/);
-    if (tokenMatch && tokenMatch[1] && tokenMatch[1].trim().length > 5) {
-      return { authorized: true };
-    }
-    return { authorized: false, error: "Unauthorized: Admin authorization required" };
-  } catch (err) {
-    return { authorized: false, error: err.message };
-  }
-}
+import { requireAdmin } from "@/lib/adminRequest";
 
 export async function GET(req) {
   await dbConnect();
@@ -67,11 +46,11 @@ export async function GET(req) {
 
 export async function POST(req) {
   await dbConnect();
-  const auth = await verifyAdminRequest(req);
+  const auth = await requireAdmin(req, "banners");
   if (!auth.authorized) {
     return NextResponse.json(
-      { success: false, error: auth.error || "Unauthorized" },
-      { status: 401 }
+      { success: false, error: auth.error },
+      { status: auth.status }
     );
   }
 
@@ -182,11 +161,11 @@ export async function POST(req) {
 
 export async function DELETE(req) {
   await dbConnect();
-  const auth = await verifyAdminRequest(req);
+  const auth = await requireAdmin(req, "banners");
   if (!auth.authorized) {
     return NextResponse.json(
-      { success: false, error: auth.error || "Unauthorized" },
-      { status: 401 }
+      { success: false, error: auth.error },
+      { status: auth.status }
     );
   }
 

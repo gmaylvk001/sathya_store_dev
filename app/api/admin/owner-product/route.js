@@ -18,6 +18,13 @@ import mongoose from "mongoose";
 export async function GET(req) {
   try {
     await dbConnect();
+    const auth = await verifyAdminRequest(req);
+    if (!auth.authorized) {
+      return NextResponse.json(
+        { success: false, message: auth.error },
+        { status: auth.status }
+      );
+    }
     const { searchParams } = new URL(req.url);
     const productId = searchParams.get("productId") || searchParams.get("product_id");
     const itemCode = searchParams.get("itemCode") || searchParams.get("product_item_code");
