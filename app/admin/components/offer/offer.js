@@ -133,9 +133,13 @@ const handleSendMail = async () => {
 useEffect(() => {
   const fetchUsers = async () => {
     try {
-      const res = await fetch("/api/users/get");
+      const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+      const res = await fetch("/api/users/get", {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (!res.ok) return;
       const data = await res.json();
-      setUsers(data);
+      setUsers(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error("Failed to fetch users", err);
     }
