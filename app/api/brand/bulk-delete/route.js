@@ -2,11 +2,16 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import Brand from "@/models/ecom_brand_info";
 import Product from "@/models/product";
+import { requireAdmin } from "@/lib/adminRequest";
 
 export async function POST(req) {
-    await dbConnect();
-
     try {
+        const auth = await requireAdmin(req, "brands");
+        if (!auth.authorized) {
+            return NextResponse.json({ error: auth.error }, { status: auth.status });
+        }
+
+        await dbConnect();
         const { brandIds } = await req.json();
     
         if (!brandIds || !Array.isArray(brandIds) || brandIds.length === 0) {

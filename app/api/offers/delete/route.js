@@ -1,11 +1,17 @@
 
+import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import Offer from "@/models/ecom_offer_info";
+import { requireAdmin } from "@/lib/adminRequest";
 
 export async function DELETE(req) {
-  await dbConnect();
-
   try {
+    const auth = await requireAdmin(req, "offers");
+    if (!auth.authorized) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
+    }
+
+    await dbConnect();
     const { id } = await req.json(); // Parse JSON body
     console.log("Request ID:", id);
 

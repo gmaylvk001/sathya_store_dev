@@ -1,16 +1,21 @@
 import { NextResponse } from 'next/server'; 
 import connectDB from "@/lib/db"; 
 import store from "@/models/store";
-
+import { requireAdmin } from "@/lib/adminRequest";
 
 export async function DELETE(req) {
-  const { storeId } = await req.json();
-
-  if (!storeId) {
-    return NextResponse.json({ error: "Store ID is required." }, { status: 400 });
-  }
-
   try {
+    const auth = await requireAdmin(req, "stores");
+    if (!auth.authorized) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
+    }
+
+    const { storeId } = await req.json();
+
+    if (!storeId) {
+      return NextResponse.json({ error: "Store ID is required." }, { status: 400 });
+    }
+
     await connectDB();
 
     const updatedStore = await store.findByIdAndUpdate(

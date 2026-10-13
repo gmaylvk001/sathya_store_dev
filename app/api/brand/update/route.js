@@ -4,9 +4,16 @@ import { NextResponse } from "next/server";
 import path from "path";
 import fs from "fs/promises";
 import { writeFile, unlink } from "fs/promises";
+import { requireAdmin } from "@/lib/adminRequest";
+
 // app/api/brand/route.js
 export async function PUT(req) {
   try {
+    const auth = await requireAdmin(req, "brands");
+    if (!auth.authorized) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
+    }
+
     await dbConnect();
     
     const formData = await req.formData();

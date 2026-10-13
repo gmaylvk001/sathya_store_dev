@@ -7,6 +7,7 @@ import multer from 'multer'; // You might need a file upload library like multer
 import path from 'path';
 import fs from 'fs/promises'; // For file system operations
 import Product from '@/models/product';
+import { requireAdmin } from '@/lib/adminRequest';
 
 // Configure Multer for file uploads (assuming you're storing files locally)
 // For production, consider cloud storage like AWS S3, Cloudinary, etc.
@@ -83,6 +84,11 @@ export async function GET(request, context) {
 // UPDATED PUT API HANDLER WITH VIDEO THUMBNAIL SUPPORT
 // ========================
 export async function PUT(request, { params }) {
+  const auth = await requireAdmin(request, "stores");
+  if (!auth.authorized) {
+    return NextResponse.json({ error: auth.error }, { status: auth.status });
+  }
+
   const { storeId } = params;
 
   if (!storeId) {
@@ -310,6 +316,11 @@ export async function PATCH(request, context) {
 
 // DELETE handler for permanent deletion (optional, if you want this functionality)
 export async function DELETE(request, context) {
+  const auth = await requireAdmin(request, "stores");
+  if (!auth.authorized) {
+    return NextResponse.json({ error: auth.error }, { status: auth.status });
+  }
+
   const { storeId } = context.params;
   if (!storeId) {
     return NextResponse.json({ error: "Store ID is required." }, { status: 400 });

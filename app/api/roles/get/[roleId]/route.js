@@ -2,9 +2,15 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import Role from "@/models/Role";
 import "@/models/Permission";
+import { requireAdmin } from "@/lib/adminRequest";
 
 export async function GET(req, { params }) {
   try {
+    const auth = await requireAdmin(req, "roles");
+    if (!auth.authorized) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
+    }
+
     await dbConnect();
     const { roleId } = await params;
 

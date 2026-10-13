@@ -4,6 +4,7 @@ import SingleBannerNew from "@/models/singlebanner";
 import fs from "fs";
 import path from "path";
 import sharp from "sharp";
+import { requireAdmin } from "@/lib/adminRequest";
 
 // ✅ Save File Function with 1900x400 dimension validation
 async function saveFile(file) {
@@ -61,6 +62,11 @@ export async function GET() {
 // ✅ POST add new banner
 export async function POST(req) {
   try {
+    const auth = await requireAdmin(req, "banners");
+    if (!auth.authorized) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
+    }
+
     await dbConnect();
     const formData = await req.formData();
 
@@ -118,6 +124,11 @@ export async function POST(req) {
 // ✅ PUT update banner
 export async function PUT(req) {
   try {
+    const auth = await requireAdmin(req, "banners");
+    if (!auth.authorized) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
+    }
+
     await dbConnect();
     const formData = await req.formData();
 
@@ -186,6 +197,11 @@ export async function PUT(req) {
 // ✅ PATCH reorder banners
 export async function PATCH(req) {
   try {
+    const auth = await requireAdmin(req, "banners");
+    if (!auth.authorized) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
+    }
+
     await dbConnect();
     const { orderedIds } = await req.json();
 
@@ -217,6 +233,11 @@ export async function PATCH(req) {
 // ✅ DELETE banner
 export async function DELETE(req) {
   try {
+    const auth = await requireAdmin(req, "banners");
+    if (!auth.authorized) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
+    }
+
     await dbConnect();
     const { id } = await req.json();
 

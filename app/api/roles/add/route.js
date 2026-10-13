@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import dbConnect from "@/lib/db";
 import Role from "@/models/Role";
 import Permission from "@/models/Permission";
+import { requireAdmin } from "@/lib/adminRequest";
 
 function createSlug(name) {
   return name
@@ -16,6 +17,11 @@ function createSlug(name) {
 
 export async function POST(req) {
   try {
+    const auth = await requireAdmin(req, "roles");
+    if (!auth.authorized) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
+    }
+
     await dbConnect();
 
     const { name, description, permissionIds } = await req.json();

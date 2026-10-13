@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import Permission from "@/models/Permission";
+import { requireAdmin } from "@/lib/adminRequest";
 
 function createSlug(name) {
   return name
@@ -13,9 +14,13 @@ function createSlug(name) {
 }
 
 export async function PUT(req) {
-  await dbConnect();
-
   try {
+    const auth = await requireAdmin(req, "permissions");
+    if (!auth.authorized) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
+    }
+
+    await dbConnect();
     const { permissionId, name, module, description, status } = await req.json();
 
     if (!permissionId) {

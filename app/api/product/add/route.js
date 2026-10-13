@@ -8,6 +8,7 @@ import Product_filter from "@/models/ecom_productfilter_info";
 import fs from "fs";
 import md5 from "md5";
 import { uniqueProductSlug } from "@/lib/productSlug";
+import { requireAdmin } from "@/lib/adminRequest";
 
 async function buildCategoryChain(categoryId) {
   let md5_chain = [];
@@ -66,6 +67,11 @@ async function buildCategoryChain(categoryId) {
 
 export async function POST(req) {
   try {
+    const auth = await requireAdmin(req, "products");
+    if (!auth.authorized) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
+    }
+
     const formData = await req.formData();
     const productData = JSON.parse(formData.get("product"));
     // Normalize brand_code: keep trimmed when provided, drop when empty

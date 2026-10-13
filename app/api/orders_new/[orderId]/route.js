@@ -6,7 +6,7 @@ import OrderDetailsNew from "@/models/order_details_new";
 import OrderHistoryNew from "@/models/order_history_new";
 import Product from "@/models/product";
 import OwnerProduct from "@/models/OwnerProduct";
-import { getAdminUserId } from "@/lib/adminRequest";
+import { requireAdmin } from "@/lib/adminRequest";
 
 const ORDER_STATUSES = [
   "Billed",
@@ -95,9 +95,9 @@ async function attachOrderHistory(order) {
 
 export async function GET(req, { params }) {
   try {
-    const adminUserId = await getAdminUserId(req);
-    if (!adminUserId) {
-      return NextResponse.json({ error: "Unauthorized: Admin access required" }, { status: 401 });
+    const auth = await requireAdmin(req, "orders");
+    if (!auth.authorized) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
     }
 
     await dbConnect();
@@ -130,11 +130,11 @@ export async function GET(req, { params }) {
 
 export async function PUT(req, { params }) {
   try {
-    const adminUserId = await getAdminUserId(req);
-    if (!adminUserId) {
+    const auth = await requireAdmin(req, "orders");
+    if (!auth.authorized) {
       return NextResponse.json(
-        { success: false, message: "Unauthorized: Admin access required" },
-        { status: 401 }
+        { success: false, message: auth.error },
+        { status: auth.status }
       );
     }
 
@@ -181,11 +181,11 @@ function toSalesPersonValue(value) {
 
 export async function PATCH(req, { params }) {
   try {
-    const adminUserId = await getAdminUserId(req);
-    if (!adminUserId) {
+    const auth = await requireAdmin(req, "orders");
+    if (!auth.authorized) {
       return NextResponse.json(
-        { success: false, message: "Unauthorized: Admin access required" },
-        { status: 401 }
+        { success: false, message: auth.error },
+        { status: auth.status }
       );
     }
 

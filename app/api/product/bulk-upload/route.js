@@ -13,6 +13,7 @@ import md5 from "md5";
 import mongoose from 'mongoose';
 import Filter from "@/models/ecom_filter_infos";
 import ProductFilter from "@/models/ecom_productfilter_info";
+import { requireAdmin } from "@/lib/adminRequest";
 
 export const config = {
     api: {
@@ -22,6 +23,11 @@ export const config = {
 
 export async function POST(req) {
   try {
+    const auth = await requireAdmin(req, "products");
+    if (!auth.authorized) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
+    }
+
     const formData = await req.formData();
     const excelFile = formData.get('excel');
     const imagesZip = formData.get('images'); // Now optional

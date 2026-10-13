@@ -2,11 +2,16 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import Brand from "@/models/ecom_brand_info";
 import Product from "@/models/product";
+import { requireAdmin } from "@/lib/adminRequest";
 
 export async function POST(req) {
-    await dbConnect();
-
     try {
+        const auth = await requireAdmin(req, "brands");
+        if (!auth.authorized) {
+            return NextResponse.json({ error: auth.error }, { status: auth.status });
+        }
+
+        await dbConnect();
         const { brandId } = await req.json();
     
         if (!brandId) {

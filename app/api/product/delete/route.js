@@ -1,9 +1,15 @@
 import { NextResponse } from "next/server";
 import connectDB from "@/lib/db";
 import Product from "@/models/product";
+import { requireAdmin } from "@/lib/adminRequest";
 
 export async function POST(req) {
   try {
+    const auth = await requireAdmin(req, "products");
+    if (!auth.authorized) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
+    }
+
     await connectDB();
 
     const { productId } = await req.json();

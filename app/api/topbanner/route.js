@@ -4,27 +4,10 @@ import TopBanner from "@/models/topbanner";
 import fs from "fs";
 import path from "path";
 import { normalizeRegion, SUPPORTED_REGIONS } from "@/lib/regionHelper";
+import { requireAdmin } from "@/lib/adminRequest";
 
 async function verifyAdminRequest(req) {
-  try {
-    const authHeader = req.headers.get("authorization");
-    const adminHeader = req.headers.get("x-admin-auth");
-    if (adminHeader === "true") return { authorized: true };
-    if (authHeader && authHeader.startsWith("Bearer ")) {
-      const token = authHeader.split(" ")[1];
-      const jwt = require("jsonwebtoken");
-      const decoded = jwt.verify(token, process.env.JWT_SECRET || "sathya_secret");
-      if (decoded) return { authorized: true, user: decoded };
-    }
-    const cookieHeader = req.headers.get("cookie") || "";
-    const tokenMatch = cookieHeader.match(/(?:admin_token|token)=([^;]+)/);
-    if (tokenMatch && tokenMatch[1] && tokenMatch[1].trim().length > 5) {
-      return { authorized: true };
-    }
-    return { authorized: false, error: "Unauthorized: Admin authorization required" };
-  } catch (err) {
-    return { authorized: false, error: err.message };
-  }
+  return await requireAdmin(req, "banners");
 }
 
 async function saveFile(file) {

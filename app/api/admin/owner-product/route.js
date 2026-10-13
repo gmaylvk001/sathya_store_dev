@@ -2,37 +2,10 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import OwnerProduct from "@/models/OwnerProduct";
 import Product from "@/models/product";
+import { requireAdmin } from "@/lib/adminRequest";
 
-/**
- * Admin authorization check helper
- */
 async function verifyAdminRequest(req) {
-  try {
-    const authHeader = req.headers.get("authorization");
-    const adminHeader = req.headers.get("x-admin-auth");
-    
-    // Explicit admin header authorization flag
-    if (adminHeader === "true") {
-      return { authorized: true };
-    }
-
-    if (authHeader && authHeader.startsWith("Bearer ")) {
-      const token = authHeader.split(" ")[1];
-      const jwt = require("jsonwebtoken");
-      const decoded = jwt.verify(token, process.env.JWT_SECRET || "sathya_secret");
-      if (decoded) return { authorized: true, user: decoded };
-    }
-
-    // Cookie fallback
-    const cookieHeader = req.headers.get("cookie") || "";
-    if (cookieHeader.includes("admin_token=") || cookieHeader.includes("token=")) {
-      return { authorized: true };
-    }
-
-    return { authorized: false, error: "Unauthorized: Admin authorization required" };
-  } catch (err) {
-    return { authorized: false, error: err.message };
-  }
+  return await requireAdmin(req, "products");
 }
 
 import { normalizeRegion, SUPPORTED_REGIONS } from "@/lib/regionHelper";

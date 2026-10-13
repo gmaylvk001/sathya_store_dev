@@ -1,11 +1,16 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import Permission from "@/models/Permission";
+import { requireAdmin } from "@/lib/adminRequest";
 
 export async function DELETE(req) {
-  await dbConnect();
-
   try {
+    const auth = await requireAdmin(req, "permissions");
+    if (!auth.authorized) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
+    }
+
+    await dbConnect();
     const { permissionId } = await req.json();
 
     if (!permissionId) {

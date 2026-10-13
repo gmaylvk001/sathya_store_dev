@@ -3,6 +3,7 @@ import dbConnect from "@/lib/db";
 import OpenBoxBanner from "@/models/openboxbanner";
 import fs from "fs";
 import path from "path";
+import { requireAdmin } from "@/lib/adminRequest";
 
 async function saveFile(file) {
   try {
@@ -38,6 +39,11 @@ export async function GET() {
 // POST
 export async function POST(req) {
   try {
+    const auth = await requireAdmin(req, "banners");
+    if (!auth.authorized) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
+    }
+
     await dbConnect();
     const formData = await req.formData();
 
@@ -90,6 +96,11 @@ export async function POST(req) {
 
 export async function PATCH(req) {
   try {
+    const auth = await requireAdmin(req, "banners");
+    if (!auth.authorized) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
+    }
+
     await dbConnect();
     const { index } = await req.json();
 
@@ -121,8 +132,13 @@ export async function PATCH(req) {
 }
 
 // DELETE all
-export async function DELETE() {
+export async function DELETE(req) {
   try {
+    const auth = await requireAdmin(req, "banners");
+    if (!auth.authorized) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
+    }
+
     await dbConnect();
     const openBoxBanner = await OpenBoxBanner.findOne({});
     if (!openBoxBanner) {

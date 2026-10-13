@@ -4,9 +4,15 @@ import Offer from "@/models/ecom_offer_info";
 import Product from "@/models/product";
 import Category from "@/models/ecom_category_info";
 import mongoose from "mongoose";
+import { requireAdmin } from "@/lib/adminRequest";
 
 export async function PUT(req) {
   try {
+    const auth = await requireAdmin(req, "offers");
+    if (!auth.authorized) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
+    }
+
     await dbConnect();
 
     const requestData = await req.json();

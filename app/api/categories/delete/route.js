@@ -1,11 +1,16 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import Category from "@/models/ecom_category_info"; // Adjust the path based on your structure
+import { requireAdmin } from "@/lib/adminRequest";
 
 export async function POST(req) {
-    await dbConnect();
-
     try {
+        const auth = await requireAdmin(req, "categories");
+        if (!auth.authorized) {
+            return NextResponse.json({ error: auth.error }, { status: auth.status });
+        }
+
+        await dbConnect();
         const { categoryId } = await req.json();
 
         if (!categoryId) {

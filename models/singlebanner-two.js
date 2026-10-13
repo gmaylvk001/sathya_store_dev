@@ -9,5 +9,5 @@ const SingleBannerTwoSchema = new mongoose.Schema({
   updatedAt: { type: Date, default: Date.now },
 });
 
-export default mongoose.models.singlebanner_twos ||
+export default mongoose.models.singlebanner_two ||
   mongoose.model("singlebanner_two", SingleBannerTwoSchema);

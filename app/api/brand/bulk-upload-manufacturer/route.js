@@ -2,9 +2,15 @@ import dbConnect from "@/lib/db";
 import Brand from "@/models/ecom_brand_info";
 import { NextResponse } from "next/server";
 import * as XLSX from "xlsx";
+import { requireAdmin } from "@/lib/adminRequest";
 
 export async function POST(req) {
   try {
+    const auth = await requireAdmin(req, "brands");
+    if (!auth.authorized) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
+    }
+
     await dbConnect();
 
     const formData = await req.formData();

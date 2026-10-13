@@ -5,6 +5,7 @@ import fs from "fs/promises";
 import { format } from "date-fns";
 import mongoose from "mongoose";
 import Product from "@/models/product";
+import { requireAdmin } from "@/lib/adminRequest";
 
 export const config = {
   api: {
@@ -14,6 +15,11 @@ export const config = {
 
 export async function POST(req) {
   try {
+    const auth = await requireAdmin(req, "products");
+    if (!auth.authorized) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
+    }
+
     // ✅ 1. Get uploaded file
     const formData = await req.formData();
     const excelFile = formData.get("excel");

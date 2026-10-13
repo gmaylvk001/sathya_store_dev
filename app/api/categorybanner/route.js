@@ -4,6 +4,7 @@ import CategoryBanner from "@/models/categorybanner";
 import fs from "fs";
 import path from "path";
 import sharp from "sharp";
+import { requireAdmin } from "@/lib/adminRequest";
 
 // ✅ Save File Function with Dimension Validation (801x704)
 async function saveFile(file) {
@@ -61,6 +62,11 @@ export async function GET() {
 // ✅ POST create or update category banners
 export async function POST(req) {
   try {
+    const auth = await requireAdmin(req, "banners");
+    if (!auth.authorized) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
+    }
+
     await dbConnect();
     const formData = await req.formData();
 
@@ -140,8 +146,13 @@ export async function POST(req) {
 }
 
 // ✅ DELETE category banner
-export async function DELETE() {
+export async function DELETE(req) {
   try {
+    const auth = await requireAdmin(req, "banners");
+    if (!auth.authorized) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
+    }
+
     await dbConnect();
     
     const categoryBanner = await CategoryBanner.findOne({});

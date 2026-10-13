@@ -6,6 +6,7 @@ import md5 from "md5";
 import { writeFile, unlink, mkdir } from "fs/promises";
 import path from "path";
 import mongoose from "mongoose";
+import { requireAdmin } from "@/lib/adminRequest";
 
 function convertSlug(slug) {
   let result = slug.replace(/ /g, "-"); // replace spaces with hyphens
@@ -17,6 +18,11 @@ function convertSlug(slug) {
 
 export async function PUT(req) {
   try {
+    const auth = await requireAdmin(req, "categories");
+    if (!auth.authorized) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
+    }
+
     await dbConnect();
 
     // Parse formData

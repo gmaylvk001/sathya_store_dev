@@ -5,17 +5,12 @@ import OwnerProduct from "@/models/OwnerProduct";
 import Product from "@/models/product";
 import { normalizeRegion, SUPPORTED_REGIONS } from "@/lib/regionHelper";
 import { buildHeaderMap, getCell } from "@/lib/storeImportHelpers";
+import { requireAdmin } from "@/lib/adminRequest";
 
 export const maxDuration = 300;
 export const dynamic = "force-dynamic";
 
 const MAX_LISTED_ROWS = 100;
-
-function isAdminRequest(req) {
-  if (req.headers.get("x-admin-auth") === "true") return true;
-  const cookieHeader = req.headers.get("cookie") || "";
-  return cookieHeader.includes("admin_token=") || cookieHeader.includes("token=");
-}
 
 // Sheet cells may hold numbers or literal "NULL" text exported from MySQL.
 function cleanCode(value) {
@@ -53,8 +48,9 @@ function resolveStockStatus(stock, sheetStatus) {
  */
 export async function POST(req) {
   try {
-    if (!isAdminRequest(req)) {
-      return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
+    const auth = await requireAdmin(req, "products");
+    if (!auth.authorized) {
+      return NextResponse.json({ success: false, message: auth.error }, { status: auth.status });
     }
 
     const formData = await req.formData();

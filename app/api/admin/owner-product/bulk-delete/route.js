@@ -2,14 +2,9 @@ import { NextResponse } from "next/server";
 import mongoose from "mongoose";
 import dbConnect from "@/lib/db";
 import OwnerProduct from "@/models/OwnerProduct";
+import { requireAdmin } from "@/lib/adminRequest";
 
 export const dynamic = "force-dynamic";
-
-function isAdminRequest(req) {
-  if (req.headers.get("x-admin-auth") === "true") return true;
-  const cookieHeader = req.headers.get("cookie") || "";
-  return cookieHeader.includes("admin_token=") || cookieHeader.includes("token=");
-}
 
 /**
  * POST /api/admin/owner-product/bulk-delete
@@ -17,8 +12,9 @@ function isAdminRequest(req) {
  */
 export async function POST(req) {
   try {
-    if (!isAdminRequest(req)) {
-      return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
+    const auth = await requireAdmin(req, "products");
+    if (!auth.authorized) {
+      return NextResponse.json({ success: false, message: auth.error }, { status: auth.status });
     }
 
     const body = await req.json().catch(() => ({}));

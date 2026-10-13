@@ -2,9 +2,15 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import Category from "@/models/ecom_category_info";
+import { requireAdmin } from "@/lib/adminRequest";
 
 export async function POST(request) {
   try {
+    const auth = await requireAdmin(request, "categories");
+    if (!auth.authorized) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
+    }
+
     await dbConnect();
 
     const { categories } = await request.json();

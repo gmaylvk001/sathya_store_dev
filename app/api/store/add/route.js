@@ -4,6 +4,9 @@ import connectDB from "@/lib/db";
 import path from "path";
 import fs from "fs/promises";
 
+import { NextResponse } from "next/server";
+import { requireAdmin } from "@/lib/adminRequest";
+
 // Simple slugify helper (no external pkg)
 function slugify(text = "") {
   return text
@@ -25,9 +28,13 @@ function safeParseJSON(value, fallback = []) {
 }
 
 export async function POST(req) {
-  await connectDB();
-
   try {
+    const auth = await requireAdmin(req, "stores");
+    if (!auth.authorized) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
+    }
+
+    await connectDB();
     const formData = await req.formData();
 
     // Temp containers

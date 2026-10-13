@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import connectDB from "@/lib/db";
 import Offer from "@/models/ecom_offer_info";
 import Product from "@/models/product"; // Import Product model
+import { requireAdmin } from "@/lib/adminRequest";
 
 export async function GET() {
     try {
@@ -16,6 +17,11 @@ export async function GET() {
 
 export async function POST(req) {
     try {
+        const auth = await requireAdmin(req, "offers");
+        if (!auth.authorized) {
+            return NextResponse.json({ error: auth.error }, { status: auth.status });
+        }
+
         await connectDB();
         const body = await req.json();  // Parse request body
 
