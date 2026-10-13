@@ -107,6 +107,22 @@ export default function PaymentOffers({ product, externalShowEmiModal, onExterna
     return true;
   });
 
+  // Guarantee Best Offer (highest savings) is always at index 0 for both cards and modal
+  validBankOffers.sort((a, b) => {
+    if (a.isBestOffer && !b.isBestOffer) return -1;
+    if (!a.isBestOffer && b.isBestOffer) return 1;
+    return (b.calculatedDiscount || 0) - (a.calculatedDiscount || 0);
+  });
+
+  // Guarantee Best Deal EMI is always at index 0
+  if (rawEmiOffers.length > 0) {
+    rawEmiOffers.sort((a, b) => {
+      if (a.isBestDeal && !b.isBestDeal) return -1;
+      if (!a.isBestDeal && b.isBestDeal) return 1;
+      return (a.monthlyEmi || 0) - (b.monthlyEmi || 0);
+    });
+  }
+
   const showBankOffers = validBankOffers.length > 0;
 
   // 4. Container Collapse Rule

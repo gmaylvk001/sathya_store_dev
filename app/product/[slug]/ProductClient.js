@@ -33,6 +33,7 @@ import ProductBreadcrumb from "@/components/ProductBreadcrumb";
 import RecentlyViewedProducts from '@/components/RecentlyViewedProducts';
 import RelatedProducts from "@/components/RelatedProducts";
 import PaymentOffers from "@/components/product/PaymentOffers";
+import CompetitorPriceTracker from "@/components/CompetitorPriceTracker";
 import ProductInstallationWarrantySection from "@/components/ProductInstallationWarrantySection";
 import CompareButton from "@/components/CompareButton";
 import WarrantyBadge from "@/components/WarrantyBadge";
@@ -2110,6 +2111,9 @@ export default function ProductClient() {
                       </div>
                     </div>
                   )}
+
+                  {/* LIVE MARKET PRICE COMPARISON (ePrice Tracker™) */}
+                  <CompetitorPriceTracker product={product} />
 
                   {/* 3. PRIMARY ACTION BUTTONS: BUY NOW & ADD TO CART (INSIDE COLUMN 3) */}
                   {product.stock_status === "In Stock" && product.quantity > 0 && (
