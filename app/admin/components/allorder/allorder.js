@@ -245,10 +245,13 @@ const OrdersTable = () => {
 
     setIsProcessing(true); // 🚀 Disable button immediately
 
-    try {
+      const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
       const res = await fetch(`/api/orders_new/${orderToUpdate._id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify({
           status: "Order Accepted",
           delivery_date: deliveryDate

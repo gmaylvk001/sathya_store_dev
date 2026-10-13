@@ -6,6 +6,7 @@ import OrderDetailsNew from "@/models/order_details_new";
 import OrderHistoryNew from "@/models/order_history_new";
 import Product from "@/models/product";
 import OwnerProduct from "@/models/OwnerProduct";
+import { getAdminUserId } from "@/lib/adminRequest";
 
 const ORDER_STATUSES = [
   "Billed",
@@ -93,10 +94,15 @@ async function attachOrderHistory(order) {
 }
 
 export async function GET(req, { params }) {
-  await dbConnect();
-  const { orderId } = await params;
-
   try {
+    const adminUserId = await getAdminUserId(req);
+    if (!adminUserId) {
+      return NextResponse.json({ error: "Unauthorized: Admin access required" }, { status: 401 });
+    }
+
+    await dbConnect();
+    const { orderId } = await params;
+
     if (!mongoose.Types.ObjectId.isValid(orderId)) {
       return NextResponse.json({ error: "Invalid order id" }, { status: 400 });
     }
@@ -123,10 +129,18 @@ export async function GET(req, { params }) {
 }
 
 export async function PUT(req, { params }) {
-  await dbConnect();
-  const { orderId } = await params;
-
   try {
+    const adminUserId = await getAdminUserId(req);
+    if (!adminUserId) {
+      return NextResponse.json(
+        { success: false, message: "Unauthorized: Admin access required" },
+        { status: 401 }
+      );
+    }
+
+    await dbConnect();
+    const { orderId } = await params;
+
     const { status, delivery_date } = await req.json();
 
     if (!status || !ORDER_STATUSES.includes(status)) {
@@ -166,10 +180,18 @@ function toSalesPersonValue(value) {
 }
 
 export async function PATCH(req, { params }) {
-  await dbConnect();
-  const { orderId } = await params;
-
   try {
+    const adminUserId = await getAdminUserId(req);
+    if (!adminUserId) {
+      return NextResponse.json(
+        { success: false, message: "Unauthorized: Admin access required" },
+        { status: 401 }
+      );
+    }
+
+    await dbConnect();
+    const { orderId } = await params;
+
     if (!mongoose.Types.ObjectId.isValid(orderId)) {
       return NextResponse.json({ success: false, message: "Invalid order id" }, { status: 400 });
     }
@@ -239,3 +261,4 @@ export async function PATCH(req, { params }) {
     );
   }
 }
+

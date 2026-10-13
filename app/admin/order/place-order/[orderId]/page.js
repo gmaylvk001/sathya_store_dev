@@ -95,7 +95,10 @@ const OrderDetails = () => {
       setStatus("");
       setComment("");
 
-      const refreshed = await fetch(`/api/orders_new/${orderId}`).then((r) => r.json());
+      const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+      const refreshed = await fetch(`/api/orders_new/${orderId}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      }).then((r) => r.json());
       if (refreshed && !refreshed.error) {
         setOrder(refreshed);
       }
@@ -250,7 +253,10 @@ const OrderDetails = () => {
 
   useEffect(() => {
     if (orderId) {
-      fetch(`/api/orders_new/${orderId}`)
+      const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+      fetch(`/api/orders_new/${orderId}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      })
         .then(res => res.json())
         .then((data) => {
           setOrder(data);
@@ -287,9 +293,13 @@ const OrderDetails = () => {
 
     setAssigningStore(true);
     try {
+      const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
       const res = await fetch(`/api/orders_new/${orderId}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify({ pickup_type }),
       });
       const data = await res.json();
@@ -315,9 +325,13 @@ const OrderDetails = () => {
 
     setAssigningSalesPerson(true);
     try {
+      const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
       const res = await fetch(`/api/orders_new/${orderId}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify({
           sales_person_role: assignRoleId,
           sales_person_id: assignUserId,
@@ -360,7 +374,10 @@ const OrderDetails = () => {
       } else {
         toast.error(data.api_reason || data.api_status || "Place order failed");
       }
-      const refreshed = await fetch(`/api/orders_new/${orderId}`).then((r) => r.json());
+      const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+      const refreshed = await fetch(`/api/orders_new/${orderId}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      }).then((r) => r.json());
       if (refreshed && !refreshed.error) {
         setOrder(refreshed);
         setRemarks(refreshed.customer_comments != null ? String(refreshed.customer_comments) : remarks);

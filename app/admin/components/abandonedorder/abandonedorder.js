@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
@@ -172,9 +172,13 @@ const OrdersTable_abon = () => {
       }
 
       // ✅ If valid → update order status
+      const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
       await fetch(`/api/orders_new/${orderToUpdate._id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify({
           status: "pending",
         }),
@@ -545,9 +549,13 @@ const OrdersTable_abon = () => {
 
                             // For other status changes (like cancelled)
                             try {
+                              const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
                               const res = await fetch(`/api/orders_new/${o._id}`, {
                                 method: "PUT",
-                                headers: { "Content-Type": "application/json" },
+                                headers: {
+                                  "Content-Type": "application/json",
+                                  ...(token ? { Authorization: `Bearer ${token}` } : {}),
+                                },
                                 body: JSON.stringify({ status: newStatus }),
                               });
 

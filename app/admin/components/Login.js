@@ -48,6 +48,7 @@ export default function Login() {
 
       setMessage("Login successful! ✅");
       localStorage.setItem('token', result.token);
+      document.cookie = `token=${result.token}; path=/; SameSite=Lax; max-age=86400`;
       setTimeout(() => router.push("/admin/dashboard"), 2000);
     } catch (error) {
       setMessage(error.message);
