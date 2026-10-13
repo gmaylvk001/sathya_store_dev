@@ -7,7 +7,6 @@ import {
   FaShareAlt,
 } from "react-icons/fa";
 import { useState } from "react";
-import { usePathname } from "next/navigation";
 import { useCart } from "@/context/CartContext";
 import { useModal } from "@/context/ModalContext";
 import { ToastContainer, toast } from "react-toastify";
@@ -40,10 +39,9 @@ const AddToCartButton = ({
   // const [showAuthModal, setShowAuthModal] = useState(false);
   // const [authError, setAuthError] = useState('');
   const [cartSuccess, setCartSuccess] = useState(false);
-  const isHomePage = usePathname() === "/" || checkMovement;
   const isOutOfStock = stockQuantity <= 0;
   const isOpenBox =
-    !isHomePage &&
+    !checkMovement &&
     (movement === "FOCUS" || movement === "EOL") && stockQuantity < 10;
   const [showOpenBoxPopup, setShowOpenBoxPopup] = useState(false);
   // const isprice = special_price <= 0;
@@ -51,7 +49,7 @@ const AddToCartButton = ({
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
   const handleAddToCart = async () => {
     if (isOutOfStock) return;
-    if (isHomePage) {
+    if (checkMovement) {
       let currentMovement = movement;
       try {
         const res = await fetch(

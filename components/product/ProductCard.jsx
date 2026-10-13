@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { usePathname } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { FaStar } from "react-icons/fa";
@@ -17,8 +18,12 @@ export default function ProductCard({
   variant = "default",
   onProductClick,
   className = "",
+  checkMovement,
 }) {
   const [imgLoaded, setImgLoaded] = useState(false);
+  // Home page cards use the normal add-to-cart flow unless a section opts in.
+  const isHomePage = usePathname() === "/";
+  const applyMovementCheck = checkMovement ?? !isHomePage;
 
   if (!product) return null;
 
@@ -182,7 +187,7 @@ export default function ProductCard({
             movement={movement}
             productName={name}
             productSlug={slug}
-            checkMovement
+            checkMovement={applyMovementCheck}
           />
 
           {bestPriceData ? (
