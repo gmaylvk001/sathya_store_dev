@@ -33,7 +33,8 @@ export async function middleware(req) {
     }
 
     try {
-      const secret = new TextEncoder().encode(process.env.JWT_SECRET || "sathya_secret");
+      if (!process.env.JWT_SECRET) throw new Error("JWT_SECRET is not set");
+      const secret = new TextEncoder().encode(process.env.JWT_SECRET);
       const { payload } = await jwtVerify(token, secret);
 
       // Verify user_type is admin

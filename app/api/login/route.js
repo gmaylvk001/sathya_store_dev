@@ -6,15 +6,11 @@ import { NextResponse } from "next/server";
 
 export async function POST(req) {
   try {
-    console.log("req", req);
-
     const { email, password } = await req.json();
 
     await connectDB();
-    console.log("dfd");
 
     const existingUser = await User.findOne({ email });
-    console.log("existingUser", existingUser);
 
     if (!existingUser) {
       return NextResponse.json({ error: "Admin not found" }, { status: 400 });
@@ -25,7 +21,6 @@ export async function POST(req) {
     }
 
     const isPassword = await bcrypt.compare(password, existingUser.password);
-    console.log(isPassword);
 
     if (!isPassword) return NextResponse.json({ error: "Incorrect Password" }, { status: 400 });
 
@@ -37,7 +32,7 @@ export async function POST(req) {
         user_type: existingUser.user_type,
         role: existingUser.user_type,
       },
-      process.env.JWT_SECRET || "sathya_secret",
+      process.env.JWT_SECRET,
       { expiresIn: "24h" }
     );
 

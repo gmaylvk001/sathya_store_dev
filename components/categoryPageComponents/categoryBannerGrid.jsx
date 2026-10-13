@@ -76,8 +76,10 @@ function BannerTile({ banner, className = "" }) {
           displaySize
             ? {
                 width: `${displaySize.width}px`,
-                height: `${displaySize.height}px`,
+                height: "auto",
+                aspectRatio: `${displaySize.width} / ${displaySize.height}`,
                 maxWidth: "100%",
+                maxHeight: `${displaySize.height}px`,
               }
             : {
                 width: "auto",
