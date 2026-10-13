@@ -2,11 +2,17 @@ import { NextResponse } from "next/server";
 import mongoose from "mongoose";
 import dbConnect from "@/lib/db";
 import User from "@/models/User";
+import { requireAdmin } from "@/lib/adminRequest";
 
 export async function POST(req) {
-  await dbConnect();
-
   try {
+    const auth = await requireAdmin(req, "system_users");
+    if (!auth.authorized) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
+    }
+
+    await dbConnect();
+
     const body = await req.json();
     const ids = Array.isArray(body.userIds)
       ? body.userIds

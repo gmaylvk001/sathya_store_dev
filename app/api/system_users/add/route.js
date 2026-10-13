@@ -4,9 +4,15 @@ import dbConnect from "@/lib/db";
 import User from "@/models/User";
 import Role from "@/models/Role";
 import bcrypt from "bcryptjs";
+import { requireAdmin } from "@/lib/adminRequest";
 
 export async function POST(req) {
   try {
+    const auth = await requireAdmin(req, "system_users");
+    if (!auth.authorized) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
+    }
+
     await dbConnect();
     
     const { name, mobile, email, password, status, role } = await req.json();

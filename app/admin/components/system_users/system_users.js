@@ -60,10 +60,15 @@ export default function SystemUsersComponent() {
     }
   };
 
+  const getAuthHeaders = () => {
+    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  };
+
   const fetchUsers = async () => {
     setIsLoading(true);
     try {
-      const response = await axios.get("/api/system_users/get");
+      const response = await axios.get("/api/system_users/get", { headers: getAuthHeaders() });
       const adminUsers = Array.isArray(response.data)
         ? response.data.filter((user) => user.user_type === "admin")
         : [];
@@ -182,10 +187,14 @@ export default function SystemUsersComponent() {
     }
 
     try {
-      const response = await axios.post("/api/system_users/status", {
-        userId: user._id,
-        status,
-      });
+      const response = await axios.post(
+        "/api/system_users/status",
+        {
+          userId: user._id,
+          status,
+        },
+        { headers: getAuthHeaders() }
+      );
 
       if (response.data.success) {
         setAlertMessage(`✅ ${response.data.message || `User set to ${label} successfully`}`);
@@ -213,6 +222,7 @@ export default function SystemUsersComponent() {
     try {
       const response = await axios.delete("/api/system_users/delete", {
         data: { userId },
+        headers: getAuthHeaders(),
       });
       setSelectedIds((prev) => prev.filter((id) => id !== String(userId)));
 
@@ -249,6 +259,7 @@ export default function SystemUsersComponent() {
     try {
       const response = await axios.delete("/api/system_users/delete", {
         data: { userIds: selectedIds },
+        headers: getAuthHeaders(),
       });
 
       setAlertMessage(`✅ ${response.data.message || "Users deleted successfully!"}`);
@@ -278,22 +289,30 @@ export default function SystemUsersComponent() {
 
     try {
       if (isEditMode) {
-        await axios.put("/api/system_users/edit", {
-          userId: currentUserId,
-          name: formData.name,
-          mobile: formData.mobile,
-          email: formData.email,
-          status: formData.status,
-          role: formData.role || null,
-        });
+        await axios.put(
+          "/api/system_users/edit",
+          {
+            userId: currentUserId,
+            name: formData.name,
+            mobile: formData.mobile,
+            email: formData.email,
+            status: formData.status,
+            role: formData.role || null,
+          },
+          { headers: getAuthHeaders() }
+        );
         setAlertMessage("✅ User updated successfully!");
       } else {
-        await axios.post("/api/system_users/add", {
-          ...formData,
-          user_type: "admin",
-          status: formData.status,
-          role: formData.role || null,
-        });
+        await axios.post(
+          "/api/system_users/add",
+          {
+            ...formData,
+            user_type: "admin",
+            status: formData.status,
+            role: formData.role || null,
+          },
+          { headers: getAuthHeaders() }
+        );
         setAlertMessage("✅ User added successfully!");
       }
 

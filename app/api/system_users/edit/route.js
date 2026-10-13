@@ -3,11 +3,17 @@ import mongoose from "mongoose";
 import dbConnect from "@/lib/db";
 import User from "@/models/User";
 import Role from "@/models/Role";
+import { requireAdmin } from "@/lib/adminRequest";
 
 export async function PUT(req) {
-  await dbConnect();
-
   try {
+    const auth = await requireAdmin(req, "system_users");
+    if (!auth.authorized) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
+    }
+
+    await dbConnect();
+
     const { userId, name, mobile, email, status, role } = await req.json();
 
     if (!userId) {
