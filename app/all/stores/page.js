@@ -23,14 +23,25 @@ export default function LocationComingSoon() {
           Check back shortly to explore our locations!
         </p>
 
-        {/* Action Button */}
-        <Link 
-          href="/"
-          className="inline-flex items-center gap-2 bg-[#ED1C24] hover:bg-[#C4161D] text-white px-8 py-3.5 rounded-full font-medium transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5"
-        >
-          <Icon icon="mdi:arrow-left" className="w-5 h-5" />
-          Back to Shopping
-        </Link>
+        {/* Action Buttons */}
+        <div className="flex flex-wrap items-center justify-center gap-3">
+          <a
+            href="https://sathya.adtarbo.com/stores"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 bg-[#ED1C24] hover:bg-[#C4161D] text-white px-8 py-3.5 rounded-full font-medium transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5"
+          >
+            <Icon icon="mdi:map-marker" className="w-5 h-5" />
+            Go to Store Locator
+          </a>
+          <Link 
+            href="/"
+            className="inline-flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 px-8 py-3.5 rounded-full font-medium transition-all"
+          >
+            <Icon icon="mdi:arrow-left" className="w-5 h-5" />
+            Back to Shopping
+          </Link>
+        </div>
       </div>
     </div>
   );

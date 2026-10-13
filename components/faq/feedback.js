@@ -48,7 +48,7 @@ const faqData = [
     faqs: [
       {
         q: "How can I contact customer support?",
-        a: <>Visit our <a href="/contact" className="text-[#d72828] hover:underline">Contact Us</a> page to send a message, or call / visit your nearest <a href="/all/stores" className="text-[#d72828] hover:underline">SATHYA showroom</a>. For escalations regarding product defects or service complaints, reach our grievance officer:
+        a: <>Visit our <a href="/contact" className="text-[#d72828] hover:underline">Contact Us</a> page to send a message, or call / visit your nearest <a href="https://sathya.adtarbo.com/stores" target="_blank" rel="noopener noreferrer" className="text-[#d72828] hover:underline">SATHYA showroom</a>. For escalations regarding product defects or service complaints, reach our grievance officer:
           <br /><br />
           <strong>Name:</strong> Mr. Francis Prabhu<br />
           <strong>Email:</strong> <a href="mailto:crm@sathya.email" className="text-[#d72828] hover:underline">crm@sathya.email</a><br />
@@ -56,7 +56,7 @@ const faqData = [
       },
       {
         q: "Can I shop at a physical SATHYA store?",
-        a: <>Yes. SATHYA has 100+ showrooms across Tamil Nadu, Pondicherry, and Andhra Pradesh. Use our <a href="/all/stores" className="text-[#d72828] hover:underline">Store Locator</a> to find the nearest branch, view timings, and get directions.</>
+        a: <>Yes. SATHYA has 100+ showrooms across Tamil Nadu, Pondicherry, and Andhra Pradesh. Use our <a href="https://sathya.adtarbo.com/stores" target="_blank" rel="noopener noreferrer" className="text-[#d72828] hover:underline">Store Locator</a> to find the nearest branch, view timings, and get directions.</>
       }
     ]
   }

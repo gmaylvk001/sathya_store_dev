@@ -2312,12 +2312,17 @@ const Header = () => {
                 <span className={`text-[10px] ${HEADER_ACTION_LABEL_CLASS}`}>Contact</span>
               </Link>
 
-              <Link href="/all/stores" className={`${HEADER_ACTION_LINK_CLASS} hidden sm:flex min-w-[52px]`}>
+              <a
+                href="https://sathya.adtarbo.com/stores"
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`${HEADER_ACTION_LINK_CLASS} hidden sm:flex min-w-[52px]`}
+              >
                 <div className={HEADER_ACTION_ICON_WRAP_CLASS}>
                   <HiOutlineBuildingStorefront size={18} strokeWidth={1.75} />
                 </div>
                 <span className={`text-[10px] ${HEADER_ACTION_LABEL_CLASS}`}>Store</span>
-              </Link>
+              </a>
 
               <Link href="/wishlist" className={`${HEADER_ACTION_LINK_CLASS} flex min-w-[52px] relative`}>
                 <div className={HEADER_ACTION_ICON_WRAP_CLASS}>
@@ -2410,8 +2415,10 @@ const Header = () => {
                   </span>
                   <span className="text-[11px] font-semibold">Contact</span>
                 </Link>
-                <Link
-                  href="/all/stores"
+                <a
+                  href="https://sathya.adtarbo.com/stores"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   onClick={() => setIsMobileMenuOpen(false)}
                   className="flex flex-col items-center justify-center gap-1.5 rounded-xl border border-[#ED1C24]/20 bg-gradient-to-b from-[#fffdf5] to-white px-2 py-3 text-[#ED1C24] shadow-sm"
                 >
@@ -2419,7 +2426,7 @@ const Header = () => {
                     <HiOutlineBuildingStorefront size={18} strokeWidth={1.75} />
                   </span>
                   <span className="text-[11px] font-semibold">Store</span>
-                </Link>
+                </a>
               </div>
             </div>
           )}

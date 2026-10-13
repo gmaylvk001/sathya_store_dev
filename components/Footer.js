@@ -19,7 +19,12 @@ const FOOTER_BG = "#1a1a1a";
 const ABOUT_LINKS = [
   { label: "Home", href: "/" },
   { label: "About Us", href: "/about" },
-  { label: "Store Locator", href: "/location" },
+  {
+    label: "Store Locator",
+    href: "https://sathya.adtarbo.com/stores",
+    target: "_blank",
+    rel: "noopener noreferrer",
+  },
   { label: "Contact Us", href: "/contact" },
   { label: "Privacy Policy", href: "/privacy-policy" },
   { label: "Cancellation Policy", href: "/cancellation-policy" },
@@ -304,7 +309,12 @@ const Footer = () => {
                 <ul className="space-y-2.5">
                   {ABOUT_LINKS.map((link) => (
                     <li key={link.label}>
-                      <Link href={link.href} className="footer-link text-sm">
+                      <Link
+                        href={link.href}
+                        target={link.target}
+                        rel={link.rel}
+                        className="footer-link text-sm"
+                      >
                         {link.label}
                       </Link>
                     </li>

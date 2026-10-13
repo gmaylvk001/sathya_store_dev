@@ -134,10 +134,15 @@ const AboutUs = () => {
                             <h2 className="text-2xl lg:text-3xl xl:text-4xl 2xl:text-6xl font-bold text-[#d72828] mt-2">Since 1987</h2>
                             <p className="mt-2 text-gray-600 text-sm xl:text-base 2xl:text-xl leading-7 2xl:leading-9">Sathya Agencies Limited is one of South India&apos;s largest consumer durables and electronics retailers, with 427+ stores across Tamil Nadu, Andhra Pradesh, Kerala, Karnataka and Puducherry.</p>
                             <div className="flex flex-wrap gap-3 mt-6">
-                                <button onClick={() => router.push("/location")} className="bg-[#d72828] text-white px-5 py-2.5 2xl:px-7 2xl:py-3 rounded-lg font-semibold text-sm 2xl:text-base flex items-center gap-2 hover:bg-[#b81d1d] transition shadow-md">
+                                <a
+                                    href="https://sathya.adtarbo.com/stores"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="bg-[#d72828] text-white px-5 py-2.5 2xl:px-7 2xl:py-3 rounded-lg font-semibold text-sm 2xl:text-base flex items-center gap-2 hover:bg-[#b81d1d] transition shadow-md"
+                                >
                                     <FiMapPin size={16} />
                                     Explore Our Stores
-                                </button>
+                                </a>
                                 <button onClick={() => router.push("/")} className="border-2 border-[#d72828] text-[#d72828] bg-white/80 px-5 py-2.5 2xl:px-7 2xl:py-3 rounded-lg font-semibold text-sm 2xl:text-base flex items-center gap-2 hover:bg-[#d72828] hover:text-white transition shadow-xs">
                                     <FiShoppingCart size={16} />
                                     Shop Now
@@ -164,10 +169,15 @@ const AboutUs = () => {
                         <h2 className="text-2xl font-bold text-[#d72828] mt-1">Since 1987</h2>
                         <p className="mt-2 text-gray-600 text-sm leading-relaxed">Sathya Agencies Limited is one of South India&apos;s largest consumer durables and electronics retailers, with 427+ stores across South India.</p>
                         <div className="flex flex-wrap gap-3 mt-5">
-                            <button onClick={() => router.push("/location")} className="bg-[#d72828] text-white px-5 py-2.5 rounded-lg font-semibold text-sm flex items-center gap-2 hover:bg-[#b81d1d] transition">
+                            <a
+                                href="https://sathya.adtarbo.com/stores"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="bg-[#d72828] text-white px-5 py-2.5 rounded-lg font-semibold text-sm flex items-center gap-2 hover:bg-[#b81d1d] transition"
+                            >
                                 <FiMapPin size={16} />
                                 Explore Our Stores
-                            </button>
+                            </a>
                             <button onClick={() => router.push("/")} className="border border-[#d72828] text-[#d72828] px-5 py-2.5 rounded-lg font-semibold text-sm flex items-center gap-2 hover:bg-[#d72828] hover:text-white transition">
                                 <FiShoppingCart size={16} />
                                 Shop Now
@@ -380,9 +390,14 @@ const AboutUs = () => {
                                 </div>
 
                                 <div className="mt-5 pt-3 border-t border-gray-100 text-center">
-                                    <button onClick={() => router.push("/location")} className="text-xs font-bold text-[#111827] hover:text-[#d72828] transition flex items-center justify-center gap-1 mx-auto">
+                                    <a
+                                        href="https://sathya.adtarbo.com/stores"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-xs font-bold text-[#111827] hover:text-[#d72828] transition flex items-center justify-center gap-1 mx-auto"
+                                    >
                                         View All 427+ Store Addresses & Directions →
-                                    </button>
+                                    </a>
                                 </div>
                             </div>
 

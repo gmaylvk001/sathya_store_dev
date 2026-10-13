@@ -272,7 +272,7 @@ export default function HomeComponent() {
     const fetchBrands = async () => {
       setIsBrandsLoading(true);
       try {
-        const response = await fetch('/api/brand/get');
+        const response = await fetch('/api/brand/get?homePage=true&minProducts=50');
         if (response.ok) {
           const data = await response.json();
           if (data?.success && Array.isArray(data.brands)) {

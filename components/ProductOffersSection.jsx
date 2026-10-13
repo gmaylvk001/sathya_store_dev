@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useMemo, useEffect, useCallback, useRef } from "react";
+import { createPortal } from "react-dom";
 import Image from "next/image";
 import { calculateBestPrice, getSellingPrice } from "@/lib/bestPriceResolver";
 import { buildSafePaymentOffersData } from "@/lib/paymentOfferFallback";
@@ -633,7 +634,10 @@ export function EmiPlansModal({
   onSelectBank,
   onClose,
 }) {
+  const [mounted, setMounted] = useState(false);
+
   useEffect(() => {
+    setMounted(true);
     const handleKeyDown = (e) => {
       if (e.key === "Escape") onClose();
     };
@@ -667,9 +671,9 @@ export function EmiPlansModal({
     );
   }, [emiOffers, selectedBankKey]);
 
-  return (
+  const modalContent = (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200"
+      className="fixed inset-0 z-[99999] flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200"
       onClick={onClose}
     >
       <div
@@ -797,6 +801,9 @@ export function EmiPlansModal({
       </div>
     </div>
   );
+
+  if (!mounted || typeof document === "undefined") return null;
+  return createPortal(modalContent, document.body);
 }
 
 /**
@@ -808,7 +815,10 @@ export function BankOffersModal({
   bankEffectivePrice,
   onClose,
 }) {
+  const [mounted, setMounted] = useState(false);
+
   useEffect(() => {
+    setMounted(true);
     const handleKeyDown = (e) => {
       if (e.key === "Escape") onClose();
     };
@@ -816,9 +826,9 @@ export function BankOffersModal({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [onClose]);
 
-  return (
+  const modalContent = (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200"
+      className="fixed inset-0 z-[99999] flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200"
       onClick={onClose}
     >
       <div
@@ -920,4 +930,7 @@ export function BankOffersModal({
       </div>
     </div>
   );
+
+  if (!mounted || typeof document === "undefined") return null;
+  return createPortal(modalContent, document.body);
 }

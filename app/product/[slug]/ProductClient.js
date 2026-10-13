@@ -35,6 +35,8 @@ import PaymentOffers from "@/components/product/PaymentOffers";
 import ProductInstallationWarrantySection from "@/components/ProductInstallationWarrantySection";
 import CompareButton from "@/components/CompareButton";
 import WarrantyBadge from "@/components/WarrantyBadge";
+import BestPriceStrip from "@/components/product/BestPriceStrip";
+import { getBestPrice } from "@/lib/offers/bestPriceUtils";
 import { isExtendedWarrantyEligible } from "@/lib/productServiceEligibility";
 import { v4 as uuidv4 } from "uuid";
 

@@ -11,6 +11,8 @@ import { useCart } from "@/context/CartContext";
 import { useModal } from "@/context/ModalContext";
 import { useHeaderdetails } from "@/context/HeaderContext";
 import { trackAddToCart, ga4AddToCart } from "@/utils/nextjs-event-tracking";
+import ProductCard from "@/components/product/ProductCard";
+import { normalizeProduct } from "@/lib/normalizeProduct";
 
 function formatPrice(n) {
   return new Intl.NumberFormat("en-IN").format(n);
@@ -791,151 +793,14 @@ function RecentlyViewed() {
   );
 }
 
-function RecentlyViewedCardItem({ product, onClick, updateCartCount, apiUrl }) {
-  const [imgError, setImgError] = useState(false);
-  const [adding, setAdding] = useState(false);
-  const [added, setAdded] = useState(false);
-
-  const specialPrice = Number(product.special_price);
-  const originalPrice = Number(product.price);
-
-  const hasDiscount = specialPrice > 0 && specialPrice < originalPrice;
-
-  const currentPrice = hasDiscount ? specialPrice : originalPrice;
-
-  const discountPercent = hasDiscount
-    ? Math.round(100 - (specialPrice / originalPrice) * 100)
-    : 0;
-
-  const imagepathname = product.image || product.images?.[0] || "";
-  const imageUrl = imagepathname
-    ? (imagepathname.startsWith("http")
-        ? imagepathname
-        : `/uploads/products/${imagepathname.replace(/^\/?(uploads\/products\/)?/, "").replace(/^\/+/, "")}`)
-    : null;
-
-  const handleCartClick = async (e) => {
-    e.stopPropagation();
-    if (product.quantity === 0) return;
-    setAdding(true);
-    try {
-      await addProductToCart({
-        productId: product._id,
-        quantity: 1,
-        updateCartCount,
-        apiUrl,
-      });
-      toast.success("Product added!");
-      setAdded(true);
-      setTimeout(() => setAdded(false), 2500);
-    } catch {
-      toast.error("Failed to add to cart");
-    } finally {
-      setAdding(false);
-    }
-  };
-
+function RecentlyViewedCardItem({ product, onClick }) {
+  if (!product) return null;
   return (
-    <div
-      onClick={() => onClick(product)}
-      className="bg-white border border-gray-200 hover:border-gray-300 rounded-sm w-[180px] min-w-[180px] flex-shrink-0 flex flex-col justify-between overflow-hidden group snap-start transition-all duration-200 cursor-pointer shadow-2xs hover:shadow-md"
-    >
-      {/* Top Image Area (Fixed Height) */}
-      <div className="relative w-full h-[190px] sm:h-[200px] bg-white p-2.5 flex items-center justify-center overflow-hidden">
-        {imageUrl && !imgError ? (
-          <Image
-            src={imageUrl}
-            alt={product.name}
-            fill
-            style={{ objectFit: "contain" }}
-            className="p-2 group-hover:scale-105 transition-transform duration-300 ease-out"
-            onError={() => setImgError(true)}
-            unoptimized
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gray-50 text-gray-300 rounded-xs">
-            <svg
-              width="32"
-              height="32"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
-            >
-              <rect x="3" y="3" width="18" height="18" rx="2" />
-              <circle cx="8.5" cy="8.5" r="1.5" />
-              <path d="M21 15l-5-5L5 21" />
-            </svg>
-          </div>
-        )}
-      </div>
-      {/* Content Area */}
-      <div className="p-3 flex flex-col flex-1 justify-between border-t border-gray-100/80">
-        <div>
-          {/* Title: 1-line truncation */}
-          <h4
-            className="text-xs sm:text-sm font-medium text-gray-900 truncate mb-1.5"
-            title={product.name}
-          >
-            {product.name}
-          </h4>
-
-          {/* Price Row */}
-          <div className="flex items-baseline gap-1.5 flex-wrap">
-            <span className="text-sm sm:text-base font-bold text-gray-900">
-              ₹{Number(currentPrice).toLocaleString("en-IN")}
-            </span>
-            {hasDiscount && (
-              <s className="text-xs text-gray-400 line-through font-normal">
-                ₹{Number(originalPrice).toLocaleString("en-IN")}
-              </s>
-            )}
-          </div>
-
-          {/* Discount Percentage */}
-          {hasDiscount && (
-            <div className="text-xs font-semibold text-green-600 mt-0.5">
-              {discountPercent}% off
-            </div>
-          )}
-        </div>
-
-        {/* Action Button: Outline Style */}
-        <button
-          onClick={handleCartClick}
-          disabled={adding || product.quantity === 0}
-          className={`w-full mt-3 border rounded-sm py-1.5 px-3 text-xs font-bold transition-all duration-200 flex items-center justify-center gap-1 cursor-pointer active:scale-95 ${
-            product.quantity === 0
-              ? "border-gray-200 text-gray-400 bg-gray-50 cursor-not-allowed"
-              : added
-              ? "border-emerald-600 text-emerald-600 bg-emerald-50"
-              : "border-[#d72828] text-[#d72828] bg-white hover:bg-[#d72828] hover:text-white shadow-2xs"
-          }`}
-        >
-          {adding ? (
-            <svg className="animate-spin h-3.5 w-3.5" viewBox="0 0 24 24">
-              <circle
-                className="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                strokeWidth="4"
-                fill="none"
-              />
-              <path
-                className="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-              />
-            </svg>
-          ) : added ? (
-            "Added ✓"
-          ) : (
-            "Add to cart"
-          )}
-        </button>
-      </div>
+    <div className="w-[190px] sm:w-[220px] shrink-0 snap-start">
+      <ProductCard 
+        product={normalizeProduct(product)} 
+        onProductClick={onClick} 
+      />
     </div>
   );
 }

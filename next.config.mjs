@@ -34,6 +34,16 @@ const nextConfig = {
         destination: "/",
         permanent: true,
       },
+      {
+        source: "/location",
+        destination: "https://sathya.adtarbo.com/stores",
+        permanent: false,
+      },
+      {
+        source: "/all/stores",
+        destination: "https://sathya.adtarbo.com/stores",
+        permanent: false,
+      },
     ];
   },
 };

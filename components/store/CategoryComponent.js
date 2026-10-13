@@ -1025,14 +1025,17 @@ export default function StoreDetail() {
                 ))}
               </div>
             ) : (
-              <p className="text-[12px] text-gray-500">Visit our <Link href="/location" className="text-[#d72828] hover:underline">store locator</Link> to find nearby showrooms.</p>
+              <p className="text-[12px] text-gray-500">Visit our <a href="https://sathya.adtarbo.com/stores" target="_blank" rel="noopener noreferrer" className="text-[#d72828] hover:underline">store locator</a> to find nearby showrooms.</p>
             )}
             <div className="text-center mt-3">
-              <Link href="/our-branches">
-                <button className="text-[#d72828] text-[12px] font-semibold hover:underline inline-flex items-center gap-1">
-                  View All Stores <ArrowRightIcon />
-                </button>
-              </Link>
+              <a
+                href="https://sathya.adtarbo.com/stores"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[#d72828] text-[12px] font-semibold hover:underline inline-flex items-center gap-1"
+              >
+                View All Stores <ArrowRightIcon />
+              </a>
             </div>
           </div>
 

@@ -279,12 +279,18 @@ function SidebarItemWithDropdown({
     
     const rect = event.currentTarget.getBoundingClientRect();
     
-    // Always align exactly with the icon's top edge
-    setFlyoutTop(rect.top);
+    // Estimate the height of the flyout menu (header + items)
+    const estimatedHeight = 45 + (item.submenu.length * 44);
     
-    // Ensure it doesn't extend below the viewport
-    const availableSpaceBelow = window.innerHeight - rect.top - 16;
-    setFlyoutMaxHeight(Math.max(150, availableSpaceBelow)); // Minimum 150px height
+    let topPosition = rect.top;
+    
+    // If the flyout would extend below the viewport, shift it up
+    if (topPosition + estimatedHeight > window.innerHeight - 16) {
+      topPosition = Math.max(16, window.innerHeight - estimatedHeight - 16);
+    }
+    
+    setFlyoutTop(topPosition);
+    setFlyoutMaxHeight(window.innerHeight - 32); // Max height to fit within window
     
     setIsHovered(true);
   };

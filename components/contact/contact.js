@@ -373,9 +373,14 @@ export default function ContactPage() {
               <p className="text-[13px] text-gray-500 leading-relaxed mb-3">
                 {totalStores > 0 ? totalStores : "427"} showrooms across Tamil Nadu. Find the one near you.
               </p>
-              <Link href="/location" className="text-[#d72828] font-bold text-[14px] hover:underline inline-flex items-center gap-1.5">
+              <a
+                href="https://sathya.adtarbo.com/stores"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[#d72828] font-bold text-[14px] hover:underline inline-flex items-center gap-1.5"
+              >
                 Store Locator <FaArrowRight size={12} />
-              </Link>
+              </a>
             </div>
           </div>
 

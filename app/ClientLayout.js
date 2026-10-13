@@ -11,6 +11,8 @@ import { WishlistProvider } from "@/context/WishlistContext";
 import { CartProvider } from "@/context/CartContext";
 import { HeaderProvider } from "@/context/HeaderContext";
 import { RegionProvider } from "@/context/RegionContext";
+import { CompareProvider } from "@/context/CompareContext";
+import CompareBar from "@/components/CompareBar";
 
 export default function ClientLayout({ children }) {
   const pathname = usePathname();
@@ -28,12 +30,18 @@ export default function ClientLayout({ children }) {
           <WishlistProvider>
             <CartProvider>
               <AuthProvider>
-                <div className="flex flex-col min-h-screen">
-                  {!pathname?.startsWith("/admin") && <CustomHeader />}
-                  <main className="relative flex-grow min-h-[calc(100vh-280px)]">{children}</main>
-                  {!pathname?.startsWith("/admin") && <CustomFooter />}
-                  {!pathname?.startsWith("/admin") && <GlobalModals />}
-                </div>
+                {/* CompareProvider lives inside AuthProvider so syncOnLogin()
+                    can access the token set by login() */}
+                <CompareProvider>
+                  <div className="flex flex-col min-h-screen">
+                    {!pathname?.startsWith("/admin") && <CustomHeader />}
+                    <main className="relative flex-grow min-h-[calc(100vh-280px)]">{children}</main>
+                    {!pathname?.startsWith("/admin") && <CustomFooter />}
+                    {!pathname?.startsWith("/admin") && <GlobalModals />}
+                    {/* CompareBar: floating bottom bar — hidden on admin pages */}
+                    {!pathname?.startsWith("/admin") && <CompareBar />}
+                  </div>
+                </CompareProvider>
               </AuthProvider>
             </CartProvider>
           </WishlistProvider>

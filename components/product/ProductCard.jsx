@@ -6,6 +6,11 @@ import Link from "next/link";
 import { FaStar } from "react-icons/fa";
 import AddToWishlistButton from "@/components/ProductCard";
 import ProductAddtoCart from "@/components/AddToCart";
+import PriceBlock from "@/components/product/PriceBlock";
+import BestPriceStrip from "@/components/product/BestPriceStrip";
+import ProductCardTrustBadge from "@/components/product/ProductCardTrustBadge";
+import { getBestPriceData } from "@/lib/offers/bestPriceUtils";
+import { BankOffersModal } from "@/components/ProductOffersSection";
 
 export default function ProductCard({
   product,
@@ -37,6 +42,9 @@ export default function ProductCard({
   } = product;
 
   const productUrl = `/product/${slug}`;
+
+  const [isOffersModalOpen, setIsOffersModalOpen] = useState(false);
+  const bestPriceData = React.useMemo(() => getBestPriceData(product), [product]);
 
   const handleClick = () => {
     if (onProductClick) {
@@ -74,11 +82,13 @@ export default function ProductCard({
       <div
         className={`relative w-full bg-[#f9fafb] flex items-center justify-center overflow-hidden ${variantClasses.imageContainer}`}
       >
+        {/* Offer percentage badge removed as requested 
         {hasDiscount && (
           <span className="absolute top-2.5 left-2.5 z-10 bg-gradient-to-r from-rose-600 to-red-600 text-white text-[10px] font-extrabold px-2 py-0.5 rounded-full shadow-xs tracking-wide">
             -{discountPercent}%
           </span>
         )}
+        */}
 
         <div className="absolute top-2.5 right-2.5 z-10">
           <AddToWishlistButton
@@ -134,6 +144,7 @@ export default function ProductCard({
           </h4>
         </Link>
 
+        {/* Rating Section Hidden as requested 
         <div className="flex items-center gap-1.5 mb-1.5 h-4">
           {ratingValue > 0 ? (
             <>
@@ -154,35 +165,15 @@ export default function ProductCard({
             </div>
           )}
         </div>
+        */}
 
-        <div className="flex items-baseline flex-wrap gap-1.5 mb-1.5">
-          <span
-            className={`font-extrabold text-[#d72828] tracking-tight ${variantClasses.price}`}
-          >
-            ₹ {Number(currentPrice).toLocaleString("en-IN")}
-          </span>
-          {hasDiscount && (
-            <span className="text-xs text-gray-400 line-through font-normal">
-              ₹ {Number(originalPrice).toLocaleString("en-IN")}
-            </span>
-          )}
-        </div>
+        <PriceBlock 
+          price={currentPrice} 
+          mrp={originalPrice} 
+          priceClass={variantClasses.price} 
+        />
 
-        <div className="mb-2.5">
-          {inStock ? (
-            <span className="text-[10px] font-semibold text-emerald-600 inline-flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-              In Stock
-            </span>
-          ) : (
-            <span className="text-[10px] font-semibold text-rose-500 inline-flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
-              Out of Stock
-            </span>
-          )}
-        </div>
-
-        <div className="mt-auto pt-2 border-t border-gray-100 flex items-center justify-between gap-2">
+        <div className="mt-auto pt-2 border-t border-gray-100 flex flex-col gap-2">
           <ProductAddtoCart
             productId={_id}
             stockQuantity={quantity}
@@ -192,8 +183,24 @@ export default function ProductCard({
             productName={name}
             productSlug={slug}
           />
+
+          {bestPriceData ? (
+            <BestPriceStrip 
+              effectivePrice={bestPriceData.bestPrice} 
+              onOffersClick={() => setIsOffersModalOpen(true)}
+            />
+          ) : null}
         </div>
       </div>
+
+      {isOffersModalOpen && bestPriceData && (
+        <BankOffersModal
+          basePrice={bestPriceData.basePrice}
+          bankOffers={bestPriceData.bankOffers}
+          bankEffectivePrice={bestPriceData.bestPrice}
+          onClose={() => setIsOffersModalOpen(false)}
+        />
+      )}
     </div>
   );
 }

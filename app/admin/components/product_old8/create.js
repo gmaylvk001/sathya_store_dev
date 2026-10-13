@@ -1011,7 +1011,7 @@ export default function AddProductPage() {
     </div>
   );
   return (
-    <div className="mx-auto p-6 bg-white shadow-md rounded-lg" >
+    <div className="mx-auto p-6 bg-white shadow-md rounded-lg border border-gray-200" >
     
       <h2 className="text-2xl font-bold mb-4">Add Product</h2>
       <ProgressStepper />
