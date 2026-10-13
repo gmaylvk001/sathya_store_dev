@@ -53,6 +53,7 @@ const RecentlyViewedCard = ({ product, brandMap = {}, onProductClick }) => {
     <ProductCard
       product={normalizeProduct(product, brandMap)}
       onProductClick={onProductClick}
+      checkMovement={false}
     />
   );
 };
