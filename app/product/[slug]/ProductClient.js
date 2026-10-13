@@ -2010,55 +2010,10 @@ export default function ProductClient() {
 
               {/* ==================== COLUMN 3: FREQUENTLY BOUGHT TOGETHER & CTAS (3 cols) ==================== */}
               <div className="col-span-3 min-w-0">
-                <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-2.5">
 
-                  {/* 1. FREQUENTLY BOUGHT TOGETHER (EXACTLY 2 PRODUCTS, BACKEND CONTROLLED) */}
-                  {featuredProducts && featuredProducts.filter(item => item.stock_status === "In Stock").length > 0 && (
-                    <div className="border border-gray-200 rounded-lg shadow-sm bg-white p-3">
-                      <h3 className="font-bold text-xs text-gray-900 border-b border-gray-200 pb-2 mb-3 uppercase tracking-wide">
-                        Frequently Bought Together:
-                      </h3>
-                      <div className="space-y-3">
-                        {featuredProducts.slice(0, 2).map((item) => (
-                          <div key={item._id} className="flex items-start gap-2.5 pb-2.5 border-b border-gray-100 last:border-0">
-                            <input
-                              type="checkbox"
-                              className="mt-1 accent-[#d72828] cursor-pointer w-4 h-4"
-                              checked={selectedFrequentProducts.some(p => p._id === item._id)}
-                              onChange={() => toggleFrequentProduct(item)}
-                            />
-                            <div className="flex items-start gap-2 flex-1 min-w-0">
-                              {item.images?.[0] && (
-                                <img
-                                  src={item.images[0].startsWith('http') ? item.images[0] : `/uploads/products/${item.images[0]}`}
-                                  alt={item.name}
-                                  className="w-12 h-12 object-contain flex-shrink-0 rounded border border-gray-200"
-                                />
-                              )}
-                              <div className="text-xs flex-1 min-w-0">
-                                <Link href={`/product/${item.slug}`} className="block hover:underline">
-                                  <h4 className="font-medium text-gray-800 line-clamp-2 text-[11px] leading-snug">{item.name}</h4>
-                                </Link>
-                                <div className="flex flex-col mt-1">
-                                  {item?.special_price > 0 && item?.special_price < item?.price && (
-                                    <span className="text-[10px] text-gray-400 line-through">
-                                      ₹ {Number(item?.price).toLocaleString('en-IN')}
-                                    </span>
-                                  )}
-                                  <div className="flex items-center gap-1 text-[11px]">
-                                    <span className="text-gray-500 font-medium">Buy Together for</span>
-                                    <span className="font-bold text-[#d72828]">
-                                      ₹ {Number(item?.special_price > 0 ? item.special_price : item?.price || 0).toLocaleString('en-IN')}
-                                    </span>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+                  {/* 1. LIVE MARKET PRICE COMPARISON (ePrice Tracker™) */}
+                  <CompetitorPriceTracker product={product} />
 
                   {/* 2. PROTECTION / EXTENDED WARRANTY (MIDDLE OF COLUMN 3) */}
                   {warranties.length > 0 && isExtendedWarrantyEligible(product) && (
@@ -2114,10 +2069,7 @@ export default function ProductClient() {
                     </div>
                   )}
 
-                  {/* LIVE MARKET PRICE COMPARISON (ePrice Tracker™) */}
-                  <CompetitorPriceTracker product={product} />
-
-                  {/* 3. PRIMARY ACTION BUTTONS: BUY NOW & ADD TO CART (INSIDE COLUMN 3) */}
+                  {/* 2. PRIMARY ACTION BUTTONS: BUY NOW & ADD TO CART (INSIDE COLUMN 3) */}
                   {product.stock_status === "In Stock" && product.quantity > 0 && (
                     <div className="flex flex-col gap-2 bg-white border border-gray-200 p-3 rounded-lg shadow-sm">
                       {/* Live Price Summary */}
@@ -2201,9 +2153,9 @@ export default function ProductClient() {
                     </div>
                   )}
 
-                  {/* 4. BOTTOM ACTIONS BAR: Share | Compare | Wishlist */}
-                  <div className="flex items-center justify-between border-t border-b border-gray-200 py-2.5 px-2 text-xs font-semibold text-gray-700 bg-gray-50 rounded-md">
-                    <button onClick={handleShareProduct} className="flex items-center gap-1 hover:text-[#d72828] transition">
+                  {/* 3. ACTIONS BAR: Share | Compare | Wishlist */}
+                  <div className="flex items-center justify-between border border-gray-200 py-2.5 px-3 text-xs font-semibold text-gray-700 bg-gray-50 rounded-lg">
+                    <button onClick={handleShareProduct} className="flex items-center gap-1 hover:text-[#d72828] transition cursor-pointer">
                       <FaShareAlt className="text-gray-500 w-3.5 h-3.5" />
                       <span>Share</span>
                     </button>
@@ -2211,16 +2163,64 @@ export default function ProductClient() {
                     <CompareButton
                       product={product}
                       variant="text"
-                      className="flex items-center gap-1 hover:text-[#d72828] transition bg-transparent p-0 border-0 shadow-none text-xs text-gray-700 font-semibold"
+                      className="flex items-center gap-1 hover:text-[#d72828] transition bg-transparent p-0 border-0 shadow-none text-xs text-gray-700 font-semibold cursor-pointer"
                     />
                     <span className="text-gray-300">|</span>
                     <AddToWishlistButton
                       productId={product._id}
                       label="Wishlist"
                       iconSize={14}
-                      className="flex items-center gap-1 hover:text-[#d72828] transition bg-transparent p-0 border-0 shadow-none text-xs text-gray-700 font-semibold"
+                      className="flex items-center gap-1 hover:text-[#d72828] transition bg-transparent p-0 border-0 shadow-none text-xs text-gray-700 font-semibold cursor-pointer"
                     />
                   </div>
+
+                  {/* 4. FREQUENTLY BOUGHT TOGETHER (EXACTLY 2 PRODUCTS, BACKEND CONTROLLED) */}
+                  {featuredProducts && featuredProducts.filter(item => item.stock_status === "In Stock").length > 0 && (
+                    <div className="border border-gray-200 rounded-lg shadow-sm bg-white p-3">
+                      <h3 className="font-bold text-xs text-gray-900 border-b border-gray-200 pb-2 mb-3 uppercase tracking-wide">
+                        Frequently Bought Together:
+                      </h3>
+                      <div className="space-y-3">
+                        {featuredProducts.slice(0, 2).map((item) => (
+                          <div key={item._id} className="flex items-start gap-2.5 pb-2.5 border-b border-gray-100 last:border-0">
+                            <input
+                              type="checkbox"
+                              className="mt-1 accent-[#d72828] cursor-pointer w-4 h-4"
+                              checked={selectedFrequentProducts.some(p => p._id === item._id)}
+                              onChange={() => toggleFrequentProduct(item)}
+                            />
+                            <div className="flex items-start gap-2 flex-1 min-w-0">
+                              {item.images?.[0] && (
+                                <img
+                                  src={item.images[0].startsWith('http') ? item.images[0] : `/uploads/products/${item.images[0]}`}
+                                  alt={item.name}
+                                  className="w-12 h-12 object-contain flex-shrink-0 rounded border border-gray-200"
+                                />
+                              )}
+                              <div className="text-xs flex-1 min-w-0">
+                                <Link href={`/product/${item.slug}`} className="block hover:underline">
+                                  <h4 className="font-medium text-gray-800 line-clamp-2 text-[11px] leading-snug">{item.name}</h4>
+                                </Link>
+                                <div className="flex flex-col mt-1">
+                                  {item?.special_price > 0 && item?.special_price < item?.price && (
+                                    <span className="text-[10px] text-gray-400 line-through">
+                                      ₹ {Number(item?.price).toLocaleString('en-IN')}
+                                    </span>
+                                  )}
+                                  <div className="flex items-center gap-1 text-[11px]">
+                                    <span className="text-gray-500 font-medium">Buy Together for</span>
+                                    <span className="font-bold text-[#d72828]">
+                                      ₹ {Number(item?.special_price > 0 ? item.special_price : item?.price || 0).toLocaleString('en-IN')}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
                 </div>
               </div>
