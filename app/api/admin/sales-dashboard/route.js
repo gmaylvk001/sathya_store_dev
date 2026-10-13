@@ -8,6 +8,7 @@ import Product from "@/models/product";
 import Category from "@/models/ecom_category_info";
 import User from "@/models/User";
 import StoreListing from "@/models/store_listings";
+import { getUserAccess } from "@/lib/permissions";
 
 export const dynamic = "force-dynamic";
 
@@ -16,12 +17,14 @@ const PENDING = new Set(["ordered", "order placed", "order accepted"]);
 const CATEGORY_SALES = new Set(["ordered", "order placed", "order accepted", "billed", "complete"]);
 const SELLING = new Set(["complete", "billed"]);
 
-function authorize(req) {
+async function authorize(req) {
   const token = req.headers.get("authorization")?.split(" ")[1];
   if (!token) return false;
   try {
-    jwt.verify(token, process.env.JWT_SECRET);
-    return true;
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    if (!decoded?.userId) return false;
+    const access = await getUserAccess(decoded.userId);
+    return access.unrestricted || access.hasRole;
   } catch {
     return false;
   }
@@ -322,7 +325,7 @@ function refsFor(order, details) {
 }
 
 export async function GET(req) {
-  if (!authorize(req)) {
+  if (!(await authorize(req))) {
     return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
   }
 
