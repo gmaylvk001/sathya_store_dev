@@ -182,6 +182,7 @@ export default function ProductCard({
             movement={movement}
             productName={name}
             productSlug={slug}
+            checkMovement
           />
 
           {bestPriceData ? (
