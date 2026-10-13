@@ -40,8 +40,10 @@ export default function UserComponent() {
   const fetchUsers = async () => {
     setIsLoading(true);
     try {
-      const response = await axios.get("/api/users/get");
-      setUsers(response.data);
+      const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+      const response = await axios.get("/api/users/get", { headers });
+      setUsers(Array.isArray(response.data) ? response.data : []);
     } catch (error) {
       console.error("Error fetching users:", error);
     } finally {

@@ -93,11 +93,15 @@ export default function CreateStoreForm() {
 
   const fetchUsers = async () => {
     try {
-      const response = await fetch("/api/users/get"); // Assuming this API exists
+      const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+      const response = await fetch("/api/users/get", {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (!response.ok) return;
       const result = await response.json();
       if (result.error) {
         toast.error(result.error);
-      } else {
+      } else if (Array.isArray(result)) {
         const userOptions = result.map((user) => ({
           value: user._id,
           label: user.name, // Assuming user object has a 'name' field

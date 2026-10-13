@@ -31,8 +31,7 @@ console.log(products,offerId, subject, message);
     
 const offer = await Offer.findOne({ _id: new mongoose.Types.ObjectId(offerId) });
     console.log(offer);
-    const usersResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/get`);
-    const users = await usersResponse.json();
+    const users = await User.find({ user_type: "user" }).select("_id email").lean();
 
    
 
