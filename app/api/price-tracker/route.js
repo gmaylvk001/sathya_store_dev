@@ -15,8 +15,11 @@ export const dynamic = "force-dynamic";
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
-    const sku = searchParams.get("sku") || searchParams.get("item_code") || "";
-    const title = searchParams.get("title") || searchParams.get("name") || "";
+    const productCode =
+      searchParams.get("product_code") ||
+      searchParams.get("item_code") ||
+      searchParams.get("sku") ||
+      "";
     const rawPrice = searchParams.get("price") || "0";
     const sathyaPrice = parseFloat(rawPrice) || 0;
 
@@ -25,11 +28,11 @@ export async function GET(request) {
     const slotDetails = getLastVerifiedSlotDetailed(now);
     const countdown = getNextSyncCountdown(now);
 
-    if (sathyaPrice <= 0) {
+    if (sathyaPrice <= 0 || !productCode) {
       return NextResponse.json({
         success: true,
-        sku,
-        sathyaPrice: 0,
+        product_code: productCode,
+        sathyaPrice: Math.max(0, sathyaPrice),
         lastVerifiedSlot,
         lastVerifiedSlotFormatted: slotDetails.label,
         nextSyncInSeconds: countdown,
@@ -37,9 +40,8 @@ export async function GET(request) {
       });
     }
 
-    const deals = getCompetitorDeals({
-      sku,
-      title,
+    const deals = await getCompetitorDeals({
+      product_code: productCode,
       sathyaPrice,
       currentDate: now,
     });
@@ -49,12 +51,12 @@ export async function GET(request) {
     return NextResponse.json(
       {
         success: true,
-        sku,
+        product_code: productCode,
         sathyaPrice,
         lastVerifiedSlot,
         lastVerifiedSlotFormatted: slotDetails.label,
         nextSyncInSeconds: countdown,
-        deals,
+        deals: Array.isArray(deals) ? deals : [],
       },
       {
         status: 200,

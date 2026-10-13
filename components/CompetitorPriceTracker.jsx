@@ -28,8 +28,7 @@ export default function CompetitorPriceTracker({ product, className = "" }) {
   const sathyaPrice = Number(
     product?.special_price > 0 ? product?.special_price : product?.price || 0
   );
-  const sku = product?.item_code || product?.sku || product?.slug || "";
-  const title = product?.name || "";
+  const productCode = product?.item_code || product?.product_code || product?.sku || "";
 
   useEffect(() => {
     try {
@@ -41,7 +40,7 @@ export default function CompetitorPriceTracker({ product, className = "" }) {
   }, []);
 
   useEffect(() => {
-    if (!product || sathyaPrice <= 0) {
+    if (!product || !productCode || sathyaPrice <= 0) {
       setIsLoading(false);
       return;
     }
@@ -50,16 +49,15 @@ export default function CompetitorPriceTracker({ product, className = "" }) {
     setIsLoading(true);
 
     const params = new URLSearchParams({
-      sku,
+      product_code: productCode,
       price: String(sathyaPrice),
-      title: title.slice(0, 80),
     });
 
     fetch(`/api/price-tracker?${params.toString()}`)
       .then((res) => res.json())
       .then((data) => {
         if (isMounted) {
-          if (data && data.success && Array.isArray(data.deals) && data.deals.length > 0) {
+          if (data && data.success && Array.isArray(data.deals)) {
             setTrackerData(data);
           } else {
             setTrackerData(null);
@@ -78,49 +76,23 @@ export default function CompetitorPriceTracker({ product, className = "" }) {
     return () => {
       isMounted = false;
     };
-  }, [product?._id, sku, sathyaPrice, title]);
+  }, [product?._id, productCode, sathyaPrice]);
 
-  // Loading skeleton with matching ultra-compressed 2-row dimensions
+  // Loading state: return null to prevent layout shifts/flashing
   if (isLoading) {
-    return (
-      <div
-        className={`bg-gradient-to-b from-slate-50/80 to-white border border-slate-200/90 rounded-2xl p-2.5 shadow-sm backdrop-blur-xs relative overflow-hidden ${className}`}
-      >
-        <div className="h-1 bg-gradient-to-r from-red-500 via-amber-500 to-emerald-500 w-full absolute top-0 left-0" />
-        <div className="pb-1.5 border-b border-slate-100">
-          <div className="flex items-center justify-between">
-            <div className="h-3.5 w-32 bg-slate-200 rounded animate-pulse" />
-            <div className="h-3.5 w-20 bg-slate-100 rounded-full animate-pulse" />
-          </div>
-          <div className="h-2 w-24 bg-slate-100 rounded mt-1 animate-pulse" />
-        </div>
-        <div className="mt-1 space-y-1">
-          {[1, 2].map((i) => (
-            <div
-              key={i}
-              className="h-8 bg-slate-100/80 rounded-xl animate-pulse border border-slate-100"
-            />
-          ))}
-        </div>
-        <div className="h-7 w-full bg-slate-100 rounded-lg mt-1.5 animate-pulse" />
-      </div>
-    );
-  }
-
-  // Graceful silent fallback if no deals available
-  if (!trackerData || !Array.isArray(trackerData.deals) || trackerData.deals.length === 0) {
     return null;
   }
 
-  // Strictly filter only Amazon and Flipkart, limited to exactly 2 items
-  const deals = (trackerData.deals || [])
+  // Filter Amazon, Flipkart, and Croma deals
+  const deals = (trackerData?.deals || [])
     .filter((deal) => {
       const plat = (deal?.platform || "").toLowerCase();
-      return plat === "amazon" || plat === "flipkart";
+      return plat === "amazon" || plat === "flipkart" || plat === "croma";
     })
-    .slice(0, 2);
+    .slice(0, 3);
 
-  if (deals.length === 0) {
+  // Conditional Visibility: If deals is empty, return null immediately (no fallback banners)
+  if (!trackerData || !Array.isArray(deals) || deals.length === 0) {
     return null;
   }
 
@@ -230,15 +202,9 @@ export default function CompetitorPriceTracker({ product, className = "" }) {
                   ₹{Number(deal.price).toLocaleString("en-IN")}
                 </span>
 
-                {isCheaper ? (
-                  <span className="inline-flex items-center bg-emerald-50 text-emerald-700 border border-emerald-200/90 text-[8.5px] font-bold px-1.5 py-0.5 rounded-md mt-0.5 flex-shrink-0 whitespace-nowrap tracking-tight leading-none">
-                    Save ₹{savings.toLocaleString("en-IN")} on SATHYA
-                  </span>
-                ) : isMatched ? (
-                  <span className="inline-flex items-center bg-blue-50 text-blue-700 border border-blue-200/90 text-[8.5px] font-bold px-1.5 py-0.5 rounded-md mt-0.5 flex-shrink-0 whitespace-nowrap tracking-tight leading-none">
-                    Best Price Matched
-                  </span>
-                ) : null}
+                <span className="inline-flex items-center bg-emerald-50 text-emerald-700 border border-emerald-200/90 text-[8.5px] font-bold px-1.5 py-0.5 rounded-md mt-0.5 flex-shrink-0 whitespace-nowrap tracking-tight leading-none">
+                  Save ₹{Number(savings).toLocaleString("en-IN")} on SATHYA
+                </span>
               </div>
             </div>
           );
