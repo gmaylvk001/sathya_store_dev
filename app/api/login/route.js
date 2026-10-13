@@ -20,17 +20,43 @@ export async function POST(req) {
       return NextResponse.json({ error: "Admin not found" }, { status: 400 });
     }
 
+    if (existingUser.user_type !== "admin") {
+      return NextResponse.json({ error: "Access denied: Admin credentials required" }, { status: 403 });
+    }
+
     const isPassword = await bcrypt.compare(password, existingUser.password);
     console.log(isPassword);
 
     if (!isPassword) return NextResponse.json({ error: "Incorrect Password" }, { status: 400 });
 
-    // Create a JWT token
-    // const token = jwt.sign({ userId: existingUser._id, email: existingUser.email }, process.env.JWT_SECRET, { expiresIn: "1h" });
-    const token = jwt.sign({ userId: existingUser._id, email: existingUser.email }, process.env.JWT_SECRET);
+    // Create a JWT token with user_type embedded
+    const token = jwt.sign(
+      {
+        userId: existingUser._id,
+        email: existingUser.email,
+        user_type: existingUser.user_type,
+        role: existingUser.user_type,
+      },
+      process.env.JWT_SECRET || "sathya_secret",
+      { expiresIn: "24h" }
+    );
 
-    // Send the token back to the client
-    return NextResponse.json({ message: "User Login", token }, { status: 200 });
+    // Send the token back to the client and set auth cookies
+    const response = NextResponse.json(
+      { message: "User Login", token, role: existingUser.user_type },
+      { status: 200 }
+    );
+    response.cookies.set("admin_token", token, {
+      path: "/",
+      sameSite: "lax",
+      maxAge: 60 * 60 * 24,
+    });
+    response.cookies.set("token", token, {
+      path: "/",
+      sameSite: "lax",
+      maxAge: 60 * 60 * 24,
+    });
+    return response;
 
   } catch (error) {
     console.error("API Error:", error);
