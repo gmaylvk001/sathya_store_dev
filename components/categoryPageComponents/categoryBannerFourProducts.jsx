@@ -268,8 +268,10 @@ function ExactSizeImage({ src, alt = "", maxSide, className = "" }) {
       ? displaySize
         ? {
           width: `${displaySize.width}px`,
-          height: `${displaySize.height}px`,
+          height: "auto",
+          aspectRatio: `${displaySize.width} / ${displaySize.height}`,
           maxWidth: "100%",
+          maxHeight: `${displaySize.height}px`,
         }
         : {
           width: "auto",
@@ -316,8 +318,8 @@ export default function CategoryBannerFourProducts({ config }) {
   const visibleTiles = tiles.slice(0, 4);
   const tileGridClass =
     visibleTiles.length === 3
-      ? "grid-cols-1 sm:grid-cols-3"
-      : "grid-cols-2 md:grid-cols-4";
+      ? "grid-cols-3"
+      : "grid-cols-4";
 
   return (
     <section className="w-full mb-8 bg-white">
