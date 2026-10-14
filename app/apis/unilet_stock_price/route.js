@@ -23,9 +23,9 @@ function saveRequestCopy(data) {
   }
 }
 
-// Laravel onPriceUniletStore(): .env on_price_unilet_store=on/off (missing = off, key is case-insensitive).
+// Laravel onPriceUniletStore(): .env on_unilet_price_update=on/off (missing = off, key is case-insensitive).
 function onPriceUniletStore() {
-  const key = Object.keys(process.env).find((k) => k.toLowerCase() === "on_price_unilet_store");
+  const key = Object.keys(process.env).find((k) => k.toLowerCase() === "on_unilet_price_update");
   const value = String((key && process.env[key]) || "").trim().replace(/^["']|["']$/g, "").toLowerCase();
   return ["on", "1", "true", "yes"].includes(value);
 }

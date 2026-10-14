@@ -2,13 +2,14 @@ import { NextResponse } from "next/server";
 import mongoose from "mongoose";
 import dbConnect from "@/lib/db";
 import ProductAllU from "@/models/product_all_u";
+import OwnerProduct from "@/models/OwnerProduct";
 import { requireAdmin } from "@/lib/adminRequest";
 
 export const dynamic = "force-dynamic";
 
 /**
  * GET /api/admin/unilet-new-products
- * All product_all_u records, newest first.
+ * product_all_u records not yet in owner_products (no vendor_item_code = item_code), newest first.
  */
 export async function GET(req) {
   const auth = await requireAdmin(req);
@@ -16,7 +17,15 @@ export async function GET(req) {
 
   try {
     await dbConnect();
-    const products = await ProductAllU.find({}).sort({ created_at: -1, _id: -1 }).lean();
+
+    // MySQL join compared case-insensitively and ignored trailing spaces, so match the same way.
+    const normalize = (code) => String(code ?? "").trim().toLowerCase();
+    const linkedCodes = await OwnerProduct.distinct("vendor_item_code", { vendor_item_code: { $nin: [null, ""] } });
+    const linked = new Set(linkedCodes.map(normalize));
+
+    const rows = await ProductAllU.find({}).sort({ created_at: -1, _id: -1 }).lean();
+    const products = rows.filter((row) => !linked.has(normalize(row.item_code)));
+
     return NextResponse.json({ success: true, products });
   } catch (error) {
     console.error("[unilet-new-products] GET error:", error);
