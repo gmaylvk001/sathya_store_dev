@@ -1475,6 +1475,7 @@ export default function ProductClient() {
                   externalShowEmiModal={showEMIModal}
                   onExternalCloseEmiModal={() => setShowEMIModal(false)}
                 />
+                <CompetitorPriceTracker product={product} className="mt-3" />
                 <ProductInstallationWarrantySection
                   product={product}
                   warranties={warranties}

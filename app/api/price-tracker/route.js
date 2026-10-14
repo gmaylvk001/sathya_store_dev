@@ -20,6 +20,7 @@ export async function GET(request) {
       searchParams.get("item_code") ||
       searchParams.get("sku") ||
       "";
+    const modelNumber = searchParams.get("model_number") || "";
     const rawPrice = searchParams.get("price") || "0";
     const sathyaPrice = parseFloat(rawPrice) || 0;
 
@@ -28,10 +29,11 @@ export async function GET(request) {
     const slotDetails = getLastVerifiedSlotDetailed(now);
     const countdown = getNextSyncCountdown(now);
 
-    if (sathyaPrice <= 0 || !productCode) {
+    if (sathyaPrice <= 0 || (!productCode && !modelNumber)) {
       return NextResponse.json({
         success: true,
         product_code: productCode,
+        model_number: modelNumber,
         sathyaPrice: Math.max(0, sathyaPrice),
         lastVerifiedSlot,
         lastVerifiedSlotFormatted: slotDetails.label,
@@ -42,6 +44,7 @@ export async function GET(request) {
 
     const deals = await getCompetitorDeals({
       product_code: productCode,
+      model_number: modelNumber,
       sathyaPrice,
       currentDate: now,
     });

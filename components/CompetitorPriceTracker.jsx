@@ -5,12 +5,16 @@ import Link from "next/link";
 
 // ==========================================
 // Competitor Brand Logo Resolver
+// Newly uploaded logos from public/uploads:
+// - Amazon: /uploads/amazon (1).webp
+// - Flipkart: /uploads/amazon (4).webp
+// - Croma: /uploads/amazon (5).webp
 // ==========================================
 const getLogoPath = (platformName) => {
   const name = (platformName || "").toLowerCase();
-  if (name.includes("amazon")) return "/uploads/amazon.webp";
-  if (name.includes("flipkart")) return "/uploads/flipkart.webp";
-  if (name.includes("croma")) return "/uploads/croma.webp";
+  if (name.includes("amazon")) return "/uploads/amazon (1).webp";
+  if (name.includes("flipkart")) return "/uploads/amazon (4).webp";
+  if (name.includes("croma")) return "/uploads/amazon (5).webp";
   return null; // Fallback for unmatched platforms
 };
 
@@ -29,6 +33,7 @@ export default function CompetitorPriceTracker({ product, className = "" }) {
     product?.special_price > 0 ? product?.special_price : product?.price || 0
   );
   const productCode = product?.item_code || product?.product_code || product?.sku || "";
+  const modelNumber = product?.model_number || "";
 
   useEffect(() => {
     try {
@@ -40,7 +45,7 @@ export default function CompetitorPriceTracker({ product, className = "" }) {
   }, []);
 
   useEffect(() => {
-    if (!product || !productCode || sathyaPrice <= 0) {
+    if (!product || (!productCode && !modelNumber) || sathyaPrice <= 0) {
       setIsLoading(false);
       return;
     }
@@ -50,6 +55,7 @@ export default function CompetitorPriceTracker({ product, className = "" }) {
 
     const params = new URLSearchParams({
       product_code: productCode,
+      model_number: modelNumber,
       price: String(sathyaPrice),
     });
 
@@ -155,12 +161,12 @@ export default function CompetitorPriceTracker({ product, className = "" }) {
             >
               {/* Left: Platform Logo & Name */}
               <div className="flex items-center gap-2 min-w-0">
-                <div className="w-6 h-6 rounded-full overflow-hidden border border-slate-200 bg-white flex items-center justify-center flex-shrink-0 p-0.5">
+                <div className="w-6 h-6 rounded-md overflow-hidden border border-slate-200/80 bg-white flex items-center justify-center flex-shrink-0">
                   {logoSrc ? (
                     <img
                       src={logoSrc}
                       alt={`${deal.platform} Logo`}
-                      className="w-full h-full object-contain rounded-full"
+                      className="w-full h-full object-cover rounded-md"
                       onError={(e) => {
                         e.target.style.display = "none";
                         if (e.target.nextSibling) {
