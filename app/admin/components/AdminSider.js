@@ -23,6 +23,7 @@ const menuItems = [
     ]
   },
   { icon: 'mdi:storefront-outline', label: 'Unilet Products', link: 'unilet-products' },
+  { icon: 'mdi:plus-box-multiple-outline', label: 'New Unilet Product', link: 'unilet-new-products' },
   {
     icon: 'mdi:cart-outline',
     label: 'Sales',
@@ -111,12 +112,13 @@ const menuItems = [
   },
 ];
 
-const UNILET_VIEW_MENUS = ['Dashboard', 'Category', 'Product', 'Unilet Products', 'Sales', 'Exist Sales', 'Stores'];
+const UNILET_VIEW_MENUS = ['Dashboard', 'Category', 'Product', 'Unilet Products', 'New Unilet Product', 'Sales', 'Exist Sales', 'Stores'];
+const UNILET_ONLY_MENUS = ['Unilet Products', 'New Unilet Product'];
 
 function visibleMenuItems(uniletView) {
   return uniletView
     ? menuItems.filter((item) => UNILET_VIEW_MENUS.includes(item.label))
-    : menuItems.filter((item) => item.label !== 'Unilet Products');
+    : menuItems.filter((item) => !UNILET_ONLY_MENUS.includes(item.label));
 }
 export default function AdminSider({ collapsed }) {
   const pathname = usePathname();
