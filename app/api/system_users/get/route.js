@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 
 export async function GET(req) {
   try {
-    const auth = await requireAdmin(req, "system_users");
+    const auth = await requireAdmin(req);
     if (!auth.authorized) {
       return NextResponse.json({ error: auth.error }, { status: auth.status });
     }

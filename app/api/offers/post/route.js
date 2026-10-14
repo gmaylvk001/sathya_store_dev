@@ -17,7 +17,7 @@ export async function GET() {
 
 export async function POST(req) {
     try {
-        const auth = await requireAdmin(req, "offers");
+        const auth = await requireAdmin(req);
         if (!auth.authorized) {
             return NextResponse.json({ error: auth.error }, { status: auth.status });
         }

@@ -5,7 +5,7 @@ import { requireAdmin } from "@/lib/adminRequest";
 
 export async function DELETE(req) {
   try {
-    const auth = await requireAdmin(req, "roles");
+    const auth = await requireAdmin(req);
     if (!auth.authorized) {
       return NextResponse.json({ error: auth.error }, { status: auth.status });
     }
