@@ -50,33 +50,70 @@ export async function GET(req) {
     const { searchParams } = new URL(req.url);
 
     const ids = searchParams.get("ids");
+    const categoryId = searchParams.get("category");
+    const brandId = searchParams.get("brand");
+    const excludeId = searchParams.get("exclude");
+    const limit = parseInt(searchParams.get("limit")) || 10;
 
-    if (!ids) {
-      return NextResponse.json(
-        {
-          success: false,
-          products: [],
-          error: "Related product IDs are required",
-        },
-        { status: 400 }
-      );
+    // 1. Fetch by explicit IDs if provided
+    if (ids) {
+      const productIds = ids
+        .split(",")
+        .filter(Boolean)
+        .map((id) => (mongoose.Types.ObjectId.isValid(id) ? new mongoose.Types.ObjectId(id) : id));
+
+      const products = await Product.find({
+        _id: { $in: productIds },
+        status: "Active",
+      }).lean();
+
+      return NextResponse.json({
+        success: true,
+        products,
+      });
     }
 
-    // Convert comma separated ids to ObjectIds
-    const productIds = ids
-      .split(",")
-      .filter(Boolean)
-      .map((id) => new mongoose.Types.ObjectId(id));
+    // 2. Fallback: Fetch by category / brand
+    if (categoryId) {
+      const query = { category: categoryId, status: "Active" };
+      if (brandId) query.brand = brandId;
+      if (excludeId) query._id = { $ne: excludeId };
 
-    const products = await Product.find({
-      _id: { $in: productIds },
-    }).lean();
+      let products = await Product.find(query)
+        .limit(limit)
+        .sort({ createdAt: -1 })
+        .lean();
 
-    return NextResponse.json({
-      success: true,
-      products,
-    });
+      // If brand filter was too narrow (< 4 products), broaden to category items
+      if (products.length < 4 && brandId) {
+        const existingIds = products.map((p) => p._id);
+        const excludeList = excludeId ? [...existingIds, excludeId] : existingIds;
+        const moreProducts = await Product.find({
+          category: categoryId,
+          status: "Active",
+          _id: { $nin: excludeList },
+        })
+          .limit(limit - products.length)
+          .sort({ createdAt: -1 })
+          .lean();
 
+        products = [...products, ...moreProducts];
+      }
+
+      return NextResponse.json({
+        success: true,
+        products,
+      });
+    }
+
+    return NextResponse.json(
+      {
+        success: false,
+        products: [],
+        error: "Related product IDs or category are required",
+      },
+      { status: 400 }
+    );
   } catch (error) {
     console.error("Related products fetch error:", error);
 

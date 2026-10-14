@@ -192,11 +192,11 @@ export default function PaymentOffers({ product, externalShowEmiModal, onExterna
               </button>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              {rawEmiOffers.slice(0, 3).map((offer) => {
+              {rawEmiOffers.slice(0, 3).map((offer, index) => {
                 const isSelected = selectedOfferId === offer.offerId;
                 return (
                   <div
-                    key={offer.offerId}
+                    key={offer.offerId || `${offer.bankShortCode}-${offer.tenureMonths || index}-${index}`}
                     role="button"
                     tabIndex={0}
                     onClick={() => openEmiModal(offer)}
@@ -275,11 +275,11 @@ export default function PaymentOffers({ product, externalShowEmiModal, onExterna
               </button>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              {validBankOffers.slice(0, 3).map((offer) => {
+              {validBankOffers.slice(0, 3).map((offer, index) => {
                 const isSelected = selectedOfferId === offer.offerId;
                 return (
                   <div
-                    key={offer.offerId}
+                    key={offer.offerId || `${offer.bankShortCode || 'bank'}-${index}`}
                     role="button"
                     tabIndex={0}
                     onClick={() => openBankOffersModal(offer)}
