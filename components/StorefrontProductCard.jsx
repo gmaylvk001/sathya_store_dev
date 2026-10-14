@@ -73,12 +73,39 @@ export default function StorefrontProductCard({
     product.reviewCount || product.reviews_count || product.numReviews || 0
   );
 
-  const imagepathname = product.images?.[0] || "";
-  const imgSrc = imagepathname
+  const validImage = Array.isArray(product.images)
+    ? product.images.find(img => img && typeof img === "string" && img.trim() !== "" && img.trim().toLowerCase() !== "null" && img.trim().toLowerCase() !== "undefined")
+    : (typeof product.images === "string" && product.images.trim() ? product.images : null);
+
+  const imagepathname = validImage || product.imgSrc || product.image || "";
+  const initialImgSrc = imagepathname
     ? (imagepathname.startsWith("http")
         ? imagepathname
         : `/uploads/products/${imagepathname.replace(/^\/?(uploads\/products\/)?/, "").replace(/^\/+/, "")}`)
     : "/uploads/products/placeholder.jpg";
+
+  const [currentImg, setCurrentImg] = useState(initialImgSrc);
+  const [retryFailed, setRetryFailed] = useState(false);
+
+  React.useEffect(() => {
+    setCurrentImg(initialImgSrc);
+    setRetryFailed(false);
+    setImgLoaded(false);
+  }, [initialImgSrc]);
+
+  const assetFallbackBase = (process.env.NEXT_PUBLIC_ASSET_FALLBACK_URL || "https://estore.bharathelectronics.in").replace(/\/+$/, "");
+
+  const handleImageError = () => {
+    setImgLoaded(true);
+    if (!retryFailed && currentImg && currentImg.startsWith("/uploads/products/") && !currentImg.includes("placeholder")) {
+      const filename = currentImg.replace("/uploads/products/", "");
+      setRetryFailed(true);
+      setCurrentImg(`${assetFallbackBase}/uploads/products/${filename}`);
+    } else {
+      setRetryFailed(true);
+      setCurrentImg("/uploads/products/placeholder.jpg");
+    }
+  };
 
   const productUrl = `/product/${product.slug || product._id}`;
 
@@ -127,7 +154,7 @@ export default function StorefrontProductCard({
             <div className="absolute inset-0 bg-gray-100/60 animate-pulse rounded-lg" />
           )}
           <Image
-            src={imgSrc}
+            src={currentImg}
             alt={product.name || "Product Image"}
             fill
             sizes="(max-width: 640px) 70vw, (max-width: 1024px) 33vw, 20vw"
@@ -136,13 +163,7 @@ export default function StorefrontProductCard({
             }`}
             loading="lazy"
             onLoad={() => setImgLoaded(true)}
-            onError={(e) => {
-              setImgLoaded(true);
-              if (e?.currentTarget) {
-                e.currentTarget.onerror = null;
-                e.currentTarget.src = "/uploads/products/placeholder.jpg";
-              }
-            }}
+            onError={handleImageError}
             unoptimized
           />
         </Link>

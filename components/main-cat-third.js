@@ -305,6 +305,12 @@ export default function CategoryMainPage({ categorySlug = "large-appliance" }) {
                               fill
                               className="object-contain p-2 md:p-4 transition-transform duration-300 group-hover:scale-105"
                               sizes="(max-width: 640px) 50vw, 33vw, 25vw"
+                              onError={(e) => {
+                                if (e?.currentTarget) {
+                                  e.currentTarget.onerror = null;
+                                  e.currentTarget.src = "/uploads/products/placeholder.jpg";
+                                }
+                              }}
                               unoptimized
                             />
                           )}

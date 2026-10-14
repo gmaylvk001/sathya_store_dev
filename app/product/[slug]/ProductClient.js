@@ -97,6 +97,7 @@ export default function ProductClient() {
   const [selectedWarrantyAmount, setSelectedWarrantyAmount] = useState(0);
   const [showNoWarrantyModal, setShowNoWarrantyModal] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [notifyMeSuccess, setNotifyMeSuccess] = useState(false);
   const [faqs, setFaqs] = useState([]);
   const [recentlyViewedProducts, setRecentlyViewedProducts] = useState([]);
   const [isDesktop, setIsDesktop] = useState(false);
@@ -816,7 +817,7 @@ export default function ProductClient() {
     fetchFeaturedProducts();
   }, [product?._id, product?.category, product?.brand]);
   // derived main image
-  const mainImage = (product?.images && product.images.length > 0 && product.images[selectedImageIndex]) ? product.images[selectedImageIndex] : "/uploads/sathyalogo.webp";
+  const mainImage = (product?.images && product.images.length > 0 && product.images[selectedImageIndex]) ? product.images[selectedImageIndex] : "/uploads/products/placeholder.jpg";
   const matchedBrandForManufacturer = (() => {
     if (!product?.brand || !Array.isArray(brand)) return null;
     const brandId =
@@ -829,7 +830,7 @@ export default function ProductClient() {
   // helper to resolve full path
   const resolveImagePath = (image) => {
     if (!image || typeof image !== "string" || image.trim() === "" || image === "null" || image === "undefined") {
-      return "/uploads/sathyalogo.webp";
+      return "/uploads/products/placeholder.jpg";
     }
     const clean = image.trim();
     if (
@@ -839,6 +840,21 @@ export default function ProductClient() {
       clean.startsWith("/")
     ) return clean;
     return `/uploads/products/${clean}`;
+  };
+
+  const assetFallbackBase = (process.env.NEXT_PUBLIC_ASSET_FALLBACK_URL || "https://estore.bharathelectronics.in").replace(/\/+$/, "");
+
+  const handleImageErrorFallback = (e, originalImage) => {
+    const currentSrc = e?.currentTarget?.src || "";
+    const clean = typeof originalImage === "string"
+      ? originalImage.trim().replace(/^\/?(uploads\/products\/)?/, "").replace(/^\/+/, "")
+      : "";
+    if (clean && !currentSrc.includes(assetFallbackBase) && !currentSrc.includes("placeholder")) {
+      e.currentTarget.src = `${assetFallbackBase}/uploads/products/${clean}`;
+    } else {
+      e.currentTarget.onerror = null;
+      e.currentTarget.src = "/uploads/products/placeholder.jpg";
+    }
   };
 
 
@@ -1169,6 +1185,20 @@ export default function ProductClient() {
   }
 
   const isOpenBox = isOpenBoxEligible(product);
+  const isInStock = product?.stock_status === "In Stock" && Number(product?.quantity) > 0;
+
+  const handleNotifyMe = (e) => {
+    if (e && typeof e.preventDefault === "function") e.preventDefault();
+    setNotifyMeSuccess(true);
+  };
+
+  const scrollToRelatedProducts = (e) => {
+    if (e && typeof e.preventDefault === "function") e.preventDefault();
+    const el = document.querySelector('section[aria-label="Related Products"]');
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
 
   return (
     <div className="bg-white min-h-screen">
@@ -1219,7 +1249,7 @@ export default function ProductClient() {
                   alt={product?.name || "Product"}
                   className="w-full h-full object-contain rounded-xl"
                   ref={imgRef}
-                  onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = "/uploads/sathyalogo.webp"; }}
+                  onError={(e) => handleImageErrorFallback(e, mainImage)}
                 />
               </div>
             </div>
@@ -1234,7 +1264,7 @@ export default function ProductClient() {
                       alt={`Thumbnail ${index + 1}`}
                       className="w-16 h-16 border border-gray-400 rounded-lg cursor-pointer object-cover"
                       onClick={() => setSelectedImageIndex(index)}
-                      onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = "/uploads/sathyalogo.webp"; }}
+                      onError={(e) => handleImageErrorFallback(e, image)}
                     />
                   </div>
                 ))}
@@ -1412,6 +1442,40 @@ export default function ProductClient() {
                 </div>
               )}
 
+              {!isInStock && (
+                <div className="flex flex-col gap-2">
+                  <div className="w-full bg-gray-200 text-gray-700 font-bold py-2.5 rounded-lg flex items-center justify-center text-xs uppercase tracking-wider cursor-not-allowed border border-gray-300 select-none">
+                    Currently Out of Stock
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={handleNotifyMe}
+                      disabled={notifyMeSuccess}
+                      className={`flex-1 font-bold py-2 px-3 rounded-lg flex items-center justify-center gap-1.5 text-xs uppercase tracking-wider transition-all cursor-pointer ${
+                        notifyMeSuccess
+                          ? "bg-emerald-600 text-white cursor-default"
+                          : "bg-[#f59e0b] hover:bg-[#d97706] text-white shadow-sm active:scale-95"
+                      }`}
+                    >
+                      <FaBell className="w-3.5 h-3.5" />
+                      {notifyMeSuccess ? "Notified ✓" : "Notify Me"}
+                    </button>
+                    <div className="flex-1 border-2 border-emerald-500 text-emerald-700 bg-emerald-50 font-bold py-2 rounded-lg flex items-center justify-center gap-1.5 text-xs">
+                      <FaStore className="w-3.5 h-3.5 flex-shrink-0" />
+                      In Store
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={scrollToRelatedProducts}
+                    className="w-full border border-gray-300 text-gray-700 hover:bg-gray-50 font-semibold py-2 px-3 rounded-lg flex items-center justify-center gap-1 text-xs transition-colors cursor-pointer"
+                  >
+                    <span>View Similar Products</span>
+                    <span className="text-[12px] font-bold text-[#d72828]">↓</span>
+                  </button>
+                </div>
+              )}
               {product.stock_status === "In Stock" && product.quantity > 0 && !isMovementAllowed && (
                 <div className="flex gap-3">
                   <div className="flex-1 bg-gray-300 text-gray-600 font-semibold py-2.5 rounded-lg flex items-center justify-center gap-2 text-sm cursor-not-allowed">
@@ -1507,7 +1571,7 @@ export default function ProductClient() {
                         src={resolveImagePath(item.images?.[0] || item.image)}
                         alt={item.name || "Addon"}
                         className="w-14 h-14 object-contain"
-                        onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = "/uploads/sathyalogo.webp"; }}
+                        onError={(e) => handleImageErrorFallback(e, item.images?.[0] || item.image)}
                       />
                       <div className="text-sm flex-1 min-w-0">
                         <Link href={`/product/${item.slug}`}>
@@ -1597,22 +1661,23 @@ export default function ProductClient() {
               <h3 className="font-bold text-xs text-gray-900 border-b border-gray-200 pb-2 mb-3 uppercase tracking-wide">Frequently Bought Together:</h3>
               <div className="space-y-3">
                 {featuredProducts.slice(0, 2).map((item, index) => (
-                  <div key={item._id || index} className="flex items-start gap-2.5 pb-2.5 border-b border-gray-100 last:border-0">
+                  <div key={item._id || index} className={`flex items-start gap-2.5 pb-2.5 border-b border-gray-100 last:border-0 ${!isInStock ? 'opacity-60' : ''}`}>
                     <input
                       type="checkbox"
-                      className="mt-1 accent-[#d72828] cursor-pointer w-4 h-4"
-                      checked={selectedFrequentProducts.some(p => p._id === item._id)}
-                      onChange={() => toggleFrequentProduct(item)}
+                      className="mt-1 accent-[#d72828] cursor-pointer w-4 h-4 disabled:cursor-not-allowed disabled:opacity-50"
+                      checked={!isInStock ? false : selectedFrequentProducts.some(p => p._id === item._id)}
+                      onChange={() => {
+                        if (isInStock) toggleFrequentProduct(item);
+                      }}
+                      disabled={!isInStock}
+                      title={!isInStock ? "Main product is out of stock" : ""}
                     />
                     <div className="flex items-start gap-2 flex-1 min-w-0">
                       <img
                         src={resolveImagePath(item.images?.[0] || item.image)}
                         alt={item.name || "Product"}
                         className="w-12 h-12 object-contain flex-shrink-0 rounded border border-gray-200"
-                        onError={(e) => {
-                          e.currentTarget.onerror = null;
-                          e.currentTarget.src = "/uploads/sathyalogo.webp";
-                        }}
+                        onError={(e) => handleImageErrorFallback(e, item.images?.[0] || item.image)}
                       />
                       <div className="text-xs flex-1 min-w-0">
                         <Link href={`/product/${item.slug}`} className="block hover:underline">
@@ -1654,7 +1719,7 @@ export default function ProductClient() {
                         src={resolveImagePath(item.images?.[0] || item.image)}
                         alt={item.name || "Related"}
                         className="w-14 h-14 object-contain"
-                        onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = "/uploads/sathyalogo.webp"; }}
+                        onError={(e) => handleImageErrorFallback(e, item.images?.[0] || item.image)}
                       />
                       <div className="text-sm flex-1 min-w-0">
                         <Link href={`/product/${item.slug}`} className="block mb-1">
@@ -1734,7 +1799,7 @@ export default function ProductClient() {
                     alt={product?.name || "Product"}
                     className="w-full h-full object-contain rounded-lg"
                     ref={imgRef}
-                    onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = "/uploads/sathyalogo.webp"; }}
+                    onError={(e) => handleImageErrorFallback(e, mainImage)}
                   />
                   {showZoomLens && (
                     <div
@@ -1769,7 +1834,7 @@ export default function ProductClient() {
                         className={`w-16 h-16 border rounded-lg cursor-pointer object-cover transition-all duration-200 ${selectedImageIndex === index ? 'border-[#d72828] ring-2 ring-red-500 scale-105' : 'border-gray-300 hover:border-gray-400 opacity-80 hover:opacity-100'
                           }`}
                         onClick={() => setSelectedImageIndex(index)}
-                        onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = "/uploads/sathyalogo.webp"; }}
+                        onError={(e) => handleImageErrorFallback(e, image)}
                       />
                     </div>
                   ))}
@@ -1788,7 +1853,7 @@ export default function ProductClient() {
                       </svg>
                     </button>
                     <div className="relative w-full flex items-center justify-center">
-                      <img src={resolveImagePath(product?.images?.[selectedImageIndex])} alt={product?.name || "Product"} className="object-contain max-h-[60vh] sm:max-h-[50vh] w-full rounded-md" onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = "/uploads/sathyalogo.webp"; }} />
+                      <img src={resolveImagePath(product?.images?.[selectedImageIndex])} alt={product?.name || "Product"} className="object-contain max-h-[60vh] sm:max-h-[50vh] w-full rounded-md" onError={(e) => handleImageErrorFallback(e, product?.images?.[selectedImageIndex])} />
                     </div>
                     <div className="w-full border-t border-gray-300 my-3"></div>
                     {product.images && product.images.filter(img => img && typeof img === "string" && img.trim() !== '' && img.trim().toLowerCase() !== 'null').length > 0 && (
@@ -1797,7 +1862,7 @@ export default function ProductClient() {
                           <img key={index} src={resolveImagePath(image)} alt={`Thumbnail ${index + 1}`}
                             className={`object-cover w-14 h-14 sm:w-16 sm:h-16 rounded-sm cursor-pointer hover:scale-105 ${selectedImageIndex === index ? 'ring-2 ring-red-500' : ''}`}
                             onClick={() => setSelectedImageIndex(index)}
-                            onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = "/uploads/sathyalogo.webp"; }}
+                            onError={(e) => handleImageErrorFallback(e, image)}
                           />
                         ))}
                       </div>
@@ -2026,22 +2091,23 @@ export default function ProductClient() {
                       </h3>
                       <div className="space-y-3">
                         {featuredProducts.slice(0, 2).map((item, index) => (
-                          <div key={item._id || index} className="flex items-start gap-2.5 pb-2.5 border-b border-gray-100 last:border-0">
+                          <div key={item._id || index} className={`flex items-start gap-2.5 pb-2.5 border-b border-gray-100 last:border-0 ${!isInStock ? 'opacity-60' : ''}`}>
                             <input
                               type="checkbox"
-                              className="mt-1 accent-[#d72828] cursor-pointer w-4 h-4"
-                              checked={selectedFrequentProducts.some(p => p._id === item._id)}
-                              onChange={() => toggleFrequentProduct(item)}
+                              className="mt-1 accent-[#d72828] cursor-pointer w-4 h-4 disabled:cursor-not-allowed disabled:opacity-50"
+                              checked={!isInStock ? false : selectedFrequentProducts.some(p => p._id === item._id)}
+                              onChange={() => {
+                                if (isInStock) toggleFrequentProduct(item);
+                              }}
+                              disabled={!isInStock}
+                              title={!isInStock ? "Main product is out of stock" : ""}
                             />
                             <div className="flex items-start gap-2 flex-1 min-w-0">
                               <img
                                 src={resolveImagePath(item.images?.[0] || item.image)}
                                 alt={item.name || "Product"}
                                 className="w-12 h-12 object-contain flex-shrink-0 rounded border border-gray-200"
-                                onError={(e) => {
-                                  e.currentTarget.onerror = null;
-                                  e.currentTarget.src = "/uploads/sathyalogo.webp";
-                                }}
+                                onError={(e) => handleImageErrorFallback(e, item.images?.[0] || item.image)}
                               />
                               <div className="text-xs flex-1 min-w-0">
                                 <Link href={`/product/${item.slug}`} className="block hover:underline">
@@ -2123,24 +2189,27 @@ export default function ProductClient() {
                   )}
 
                   {/* 1. PRIMARY ACTION BUTTONS: BUY NOW & ADD TO CART (INSIDE COLUMN 3) */}
-                  {product.stock_status === "In Stock" && product.quantity > 0 && (
-                    <div className="flex flex-col gap-2 bg-white border border-gray-200 p-3 rounded-lg shadow-sm">
-                      {/* Live Price Summary */}
-                      <div className="pb-2 border-b border-gray-100">
-                        <div className="flex items-center justify-between text-xs">
-                          <span className="text-gray-700 font-semibold">Total Price:</span>
-                          <span className="font-extrabold text-base text-[#d72828]">
-                            ₹ {Number(((product.special_price > 0 ? product.special_price : product.price) * quantity) + (isExtendedWarrantyEligible(product) ? (selectedWarrantyAmount || 0) : 0)).toLocaleString("en-IN")}
-                          </span>
-                        </div>
-                        {isExtendedWarrantyEligible(product) && selectedWarrantyAmount > 0 && (
-                          <span className="block text-[11px] text-gray-500 font-normal mt-0.5">
-                            Includes ₹{Number((product.special_price > 0 ? product.special_price : product.price) * quantity).toLocaleString("en-IN")} product + ₹{selectedWarrantyAmount.toLocaleString("en-IN")} warranty
-                          </span>
-                        )}
+                  <div className="flex flex-col gap-2 bg-white border border-gray-200 p-3 rounded-lg shadow-sm">
+                    {/* Live Price Summary */}
+                    <div className="pb-2 border-b border-gray-100">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-gray-700 font-semibold">Total Price:</span>
+                        <span className="font-extrabold text-base text-[#d72828]">
+                          ₹ {Number(
+                            ((product.special_price > 0 ? product.special_price : product.price) * (isInStock ? quantity : 1)) +
+                            (isInStock && isExtendedWarrantyEligible(product) ? (selectedWarrantyAmount || 0) : 0)
+                          ).toLocaleString("en-IN")}
+                        </span>
                       </div>
+                      {isInStock && isExtendedWarrantyEligible(product) && selectedWarrantyAmount > 0 && (
+                        <span className="block text-[11px] text-gray-500 font-normal mt-0.5">
+                          Includes ₹{Number((product.special_price > 0 ? product.special_price : product.price) * quantity).toLocaleString("en-IN")} product + ₹{selectedWarrantyAmount.toLocaleString("en-IN")} warranty
+                        </span>
+                      )}
+                    </div>
 
-                      {/* Quantity selector */}
+                    {/* Quantity selector (visible for in-stock products only) */}
+                    {isInStock && (
                       <div className="flex items-center justify-between text-xs bg-gray-50 border border-gray-200 rounded p-2 mb-1">
                         <span className="font-medium text-gray-700">Quantity:</span>
                         <div className="flex items-center border border-gray-300 bg-white rounded px-2 py-0.5 gap-3">
@@ -2149,8 +2218,10 @@ export default function ProductClient() {
                           <button onClick={handleIncrease} className="text-gray-600 font-bold text-sm hover:text-[#d72828]">+</button>
                         </div>
                       </div>
+                    )}
 
-                      {!isMovementAllowed ? (
+                    {isInStock ? (
+                      !isMovementAllowed ? (
                         <>
                           <div className="w-full bg-gray-300 text-gray-600 font-extrabold py-3 rounded-lg flex items-center justify-center gap-2 text-sm uppercase tracking-wider cursor-not-allowed">
                             Sold Out Online
@@ -2161,50 +2232,89 @@ export default function ProductClient() {
                           </div>
                         </>
                       ) : (
-                      <>
-                      {/* BUY NOW Button or Call to Order for Clearance */}
-                      {isOpenBox ? (
-                        <a
-                          href={`tel:${CLEARANCE_PHONE}`}
-                          className="flex items-center justify-center gap-3 w-full py-3 px-5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg shadow-md transition-all duration-200 cursor-pointer active:scale-95 text-center"
-                          title="Call to Order Clearance Unit"
-                        >
-                          <FaPhoneAlt className="w-5 h-5 flex-shrink-0 text-white self-center" />
-                          <div className="flex flex-col items-center text-center leading-tight">
-                            <span className="text-sm font-extrabold uppercase tracking-wider">CALL TO ORDER</span>
-                            <span className="text-[10px] font-medium opacity-90 tracking-wide mt-0.5">(CLEARANCE UNIT)</span>
-                          </div>
-                        </a>
-                      ) : (
-                        <button
-                          onClick={() => handleBuyNow()}
-                          className="w-full font-extrabold py-3 rounded-lg flex items-center justify-center gap-2 text-sm uppercase tracking-wider shadow-md transition-all bg-[#d72828] hover:bg-red-700 text-white cursor-pointer active:scale-95"
-                        >
-                          <FaStore className="w-4 h-4 flex-shrink-0" />
-                          Buy Now
-                        </button>
-                      )}
+                        <>
+                          {/* BUY NOW Button or Call to Order for Clearance */}
+                          {isOpenBox ? (
+                            <a
+                              href={`tel:${CLEARANCE_PHONE}`}
+                              className="flex items-center justify-center gap-3 w-full py-3 px-5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg shadow-md transition-all duration-200 cursor-pointer active:scale-95 text-center"
+                              title="Call to Order Clearance Unit"
+                            >
+                              <FaPhoneAlt className="w-5 h-5 flex-shrink-0 text-white self-center" />
+                              <div className="flex flex-col items-center text-center leading-tight">
+                                <span className="text-sm font-extrabold uppercase tracking-wider">CALL TO ORDER</span>
+                                <span className="text-[10px] font-medium opacity-90 tracking-wide mt-0.5">(CLEARANCE UNIT)</span>
+                              </div>
+                            </a>
+                          ) : (
+                            <button
+                              onClick={() => handleBuyNow()}
+                              className="w-full font-extrabold py-3 rounded-lg flex items-center justify-center gap-2 text-sm uppercase tracking-wider shadow-md transition-all bg-[#d72828] hover:bg-red-700 text-white cursor-pointer active:scale-95"
+                            >
+                              <FaStore className="w-4 h-4 flex-shrink-0" />
+                              Buy Now
+                            </button>
+                          )}
 
-                      {/* ADD TO CART Button */}
-                      <ProductAddtoCart
-                        productId={product._id}
-                        stockQuantity={product.quantity}
-                        quantity={quantity}
-                        additionalProducts={[...selectedFrequentProducts.map((p) => p._id), ...selectedRelatedProducts.map((p) => p._id)]}
-                        extendedWarranty={isExtendedWarrantyEligible(product) ? selectedWarrantyAmount : 0}
-                        selectedFrequentProducts={selectedFrequentProducts}
-                        selectedRelatedProducts={selectedRelatedProducts}
-                        warrantyData={isExtendedWarrantyEligible(product) ? selectedWarrantyData : null}
-                        buttonLabel={isOpenBox ? "Enquire to Buy" : "Add To Cart"}
-                        buttonClassName="w-full border-2 border-[#d72828] text-[#d72828] hover:bg-red-50 font-bold py-2.5 rounded-lg text-sm transition-all shadow-none"
-                        movement={product.movement}
-                        productName={product.name}
-                        productSlug={product.slug}
-                      />
-                      </>
-                      )}
-                    </div>
-                  )}
+                          {/* ADD TO CART Button */}
+                          <ProductAddtoCart
+                            productId={product._id}
+                            stockQuantity={product.quantity}
+                            quantity={quantity}
+                            additionalProducts={[...selectedFrequentProducts.map((p) => p._id), ...selectedRelatedProducts.map((p) => p._id)]}
+                            extendedWarranty={isExtendedWarrantyEligible(product) ? selectedWarrantyAmount : 0}
+                            selectedFrequentProducts={selectedFrequentProducts}
+                            selectedRelatedProducts={selectedRelatedProducts}
+                            warrantyData={isExtendedWarrantyEligible(product) ? selectedWarrantyData : null}
+                            buttonLabel={isOpenBox ? "Enquire to Buy" : "Add To Cart"}
+                            buttonClassName="w-full border-2 border-[#d72828] text-[#d72828] hover:bg-red-50 font-bold py-2.5 rounded-lg text-sm transition-all shadow-none"
+                            movement={product.movement}
+                            productName={product.name}
+                            productSlug={product.slug}
+                          />
+                        </>
+                      )
+                    ) : (
+                      /* Out of Stock CTAs (Modern Croma/Flipkart e-commerce pattern) */
+                      <div className="flex flex-col gap-2 pt-0.5">
+                        {/* Currently Out of Stock grey badge */}
+                        <div className="w-full bg-gray-200 text-gray-700 font-extrabold py-3 rounded-lg flex items-center justify-center gap-2 text-xs uppercase tracking-wider cursor-not-allowed select-none border border-gray-300">
+                          Currently Out of Stock
+                        </div>
+
+                        {/* 🔔 Notify Me When Available Button */}
+                        <button
+                          type="button"
+                          onClick={handleNotifyMe}
+                          disabled={notifyMeSuccess}
+                          className={`w-full font-bold py-2.5 px-3 rounded-lg flex items-center justify-center gap-2 text-xs uppercase tracking-wider transition-all cursor-pointer ${
+                            notifyMeSuccess
+                              ? "bg-emerald-600 text-white cursor-default"
+                              : "bg-[#f59e0b] hover:bg-[#d97706] text-white shadow-sm active:scale-95"
+                          }`}
+                        >
+                          <FaBell className="w-3.5 h-3.5" />
+                          {notifyMeSuccess ? "Notification Registered ✓" : "Notify Me When Available"}
+                        </button>
+
+                        {/* 🏪 Available in Store Button */}
+                        <div className="w-full border-2 border-emerald-500 text-emerald-700 bg-emerald-50 font-bold py-2.5 rounded-lg flex items-center justify-center gap-2 text-xs uppercase tracking-wide">
+                          <FaStore className="w-4 h-4 flex-shrink-0" />
+                          Available in Store
+                        </div>
+
+                        {/* View Similar Products Smooth Scroll Button */}
+                        <button
+                          type="button"
+                          onClick={scrollToRelatedProducts}
+                          className="w-full border border-gray-300 hover:border-gray-400 text-gray-700 hover:bg-gray-50 font-semibold py-2 px-3 rounded-lg flex items-center justify-center gap-1.5 text-xs transition-colors cursor-pointer mt-0.5"
+                        >
+                          <span>View Similar Products</span>
+                          <span className="text-[12px] font-bold text-[#d72828]">↓</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
 
                   {/* 2. ACTIONS BAR: Share | Compare | Wishlist */}
                   <div className="flex items-center justify-between border border-gray-200 py-2.5 px-3 text-xs font-semibold text-gray-700 bg-gray-50 rounded-lg">

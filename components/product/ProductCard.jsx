@@ -20,7 +20,29 @@ export default function ProductCard({
   className = "",
   checkMovement,
 }) {
+  const [currentImg, setCurrentImg] = useState(product?.imgSrc || "/uploads/products/placeholder.jpg");
   const [imgLoaded, setImgLoaded] = useState(false);
+  const [retryFailed, setRetryFailed] = useState(false);
+
+  React.useEffect(() => {
+    setCurrentImg(product?.imgSrc || "/uploads/products/placeholder.jpg");
+    setRetryFailed(false);
+    setImgLoaded(false);
+  }, [product?.imgSrc]);
+
+  const assetFallbackBase = (process.env.NEXT_PUBLIC_ASSET_FALLBACK_URL || "https://estore.bharathelectronics.in").replace(/\/+$/, "");
+
+  const handleImageError = () => {
+    setImgLoaded(true);
+    if (!retryFailed && currentImg && currentImg.startsWith("/uploads/products/") && !currentImg.includes("placeholder")) {
+      const filename = currentImg.replace("/uploads/products/", "");
+      setRetryFailed(true);
+      setCurrentImg(`${assetFallbackBase}/uploads/products/${filename}`);
+    } else {
+      setRetryFailed(true);
+      setCurrentImg("/uploads/products/placeholder.jpg");
+    }
+  };
   // Home page cards use the normal add-to-cart flow unless a section opts in.
   const isHomePage = usePathname() === "/";
   const applyMovementCheck = checkMovement ?? !isHomePage;
@@ -112,7 +134,7 @@ export default function ProductCard({
             <div className="absolute inset-0 bg-gray-100/60 animate-pulse rounded-lg" />
           )}
           <Image
-            src={imgSrc}
+            src={currentImg}
             alt={name || "Product Image"}
             fill
             sizes="(max-width: 640px) 70vw, (max-width: 1024px) 33vw, 20vw"
@@ -121,13 +143,7 @@ export default function ProductCard({
             }`}
             loading="lazy"
             onLoad={() => setImgLoaded(true)}
-            onError={(e) => {
-              setImgLoaded(true);
-              if (e?.currentTarget) {
-                e.currentTarget.onerror = null;
-                e.currentTarget.src = "/uploads/products/placeholder.jpg";
-              }
-            }}
+            onError={handleImageError}
             unoptimized
           />
         </Link>

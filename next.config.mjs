@@ -1,3 +1,9 @@
+const assetFallbackUrl = (process.env.NEXT_PUBLIC_ASSET_FALLBACK_URL || "https://estore.bharathelectronics.in").replace(/\/+$/, "");
+let assetHostname = "estore.bharathelectronics.in";
+try {
+  assetHostname = new URL(assetFallbackUrl).hostname;
+} catch (e) {}
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
@@ -20,7 +26,27 @@ const nextConfig = {
         hostname: "bea.thamirabaranithiruvizha.in",
         pathname: "/uploads/**",
       },
+      {
+        protocol: assetFallbackUrl.startsWith("http:") ? "http" : "https",
+        hostname: assetHostname,
+        pathname: "/uploads/**",
+      },
+      {
+        protocol: "http",
+        hostname: "213.165.95.239",
+        pathname: "/uploads/**",
+      },
     ],
+  },
+  async rewrites() {
+    return {
+      fallback: [
+        {
+          source: "/uploads/products/:path*",
+          destination: `${assetFallbackUrl}/uploads/products/:path*`,
+        },
+      ],
+    };
   },
   async redirects() {
     return [
