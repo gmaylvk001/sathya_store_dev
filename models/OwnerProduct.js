@@ -30,6 +30,28 @@ const OwnerProductSchema = new mongoose.Schema(
       enum: ["In Stock", "Out of Stock"],
       default: "In Stock",
     },
+
+    // Unilet ERP sync fields (/apis/unilet_stock_price). Missing is_sync_status / is_manual_price count as 0.
+    status: { type: String },
+    final_price: { type: Number },
+    store_price: { type: Number },
+    rank: { type: Number },
+    ean: { type: String },
+    is_common_type: { type: Number },
+    is_sync_status: { type: Number },
+    is_manual_price: { type: Number },
+    common_item_code: { type: String },
+    indoor_ean: { type: String },
+    id_price: { type: Number },
+    id_spl_price: { type: Number },
+    id_final_price: { type: Number },
+    id_store_price: { type: Number },
+    outdoor_item_code: { type: String },
+    outdoor_ean: { type: String },
+    od_price: { type: Number },
+    od_spl_price: { type: Number },
+    od_final_price: { type: Number },
+    od_store_price: { type: Number },
   },
   { timestamps: true }
 );

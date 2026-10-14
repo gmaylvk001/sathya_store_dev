@@ -36,3 +36,6 @@ playwright-report/
 
 #lSP- comptitor price update storage
 storage/lsp_price/
+
+# Unilet ERP price push copies
+storage/unilet_product_all/
