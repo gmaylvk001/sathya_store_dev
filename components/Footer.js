@@ -26,18 +26,19 @@ const ABOUT_LINKS = [
     rel: "noopener noreferrer",
   },
   { label: "Contact Us", href: "/contact" },
-  { label: "Privacy Policy", href: "/privacy-policy" },
-  { label: "Cancellation Policy", href: "/cancellation-policy" },
-  { label: "Terms & Conditions", href: "/terms-and-conditions" },
   { label: "Help/FAQ", href: "/faq" },
   { label: "Sitemap", href: "/sitemap.xml" },
   { label: "Blogs", href: "/blog-listing" },
 ];
 
+const POLICY_LINKS = [
+  { label: "Privacy Policy", href: "/privacy-policy" },
+  { label: "Cancellation Policy", href: "/cancellation-policy" },
+  { label: "Terms & Conditions", href: "/terms-and-conditions" },
+];
+
 const OFFER_LINKS = [
-  { label: "Weekend Offers", href: "/category" },
-  { label: "Big Discounts", href: "/category" },
-  { label: "Bundle Offer", href: "/category" },
+  { label: "Weekend Offers", href: "/offer/weekend-offer" },
 ];
 
 const SOCIAL_LINKS = [
@@ -228,12 +229,30 @@ const Footer = () => {
         .footer-link-bold:hover {
           color: #ffffff;
         }
+        .footer-category-scroll {
+          scrollbar-width: thin;
+          scrollbar-color: #52525b #27272a;
+        }
+        .footer-category-scroll::-webkit-scrollbar {
+          width: 5px;
+        }
+        .footer-category-scroll::-webkit-scrollbar-track {
+          background: #27272a;
+          border-radius: 4px;
+        }
+        .footer-category-scroll::-webkit-scrollbar-thumb {
+          background: #52525b;
+          border-radius: 4px;
+        }
+        .footer-category-scroll::-webkit-scrollbar-thumb:hover {
+          background: #ED1C24;
+        }
       `}</style>
       <footer className="w-full">
         {/* 1. Service highlights — white */}
         <div className="bg-white border-t border-gray-100">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 py-5 sm:py-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-6">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
               <div className="flex items-center gap-3">
                 <TbTruckDelivery
                   className="text-3xl sm:text-4xl shrink-0"
@@ -300,7 +319,7 @@ const Footer = () => {
         {/* 2. Main dark footer */}
         <div style={{ backgroundColor: FOOTER_BG }} className="text-white">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-10 pb-8">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-10">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-8 lg:gap-10">
               {/* ABOUT SATHYA */}
               <div>
                 <h3 className="text-sm font-bold tracking-wide uppercase mb-4">
@@ -327,10 +346,7 @@ const Footer = () => {
                 <h3 className="text-sm font-bold tracking-wide uppercase mb-4">
                   Categories
                 </h3>
-                <ul
-                  className="space-y-2.5 max-h-[28rem] overflow-y-auto pr-1 scrollbar-hide"
-                  style={{ WebkitMaskImage: "linear-gradient(to bottom, black 85%, transparent 100%)", maskImage: "linear-gradient(to bottom, black 85%, transparent 100%)" }}
-                >
+                <ul className="space-y-2.5 max-h-[28rem] overflow-y-auto pr-2 footer-category-scroll">
                   {categoryColumnLinks.length === 0 ? (
                     <li className="text-sm text-gray-500">Loading…</li>
                   ) : (
@@ -345,13 +361,13 @@ const Footer = () => {
                 </ul>
               </div>
 
-              {/* OFFERS */}
+              {/* POLICIES & OFFERS */}
               <div>
                 <h3 className="text-sm font-bold tracking-wide uppercase mb-4">
-                  Offers
+                  Policies
                 </h3>
                 <ul className="space-y-2.5">
-                  {OFFER_LINKS.map((link) => (
+                  {POLICY_LINKS.map((link) => (
                     <li key={link.label}>
                       <Link href={link.href} className="footer-link text-sm">
                         {link.label}
@@ -359,6 +375,22 @@ const Footer = () => {
                     </li>
                   ))}
                 </ul>
+
+                {/* OFFERS */}
+                <div className="mt-6">
+                  <h3 className="text-sm font-bold tracking-wide uppercase mb-4">
+                    Offers
+                  </h3>
+                  <ul className="space-y-2.5">
+                    {OFFER_LINKS.map((link) => (
+                      <li key={link.label}>
+                        <Link href={link.href} className="footer-link text-sm">
+                          {link.label}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </div>
 
               {/* SALES ENQUIRY */}
@@ -391,7 +423,7 @@ const Footer = () => {
                 <h4 className="text-sm font-bold tracking-wide uppercase mt-6 mb-3">
                   Follow Us On
                 </h4>
-                <div className="flex items-center gap-2.5">
+                <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
                   {SOCIAL_LINKS.map(({ label, href, Icon }) => (
                     <a
                       key={label}

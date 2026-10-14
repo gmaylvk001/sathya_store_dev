@@ -292,10 +292,17 @@ export default function CategoryBrandCarousel({ config }) {
   return (
     <section className="w-full my-4 sm:my-6 py-6 sm:py-8 bg-[#FFF5F5]">
       {name && (
-        <div className="text-center mb-4 px-4">
+        <div className="flex items-center justify-between mb-4 px-7 sm:px-10 lg:px-12">
           <h2 className="text-base sm:text-xl font-bold text-[#d72828] tracking-tight">
             {name}
           </h2>
+          <Link
+            href="/all-brands"
+            className="text-sm font-semibold text-[#d72828] hover:text-[#b31e1e] flex items-center gap-1 transition-colors"
+          >
+            <span>See All</span>
+            <span aria-hidden="true">&rarr;</span>
+          </Link>
         </div>
       )}
 

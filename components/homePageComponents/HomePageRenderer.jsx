@@ -16,6 +16,7 @@ import CategoryImageHotspotBanner from "@/components/categoryPageComponents/cate
 import CategoryContentBlock from "@/components/categoryPageComponents/categoryContent";
 import CategorySplitBanner from "@/components/categoryPageComponents/categorySplitBanner";
 import CategoryCircleImageCarousel from "@/components/categoryPageComponents/categoryCircleImageCarousel";
+import TrendingVideoSection from "@/components/TrendingVideoSection";
 
 /**
  * Renders Home Settings page-builder components in saved admin order.
@@ -172,6 +173,14 @@ export default function HomePageRenderer({ onHasDesign }) {
         if (item.type === COMPONENT_TYPES.CIRCLE_IMAGE_CAROUSEL) {
           return (
             <CategoryCircleImageCarousel
+              key={item.instanceId || idx}
+              config={item.config}
+            />
+          );
+        }
+        if (item.type === COMPONENT_TYPES.TRENDING_VIDEOS) {
+          return (
+            <TrendingVideoSection
               key={item.instanceId || idx}
               config={item.config}
             />

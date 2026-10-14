@@ -1,44 +1,57 @@
 "use client";
+
 import { useEffect, useState } from "react";
-import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { ArrowLeft, X } from "lucide-react";
+
+const STATE_OPTIONS = [
+  { label: "All", value: "all" },
+  { label: "Tamilnadu", value: "tamilnadu" },
+  { label: "Andhra", value: "andhra" },
+  { label: "Kerala", value: "kerala" },
+  { label: "Karnataka", value: "karnataka" },
+  { label: "Telangana", value: "telangana" },
+];
 
 export default function VideoCardPage() {
   const [videoCards, setVideoCards] = useState([]);
-  const [newVideoCard, setNewVideoCard] = useState({
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  const [successMsg, setSuccessMsg] = useState("");
+
+  // Add Form state
+  const [form, setForm] = useState({
     title: "",
-    thumbnail_image: null,
-    video_url: "",
+    link: "",
+    state: "all",
+  });
+
+  // Edit Modal state
+  const [editingCard, setEditingCard] = useState(null);
+  const [editForm, setEditForm] = useState({
+    title: "",
+    link: "",
+    state: "all",
     status: "Active",
   });
-  const [error, setError] = useState("");
-  const [imageError, setImageError] = useState("");
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [videoCardToDelete, setVideoCardToDelete] = useState(null);
-  const [editingStates, setEditingStates] = useState({});
+  const [updating, setUpdating] = useState(false);
+  const [editError, setEditError] = useState("");
 
-  // Fetch video cards
   const fetchVideoCards = async () => {
     try {
-      const res = await fetch("/api/videocard");
+      setLoading(true);
+      const res = await fetch("/api/videocard?admin=true");
       const data = await res.json();
       if (data.success) {
-        setVideoCards(data.videoCards);
-        const states = {};
-        data.videoCards.forEach(videoCard => {
-          states[videoCard._id] = {
-            title: videoCard.title || "",
-            video_url: videoCard.video_url || "",
-            status: videoCard.status || "Active",
-            thumbnail_image: null,
-            hasChanges: false
-          };
-        });
-        setEditingStates(states);
+        setVideoCards(data.videoCards || []);
+      } else {
+        setError(data.message || "Failed to load video cards");
       }
     } catch (err) {
       setError("Failed to fetch video cards");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -46,386 +59,416 @@ export default function VideoCardPage() {
     fetchVideoCards();
   }, []);
 
-  // Save new video card
-  const handleSave = async () => {
+  // Add new video card
+  const handleAdd = async (e) => {
+    if (e) e.preventDefault();
     setError("");
-    setImageError("");
+    setSuccessMsg("");
 
-    if (!newVideoCard.thumbnail_image) {
-      setImageError("Please choose a thumbnail image.");
+    if (!form.link.trim()) {
+      setError("Please enter an Instagram Link.");
       return;
     }
-    if (!newVideoCard.title || !newVideoCard.video_url) {
-      setError("Title and video URL are required.");
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append("thumbnail_image", newVideoCard.thumbnail_image);
-    formData.append("title", newVideoCard.title);
-    formData.append("video_url", newVideoCard.video_url);
-    formData.append("status", newVideoCard.status);
 
     try {
+      setSaving(true);
       const res = await fetch("/api/videocard", {
         method: "POST",
-        body: formData,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: form.title?.trim() || "Instagram Reel",
+          video_url: form.link.trim(),
+          state: form.state,
+          status: "Active",
+        }),
       });
 
       const data = await res.json();
       if (data.success) {
-        setNewVideoCard({
-          title: "",
-          thumbnail_image: null,
-          video_url: "",
-          status: "Active",
-        });
-        setShowAddForm(false);
+        setForm({ title: "", link: "", state: "all" });
+        setSuccessMsg("Video card added successfully!");
         fetchVideoCards();
       } else {
-        if (data.message.includes("pixels")) {
-          setImageError(data.message);
-        } else {
-          setError(data.message || "Something went wrong.");
-        }
+        setError(data.message || "Failed to add video card.");
       }
     } catch (err) {
-      setError("Failed to save video card");
+      setError("Failed to save video card.");
+    } finally {
+      setSaving(false);
     }
   };
 
-  // Update video card
-  const handleUpdate = async (id, field, value) => {
-    setError("");
-    setImageError("");
+  // Open Edit Modal
+  const openEditModal = (card) => {
+    setEditingCard(card);
+    setEditForm({
+      title: card.title || "",
+      link: card.video_url || "",
+      state: card.state || "all",
+      status: card.status || "Active",
+    });
+    setEditError("");
+  };
 
-    const formData = new FormData();
-    formData.append("id", id);
+  const closeEditModal = () => {
+    setEditingCard(null);
+    setEditError("");
+  };
 
-    if (field === "thumbnail_image") {
-      formData.append(field, value);
-    } else {
-      formData.append(field, value);
+  // Submit Edit Form
+  const handleUpdate = async (e) => {
+    if (e) e.preventDefault();
+    setEditError("");
+
+    if (!editForm.link.trim()) {
+      setEditError("Instagram Link cannot be empty.");
+      return;
     }
 
+    try {
+      setUpdating(true);
+      const res = await fetch("/api/videocard", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: editingCard._id,
+          title: editForm.title.trim(),
+          video_url: editForm.link.trim(),
+          state: editForm.state,
+          status: editForm.status,
+        }),
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        setVideoCards((prev) =>
+          prev.map((item) =>
+            item._id === editingCard._id
+              ? {
+                  ...item,
+                  title: editForm.title.trim(),
+                  video_url: editForm.link.trim(),
+                  state: editForm.state,
+                  status: editForm.status,
+                }
+              : item
+          )
+        );
+        closeEditModal();
+        setSuccessMsg("Video card updated successfully!");
+      } else {
+        setEditError(data.message || "Failed to update video card.");
+      }
+    } catch (err) {
+      setEditError("Failed to update video card.");
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  // Fast Status Change from table dropdown
+  const handleStatusChange = async (id, newStatus) => {
     try {
       const res = await fetch("/api/videocard", {
         method: "PUT",
-        body: formData,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, status: newStatus }),
       });
       const data = await res.json();
-
       if (data.success) {
-        setEditingStates(prev => ({
-          ...prev,
-          [id]: {
-            ...prev[id],
-            [field]: field === "thumbnail_image" ? null : value,
-            hasChanges: false
-          }
-        }));
-        fetchVideoCards();
+        setVideoCards((prev) =>
+          prev.map((item) => (item._id === id ? { ...item, status: newStatus } : item))
+        );
       } else {
-        setError(data.message || "Update failed.");
+        alert(data.message || "Failed to update status");
       }
     } catch (err) {
-      setError("Failed to update video card");
+      alert("Failed to update status");
     }
   };
 
-  // Handle input changes
-  const handleInputChange = (id, field, value) => {
-    setEditingStates(prev => ({
-      ...prev,
-      [id]: {
-        ...prev[id],
-        [field]: value,
-        hasChanges: true
-      }
-    }));
-  };
-
-  // Delete video card
-  const handleDelete = async () => {
-    if (!videoCardToDelete) return;
-
+  // Delete
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this video card?")) return;
     try {
-      await fetch("/api/videocard", {
+      const res = await fetch("/api/videocard", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: videoCardToDelete._id }),
+        body: JSON.stringify({ id }),
       });
-      fetchVideoCards();
-      closeDeleteModal();
+      const data = await res.json();
+      if (data.success) {
+        setVideoCards((prev) => prev.filter((item) => item._id !== id));
+      } else {
+        alert(data.message || "Failed to delete");
+      }
     } catch (err) {
-      setError("Failed to delete video card");
-      closeDeleteModal();
+      alert("Failed to delete video card");
     }
-  };
-
-  const openDeleteModal = (videoCard) => {
-    setVideoCardToDelete(videoCard);
-    setShowDeleteModal(true);
-  };
-
-  const closeDeleteModal = () => {
-    setShowDeleteModal(false);
-    setVideoCardToDelete(null);
   };
 
   return (
-    <div className="container mx-auto">
-      <div className="flex justify-between items-center mb-5 mt-5">
-        <h2 className="text-2xl font-bold">Video Card Manager</h2>
+    <div className="container mx-auto p-4 sm:p-6 bg-white min-h-screen">
+      {/* Top Header */}
+      <div className="flex justify-between items-center mb-6 pb-3 border-b">
+        <h1 className="text-2xl font-bold text-gray-800">What&apos;s Trending Video Manager</h1>
         <Link
           href="/admin/homesettings"
-          className="flex items-center gap-2 bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-800 transition"
+          className="flex items-center gap-2 bg-gray-700 text-white px-4 py-2 rounded text-sm hover:bg-gray-800 transition"
         >
-          <ArrowLeft size={18} /> Back
+          <ArrowLeft size={16} /> Back to Home Settings
         </Link>
       </div>
 
-      <div className="bg-white shadow-md rounded-lg p-5 overflow-x-auto">
-        {error && <p className="text-red-500 mb-4">{error}</p>}
+      {/* Messages */}
+      {error && (
+        <div className="mb-4 p-3 bg-red-100 text-red-700 rounded text-sm font-medium">
+          {error}
+        </div>
+      )}
+      {successMsg && (
+        <div className="mb-4 p-3 bg-green-100 text-green-700 rounded text-sm font-medium">
+          {successMsg}
+        </div>
+      )}
 
-        {/* Add New Video Card */}
-        <div className="mb-6">
-          {!showAddForm ? (
-            <button
-              onClick={() => setShowAddForm(true)}
-              className="bg-green-600 text-white px-4 py-2 rounded flex items-center gap-2"
+      {/* Inputs Form — Matching screenshot */}
+      <form onSubmit={handleAdd} className="mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
+          {/* Title */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-1">Title</label>
+            <input
+              type="text"
+              placeholder="Title"
+              value={form.title}
+              onChange={(e) => setForm({ ...form, title: e.target.value })}
+              className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+            />
+          </div>
+
+          {/* Instagram Link */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-1">Intagram Link</label>
+            <input
+              type="text"
+              placeholder="Link"
+              value={form.link}
+              onChange={(e) => setForm({ ...form, link: e.target.value })}
+              className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+            />
+          </div>
+
+          {/* State Dropdown */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-1">State</label>
+            <select
+              value={form.state}
+              onChange={(e) => setForm({ ...form, state: e.target.value })}
+              className="w-full border border-gray-300 rounded px-3 py-2 text-sm bg-white focus:outline-none focus:border-blue-500"
             >
-              + Add New Video Card
-            </button>
-          ) : (
-            <div className="border p-4 rounded-lg space-y-3">
-              <h3 className="font-medium text-lg">Add New Video Card</h3>
+              {STATE_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
 
+        {/* Green Add Button */}
+        <div>
+          <button
+            type="submit"
+            disabled={saving}
+            className="bg-[#5cb85c] hover:bg-[#4cae4c] text-white font-medium px-6 py-2 rounded text-sm transition"
+          >
+            {saving ? "Adding..." : "Add"}
+          </button>
+        </div>
+      </form>
+
+      {/* Table Section */}
+      <div className="overflow-x-auto border border-gray-200 rounded">
+        <table className="w-full text-left border-collapse">
+          <thead>
+            <tr className="border-b bg-gray-50 text-gray-700 text-sm">
+              <th className="py-3 px-4 font-semibold w-16">#</th>
+              <th className="py-3 px-4 font-semibold">Title</th>
+              <th className="py-3 px-4 font-semibold w-28">Link</th>
+              <th className="py-3 px-4 font-semibold w-36">Status</th>
+              <th className="py-3 px-4 font-semibold w-40">State</th>
+              <th className="py-3 px-4 font-semibold w-44">Action</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-200 text-sm">
+            {loading ? (
+              <tr>
+                <td colSpan={6} className="text-center py-8 text-gray-500">
+                  Loading video cards...
+                </td>
+              </tr>
+            ) : videoCards.length === 0 ? (
+              <tr>
+                <td colSpan={6} className="text-center py-8 text-gray-500">
+                  No video cards added yet.
+                </td>
+              </tr>
+            ) : (
+              videoCards.map((card, idx) => (
+                <tr key={card._id} className="hover:bg-gray-50 transition">
+                  <td className="py-3 px-4 text-gray-600">{idx + 1}</td>
+                  <td className="py-3 px-4 font-medium text-gray-800">{card.title}</td>
+                  <td className="py-3 px-4">
+                    <a
+                      href={card.video_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-500 hover:underline font-medium"
+                    >
+                      Open
+                    </a>
+                  </td>
+                  <td className="py-3 px-4">
+                    <select
+                      value={card.status || "Active"}
+                      onChange={(e) => handleStatusChange(card._id, e.target.value)}
+                      className="border border-gray-300 rounded px-2.5 py-1 text-xs bg-white focus:outline-none"
+                    >
+                      <option value="Active">Active</option>
+                      <option value="Inactive">Inactive</option>
+                    </select>
+                  </td>
+                  <td className="py-3 px-4 text-gray-600 capitalize">
+                    {card.state || "all"}
+                  </td>
+                  <td className="py-3 px-4">
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => openEditModal(card)}
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded text-xs font-medium transition"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDelete(card._id)}
+                        className="bg-[#d9534f] hover:bg-[#c9302c] text-white px-3 py-1.5 rounded text-xs font-medium transition"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Edit Modal Popup */}
+      {editingCard && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-lg p-6 relative animate-fadeIn">
+            {/* Modal Header */}
+            <div className="flex justify-between items-center pb-3 border-b mb-4">
+              <h3 className="text-lg font-bold text-gray-800">Edit Video Card</h3>
+              <button
+                onClick={closeEditModal}
+                className="text-gray-400 hover:text-gray-600 p-1"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Error Message */}
+            {editError && (
+              <div className="mb-4 p-2.5 bg-red-100 text-red-700 rounded text-xs font-medium">
+                {editError}
+              </div>
+            )}
+
+            {/* Edit Form */}
+            <form onSubmit={handleUpdate} className="space-y-4">
               {/* Title */}
               <div>
-                <label className="block text-sm font-medium mb-1">Title *</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">
+                  Title *
+                </label>
                 <input
                   type="text"
-                  value={newVideoCard.title}
-                  onChange={(e) =>
-                    setNewVideoCard({ ...newVideoCard, title: e.target.value })
-                  }
-                  className="border px-2 py-1 rounded w-full"
+                  value={editForm.title}
+                  onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
+                  className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+                  required
                 />
               </div>
 
-              {/* Thumbnail Upload */}
+              {/* Instagram Link */}
               <div>
-                <label className="block text-sm font-medium mb-1">Thumbnail Image *</label>
-                <input
-                  type="file"
-                  onChange={(e) =>
-                    setNewVideoCard({ ...newVideoCard, thumbnail_image: e.target.files[0] })
-                  }
-                  className="border px-2 py-1 rounded w-full"
-                />
-              </div>
-
-              {/* Video URL */}
-              <div>
-                <label className="block text-sm font-medium mb-1">Video URL *</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">
+                  Instagram Link *
+                </label>
                 <input
                   type="text"
-                  value={newVideoCard.video_url}
-                  onChange={(e) =>
-                    setNewVideoCard({ ...newVideoCard, video_url: e.target.value })
-                  }
-                  className="border px-2 py-1 rounded w-full"
+                  value={editForm.link}
+                  onChange={(e) => setEditForm({ ...editForm, link: e.target.value })}
+                  className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+                  required
                 />
               </div>
 
-              {imageError && <p className="text-red-500 text-sm mt-1">{imageError}</p>}
+              {/* State & Status Grid */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">
+                    State
+                  </label>
+                  <select
+                    value={editForm.state}
+                    onChange={(e) => setEditForm({ ...editForm, state: e.target.value })}
+                    className="w-full border border-gray-300 rounded px-3 py-2 text-sm bg-white focus:outline-none focus:border-blue-500"
+                  >
+                    {STATE_OPTIONS.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-              {/* Status */}
-              <div>
-                <label className="block text-sm font-medium mb-1">Status</label>
-                <select
-                  value={newVideoCard.status}
-                  onChange={(e) =>
-                    setNewVideoCard({ ...newVideoCard, status: e.target.value })
-                  }
-                  className="border px-2 py-1 rounded w-full"
-                >
-                  <option value="Active">Active</option>
-                  <option value="Inactive">Inactive</option>
-                </select>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">
+                    Status
+                  </label>
+                  <select
+                    value={editForm.status}
+                    onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}
+                    className="w-full border border-gray-300 rounded px-3 py-2 text-sm bg-white focus:outline-none focus:border-blue-500"
+                  >
+                    <option value="Active">Active</option>
+                    <option value="Inactive">Inactive</option>
+                  </select>
+                </div>
               </div>
 
-              {/* Action Buttons */}
-              <div className="flex gap-2">
+              {/* Modal Action Buttons */}
+              <div className="flex justify-end gap-3 pt-4 border-t mt-5">
                 <button
-                  onClick={handleSave}
-                  className="bg-[#d72828] text-white px-4 py-2 rounded"
-                >
-                  Save
-                </button>
-                <button
-                  onClick={() => {
-                    setNewVideoCard({
-                      title: "",
-                      thumbnail_image: null,
-                      video_url: "",
-                      status: "Active",
-                    });
-                    setShowAddForm(false);
-                  }}
-                  className="bg-gray-500 text-white px-4 py-2 rounded"
+                  type="button"
+                  onClick={closeEditModal}
+                  className="px-4 py-2 border border-gray-300 rounded text-sm text-gray-700 hover:bg-gray-100 transition"
                 >
                   Cancel
                 </button>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Existing Video Cards */}
-        <div className="space-y-4">
-          {videoCards.map((videoCard) => (
-            <div
-              key={videoCard._id}
-              className="flex flex-col md:flex-row items-center gap-4 border p-4 rounded-lg"
-            >
-              {/* Thumbnail */}
-              <div className="flex flex-col items-center">
-                <img
-                  src={videoCard.thumbnail_image}
-                  alt="thumbnail"
-                  className="w-48 h-28 object-cover rounded mb-2"
-                />
-                <input
-                  type="file"
-                  onChange={(e) => {
-                    if (e.target.files[0]) {
-                      handleInputChange(videoCard._id, "thumbnail_image", e.target.files[0]);
-                    }
-                  }}
-                  className="border rounded w-40 text-sm px-2 py-1 mb-2"
-                />
                 <button
-                  onClick={() =>
-                    handleUpdate(videoCard._id, "thumbnail_image", editingStates[videoCard._id]?.thumbnail_image)
-                  }
-                  disabled={!editingStates[videoCard._id]?.thumbnail_image}
-                  className={`p-2 rounded flex items-center ${
-                    editingStates[videoCard._id]?.thumbnail_image
-                      ? "bg-[#d72828] text-white hover:bg-[#d72828]"
-                      : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                  }`}
+                  type="submit"
+                  disabled={updating}
+                  className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm font-medium transition"
                 >
-                  Save
+                  {updating ? "Saving..." : "Save Changes"}
                 </button>
               </div>
-
-              {/* Title */}
-              <div className="flex flex-col md:flex-row gap-2 items-center flex-grow">
-                <input
-                  type="text"
-                  value={editingStates[videoCard._id]?.title || videoCard.title || ""}
-                  onChange={(e) => handleInputChange(videoCard._id, "title", e.target.value)}
-                  className="border px-2 py-1 rounded flex-grow"
-                  placeholder="Title"
-                />
-                <button
-                  onClick={() =>
-                    handleUpdate(videoCard._id, "title", editingStates[videoCard._id]?.title)
-                  }
-                  disabled={!editingStates[videoCard._id]?.hasChanges}
-                  className={`p-2 rounded flex items-center ${
-                    editingStates[videoCard._id]?.hasChanges
-                      ? "bg-[#d72828] text-white hover:bg-[#d72828]"
-                      : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                  }`}
-                >
-                  Save
-                </button>
-              </div>
-
-              {/* Video URL */}
-              <div className="flex flex-col md:flex-row gap-2 items-center flex-grow">
-                <input
-                  type="text"
-                  value={editingStates[videoCard._id]?.video_url || videoCard.video_url || ""}
-                  onChange={(e) => handleInputChange(videoCard._id, "video_url", e.target.value)}
-                  className="border px-2 py-1 rounded flex-grow"
-                  placeholder="Video URL"
-                />
-                <button
-                  onClick={() =>
-                    handleUpdate(videoCard._id, "video_url", editingStates[videoCard._id]?.video_url)
-                  }
-                  disabled={!editingStates[videoCard._id]?.hasChanges}
-                  className={`p-2 rounded flex items-center ${
-                    editingStates[videoCard._id]?.hasChanges
-                      ? "bg-[#d72828] text-white hover:bg-[#d72828]"
-                      : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                  }`}
-                >
-                  Save
-                </button>
-              </div>
-
-              {/* Status */}
-              <div className="flex flex-col md:flex-row gap-2 items-center">
-                <select
-                  value={editingStates[videoCard._id]?.status || videoCard.status || "Active"}
-                  onChange={(e) => handleInputChange(videoCard._id, "status", e.target.value)}
-                  className="border px-2 py-1 rounded"
-                >
-                  <option value="Active">Active</option>
-                  <option value="Inactive">Inactive</option>
-                </select>
-                <button
-                  onClick={() =>
-                    handleUpdate(videoCard._id, "status", editingStates[videoCard._id]?.status)
-                  }
-                  disabled={!editingStates[videoCard._id]?.hasChanges}
-                  className={`p-2 rounded flex items-center ${
-                    editingStates[videoCard._id]?.hasChanges
-                      ? "bg-[#d72828] text-white hover:bg-[#d72828]"
-                      : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                  }`}
-                >
-                  Save
-                </button>
-              </div>
-
-              {/* Delete Button */}
-              <button
-                onClick={() => openDeleteModal(videoCard)}
-                className="bg-red-500 text-white p-2 rounded hover:bg-red-600"
-              >
-                Delete
-              </button>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Delete Modal */}
-      {showDeleteModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-xl w-96">
-            <h3 className="text-xl font-semibold mb-4">Confirm Delete</h3>
-            <p className="mb-6">Are you sure you want to delete this video card?</p>
-            <div className="flex justify-end gap-3">
-              <button
-                onClick={closeDeleteModal}
-                className="bg-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-400"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleDelete}
-                className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
-              >
-                Yes, Delete
-              </button>
-            </div>
+            </form>
           </div>
         </div>
       )}

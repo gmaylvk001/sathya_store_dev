@@ -36,7 +36,20 @@ export async function GET(request, { params }) {
     const { slug } = await params;
     
     // Fetch brand
-    const brand = await Brand.findOne({ brand_slug: slug });
+    let brand = await Brand.findOne({
+      $or: [
+        { brand_slug: slug },
+        { brand_slug: { $regex: new RegExp(`^${slug.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i") } }
+      ]
+    });
+
+    if (!brand) {
+      const decodedName = slug.replace(/-/g, " ").trim();
+      brand = await Brand.findOne({
+        brand_name: { $regex: new RegExp(`^${decodedName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i") }
+      });
+    }
+
     if (!brand) {
       return Response.json({ error: "Brand not found" }, { status: 404 });
     }

@@ -22,6 +22,7 @@ import { Navigation, Autoplay } from "swiper/modules";
 import RecentlyViewedProducts from '@/components/RecentlyViewedProducts';
 import CategoryProducts from '@/components/CategoryProducts';
 import HomePageRenderer from '@/components/homePageComponents/HomePageRenderer';
+import TrendingVideoSection from '@/components/TrendingVideoSection';
 // import OurLocations from '@/components/OurLocations';
 import { ChevronRight } from "lucide-react";
 import 'swiper/css';
@@ -155,14 +156,7 @@ export default function HomeComponent() {
       });
     }
   };
-  const getYoutubeId = (url) => {
-    try {
-      const match = url.match(/(?:v=|\/)([0-9A-Za-z_-]{11})/);
-      return match ? match[1] : null;
-    } catch {
-      return null;
-    }
-  };
+
   useEffect(() => {
     const fetchBannerData = async () => {
       setIsBannerLoading(true);
@@ -1244,6 +1238,13 @@ export default function HomeComponent() {
               <motion.div variants={containerVariants} className="bg-[#FFF5F5] rounded-2xl py-6 px-4 mx-2">
                 <motion.div variants={itemVariants} className="flex justify-between items-center mb-4">
                   <h5 className="text-lg font-bold text-[#d72828] tracking-tight">Shop by Brands</h5>
+                  <Link
+                    href="/all-brands"
+                    className="text-sm font-semibold text-[#d72828] hover:text-[#b31e1e] flex items-center gap-1 transition-colors group cursor-pointer"
+                  >
+                    <span>See All</span>
+                    <HiArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5" />
+                  </Link>
                 </motion.div>
 
                 {isBrandsLoading ? (
@@ -1264,7 +1265,7 @@ export default function HomeComponent() {
                             onClick={(e) => {
                               e.preventDefault();
                               e.stopPropagation();
-                              router.push(`/brand/${slugify(brand.brand_name)}`);
+                              router.push(`/brand/${brand.brand_slug || slugify(brand.brand_name)}`);
                             }}
                             onPointerDown={(e) => e.stopPropagation()}
                           >
@@ -1500,122 +1501,7 @@ export default function HomeComponent() {
           </motion.section>
         );
       case 'videocard':
-        return (
-          <motion.section id="videocard"
-            initial={{ opacity: 0, y: 50 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.3 }}
-            transition={{ duration: 0.6 }}
-            className="px-4 sm:px-6 md:px-6 pt-7"
-          >
-            <div className=" rounded-2xl">
-              {/* Header */}
-              <div className="flex justify-between items-center mb-6 md:px-4">
-                <h5 className="text-xl font-bold text-[#d72828] tracking-tight">What's Trending</h5>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => scroll("left")}
-                    className="p-2 rounded-full bg-gray-200 hover:bg-gray-300"
-                  >
-                    <CaretLeft size={20} weight="bold" />
-                  </button>
-                  <button
-                    onClick={() => scroll("right")}
-                    className="p-2 rounded-full bg-gray-200 hover:bg-gray-300"
-                  >
-                    <CaretRight size={20} weight="bold" />
-                  </button>
-                </div>
-              </div>
-
-              {/* Video Scroll */}
-              <div
-                ref={scrollRef}
-                className="flex gap-4 overflow-x-hidden scroll-smooth px-2 scrollbar-hide"
-              >
-                {videos.map((video) => {
-                  let thumb = video.thumbnail_image;
-
-                  if (thumb) {
-                    // Ensure correct path
-                    if (!thumb.startsWith("http") && !thumb.startsWith("/")) {
-                      thumb = "/" + thumb;
-                    }
-                  } else if (video.video_url) {
-                    const ytId = getYoutubeId(video.video_url);
-                    if (ytId) thumb = `https://img.youtube.com/vi/${ytId}/0.jpg`;
-                  }
-
-                  if (!thumb) thumb = "/placeholder.jpg";
-
-                  return (
-                    <motion.div
-                      key={video._id}
-                      whileHover={{ scale: 1.05 }}
-                      className="min-w-[280px] sm:min-w-[320px] shrink-0 shadow-md bg-white overflow-hidden"
-                    >
-                      {/* 👉 Thumbnail click = same as title click */}
-                      <div
-                        className="h-48 relative flex items-center justify-center bg-gray-200 cursor-pointer"
-                        onClick={() => setActiveVideo(video)}
-                      >
-                        <img
-                          src={thumb}
-                          alt={video.title}
-                          className="w-full h-full object-cover"
-                        />
-                        <img
-                          src="https://img.poorvika.com//play_video.png"
-                          alt="play"
-                          className="absolute w-12 h-12"
-                        />
-                      </div>
-
-                      {/* 👉 Title click */}
-                      <div className="p-3">
-                        <p
-                          className="text-sm font-medium text-gray-800 line-clamp-2 cursor-pointer hover:text-orange-600"
-                          onClick={() => setActiveVideo(video)}
-                        >
-                          {video.title}
-                        </p>
-                      </div>
-                    </motion.div>
-                  );
-                })}
-              </div>
-
-
-              {/* ✅ Modal for YouTube video */}
-              {activeVideo && (
-                <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
-                  <div className="bg-white  overflow-hidden relative w-[90%] md:w-[700px] aspect-video h-auto">
-                    {/* Close Button */}
-                    <button
-                      className="absolute top-2 right-2 bg-black text-white rounded-full p-1"
-                      onClick={() => setActiveVideo(null)}
-                    >
-                      <X size={20} />
-                    </button>
-
-                    {/* YouTube Embed */}
-                    <iframe
-                      width="100%"
-                      height="100%"
-                      src={`https://www.youtube.com/embed/${getYoutubeId(
-                        activeVideo.video_url
-                      )}?autoplay=1`}
-                      title={activeVideo.title}
-                      frameBorder="0"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                    ></iframe>
-                  </div>
-                </div>
-              )}
-            </div>
-          </motion.section>
-        )
+        return <TrendingVideoSection key="trending-instagram-videos" />;
       case 'offer':
         return (
           <>

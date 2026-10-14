@@ -64,7 +64,7 @@ export default function PageBuilder({
     if (id) load();
   }, [id, load]);
 
-  const available = getAvailableComponents();
+  const available = getAvailableComponents("category");
   const components = page?.components || [];
   const isBrandPage = page?.pageType === PAGE_TYPES.BRAND;
   const isCategoryBrandPage = page?.pageType === PAGE_TYPES.CATEGORY_BRAND;

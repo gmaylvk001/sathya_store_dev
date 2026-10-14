@@ -11,15 +11,24 @@ export async function GET(req) {
     const isHomePage = searchParams.get("homePage") === "true";
     const minProductsParam = searchParams.get("minProducts");
 
+    const letterParam = searchParams.get("letter");
+
+    let query = { status: { $regex: /^active$/i } };
+    if (letterParam && letterParam !== "ALL") {
+      query.brand_name = { $regex: new RegExp(`^${letterParam.trim()}`, "i") };
+    }
+
     let brands = [];
     try {
-      brands = await Brand.find({ status: { $regex: /^active$/i } })
-        .select("brand_name image")
+      brands = await Brand.find(query)
+        .select("brand_name brand_slug image status")
+        .sort({ brand_name: 1 })
         .lean();
     } catch (queryErr) {
       console.warn("Status filter query failed in /api/brand/get, falling back to find all:", queryErr);
       brands = await Brand.find()
-        .select("brand_name image")
+        .select("brand_name brand_slug image status")
+        .sort({ brand_name: 1 })
         .lean();
     }
 
@@ -62,6 +71,7 @@ export async function GET(req) {
           return {
             id,
             brand_name: brand?.brand_name || "",
+            brand_slug: brand?.brand_slug || "",
             image: brand?.image || "",
             productCount: count,
           };
@@ -80,6 +90,7 @@ export async function GET(req) {
       brands: (brands || []).map(brand => ({
         id: brand?._id ? brand._id.toString() : "",
         brand_name: brand?.brand_name || "",
+        brand_slug: brand?.brand_slug || "",
         image: brand?.image || ""
       }))
     }, { status: 200 });

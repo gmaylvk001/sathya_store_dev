@@ -23,6 +23,7 @@ import ImageHotspotBannerConfigForm from "../category-pages/ImageHotspotBannerCo
 import CategoryContentConfigForm from "../category-pages/CategoryContentConfigForm";
 import SplitBannerConfigForm from "../category-pages/SplitBannerConfigForm";
 import CircleImageCarouselConfigForm from "../category-pages/CircleImageCarouselConfigForm";
+import TrendingVideosConfigForm from "./TrendingVideosConfigForm";
 
 export default function HomePageBuilder() {
   const router = useRouter();
@@ -53,7 +54,7 @@ export default function HomePageBuilder() {
   }, [load]);
 
   const id = page?._id;
-  const available = getAvailableComponents();
+  const available = getAvailableComponents("home");
   const components = page?.components || [];
   const instanceLabels = getInstanceLabels(components);
   const countByType = components.reduce((acc, c) => {
@@ -62,6 +63,9 @@ export default function HomePageBuilder() {
   }, {});
   const topBannerInstance = components.find(
     (c) => c.type === COMPONENT_TYPES.TOP_BANNER
+  );
+  const trendingVideosInstance = components.find(
+    (c) => c.type === COMPONENT_TYPES.TRENDING_VIDEOS
   );
 
   const selectComponent = (type) => {
@@ -314,6 +318,76 @@ export default function HomePageBuilder() {
       );
     }
 
+    if (configType === COMPONENT_TYPES.TRENDING_VIDEOS && !configInstanceId) {
+      return (
+        <div>
+          <div className="flex items-start justify-between gap-4 mb-5">
+            <div>
+              <h2 className="text-lg font-semibold">Instagram Feed Carousel</h2>
+              <p className="text-sm text-gray-500 mt-1">
+                Manage Instagram reels &amp; posts displayed in the homepage carousel.
+              </p>
+            </div>
+            {!trendingVideosInstance && (
+              <button
+                type="button"
+                onClick={() => addNewInstance(COMPONENT_TYPES.TRENDING_VIDEOS)}
+                className="shrink-0 inline-flex items-center gap-1.5 rounded-lg bg-[#ED1C24] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#C4161D]"
+              >
+                <Icon icon="mdi:plus" /> Add New
+              </button>
+            )}
+          </div>
+          {trendingVideosInstance ? (
+            <div className="flex items-center justify-between gap-3 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
+              <div>
+                <div className="text-sm font-medium">Instagram Feed Carousel</div>
+                <div className="text-xs text-gray-500 mt-0.5">
+                  {trendingVideosInstance.title || "Instagram Feed"} &bull; Configured on home page.
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setConfigInstanceId(trendingVideosInstance.instanceId)}
+                  className="text-sm font-semibold text-[#ED1C24] hover:underline"
+                >
+                  Edit
+                </button>
+                <button
+                  type="button"
+                  onClick={() => deleteInstance(trendingVideosInstance)}
+                  disabled={deletingInstanceId === trendingVideosInstance.instanceId}
+                  className="text-sm font-semibold text-red-600 hover:underline disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {deletingInstanceId === trendingVideosInstance.instanceId ? "Deleting..." : "Delete"}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 px-5 py-10 text-center">
+              <Icon icon="mdi:instagram" className="mx-auto mb-2 text-3xl text-gray-400" />
+              <p className="text-sm text-gray-600">No Instagram Feed Carousel has been added.</p>
+              <p className="mt-1 text-xs text-gray-400">Click Add New when you are ready to create it.</p>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    if (configType === COMPONENT_TYPES.TRENDING_VIDEOS) {
+      return (
+        <TrendingVideosConfigForm
+          key={configInstanceId}
+          pageId={page._id}
+          instanceId={configInstanceId}
+          initialTitle={trendingVideosInstance?.title || "Instagram Feed"}
+          onBackToList={() => { setConfigInstanceId(null); load(); }}
+          onSaved={() => { setMessage("Instagram Feed Carousel saved."); load(); }}
+        />
+      );
+    }
+
     const formMap = {
       [COMPONENT_TYPES.IMAGE_CAROUSEL]: {
         Form: ImageCarouselConfigForm,
@@ -433,14 +507,16 @@ export default function HomePageBuilder() {
             Add, configure, and order components for the home page.
           </p>
         </div>
-        <button
-          type="button"
-          onClick={() => router.push(`/admin/homesettings/order`)}
-          className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium hover:bg-gray-50"
-        >
-          <Icon icon="mdi:drag" className="text-lg" />
-          Drag &amp; Drop Order
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => router.push(`/admin/homesettings/order`)}
+            className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium hover:bg-gray-50"
+          >
+            <Icon icon="mdi:drag" className="text-lg" />
+            Drag &amp; Drop Order
+          </button>
+        </div>
       </div>
 
       {message && (

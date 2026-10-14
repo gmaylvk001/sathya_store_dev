@@ -140,6 +140,37 @@ export async function GET(_req, { params }) {
   }
 }
 
+export async function PUT(req, { params }) {
+  try {
+    await dbConnect();
+    const { id } = await params;
+    const body = await req.json();
+    const { instanceId, title, isActive } = body;
+
+    if (!instanceId) {
+      return NextResponse.json({ success: false, message: "instanceId required" }, { status: 400 });
+    }
+
+    const page = await HomePage.findById(id);
+    if (!page) {
+      return NextResponse.json({ success: false, message: "Page not found" }, { status: 404 });
+    }
+
+    const instance = page.components.find((c) => c.instanceId === instanceId);
+    if (!instance) {
+      return NextResponse.json({ success: false, message: "Component not found" }, { status: 404 });
+    }
+
+    if (typeof title === "string") instance.title = title;
+    if (typeof isActive === "boolean") instance.isActive = isActive;
+
+    await page.save();
+    return NextResponse.json({ success: true, page: page.toObject(), instance });
+  } catch (err) {
+    return NextResponse.json({ success: false, message: err.message }, { status: 500 });
+  }
+}
+
 export async function DELETE(req, { params }) {
   try {
     await dbConnect();
