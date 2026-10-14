@@ -404,15 +404,71 @@ function WishlistProductCard({
 }
 
 // ─── Recommended For You ──────────────────────────────────────────────────────
-function YouMayLike({ relatedProducts }) {
+function YouMayLike({ relatedProducts = [], loading = false, brandMap = {} }) {
   const scrollRef = useRef(null);
-  const { updateCartCount } = useCart();
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+  const router = useRouter();
+  const [fallbackProducts, setFallbackProducts] = useState([]);
+  const [fallbackLoading, setFallbackLoading] = useState(false);
+
+  // If parent finished loading and relatedProducts is empty, fetch fallback recommendations
+  useEffect(() => {
+    if (!loading && (!relatedProducts || relatedProducts.length === 0)) {
+      let cancelled = false;
+      setFallbackLoading(true);
+      fetch("/api/product/featured?limit=10")
+        .then((res) => res.json())
+        .then((data) => {
+          if (cancelled) return;
+          const prods =
+            data?.products ||
+            data?.data ||
+            (Array.isArray(data) ? data : []);
+          setFallbackProducts(prods);
+        })
+        .catch((err) => {
+          console.error("Fallback recommendations error:", err);
+        })
+        .finally(() => {
+          if (!cancelled) setFallbackLoading(false);
+        });
+      return () => {
+        cancelled = true;
+      };
+    }
+  }, [loading, relatedProducts]);
+
+  const displayProducts =
+    relatedProducts && relatedProducts.length > 0
+      ? relatedProducts
+      : fallbackProducts;
+
+  const isActuallyLoading =
+    loading || (displayProducts.length === 0 && fallbackLoading);
 
   const scrollByAmount = (dir) => {
     if (!scrollRef.current) return;
-    scrollRef.current.scrollBy({ left: dir * 300, behavior: "smooth" });
+    const w = scrollRef.current.clientWidth || 300;
+    scrollRef.current.scrollBy({ left: dir * (w * 0.8), behavior: "smooth" });
   };
+
+  const handleProductClick = (product) => {
+    try {
+      const stored = JSON.parse(localStorage.getItem("recentlyViewed")) || [];
+      const updated = [
+        product,
+        ...stored.filter((p) => p._id !== product._id),
+      ].slice(0, 10);
+      localStorage.setItem("recentlyViewed", JSON.stringify(updated));
+    } catch (e) {
+      console.error(e);
+    }
+    router.push(`/product/${product.slug || product._id}`);
+  };
+
+  // If not loading and no products to display at all, gracefully return null rather than staying in infinite skeleton
+  if (!isActuallyLoading && displayProducts.length === 0) {
+    return null;
+  }
 
   return (
     <div className="w-full min-w-0 max-w-full overflow-hidden">
@@ -464,9 +520,9 @@ function YouMayLike({ relatedProducts }) {
       </div>
 
       {/* Product Skeleton / Scrollable Row */}
-      {!relatedProducts || relatedProducts.length === 0 ? (
+      {isActuallyLoading ? (
         <div
-          className="recommended-scrollbar flex w-full min-w-0 max-w-full flex-nowrap gap-3 overflow-x-auto overflow-y-hidden pb-2 snap-x snap-mandatory touch-pan-x"
+          className="recommended-scrollbar flex w-full min-w-0 max-w-full flex-nowrap gap-4 overflow-x-auto overflow-y-hidden pb-4 snap-x snap-mandatory touch-pan-x"
           style={{
             scrollbarWidth: "none",
             msOverflowStyle: "none",
@@ -476,33 +532,37 @@ function YouMayLike({ relatedProducts }) {
           {[1, 2, 3, 4, 5].map((i) => (
             <div
               key={i}
-              className="bg-white rounded-sm border border-gray-200 w-[180px] min-w-[180px] flex-shrink-0 h-[320px] p-3 flex flex-col animate-pulse"
+              className="flex-[0_0_75%] sm:flex-[0_0_calc((100%-16px)/2)] md:flex-[0_0_calc((100%-32px)/3)] lg:flex-[0_0_calc((100%-48px)/4)] xl:flex-[0_0_calc((100%-64px)/5)] shrink-0 bg-white rounded-2xl border border-gray-100 p-4 flex flex-col h-[380px] animate-pulse shadow-2xs"
             >
-              <div className="w-full h-[190px] sm:h-[200px] bg-gray-100 rounded-sm mb-3" />
-              <div className="h-3.5 bg-gray-100 rounded w-full mb-2" />
-              <div className="h-4 bg-gray-100 rounded w-1/2 mb-2" />
-              <div className="h-8 bg-gray-100 rounded-sm mt-auto" />
+              <div className="w-full h-[180px] sm:h-[200px] bg-gray-100/80 rounded-xl mb-4" />
+              <div className="h-3 w-16 bg-gray-100 rounded mb-2" />
+              <div className="h-4 bg-gray-100 rounded w-full mb-1.5" />
+              <div className="h-4 bg-gray-100 rounded w-2/3 mb-4" />
+              <div className="h-5 bg-gray-100 rounded w-1/3 mb-4" />
+              <div className="h-9 bg-gray-100 rounded-full mt-auto w-full" />
             </div>
           ))}
-          <div className="w-2 flex-shrink-0" />
         </div>
       ) : (
         <div
           ref={scrollRef}
-          className="recommended-scrollbar flex w-full min-w-0 max-w-full flex-nowrap gap-3 overflow-x-auto overflow-y-hidden pb-2 snap-x snap-mandatory touch-pan-x"
+          className="recommended-scrollbar flex w-full min-w-0 max-w-full flex-nowrap gap-4 overflow-x-auto overflow-y-hidden pb-4 snap-x snap-mandatory touch-pan-x"
           style={{
             scrollbarWidth: "none",
             msOverflowStyle: "none",
             WebkitOverflowScrolling: "touch",
           }}
         >
-          {relatedProducts.map((product) => (
-            <YouMayLikeCard
+          {displayProducts.map((product) => (
+            <div
               key={product._id}
-              product={product}
-              updateCartCount={updateCartCount}
-              apiUrl={apiUrl}
-            />
+              className="flex-[0_0_75%] sm:flex-[0_0_calc((100%-16px)/2)] md:flex-[0_0_calc((100%-32px)/3)] lg:flex-[0_0_calc((100%-48px)/4)] xl:flex-[0_0_calc((100%-64px)/5)] shrink-0 snap-start"
+            >
+              <ProductCard
+                product={normalizeProduct(product, brandMap)}
+                onProductClick={handleProductClick}
+              />
+            </div>
           ))}
         </div>
       )}
@@ -510,169 +570,13 @@ function YouMayLike({ relatedProducts }) {
   );
 }
 
-function YouMayLikeCard({ product, updateCartCount, apiUrl }) {
-  const [adding, setAdding] = useState(false);
-  const [added, setAdded] = useState(false);
-  const [imgError, setImgError] = useState(false);
-  const router = useRouter();
-
-  const specialPrice = Number(product.special_price);
-  const originalPrice = Number(product.price);
-
-  const hasDiscount = specialPrice > 0 && specialPrice < originalPrice;
-
-  const currentPrice = hasDiscount ? specialPrice : originalPrice;
-
-  const discountPercent = hasDiscount
-    ? Math.round(100 - (specialPrice / originalPrice) * 100)
-    : 0;
-
-  const imagepathname = product.image || product.images?.[0] || "";
-  const imageUrl = imagepathname
-    ? (imagepathname.startsWith("http")
-        ? imagepathname
-        : `/uploads/products/${imagepathname.replace(/^\/?(uploads\/products\/)?/, "").replace(/^\/+/, "")}`)
-    : null;
-
-  const handleCardClick = () => {
-    router.push(`/product/${product.slug || product._id}`);
-  };
-
-  const handleAdd = async (e) => {
-    e.stopPropagation();
-    if (product.quantity === 0) return;
-    setAdding(true);
-    try {
-      await addProductToCart({
-        productId: product._id,
-        quantity: 1,
-        updateCartCount,
-        apiUrl,
-      });
-      toast.success("Product added!");
-      setAdded(true);
-      setTimeout(() => setAdded(false), 2500);
-    } catch {
-      toast.error("Failed to add to cart");
-    } finally {
-      setAdding(false);
-    }
-  };
-
-  return (
-    <div
-      onClick={handleCardClick}
-      className="w-[180px] min-w-[180px] flex-shrink-0 flex flex-col justify-between bg-white border border-gray-200 rounded-sm overflow-hidden shadow-2xs hover:shadow-md cursor-pointer group transition-all duration-200 snap-start"
-    >
-      {/* Top Image Area (Fixed Height) */}
-      <div className="relative w-full h-[190px] sm:h-[200px] bg-white p-2.5 flex items-center justify-center overflow-hidden">
-        {imageUrl && !imgError ? (
-          <Image
-            src={imageUrl}
-            alt={product.name}
-            fill
-            style={{ objectFit: "contain" }}
-            className="p-2 group-hover:scale-105 transition-transform duration-300 ease-out"
-            onError={() => setImgError(true)}
-            unoptimized
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gray-50 text-gray-300 rounded-xs">
-            <svg
-              width="32"
-              height="32"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
-            >
-              <rect x="3" y="3" width="18" height="18" rx="2" />
-              <circle cx="8.5" cy="8.5" r="1.5" />
-              <path d="M21 15l-5-5L5 21" />
-            </svg>
-          </div>
-        )}
-      </div>
-
-      {/* Content Area */}
-      <div className="p-3 flex flex-col flex-1 justify-between border-t border-gray-100/80">
-        <div>
-          {/* Title: 1-line truncation */}
-          <h4
-            className="text-xs sm:text-sm font-medium text-gray-900 truncate mb-1.5"
-            title={product.name}
-          >
-            {product.name}
-          </h4>
-
-          {/* Price Row */}
-          <div className="flex items-baseline gap-1.5 flex-wrap">
-            <span className="text-sm sm:text-base font-bold text-gray-900">
-              ₹{Number(currentPrice).toLocaleString("en-IN")}
-            </span>
-            {hasDiscount && (
-              <s className="text-xs text-gray-400 line-through font-normal">
-                ₹{Number(originalPrice).toLocaleString("en-IN")}
-              </s>
-            )}
-          </div>
-
-          {/* Discount Percentage */}
-          {hasDiscount && (
-            <div className="text-xs font-semibold text-green-600 mt-0.5">
-              {discountPercent}% off
-            </div>
-          )}
-        </div>
-
-        {/* Action Button: Outline Style */}
-        <button
-          onClick={handleAdd}
-          disabled={adding || product.quantity === 0}
-          className={`w-full mt-3 border rounded-sm py-1.5 px-3 text-xs font-bold transition-all duration-200 flex items-center justify-center gap-1 cursor-pointer active:scale-95 ${
-            product.quantity === 0
-              ? "border-gray-200 text-gray-400 bg-gray-50 cursor-not-allowed"
-              : added
-              ? "border-emerald-600 text-emerald-600 bg-emerald-50"
-              : "border-[#d72828] text-[#d72828] bg-white hover:bg-[#d72828] hover:text-white shadow-2xs"
-          }`}
-        >
-          {adding ? (
-            <svg className="animate-spin h-3.5 w-3.5" viewBox="0 0 24 24">
-              <circle
-                className="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                strokeWidth="4"
-                fill="none"
-              />
-              <path
-                className="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-              />
-            </svg>
-          ) : added ? (
-            "Added ✓"
-          ) : (
-            "Add to cart"
-          )}
-        </button>
-      </div>
-    </div>
-  );
-}
-
 // ─── Recently Viewed ──────────────────────────────────────────────────────────
-function RecentlyViewed() {
+function RecentlyViewed({ brandMap = {} }) {
   const [recentProducts, setRecentProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
   const [navigating, setNavigating] = useState(false);
-  const { updateCartCount } = useCart();
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+  const scrollRef = useRef(null);
 
   useEffect(() => {
     const fetchRecent = async () => {
@@ -693,13 +597,13 @@ function RecentlyViewed() {
       try {
         const response = await fetch("/api/brand");
         const result = (await parseJsonSafely(response)) || {};
-        const brandMap = {};
+        const bMap = { ...brandMap };
         (result.data || []).forEach((b) => {
-          brandMap[b._id] = b.brand_name;
+          bMap[b._id] = b.brand_name;
         });
         setRecentProducts(
           stored
-            .map((p) => ({ ...p, brand: brandMap[p.brand] || p.brand }))
+            .map((p) => ({ ...p, brand: bMap[p.brand] || p.brand }))
             .slice(0, 10),
         );
       } catch {
@@ -709,7 +613,13 @@ function RecentlyViewed() {
       }
     };
     fetchRecent();
-  }, []);
+  }, [brandMap]);
+
+  const scrollByAmount = (dir) => {
+    if (!scrollRef.current) return;
+    const w = scrollRef.current.clientWidth || 300;
+    scrollRef.current.scrollBy({ left: dir * (w * 0.8), behavior: "smooth" });
+  };
 
   const handleClick = (product) => {
     if (navigating) return;
@@ -726,27 +636,29 @@ function RecentlyViewed() {
 
   if (isLoading) {
     return (
-      <div className="w-full flex-shrink-0">
+      <div className="w-full min-w-0 max-w-full overflow-hidden">
         <h2 className="text-gray-900 font-semibold text-lg sm:text-xl mb-4">
-          Recently Viewed Products
+          Recently Viewed
         </h2>
         <div
-          className="flex gap-4 overflow-x-auto pb-3 scrollbar-none"
+          className="recommended-scrollbar flex w-full min-w-0 max-w-full flex-nowrap gap-4 overflow-x-auto overflow-y-hidden pb-4 snap-x snap-mandatory touch-pan-x"
           style={{
             scrollbarWidth: "none",
             msOverflowStyle: "none",
             WebkitOverflowScrolling: "touch",
           }}
         >
-          {[1, 2].map((i) => (
+          {[1, 2, 3, 4, 5].map((i) => (
             <div
               key={i}
-              className="bg-white rounded-sm border border-gray-200 w-[180px] min-w-[180px] flex-shrink-0 h-[320px] p-3 flex flex-col animate-pulse"
+              className="flex-[0_0_75%] sm:flex-[0_0_calc((100%-16px)/2)] md:flex-[0_0_calc((100%-32px)/3)] lg:flex-[0_0_calc((100%-48px)/4)] xl:flex-[0_0_calc((100%-64px)/5)] shrink-0 bg-white rounded-2xl border border-gray-100 p-4 flex flex-col h-[380px] animate-pulse shadow-2xs"
             >
-              <div className="w-full h-[190px] bg-gray-100 rounded-sm mb-3" />
-              <div className="h-3.5 bg-gray-100 rounded w-full mb-2" />
-              <div className="h-4 bg-gray-100 rounded w-1/2 mb-2" />
-              <div className="h-8 bg-gray-100 rounded-sm mt-auto" />
+              <div className="w-full h-[180px] sm:h-[200px] bg-gray-100/80 rounded-xl mb-4" />
+              <div className="h-3 w-16 bg-gray-100 rounded mb-2" />
+              <div className="h-4 bg-gray-100 rounded w-full mb-1.5" />
+              <div className="h-4 bg-gray-100 rounded w-2/3 mb-4" />
+              <div className="h-5 bg-gray-100 rounded w-1/3 mb-4" />
+              <div className="h-9 bg-gray-100 rounded-full mt-auto w-full" />
             </div>
           ))}
         </div>
@@ -763,45 +675,78 @@ function RecentlyViewed() {
           <div className="animate-spin rounded-full h-9 w-9 border-3 border-white border-t-[#d72828] shadow-md" />
         </div>
       )}
-      <div className="w-full flex-shrink-0">
-        <h2 className="text-gray-900 font-semibold text-lg sm:text-xl mb-4">
-          Recently Viewed
-        </h2>
+      <div className="w-full min-w-0 max-w-full overflow-hidden">
+        {/* Header Row */}
+        <div className="flex items-center justify-between gap-4 mb-4">
+          <h2 className="text-gray-900 font-semibold text-lg sm:text-xl">
+            Recently Viewed
+          </h2>
 
-        {/* Horizontal Scrollable Row of Vertical (Portrait) Cards */}
+          {/* Carousel Navigation Arrows */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => scrollByAmount(-1)}
+              className="w-8 h-8 flex items-center justify-center rounded-full border border-gray-200 bg-white hover:bg-[#d72828] hover:border-[#d72828] hover:text-white transition-all duration-200 shadow-2xs active:scale-95 text-gray-600 cursor-pointer"
+              aria-label="Previous products"
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <polyline points="15 18 9 12 15 6" />
+              </svg>
+            </button>
+            <button
+              onClick={() => scrollByAmount(1)}
+              className="w-8 h-8 flex items-center justify-center rounded-full border border-gray-200 bg-white hover:bg-[#d72828] hover:border-[#d72828] hover:text-white transition-all duration-200 shadow-2xs active:scale-95 text-gray-600 cursor-pointer"
+              aria-label="Next products"
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        {/* Horizontal Scrollable Row */}
         <div
-          className="flex w-full min-w-0 max-w-full gap-3 overflow-x-auto overflow-y-hidden pb-4 px-1 scrollbar-none snap-x snap-mandatory overscroll-x-contain touch-pan-x"
+          ref={scrollRef}
+          className="recommended-scrollbar flex w-full min-w-0 max-w-full flex-nowrap gap-4 overflow-x-auto overflow-y-hidden pb-4 snap-x snap-mandatory touch-pan-x"
           style={{
-            scrollBehavior: "smooth",
-            WebkitOverflowScrolling: "touch",
             scrollbarWidth: "none",
             msOverflowStyle: "none",
+            WebkitOverflowScrolling: "touch",
           }}
         >
           {recentProducts.map((product) => (
-            <RecentlyViewedCardItem
+            <div
               key={product._id}
-              product={product}
-              onClick={handleClick}
-              updateCartCount={updateCartCount}
-              apiUrl={apiUrl}
-            />
+              className="flex-[0_0_75%] sm:flex-[0_0_calc((100%-16px)/2)] md:flex-[0_0_calc((100%-32px)/3)] lg:flex-[0_0_calc((100%-48px)/4)] xl:flex-[0_0_calc((100%-64px)/5)] shrink-0 snap-start"
+            >
+              <ProductCard
+                product={normalizeProduct(product, brandMap)}
+                onProductClick={handleClick}
+              />
+            </div>
           ))}
         </div>
       </div>
     </>
-  );
-}
-
-function RecentlyViewedCardItem({ product, onClick }) {
-  if (!product) return null;
-  return (
-    <div className="w-[190px] sm:w-[220px] shrink-0 snap-start">
-      <ProductCard 
-        product={normalizeProduct(product)} 
-        onProductClick={onClick} 
-      />
-    </div>
   );
 }
 
@@ -1112,13 +1057,18 @@ export default function WishlistPage() {
           </div>
         </>
       )}
-      <section className="mt-14 pt-8 border-t border-gray-100 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_372px] gap-5 items-start w-full max-w-full">
-        <div className="min-w-0 max-w-full overflow-hidden">
-          <YouMayLike relatedProducts={relatedProducts} />
+      {/* Recommended For You & Recently Viewed Sections (Stacked Vertically, Full Width) */}
+      <section className="mt-14 pt-8 border-t border-gray-100 flex flex-col gap-10 w-full max-w-full">
+        <div className="w-full min-w-0 max-w-full overflow-hidden">
+          <YouMayLike
+            relatedProducts={relatedProducts}
+            loading={loading}
+            brandMap={brandMap}
+          />
         </div>
 
         <div className="w-full min-w-0 max-w-full overflow-hidden">
-          <RecentlyViewed />
+          <RecentlyViewed brandMap={brandMap} />
         </div>
       </section>
     </WishlistPageShell>
