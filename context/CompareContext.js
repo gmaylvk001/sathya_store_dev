@@ -37,10 +37,15 @@ const CompareContext = createContext({
   compareList: [],
   loading: false,
   error: null,
+  similarProducts: [],
+  categoryMismatchPrompt: null,
+  setSimilarProducts: () => {},
   addToCompare: () => {},
   removeFromCompare: () => {},
   clearCompare: () => {},
   isInCompare: () => false,
+  confirmCategorySwitch: () => {},
+  cancelCategorySwitch: () => {},
   syncOnLogin: async () => {},
   fetchFromDB: async () => {},
 });
@@ -48,6 +53,8 @@ const CompareContext = createContext({
 export const CompareProvider = ({ children }) => {
   // compareList: Array<{ productId: string, category_slug: string, productData?: object }>
   const [compareList, setCompareList] = useState([]);
+  const [similarProducts, setSimilarProducts] = useState([]);
+  const [categoryMismatchPrompt, setCategoryMismatchPrompt] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -144,59 +151,118 @@ export const CompareProvider = ({ children }) => {
   // ── addToCompare ───────────────────────────────────────────────────────────
 
   const addToCompare = useCallback(
-    async (product) => {
+    async (product, options = {}) => {
       if (!product?._id) return;
+      const { forceSwitch = false } = options;
 
       const productId = String(product._id);
-      const category_slug = product.category_new || '';
+
+      // Extract human-readable category name (avoid raw MongoDB ObjectIds)
+      let cleanCategoryName = '';
+      if (product.sub_category_new_name && typeof product.sub_category_new_name === 'string') {
+        const top = product.sub_category_new_name.split('##')[0].trim();
+        if (top && !/^[0-9a-fA-F]{24}$/.test(top)) cleanCategoryName = top;
+      }
+      if (!cleanCategoryName && product.category_name && !/^[0-9a-fA-F]{24}$/.test(product.category_name)) {
+        cleanCategoryName = product.category_name;
+      }
+      if (!cleanCategoryName && product.categoryName && !/^[0-9a-fA-F]{24}$/.test(product.categoryName)) {
+        cleanCategoryName = product.categoryName;
+      }
+      if (!cleanCategoryName && product.sub_category && !/^[0-9a-fA-F]{24}$/.test(product.sub_category)) {
+        cleanCategoryName = product.sub_category;
+      }
+      if (!cleanCategoryName && product.category && !/^[0-9a-fA-F]{24}$/.test(product.category)) {
+        cleanCategoryName = product.category;
+      }
+
+      const displayCategory = cleanCategoryName || 'Product';
+      const category_id = String(product.category || product.sub_category || '');
+      const category_slug = cleanCategoryName || category_id || 'General';
 
       // Already in list — nothing to do
-      if (isInCompare(productId)) return;
+      if (!forceSwitch && isInCompare(productId)) return;
+
+      const previewData = {
+        _id: productId,
+        name: product.name,
+        slug: product.slug,
+        price: product.price,
+        special_price: product.special_price,
+        images: product.images,
+        brand: product.brand || product.brand_name,
+        category: product.category,
+        sub_category: product.sub_category,
+        sub_category_new_name: product.sub_category_new_name,
+        category_name: displayCategory,
+        category_slug: category_slug,
+        category_id: category_id,
+        stock_status: product.stock_status,
+        quantity: product.quantity,
+        key_specifications: product.key_specifications,
+        filter: product.filter,
+      };
+
+      // ── Category Mismatch Check ─────────────────────────────────────────
+      const activeList = isLoggedIn() ? compareList : readLocalList();
+      const firstItem = activeList[0];
+      const currentCatName = firstItem?.category_name || (firstItem?.productData?.sub_category_new_name ? firstItem.productData.sub_category_new_name.split('##')[0].trim() : '') || firstItem?.category_slug || '';
+      const currentCatId = firstItem?.category_id || firstItem?.productData?.category || '';
+
+      const isSameCategory = () => {
+        if (!firstItem) return true;
+        // Same category ID
+        if (category_id && currentCatId && category_id === currentCatId) return true;
+        // Same category name
+        if (cleanCategoryName && currentCatName && cleanCategoryName.toLowerCase() === currentCatName.toLowerCase()) return true;
+        // Fallback: if category slug matches
+        if (category_slug && firstItem.category_slug && category_slug.toLowerCase() === firstItem.category_slug.toLowerCase()) return true;
+        return false;
+      };
+
+      if (!forceSwitch && activeList.length > 0 && !isSameCategory()) {
+        setCategoryMismatchPrompt({
+          newProduct: product,
+          currentCategory: currentCatName && !/^[0-9a-fA-F]{24}$/.test(currentCatName) ? currentCatName : 'Current Category',
+          newCategory: displayCategory,
+        });
+        return;
+      }
 
       // ── Guest flow ──────────────────────────────────────────────────────
       if (!isLoggedIn()) {
-        const currentList = readLocalList();
+        const currentList = forceSwitch ? [] : readLocalList();
 
         // Validate max-4
         if (currentList.length >= MAX_COMPARE) {
-          toast.error('Compare list is full. Remove an item to add a new one.', {
+          toast.error('Compare list is full (max 4 products). Remove an item to add a new one.', {
             position: 'top-center',
             autoClose: 3000,
           });
           return;
         }
 
-        // Validate same-category
-        if (
-          currentList.length > 0 &&
-          currentList[0].category_slug &&
-          category_slug &&
-          currentList[0].category_slug !== category_slug
-        ) {
-          toast.warn(
-            `You can only compare products from the same category.`,
-            { position: 'top-center', autoClose: 4000 }
-          );
-          return;
-        }
-
-        const newList = [...currentList, { productId, category_slug }];
+        const newList = [...currentList, { productId, category_slug, category_id, category_name: displayCategory, productData: previewData }];
         writeLocalList(newList);
         setCompareList(newList);
         toast.success(`"${product.name || 'Product'}" added to compare!`, {
           position: 'bottom-right',
           autoClose: 2000,
         });
-        trackCompareAdd({ productId, productName: product.name, category_slug });
+        trackCompareAdd({ productId, productName: product.name, category_slug: displayCategory });
         return;
       }
 
       // ── Logged-in flow (optimistic UI) ──────────────────────────────────
-      const optimisticItem = { productId, category_slug, productData: product };
+      const optimisticItem = { productId, category_slug, category_id, category_name: displayCategory, productData: previewData };
       const previousList = compareList;
 
-      // Optimistic add
-      setCompareList((prev) => [...prev, optimisticItem]);
+      // Optimistic add or switch
+      if (forceSwitch) {
+        setCompareList([optimisticItem]);
+      } else {
+        setCompareList((prev) => [...prev, optimisticItem]);
+      }
 
       // Debounce rapid clicks
       clearTimeout(debounceRef.current[productId]);
@@ -209,23 +275,30 @@ export const CompareProvider = ({ children }) => {
               'Content-Type': 'application/json',
               Authorization: `Bearer ${token}`,
             },
-            body: JSON.stringify({ productId }),
+            body: JSON.stringify({ productId, forceSwitch }),
           });
 
           const data = await res.json();
 
           if (!res.ok) {
-            // Rollback optimistic update on error
             setCompareList(previousList);
-            toast.error(data.error || 'Failed to add to compare', {
-              position: 'top-center',
-              autoClose: 3500,
-            });
+            if (data.categoryMismatch) {
+              setCategoryMismatchPrompt({
+                newProduct: product,
+                currentCategory: data.currentCategory,
+                newCategory: data.newCategory,
+              });
+            } else {
+              toast.error(data.error || 'Failed to add to compare', {
+                position: 'top-center',
+                autoClose: 3500,
+              });
+            }
             return;
           }
 
           // Sync with server-confirmed list
-          setCompareList(data.items || []);
+          setCompareList(data.items || [optimisticItem]);
           toast.success(`"${product.name || 'Product'}" added to compare!`, {
             position: 'bottom-right',
             autoClose: 2000,
@@ -233,13 +306,12 @@ export const CompareProvider = ({ children }) => {
           trackCompareAdd({ productId, productName: product.name, category_slug });
 
         } catch (err) {
-          // Network failure — rollback
           setCompareList(previousList);
           console.error('[CompareContext] addToCompare failed:', err);
         }
       }, 300);
     },
-    [compareList, isInCompare, readLocalList, writeLocalList] // eslint-disable-line react-hooks/exhaustive-deps
+    [compareList, isInCompare, isLoggedIn, readLocalList, writeLocalList]
   );
 
   // ── removeFromCompare ──────────────────────────────────────────────────────
@@ -375,6 +447,18 @@ export const CompareProvider = ({ children }) => {
     }
   }, [readLocalList, writeLocalList, fetchFromDB]);
 
+  const confirmCategorySwitch = useCallback(() => {
+    if (!categoryMismatchPrompt?.newProduct) return;
+    const prod = categoryMismatchPrompt.newProduct;
+    setCategoryMismatchPrompt(null);
+    clearCompare();
+    addToCompare(prod, { forceSwitch: true });
+  }, [categoryMismatchPrompt, clearCompare, addToCompare]);
+
+  const cancelCategorySwitch = useCallback(() => {
+    setCategoryMismatchPrompt(null);
+  }, []);
+
   // ── Context value ──────────────────────────────────────────────────────────
 
   return (
@@ -383,15 +467,56 @@ export const CompareProvider = ({ children }) => {
         compareList,
         loading,
         error,
+        similarProducts,
+        categoryMismatchPrompt,
+        setSimilarProducts,
         addToCompare,
         removeFromCompare,
         clearCompare,
         isInCompare,
+        confirmCategorySwitch,
+        cancelCategorySwitch,
         syncOnLogin,
         fetchFromDB,
       }}
     >
       {children}
+
+      {/* Category Mismatch Confirmation Dialog */}
+      {categoryMismatchPrompt && (
+        <div className="fixed inset-0 z-[999999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fadeIn">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-gray-100 text-center animate-scaleUp">
+            <div className="w-12 h-12 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center mx-auto mb-3">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
+              </svg>
+            </div>
+            <h3 className="text-base font-bold text-gray-900 mb-1">Switch Category?</h3>
+            <p className="text-xs text-gray-600 mb-4 leading-relaxed">
+              Your compare list currently contains <span className="font-semibold text-gray-800">{categoryMismatchPrompt.currentCategory}</span> products.
+              Adding this <span className="font-semibold text-gray-800">{categoryMismatchPrompt.newCategory}</span> product will clear the existing list and start a new comparison.
+            </p>
+            <div className="flex items-center gap-3 justify-center">
+              <button
+                type="button"
+                onClick={cancelCategorySwitch}
+                className="px-4 py-2 rounded-xl border border-gray-300 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition cursor-pointer"
+              >
+                Keep Existing
+              </button>
+              <button
+                type="button"
+                onClick={confirmCategorySwitch}
+                className="px-4 py-2 rounded-xl bg-[#d72828] text-xs font-bold text-white hover:bg-[#b52020] transition shadow-xs cursor-pointer"
+              >
+                Switch & Compare
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </CompareContext.Provider>
   );
 };

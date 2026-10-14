@@ -48,7 +48,7 @@ export default function ComparePage() {
     setFetching(true);
     try {
       const ids = compareList.map((item) => String(item.productId)).join(',');
-      const res = await fetch(`/api/product/by-ids?ids=${ids}`);
+      const res = await fetch(`/api/compare?ids=${ids}`);
       if (!res.ok) throw new Error('Failed to fetch products');
 
       const { products } = await res.json();

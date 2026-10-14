@@ -11,6 +11,7 @@ import jwt from 'jsonwebtoken';
 import dbConnect from '@/lib/db';
 import Compare from '@/models/Compare';
 import Product from '@/models/product';
+import mongoose from 'mongoose';
 
 // ─── Helper: extract & verify JWT ────────────────────────────────────────────
 
@@ -45,15 +46,165 @@ async function fetchCompareList(userId) {
   }));
 }
 
-// ─── GET: return user's compare list ─────────────────────────────────────────
+// ─── GET: return user's compare list OR fetch products by ?ids= ────────────────
 
 export async function GET(req) {
   try {
     await dbConnect();
 
+    const { searchParams } = new URL(req.url);
+    const idsParam = searchParams.get('ids') || searchParams.get('productIds') || '';
+
+    // If 'ids' query parameter is provided (e.g. guest compare or modal view):
+    if (idsParam) {
+      const ids = idsParam.split(',').map((s) => s.trim()).filter(Boolean);
+      const validIds = ids.filter((id) => mongoose.Types.ObjectId.isValid(id));
+      if (validIds.length === 0) {
+        return NextResponse.json({ products: [], count: 0 }, { status: 200 });
+      }
+
+      const products = await Product.find({ _id: { $in: validIds } })
+        .populate('brand', 'brand_name brand_slug')
+        .lean();
+
+      const map = new Map(products.map((p) => [String(p._id), p]));
+      const ordered = validIds.map((id) => map.get(id)).filter(Boolean);
+
+      return NextResponse.json({ products: ordered, count: ordered.length }, { status: 200 });
+    }
+
+    // Category / Search query endpoint for similar products picker:
+    const categoryParam = searchParams.get('category');
+    const categoryIdParam = searchParams.get('categoryId');
+    const searchParam = searchParams.get('search') || searchParams.get('q');
+    const excludeParam = searchParams.get('exclude');
+    const currentProductId = searchParams.get('productId') || searchParams.get('currentProductId');
+
+    if (categoryParam || categoryIdParam || searchParam || currentProductId) {
+      const filter = { status: 'Active' };
+
+      // Handle exclusions
+      const excludeIds = (excludeParam || '')
+        .split(',')
+        .map((s) => s.trim())
+        .filter((id) => mongoose.Types.ObjectId.isValid(id))
+        .map((id) => new mongoose.Types.ObjectId(id));
+
+      if (excludeIds.length > 0) {
+        filter._id = { $nin: excludeIds };
+      }
+
+      // Fetch source product to get category / related_products if available
+      let sourceProduct = null;
+      if (currentProductId && mongoose.Types.ObjectId.isValid(currentProductId)) {
+        sourceProduct = await Product.findById(currentProductId)
+          .select('category sub_category sub_category_new_name related_products add_ons')
+          .lean();
+      }
+
+      const orCatConditions = [];
+      const catInputs = [categoryParam, categoryIdParam, sourceProduct?.category, sourceProduct?.sub_category].filter(Boolean);
+
+      for (const catInput of catInputs) {
+        const trimmed = String(catInput).trim();
+        if (!trimmed) continue;
+        const escaped = trimmed.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+        // Direct string match on category fields
+        orCatConditions.push(
+          { category: trimmed },
+          { sub_category: trimmed },
+          { category_new: trimmed },
+          { sub_category_new: { $regex: escaped, $options: 'i' } }
+        );
+
+        // Subcategory name match (e.g. Televisions)
+        orCatConditions.push({
+          sub_category_new_name: { $regex: escaped, $options: 'i' },
+        });
+
+        // ObjectId match if valid 24-hex string
+        if (/^[0-9a-fA-F]{24}$/.test(trimmed)) {
+          try {
+            const objId = new mongoose.Types.ObjectId(trimmed);
+            orCatConditions.push({ category: objId });
+            orCatConditions.push({ sub_category: objId });
+          } catch {}
+        }
+      }
+
+      // If sourceProduct has a sub_category_new_name, also match its top category
+      if (sourceProduct?.sub_category_new_name) {
+        const topCat = sourceProduct.sub_category_new_name.split('##')[0].trim();
+        if (topCat) {
+          const escapedTop = topCat.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+          orCatConditions.push({
+            sub_category_new_name: { $regex: escapedTop, $options: 'i' },
+          });
+        }
+      }
+
+      // Text search condition
+      let searchCondition = null;
+      if (searchParam && searchParam.trim()) {
+        const escapedSearch = searchParam.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        searchCondition = {
+          $or: [
+            { name: { $regex: escapedSearch, $options: 'i' } },
+            { brand: { $regex: escapedSearch, $options: 'i' } },
+            { model_number: { $regex: escapedSearch, $options: 'i' } },
+          ],
+        };
+      }
+
+      // Assemble query
+      if (orCatConditions.length > 0 && searchCondition) {
+        filter.$and = [{ $or: orCatConditions }, searchCondition];
+      } else if (orCatConditions.length > 0) {
+        filter.$or = orCatConditions;
+      } else if (searchCondition) {
+        filter.$or = searchCondition.$or;
+      }
+
+      let products = await Product.find(filter)
+        .select('name slug brand price special_price quantity stock_status movement model_number item_code description warranty specifications images category sub_category sub_category_new_name filter key_specifications size star product_highlights')
+        .sort({ quantity: -1, createdAt: -1 })
+        .limit(20)
+        .lean();
+
+      // If source product has related products and no active search query, prioritize them at the front
+      if (sourceProduct && !searchParam) {
+        const relIds = [
+          ...(Array.isArray(sourceProduct.related_products) ? sourceProduct.related_products : []),
+          ...(Array.isArray(sourceProduct.add_ons) ? sourceProduct.add_ons : []),
+        ]
+          .map((id) => String(id))
+          .filter((id) => mongoose.Types.ObjectId.isValid(id) && !excludeIds.some((e) => String(e) === id));
+
+        if (relIds.length > 0) {
+          const relProducts = await Product.find({
+            _id: { $in: relIds.map((id) => new mongoose.Types.ObjectId(id)) },
+            status: 'Active',
+          })
+            .select('name slug brand price special_price quantity stock_status movement model_number item_code description warranty specifications images category sub_category sub_category_new_name filter key_specifications size star product_highlights')
+            .lean();
+
+          if (relProducts.length > 0) {
+            const relMap = new Map(relProducts.map((p) => [String(p._id), p]));
+            const seen = new Set(relProducts.map((p) => String(p._id)));
+            const others = products.filter((p) => !seen.has(String(p._id)));
+            products = [...relProducts, ...others].slice(0, 20);
+          }
+        }
+      }
+
+      return NextResponse.json({ products, count: products.length }, { status: 200 });
+    }
+
+    // Otherwise fetch the logged-in user's stored list:
     const userId = getUserIdFromRequest(req);
     if (!userId) {
-      // Return empty list for unauthenticated requests (guest state is localStorage-only)
+      // Return empty list for unauthenticated requests
       return NextResponse.json({ items: [], count: 0 }, { status: 200 });
     }
 
@@ -62,7 +213,7 @@ export async function GET(req) {
 
   } catch (error) {
     console.error('[/api/compare GET]', error.message);
-    return NextResponse.json({ items: [], count: 0 }, { status: 200 });
+    return NextResponse.json({ items: [], products: [], count: 0 }, { status: 200 });
   }
 }
 
@@ -88,11 +239,12 @@ export async function POST(req) {
     }
 
     // Fetch the live product to get its category_slug and validate it exists
-    const product = await Product.findById(productId).select('_id category_new name').lean();
+    const product = await Product.findById(productId).select('_id category sub_category category_new sub_category_new_name name').lean();
     if (!product) {
       return NextResponse.json({ error: 'Product not found' }, { status: 404 });
     }
-    const category_slug = product.category_new || '';
+    const cleanCat = product.sub_category_new_name ? product.sub_category_new_name.split('##')[0].trim() : '';
+    const category_slug = cleanCat || product.category || product.sub_category || 'General';
 
     // ── Server-side validation 1: max 4 items ──────────────────────────────
     const count = await Compare.countDocuments({ userId });
@@ -103,20 +255,23 @@ export async function POST(req) {
       );
     }
 
-    // ── Server-side validation 2: same category only ───────────────────────
-    // Check if there is already at least one item in the user's compare list.
-    // If so, its category_slug must match the incoming product's category_slug.
-    if (count > 0) {
+    // ── Server-side validation 2: same category only (or force switch) ──
+    if (body.forceSwitch) {
+      await Compare.deleteMany({ userId });
+    } else if (count > 0) {
       const existingItem = await Compare.findOne({ userId }).select('category_slug').lean();
       if (
         existingItem &&
         existingItem.category_slug &&
         category_slug &&
-        existingItem.category_slug !== category_slug
+        existingItem.category_slug.toLowerCase() !== category_slug.toLowerCase()
       ) {
         return NextResponse.json(
           {
             error: `You can only compare products from the same category. Your current list contains "${existingItem.category_slug}" products.`,
+            categoryMismatch: true,
+            currentCategory: existingItem.category_slug,
+            newCategory: category_slug,
           },
           { status: 400 }
         );

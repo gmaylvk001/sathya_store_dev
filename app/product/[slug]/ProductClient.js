@@ -36,6 +36,8 @@ import PaymentOffers from "@/components/product/PaymentOffers";
 import CompetitorPriceTracker from "@/components/CompetitorPriceTracker";
 import ProductInstallationWarrantySection from "@/components/ProductInstallationWarrantySection";
 import CompareButton from "@/components/CompareButton";
+import ShareModal from "@/components/ShareModal";
+import { useCompare } from "@/context/CompareContext";
 import WarrantyBadge from "@/components/WarrantyBadge";
 import BestPriceStrip from "@/components/product/BestPriceStrip";
 import { getBestPrice } from "@/lib/offers/bestPriceUtils";
@@ -109,6 +111,17 @@ export default function ProductClient() {
   const [selectedWarrantyData, setSelectedWarrantyData] = useState(null);
   const { pincode: globalPincode, region: globalRegion, isInitialized } = useRegion();
   const [highlightOffer, setHighlightOffer] = useState(null);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const { setSimilarProducts } = useCompare();
+
+  // Sync related products to compare context for similar product recommendations
+  useEffect(() => {
+    if (relatedProducts && relatedProducts.length > 0) {
+      setSimilarProducts(relatedProducts);
+    } else if (product?.related_products && product.related_products.length > 0) {
+      setSimilarProducts(product.related_products);
+    }
+  }, [relatedProducts, product?.related_products, setSimilarProducts]);
 
   useEffect(() => {
     setHighlightOffer(null);
@@ -598,28 +611,9 @@ export default function ProductClient() {
     }
   };
 
-  const handleShareProduct = useCallback(async () => {
-    const url = window.location.href;
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: product?.name,
-          url,
-        });
-      } catch (err) {
-        if (err?.name !== "AbortError") {
-          console.error("Share failed:", err);
-        }
-      }
-    } else {
-      try {
-        await navigator.clipboard.writeText(url);
-        alert("Link copied to clipboard!");
-      } catch (err) {
-        console.error("Copy failed:", err);
-      }
-    }
-  }, [product?.name]);
+  const handleShareProduct = useCallback(() => {
+    setIsShareModalOpen(true);
+  }, []);
 
 
 
@@ -1392,21 +1386,30 @@ export default function ProductClient() {
               <div id="flix-minisite" className="flix-minisite-container w-full" />
             ) : null}
 
-            {/* Share / Wishlist */}
-            <div className="flex items-center gap-2 mt-3">
+            {/* Share / Compare / Wishlist (Mobile) */}
+            <div className="grid grid-cols-3 gap-2 mt-3">
               <button
+                type="button"
                 onClick={handleShareProduct}
-                className={`flex-1 ${outlineActionBtnClass}`}
+                className={`w-full ${outlineActionBtnClass}`}
                 title="Share this product"
               >
-                <FaShareAlt className="w-4 h-4 text-[#d72828]" />
-                <span>Share</span>
+                <FaShareAlt className="w-3.5 h-3.5 text-[#d72828] shrink-0" />
+                <span className="truncate">Share</span>
               </button>
+              <CompareButton
+                product={product}
+                variant="text"
+                iconSize={14}
+                label="Compare"
+                activeLabel="✓ Compare"
+                className={`w-full ${outlineActionBtnClass}`}
+              />
               <AddToWishlistButton
                 productId={product._id}
-                label="Add to Wishlist"
-                iconSize={16}
-                className={`flex-1 ${outlineActionBtnClass}`}
+                label="Wishlist"
+                iconSize={14}
+                className={`w-full ${outlineActionBtnClass}`}
               />
             </div>
 
@@ -2316,24 +2319,31 @@ export default function ProductClient() {
                     )}
                   </div>
 
-                  {/* 2. ACTIONS BAR: Share | Compare | Wishlist */}
-                  <div className="flex items-center justify-between border border-gray-200 py-2.5 px-3 text-xs font-semibold text-gray-700 bg-gray-50 rounded-lg">
-                    <button onClick={handleShareProduct} className="flex items-center gap-1 hover:text-[#d72828] transition cursor-pointer">
+                  {/* 2. ACTIONS BAR: Share | Compare | Wishlist (Clean single-line alignment) */}
+                  <div className="flex items-center justify-between border border-gray-200 py-2.5 px-3 text-xs sm:text-sm font-semibold text-gray-700 bg-gray-50 rounded-lg gap-2 whitespace-nowrap overflow-hidden">
+                    <button
+                      type="button"
+                      onClick={handleShareProduct}
+                      className="flex items-center gap-1.5 hover:text-[#d72828] transition cursor-pointer shrink-0"
+                    >
                       <FaShareAlt className="text-gray-500 w-3.5 h-3.5" />
                       <span>Share</span>
                     </button>
-                    <span className="text-gray-300">|</span>
+                    <span className="text-gray-300 select-none">|</span>
                     <CompareButton
                       product={product}
                       variant="text"
-                      className="flex items-center gap-1 hover:text-[#d72828] transition bg-transparent p-0 border-0 shadow-none text-xs text-gray-700 font-semibold cursor-pointer"
+                      iconSize={14}
+                      label="Compare"
+                      activeLabel="✓ In Compare"
+                      className="flex items-center gap-1.5 hover:text-[#d72828] transition bg-transparent p-0 border-0 shadow-none text-xs sm:text-sm text-gray-700 font-semibold cursor-pointer shrink-0 whitespace-nowrap"
                     />
-                    <span className="text-gray-300">|</span>
+                    <span className="text-gray-300 select-none">|</span>
                     <AddToWishlistButton
                       productId={product._id}
                       label="Wishlist"
                       iconSize={14}
-                      className="flex items-center gap-1 hover:text-[#d72828] transition bg-transparent p-0 border-0 shadow-none text-xs text-gray-700 font-semibold cursor-pointer"
+                      className="flex items-center gap-1.5 hover:text-[#d72828] transition bg-transparent p-0 border-0 shadow-none text-xs sm:text-sm text-gray-700 font-semibold cursor-pointer shrink-0 whitespace-nowrap"
                     />
                   </div>
 
@@ -2384,6 +2394,13 @@ export default function ProductClient() {
         />
         <RecentlyViewedProducts products={recentlyViewedProducts} />
       </div>
+
+      {/* Share Modal */}
+      <ShareModal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        product={product}
+      />
     </div>
   );
 }
