@@ -216,10 +216,10 @@ export default function ProductClient() {
   };
 
   useEffect(() => {
-    if (product) {
+    if (product?._id) {
       handleCheckDelivery(deliveryPincode || globalPincode || "600001");
     }
-  }, [product, globalPincode]);
+  }, [product?._id, product?.item_code, globalPincode]);
 
   const outlineActionBtnClass =
     "flex items-center justify-center gap-2 border border-gray-300 rounded-md bg-white px-4 py-2 text-sm font-medium text-[#d72828] hover:border-red-400 hover:bg-red-50 transition-colors whitespace-nowrap";
@@ -243,7 +243,7 @@ export default function ProductClient() {
     if (!product?._id) return;
     // FAQs are stored on the product document; no separate FAQ API route exists
     setFaqs(Array.isArray(product.faqs) ? product.faqs : []);
-  }, [product?._id, product?.faqs]);
+  }, [product?._id]);
 
   useEffect(() => {
     if (!Array.isArray(product?.add_ons) || product.add_ons.length === 0) return;
@@ -266,7 +266,7 @@ export default function ProductClient() {
     };
 
     fetchAddOnProducts();
-  }, [product?.add_ons]);
+  }, [product?._id]);
 
   useEffect(() => {
     const fetchRecentlyViewed = async () => {
@@ -333,11 +333,10 @@ export default function ProductClient() {
   useEffect(() => {
     if (!product?.warranty_ids || product.warranty_ids.length === 0) return;
 
-
     fetch(`/api/warranties/by-item-nos?item_nos=${product.warranty_ids.join(",")}`)
       .then((r) => r.json())
       .then((d) => setWarranties(d.warranties || []));
-  }, [product?.warranty_ids]);
+  }, [product?._id]);
   const handleDecrease = () => {
     setQuantity(Math.max(1, quantity - 1));
     setQuantityWarning(false); // clear warning when decreasing
@@ -642,7 +641,7 @@ export default function ProductClient() {
       setSelectedWarranty(null);
       setSelectedWarrantyData(null);
     }
-  }, [product]);
+  }, [product?._id]);
 
   // Quick-deselect warranty handler from badge or summary
   const handleDeselectWarranty = useCallback(() => {
@@ -650,6 +649,13 @@ export default function ProductClient() {
     setSelectedExtendedWarranty(null);
     setSelectedWarranty(null);
     setSelectedWarrantyData(null);
+  }, []);
+
+  const handleSelectWarranty = useCallback((w, amount) => {
+    const numericAmount = Number(amount || w?.amount || w?.price || 0);
+    setSelectedWarrantyData(w);
+    setSelectedWarrantyAmount(numericAmount);
+    setSelectedExtendedWarranty(numericAmount);
   }, []);
 
   const handleExchangeApply = (offer) => {
@@ -783,7 +789,7 @@ export default function ProductClient() {
 
   useEffect(() => {
     const fetchFeaturedProducts = async () => {
-      if (!product) return;
+      if (!product?._id) return;
       const ids = product?.featured_products?.length ? product.featured_products : [];
       try {
         const res = await fetch('/api/product/featured', {
@@ -808,9 +814,9 @@ export default function ProductClient() {
     };
 
     fetchFeaturedProducts();
-  }, [product]);
+  }, [product?._id, product?.category, product?.brand]);
   // derived main image
-  const mainImage = product?.images?.[selectedImageIndex] || "/no-image.jpg";
+  const mainImage = (product?.images && product.images.length > 0 && product.images[selectedImageIndex]) ? product.images[selectedImageIndex] : "/uploads/sathyalogo.webp";
   const matchedBrandForManufacturer = (() => {
     if (!product?.brand || !Array.isArray(brand)) return null;
     const brandId =
@@ -822,14 +828,17 @@ export default function ProductClient() {
 
   // helper to resolve full path
   const resolveImagePath = (image) => {
-    if (!image) return "/uploads/sathyalogo.webp";
+    if (!image || typeof image !== "string" || image.trim() === "" || image === "null" || image === "undefined") {
+      return "/uploads/sathyalogo.webp";
+    }
+    const clean = image.trim();
     if (
-      image.startsWith("http") ||
-      image.startsWith("blob:") ||
-      image.startsWith("data:") ||
-      image.startsWith("/")
-    ) return image;
-    return `/uploads/products/${image}`;
+      clean.startsWith("http") ||
+      clean.startsWith("blob:") ||
+      clean.startsWith("data:") ||
+      clean.startsWith("/")
+    ) return clean;
+    return `/uploads/products/${clean}`;
   };
 
 
@@ -840,7 +849,7 @@ export default function ProductClient() {
       // setSelectedImage(`/uploads/products/${product.images[0]}`);
       setSelectedImage(product.images[0]);
     }
-  }, [product]);
+  }, [product?._id]);
   const [zoomPosition, setZoomPosition] = useState({ x: 0, y: 0, visible: false });
   const imgRef = useRef(null);
   const [isZoomed, setIsZoomed] = useState(false);
@@ -1058,6 +1067,7 @@ export default function ProductClient() {
     if (!imgRef.current || !zoomLensRef.current || !zoomResultRef.current) return;
 
     const { left, top, width, height } = imgRef.current.getBoundingClientRect();
+    if (!width || !height) return;
     const x = ((e.clientX - left) / width) * 100;
     const y = ((e.clientY - top) / height) * 100;
 
@@ -1065,13 +1075,9 @@ export default function ProductClient() {
     const boundedX = Math.max(0, Math.min(100, x));
     const boundedY = Math.max(0, Math.min(100, y));
 
-    setZoomPosition({ x: boundedX, y: boundedY });
-
-    // Position the lens
+    // Direct DOM updates for silky smooth 60fps tracking without triggering React component re-renders
     zoomLensRef.current.style.left = `calc(${boundedX}% - 75px)`;
     zoomLensRef.current.style.top = `calc(${boundedY}% - 75px)`;
-
-    // Update the zoom result
     zoomResultRef.current.style.backgroundPosition = `${boundedX}% ${boundedY}%`;
   };
 
@@ -1209,7 +1215,7 @@ export default function ProductClient() {
                 ref={zoomContainerRef}
               >
                 <img
-                  src={resolveImagePath(mainImage) || "/uploads/sathyalogo.webp"}
+                  src={resolveImagePath(mainImage)}
                   alt={product?.name || "Product"}
                   className="w-full h-full object-contain rounded-xl"
                   ref={imgRef}
@@ -1219,16 +1225,16 @@ export default function ProductClient() {
             </div>
 
             {/* Thumbnails */}
-            {product.images && product.images.filter(img => img && img.trim() !== "").length > 0 && (
+            {product.images && product.images.filter(img => img && typeof img === "string" && img.trim() !== "").length > 0 && (
               <div className="flex gap-2 mt-3 overflow-x-auto pb-2">
-                {product.images.filter(img => img && img.trim() !== "").map((image, index) => (
+                {product.images.filter(img => img && typeof img === "string" && img.trim() !== "").map((image, index) => (
                   <div key={index} className="flex-shrink-0">
                     <img
                       src={resolveImagePath(image)}
                       alt={`Thumbnail ${index + 1}`}
                       className="w-16 h-16 border border-gray-400 rounded-lg cursor-pointer object-cover"
                       onClick={() => setSelectedImageIndex(index)}
-                      onError={(e) => { e.currentTarget.style.display = "none"; }}
+                      onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = "/uploads/sathyalogo.webp"; }}
                     />
                   </div>
                 ))}
@@ -1480,12 +1486,7 @@ export default function ProductClient() {
                   product={product}
                   warranties={warranties}
                   selectedWarrantyData={selectedWarrantyData}
-                  onSelectWarranty={(w, amount) => {
-                    const numericAmount = Number(amount || w?.amount || w?.price || 0);
-                    setSelectedWarrantyData(w);
-                    setSelectedWarrantyAmount(numericAmount);
-                    setSelectedExtendedWarranty(numericAmount);
-                  }}
+                  onSelectWarranty={handleSelectWarranty}
                   className="mt-3"
                 />
               </div>
@@ -1502,9 +1503,12 @@ export default function ProductClient() {
                       checked={selectedRelatedProducts.some(p => p._id === item._id)}
                       onChange={() => toggleRelatedProduct(item)} />
                     <div className="flex items-start gap-3 flex-1 min-w-0">
-                      {item.images?.[0] && (
-                        <img src={`/uploads/products/${item.images[0]}`} alt={item.name} className="w-14 h-14 object-contain" />
-                      )}
+                      <img
+                        src={resolveImagePath(item.images?.[0] || item.image)}
+                        alt={item.name || "Addon"}
+                        className="w-14 h-14 object-contain"
+                        onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = "/uploads/sathyalogo.webp"; }}
+                      />
                       <div className="text-sm flex-1 min-w-0">
                         <Link href={`/product/${item.slug}`}>
                           <h3 className="text-xs font-medium hover:text-[#d72828] line-clamp-2">{item.name}</h3>
@@ -1545,12 +1549,11 @@ export default function ProductClient() {
               </label>
 
               {/* Warranty options */}
-              {warranties
-                .sort((a, b) => a.year - b.year)
-
-                .map((w) => (
+              {[...warranties]
+                .sort((a, b) => (a.year || 0) - (b.year || 0))
+                .map((w, index) => (
                   <label
-                    key={w.item_no}
+                    key={w.item_no || index}
                     className="flex items-center justify-between py-2 border-b border-gray-100 cursor-pointer hover:bg-gray-50"
                   >
                     <div className="flex items-center gap-2">
@@ -1593,8 +1596,8 @@ export default function ProductClient() {
             <div className="mt-4 border border-gray-300 rounded-lg bg-white p-3">
               <h3 className="font-bold text-xs text-gray-900 border-b border-gray-200 pb-2 mb-3 uppercase tracking-wide">Frequently Bought Together:</h3>
               <div className="space-y-3">
-                {featuredProducts.slice(0, 2).map((item) => (
-                  <div key={item._id} className="flex items-start gap-2.5 pb-2.5 border-b border-gray-100 last:border-0">
+                {featuredProducts.slice(0, 2).map((item, index) => (
+                  <div key={item._id || index} className="flex items-start gap-2.5 pb-2.5 border-b border-gray-100 last:border-0">
                     <input
                       type="checkbox"
                       className="mt-1 accent-[#d72828] cursor-pointer w-4 h-4"
@@ -1602,13 +1605,15 @@ export default function ProductClient() {
                       onChange={() => toggleFrequentProduct(item)}
                     />
                     <div className="flex items-start gap-2 flex-1 min-w-0">
-                      {item.images?.[0] && (
-                        <img
-                          src={item.images[0].startsWith('http') ? item.images[0] : `/uploads/products/${item.images[0]}`}
-                          alt={item.name}
-                          className="w-12 h-12 object-contain flex-shrink-0 rounded border border-gray-200"
-                        />
-                      )}
+                      <img
+                        src={resolveImagePath(item.images?.[0] || item.image)}
+                        alt={item.name || "Product"}
+                        className="w-12 h-12 object-contain flex-shrink-0 rounded border border-gray-200"
+                        onError={(e) => {
+                          e.currentTarget.onerror = null;
+                          e.currentTarget.src = "/uploads/sathyalogo.webp";
+                        }}
+                      />
                       <div className="text-xs flex-1 min-w-0">
                         <Link href={`/product/${item.slug}`} className="block hover:underline">
                           <h4 className="font-medium text-gray-800 line-clamp-2 text-[11px] leading-snug">{item.name}</h4>
@@ -1639,15 +1644,18 @@ export default function ProductClient() {
             <div className="mt-4 border border-gray-300 rounded-lg bg-white">
               <div className="px-4 py-4">
                 <h2 className="text-sm font-bold text-[#d72828] underline mb-2">Similar Products</h2>
-                {relatedProducts.filter(item => item.quantity > 0 && item.status === "Active").slice(0, 3).map((item) => (
-                  <div key={item._id} className="flex items-start mb-4">
+                {relatedProducts.filter(item => item.quantity > 0 && item.status === "Active").slice(0, 3).map((item, index) => (
+                  <div key={item._id || index} className="flex items-start mb-4">
                     <input type="checkbox" className="mt-2 mr-3"
                       checked={selectedRelatedProducts.some(p => p._id === item._id)}
                       onChange={() => toggleRelatedProduct(item)} />
                     <div className="flex items-start gap-3 flex-1 min-w-0">
-                      {item.images?.[0] && (
-                        <img src={'/uploads/products/' + item.images[0]} alt={item.name} className="w-14 h-14 object-contain" />
-                      )}
+                      <img
+                        src={resolveImagePath(item.images?.[0] || item.image)}
+                        alt={item.name || "Related"}
+                        className="w-14 h-14 object-contain"
+                        onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = "/uploads/sathyalogo.webp"; }}
+                      />
                       <div className="text-sm flex-1 min-w-0">
                         <Link href={`/product/${item.slug}`} className="block mb-1">
                           <h3 className="text-xs font-medium hover:text-[#d72828] line-clamp-2">{item.name}</h3>
@@ -1722,7 +1730,7 @@ export default function ProductClient() {
                   ref={zoomContainerRef}
                 >
                   <img
-                    src={resolveImagePath(mainImage) || "/uploads/sathyalogo.webp"}
+                    src={resolveImagePath(mainImage)}
                     alt={product?.name || "Product"}
                     className="w-full h-full object-contain rounded-lg"
                     ref={imgRef}
@@ -1740,9 +1748,9 @@ export default function ProductClient() {
                   <div
                     className="absolute hidden md:block left-full ml-4 top-0 bg-no-repeat bg-white border rounded-lg overflow-hidden shadow-2xl"
                     style={{
-                      backgroundImage: `url(${resolveImagePath(product.images[selectedImageIndex])})`,
+                      backgroundImage: `url(${resolveImagePath(product?.images?.[selectedImageIndex])})`,
                       backgroundSize: '200%',
-                      backgroundPosition: `${zoomPosition.x}% ${zoomPosition.y}%`,
+                      backgroundPosition: '50% 50%',
                       zIndex: 30, height: '400px', width: '525px'
                     }}
                     ref={zoomResultRef}
@@ -1751,9 +1759,9 @@ export default function ProductClient() {
               </div>
 
               {/* Thumbnails Strip */}
-              {product.images && product.images.filter(img => img && img.trim() !== "").length > 0 && (
+              {product.images && product.images.filter(img => img && typeof img === "string" && img.trim() !== "").length > 0 && (
                 <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-                  {product.images.filter(img => img && img.trim() !== "").map((image, index) => (
+                  {product.images.filter(img => img && typeof img === "string" && img.trim() !== "").map((image, index) => (
                     <div key={index} className="flex-shrink-0">
                       <img
                         src={resolveImagePath(image)}
@@ -1761,7 +1769,7 @@ export default function ProductClient() {
                         className={`w-16 h-16 border rounded-lg cursor-pointer object-cover transition-all duration-200 ${selectedImageIndex === index ? 'border-[#d72828] ring-2 ring-red-500 scale-105' : 'border-gray-300 hover:border-gray-400 opacity-80 hover:opacity-100'
                           }`}
                         onClick={() => setSelectedImageIndex(index)}
-                        onError={(e) => { e.currentTarget.style.display = "none"; }}
+                        onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = "/uploads/sathyalogo.webp"; }}
                       />
                     </div>
                   ))}
@@ -1780,21 +1788,18 @@ export default function ProductClient() {
                       </svg>
                     </button>
                     <div className="relative w-full flex items-center justify-center">
-                      <img src={resolveImagePath(product.images[selectedImageIndex])} alt={product?.name || "Product"} className="object-contain max-h-[60vh] sm:max-h-[50vh] w-full rounded-md" />
+                      <img src={resolveImagePath(product?.images?.[selectedImageIndex])} alt={product?.name || "Product"} className="object-contain max-h-[60vh] sm:max-h-[50vh] w-full rounded-md" onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = "/uploads/sathyalogo.webp"; }} />
                     </div>
                     <div className="w-full border-t border-gray-300 my-3"></div>
-                    {product.images && product.images.filter(img => img && img.trim() !== '' && img.trim().toLowerCase() !== 'null').length > 0 && (
+                    {product.images && product.images.filter(img => img && typeof img === "string" && img.trim() !== '' && img.trim().toLowerCase() !== 'null').length > 0 && (
                       <div className="flex justify-center flex-wrap gap-2 sm:gap-3">
-                        {product.images.filter(img => img && img.trim() !== '' && img.trim().toLowerCase() !== 'null').map((image, index) => {
-                          const imgPath = image.startsWith('http') || image.startsWith('blob:') || image.startsWith('data:') ? image : `/uploads/products/${image}`;
-                          return (
-                            <img key={index} src={imgPath} alt={`Thumbnail ${index + 1}`}
-                              className={`object-cover w-14 h-14 sm:w-16 sm:h-16 rounded-sm cursor-pointer hover:scale-105 ${selectedImageIndex === index ? 'ring-2 ring-red-500' : ''}`}
-                              onClick={() => setSelectedImageIndex(index)}
-                              onError={(e) => e.currentTarget.remove()}
-                            />
-                          );
-                        })}
+                        {product.images.filter(img => img && typeof img === "string" && img.trim() !== '' && img.trim().toLowerCase() !== 'null').map((image, index) => (
+                          <img key={index} src={resolveImagePath(image)} alt={`Thumbnail ${index + 1}`}
+                            className={`object-cover w-14 h-14 sm:w-16 sm:h-16 rounded-sm cursor-pointer hover:scale-105 ${selectedImageIndex === index ? 'ring-2 ring-red-500' : ''}`}
+                            onClick={() => setSelectedImageIndex(index)}
+                            onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = "/uploads/sathyalogo.webp"; }}
+                          />
+                        ))}
                       </div>
                     )}
                   </div>
@@ -2020,8 +2025,8 @@ export default function ProductClient() {
                         Frequently Bought Together:
                       </h3>
                       <div className="space-y-3">
-                        {featuredProducts.slice(0, 2).map((item) => (
-                          <div key={item._id} className="flex items-start gap-2.5 pb-2.5 border-b border-gray-100 last:border-0">
+                        {featuredProducts.slice(0, 2).map((item, index) => (
+                          <div key={item._id || index} className="flex items-start gap-2.5 pb-2.5 border-b border-gray-100 last:border-0">
                             <input
                               type="checkbox"
                               className="mt-1 accent-[#d72828] cursor-pointer w-4 h-4"
@@ -2029,13 +2034,15 @@ export default function ProductClient() {
                               onChange={() => toggleFrequentProduct(item)}
                             />
                             <div className="flex items-start gap-2 flex-1 min-w-0">
-                              {item.images?.[0] && (
-                                <img
-                                  src={item.images[0].startsWith('http') ? item.images[0] : `/uploads/products/${item.images[0]}`}
-                                  alt={item.name}
-                                  className="w-12 h-12 object-contain flex-shrink-0 rounded border border-gray-200"
-                                />
-                              )}
+                              <img
+                                src={resolveImagePath(item.images?.[0] || item.image)}
+                                alt={item.name || "Product"}
+                                className="w-12 h-12 object-contain flex-shrink-0 rounded border border-gray-200"
+                                onError={(e) => {
+                                  e.currentTarget.onerror = null;
+                                  e.currentTarget.src = "/uploads/sathyalogo.webp";
+                                }}
+                              />
                               <div className="text-xs flex-1 min-w-0">
                                 <Link href={`/product/${item.slug}`} className="block hover:underline">
                                   <h4 className="font-medium text-gray-800 line-clamp-2 text-[11px] leading-snug">{item.name}</h4>
@@ -2088,11 +2095,11 @@ export default function ProductClient() {
                           </div>
                         </label>
 
-                        {warranties
-                          .sort((a, b) => a.year - b.year)
-                          .map((w) => (
+                        {[...warranties]
+                          .sort((a, b) => (a.year || 0) - (b.year || 0))
+                          .map((w, index) => (
                             <label
-                              key={w.item_no}
+                              key={w.item_no || index}
                               className="flex items-center justify-between p-1.5 border-t border-gray-100 cursor-pointer hover:bg-gray-50"
                             >
                               <div className="flex items-center gap-2">
@@ -2233,12 +2240,7 @@ export default function ProductClient() {
               product={product}
               warranties={warranties}
               selectedWarrantyData={selectedWarrantyData}
-              onSelectWarranty={(w, amount) => {
-                const numericAmount = Number(amount || w?.amount || w?.price || 0);
-                setSelectedWarrantyData(w);
-                setSelectedWarrantyAmount(numericAmount);
-                setSelectedExtendedWarranty(numericAmount);
-              }}
+              onSelectWarranty={handleSelectWarranty}
               className="mt-1"
             />
           </div>
@@ -2264,7 +2266,12 @@ export default function ProductClient() {
 
 
 
-        <RelatedProducts relatedProducts={product.related_products} />
+        <RelatedProducts
+          relatedProducts={product?.related_products}
+          currentProductId={product?._id}
+          categoryId={product?.category}
+          brandId={product?.brand}
+        />
         <RecentlyViewedProducts products={recentlyViewedProducts} />
       </div>
     </div>

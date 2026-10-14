@@ -94,7 +94,7 @@ export default function ProductBreadcrumb({ product, className = "mb-4" }) {
     };
 
     fetchCategoryHierarchy();
-  }, [product]);
+  }, [product?._id, product?.category, product?.sub_category]);
 
   if (loading) {
     return (
@@ -123,7 +123,7 @@ export default function ProductBreadcrumb({ product, className = "mb-4" }) {
         const path = buildCategoryBasePath(slugs, index);
 
         return (
-          <div key={category._id} className="flex items-center flex-shrink-0">
+          <div key={category._id || index} className="flex items-center flex-shrink-0">
             <span className="mx-1.5 text-gray-300 flex-shrink-0 text-[9px]"><FaGreaterThan /></span>
             <Link
               href={path}
@@ -140,7 +140,7 @@ export default function ProductBreadcrumb({ product, className = "mb-4" }) {
       {/* Product Name */}
       <span className="mx-1.5 text-gray-300 flex-shrink-0 text-[9px]"><FaGreaterThan /></span>
       <span className="text-gray-700 font-medium truncate min-w-0 flex-1">
-        {product.name}
+        {product?.name || "Product"}
       </span>
     </div>
   );

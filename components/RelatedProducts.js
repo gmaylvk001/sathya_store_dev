@@ -1,19 +1,24 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import Image from 'next/image';
+import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import Link from 'next/link';
-import { FaStar } from 'react-icons/fa';
+import { FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import SharedProductCard from '@/components/product/ProductCard';
 import { normalizeProduct } from '@/lib/normalizeProduct';
 
 // ─── Carousel Controls Sub-Component ──────────────────────────────────────
-const CarouselControls = ({ onViewAll }) => {
+const CarouselControls = ({
+  onViewAll,
+  onPrev,
+  onNext,
+  canScrollLeft,
+  canScrollRight,
+}) => {
   return (
     <div className="flex items-center justify-between gap-4 mb-4 sm:mb-6">
       <div>
         <div className="flex items-baseline gap-2.5">
-          <h3 className="text-lg sm:text-xl font-extrabold text-gray-900 tracking-tight">
+          <h3 className="text-lg sm:text-xl font-extrabold text-[#d72828] tracking-tight">
             Related Products
           </h3>
           <span className="text-xs sm:text-sm font-medium text-gray-500 hidden xs:inline-block">
@@ -25,15 +30,36 @@ const CarouselControls = ({ onViewAll }) => {
         </p>
       </div>
 
-      {onViewAll && (
+      <div className="flex items-center gap-2">
+        {onViewAll && (
+          <button
+            type="button"
+            onClick={onViewAll}
+            className="text-xs font-semibold text-[#d72828] hover:text-red-700 transition-colors inline-flex items-center gap-1 mr-1 sm:mr-2 cursor-pointer"
+          >
+            View All
+            <span className="text-[10px] font-bold">›</span>
+          </button>
+        )}
         <button
-          onClick={onViewAll}
-          className="text-xs font-semibold text-[#d72828] hover:text-red-700 transition-colors inline-flex items-center gap-1"
+          type="button"
+          onClick={onPrev}
+          disabled={!canScrollLeft}
+          aria-label="Previous products"
+          className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
         >
-          View All
-          <span className="text-[10px] font-bold">›</span>
+          <FiChevronLeft className="w-4 h-4" />
         </button>
-      )}
+        <button
+          type="button"
+          onClick={onNext}
+          disabled={!canScrollRight}
+          aria-label="Next products"
+          className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+        >
+          <FiChevronRight className="w-4 h-4" />
+        </button>
+      </div>
     </div>
   );
 };
@@ -41,7 +67,7 @@ const CarouselControls = ({ onViewAll }) => {
 // ─── Product Card Skeleton Sub-Component ──────────────────────────────────
 const ProductCardSkeleton = () => {
   return (
-    <div className="bg-white border border-gray-100 rounded-[16px] overflow-hidden flex flex-col h-full shadow-xs animate-pulse">
+    <div className="bg-white border border-gray-100 rounded-[16px] overflow-hidden flex flex-col h-full shadow-2xs animate-pulse">
       <div className="relative h-[190px] sm:h-[210px] w-full bg-gray-100 flex items-center justify-center p-4">
         <div className="w-16 h-16 rounded-xl bg-gray-200/70"></div>
         <div className="absolute top-2.5 left-2.5 w-10 h-4 bg-gray-200/70 rounded-full"></div>
@@ -64,104 +90,210 @@ const ProductCardSkeleton = () => {
   );
 };
 
-// ─── Related Product Card Sub-Component ────────────────────────────────────
-
-
 // ─── Main RelatedProducts Component ─────────────────────────────────────────
-const RelatedProducts = ({ relatedProducts = [], currentProductId, categoryId, onViewAll }) => {
+const RelatedProducts = ({
+  relatedProducts = [],
+  currentProductId,
+  categoryId,
+  brandId,
+  onViewAll,
+}) => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [brandMap, setBrandMap] = useState({});
-
-  const fetchBrands = async () => {
-    try {
-      const response = await fetch('/api/brand');
-      const result = await response.json();
-      if (!result.error && Array.isArray(result.data)) {
-        const map = {};
-        result.data.forEach((b) => {
-          map[b._id] = b.brand_name;
-        });
-        setBrandMap(map);
-      }
-    } catch (error) {
-      console.error('Error fetching brands:', error);
-    }
-  };
+  const scrollRef = useRef(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
 
   useEffect(() => {
+    let isMounted = true;
+    const fetchBrands = async () => {
+      try {
+        const response = await fetch('/api/brand');
+        const result = await response.json();
+        if (isMounted && !result.error && Array.isArray(result.data)) {
+          const map = {};
+          result.data.forEach((b) => {
+            map[b._id] = b.brand_name;
+          });
+          setBrandMap(map);
+        }
+      } catch (error) {
+        console.error('Error fetching brands:', error);
+      }
+    };
+
     fetchBrands();
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
-  const fetchRelatedProducts = async () => {
-    try {
-      setLoading(true);
+  const serializedRelated = useMemo(() => {
+    if (!relatedProducts) return '';
+    if (typeof relatedProducts === 'string') return relatedProducts;
+    if (Array.isArray(relatedProducts)) {
+      return relatedProducts
+        .map((p) => (typeof p === 'object' && p !== null ? p._id || p.id || '' : String(p)))
+        .join(',');
+    }
+    return '';
+  }, [relatedProducts]);
 
-      if (Array.isArray(relatedProducts) && relatedProducts.length > 0) {
-        const isFullObjects = typeof relatedProducts[0] === 'object' && relatedProducts[0]?.name;
+  const resolvedCategoryId = useMemo(() => {
+    if (!categoryId) return '';
+    return typeof categoryId === 'object' ? categoryId._id || '' : String(categoryId);
+  }, [categoryId]);
 
-        if (isFullObjects) {
-          setProducts(relatedProducts);
-          setLoading(false);
-          return;
-        }
+  const resolvedBrandId = useMemo(() => {
+    if (!brandId) return '';
+    return typeof brandId === 'object' ? brandId._id || '' : String(brandId);
+  }, [brandId]);
 
-        const ids = relatedProducts
-          .map((item) => (typeof item === 'object' ? item._id : item))
-          .filter(Boolean)
-          .join(',');
+  const resolvedCurrentId = useMemo(() => {
+    if (!currentProductId) return '';
+    return typeof currentProductId === 'object'
+      ? currentProductId._id || ''
+      : String(currentProductId);
+  }, [currentProductId]);
 
-        if (ids) {
-          const res = await fetch(`/api/product/related?ids=${ids}`);
-          const data = await res.json();
-          if (res.ok && data.success) {
-            setProducts(data.products || []);
-          } else {
-            setProducts([]);
+  useEffect(() => {
+    let isCancelled = false;
+
+    const fetchRelatedProducts = async () => {
+      try {
+        setLoading(true);
+
+        if (Array.isArray(relatedProducts) && relatedProducts.length > 0) {
+          const isFullObjects = typeof relatedProducts[0] === 'object' && relatedProducts[0]?.name;
+
+          if (isFullObjects) {
+            if (!isCancelled) {
+              setProducts(relatedProducts);
+              setLoading(false);
+            }
+            return;
           }
-          setLoading(false);
+
+          const ids = relatedProducts
+            .map((item) => (typeof item === 'object' ? item._id : item))
+            .filter(Boolean)
+            .join(',');
+
+          if (ids) {
+            const res = await fetch(`/api/product/related?ids=${encodeURIComponent(ids)}`);
+            const data = await res.json();
+            if (!isCancelled) {
+              if (res.ok && data.success && Array.isArray(data.products) && data.products.length > 0) {
+                setProducts(data.products);
+              } else {
+                setProducts([]);
+              }
+              setLoading(false);
+            }
+            return;
+          }
+        }
+
+        if (resolvedCategoryId) {
+          let url = `/api/product/related?category=${encodeURIComponent(resolvedCategoryId)}&exclude=${encodeURIComponent(resolvedCurrentId)}&limit=10`;
+          if (resolvedBrandId) {
+            url += `&brand=${encodeURIComponent(resolvedBrandId)}`;
+          }
+
+          const res = await fetch(url);
+          const data = await res.json();
+
+          if (!isCancelled) {
+            if (res.ok && data.success && Array.isArray(data.products) && data.products.length > 0) {
+              setProducts(data.products);
+            } else if (resolvedBrandId) {
+              // Fallback to category without brand filter if brand filter returned empty
+              const fallbackRes = await fetch(
+                `/api/product/related?category=${encodeURIComponent(resolvedCategoryId)}&exclude=${encodeURIComponent(resolvedCurrentId)}&limit=10`
+              );
+              const fallbackData = await fallbackRes.json();
+              if (!isCancelled) {
+                if (fallbackRes.ok && fallbackData.success && Array.isArray(fallbackData.products)) {
+                  setProducts(fallbackData.products);
+                } else {
+                  setProducts([]);
+                }
+              }
+            } else {
+              setProducts([]);
+            }
+            setLoading(false);
+          }
           return;
         }
-      }
 
-      if (categoryId) {
-        const res = await fetch(
-          `/api/product/related?category=${categoryId}&exclude=${currentProductId || ''}&limit=10`
-        );
-        const data = await res.json();
-        if (res.ok && data.success) {
-          setProducts(data.products || []);
-        } else {
+        if (!isCancelled) {
           setProducts([]);
+          setLoading(false);
         }
-        setLoading(false);
-        return;
+      } catch (error) {
+        console.error('Error fetching related products:', error);
+        if (!isCancelled) {
+          setProducts([]);
+          setLoading(false);
+        }
       }
+    };
 
-      setProducts([]);
-    } catch (error) {
-      console.error('Error fetching related products:', error);
-      setProducts([]);
-    } finally {
-      setLoading(false);
+    fetchRelatedProducts();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [serializedRelated, resolvedCurrentId, resolvedCategoryId, resolvedBrandId]);
+
+  const updateScrollState = useCallback(() => {
+    if (!scrollRef.current) return;
+    const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
+    setCanScrollLeft(scrollLeft > 10);
+    setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10);
+  }, []);
+
+  useEffect(() => {
+    updateScrollState();
+    window.addEventListener('resize', updateScrollState);
+    return () => window.removeEventListener('resize', updateScrollState);
+  }, [products, updateScrollState]);
+
+  const handlePrev = () => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollBy({ left: -320, behavior: 'smooth' });
+      setTimeout(updateScrollState, 350);
     }
   };
 
-  useEffect(() => {
-    fetchRelatedProducts();
-  }, [relatedProducts, currentProductId, categoryId]);
+  const handleNext = () => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollBy({ left: 320, behavior: 'smooth' });
+      setTimeout(updateScrollState, 350);
+    }
+  };
 
   if (!loading && products.length === 0) {
     return null;
   }
 
   return (
-    <section aria-label="Related Products" className="w-full my-8 sm:my-10 px-4 max-w-[1440px] mx-auto">
-      <div className="bg-white rounded-[24px] border border-gray-100 p-4 sm:p-6 shadow-xs">
-        <CarouselControls onViewAll={onViewAll} />
+    <section aria-label="Related Products" className="w-full my-8 sm:my-10 px-4 sm:px-6">
+      <div className="bg-white rounded-[24px] border border-gray-100 p-4 sm:p-6 shadow-2xs">
+        <CarouselControls
+          onViewAll={onViewAll}
+          onPrev={handlePrev}
+          onNext={handleNext}
+          canScrollLeft={canScrollLeft}
+          canScrollRight={canScrollRight}
+        />
 
         <div className="relative w-full">
           <div
+            ref={scrollRef}
+            onScroll={updateScrollState}
             className="flex gap-4 overflow-x-auto scrollbar-none snap-x snap-mandatory scroll-smooth py-1 px-0.5"
             style={{
               scrollbarWidth: 'none',
@@ -184,7 +316,10 @@ const RelatedProducts = ({ relatedProducts = [], currentProductId, categoryId, o
                   key={product._id}
                   className="flex-[0_0_68%] sm:flex-[0_0_calc((100%-16px)/2)] md:flex-[0_0_calc((100%-32px)/3)] lg:flex-[0_0_calc((100%-48px)/4)] xl:flex-[0_0_calc((100%-64px)/5)] snap-start"
                 >
-                  <SharedProductCard product={normalizeProduct(product, brandMap)} />
+                  <SharedProductCard
+                    product={normalizeProduct(product, brandMap)}
+                    checkMovement={false}
+                  />
                 </div>
               ))
             )}
