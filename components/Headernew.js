@@ -61,6 +61,46 @@ const sortNestedCategories = (nodes) => {
     }));
 };
 
+/** Split text at nearest space before/after limit if exceeding maxChars */
+const splitByNearestSpace = (text, maxChars = 24) => {
+  if (!text || typeof text !== 'string') return text;
+  if (text.length <= maxChars) return text;
+
+  const words = text.split(' ');
+  const lines = [];
+  let currentLine = '';
+
+  for (let i = 0; i < words.length; i++) {
+    const word = words[i];
+    if (!currentLine) {
+      currentLine = word;
+    } else {
+      const testLine = `${currentLine} ${word}`;
+      if (testLine.length <= maxChars) {
+        currentLine = testLine;
+      } else {
+        lines.push(currentLine);
+        currentLine = word;
+      }
+    }
+  }
+  if (currentLine) {
+    lines.push(currentLine);
+  }
+
+  if (lines.length <= 1) return text;
+
+  return (
+    <>
+      {lines.map((line, idx) => (
+        <span key={idx} style={{ display: 'block' }}>
+          {line}
+        </span>
+      ))}
+    </>
+  );
+};
+
 const HEADER_ACTION_LINK_CLASS =
   "group flex flex-col items-center gap-1 rounded-xl px-1 py-0.5 transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 active:scale-95";
 const HEADER_ACTION_ICON_WRAP_CLASS =
@@ -2758,7 +2798,7 @@ const Header = () => {
       .dd-sub-scroll::-webkit-scrollbar { width: 3px; }
       .dd-sub-scroll::-webkit-scrollbar-thumb { background: #ED1C24; border-radius: 2px; }
       .dd-sub-scroll::-webkit-scrollbar-track { background: #f1f1f1; }
-      .dd-child-link { display:block; font-size:13px; color:#374151; text-decoration:none; padding:5px 8px; border-radius:4px; white-space:nowrap; transition: color 0.1s, background 0.1s; }
+      .dd-child-link { display:block; font-size:13px; color:#374151; text-decoration:none; padding:5px 8px; border-radius:4px; white-space:normal; line-height:1.35; transition: color 0.1s, background 0.1s; }
       .dd-child-link:hover { color:#ED1C24; background:#FEF2F2; }
       .dd-brand-item { display:flex; align-items:center; justify-content:center; padding:5px 6px; border:none; border-radius:6px; text-decoration:none; transition: background 0.1s; }
       .dd-brand-item:hover { background:#FEF2F2; }
@@ -2851,7 +2891,7 @@ const Header = () => {
                                 textDecoration: 'none', lineHeight: 1.3,
                               }}
                             >
-                              {sub.category_name}
+                              {splitByNearestSpace(sub.category_name, 24)}
                             </Link>
                           </div>
                           <FiChevronRight size={13} style={{ color: isActive ? '#BC2121' : '#d1d5db', flexShrink: 0 }} />
@@ -2958,7 +2998,7 @@ const Header = () => {
                             onClick={() => setHoveredCategory(null)}
                             className="dd-child-link"
                           >
-                            {item.label}
+                            {splitByNearestSpace(item.label, 24)}
                           </Link>
                         ))}
                       </div>
@@ -2966,7 +3006,7 @@ const Header = () => {
                   );
                 };
                 const renderBrands = () => brands.length > 0 && (
-                  <div style={{ marginTop: 'auto', paddingTop: '12px', paddingLeft: '196px', borderTop: '1px solid #e5e7eb', flexShrink: 0, width: '100%', boxSizing: 'border-box' }}>
+                  <div style={{ marginTop: 'auto', paddingTop: '12px', borderTop: '1px solid #e5e7eb', flexShrink: 0, width: '100%', boxSizing: 'border-box' }}>
                     <div style={{
                       fontSize: '11px', fontWeight: 700, color: '#C4161D',
                       textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '8px',
@@ -3051,9 +3091,10 @@ const Header = () => {
                                 style={{
                                   fontSize: '13px', fontWeight: 700, color: '#ED1C24',
                                   textDecoration: 'none', textTransform: 'uppercase', letterSpacing: '0.05em',
+                                  whiteSpace: 'normal', lineHeight: 1.35,
                                 }}
                               >
-                                {activeSub.category_name}
+                                {splitByNearestSpace(activeSub.category_name, 24)}
                               </Link>
                             </div>
                             {(() => {
@@ -3086,10 +3127,11 @@ const Header = () => {
                                             textDecoration: 'none', textTransform: 'uppercase',
                                             letterSpacing: '0.04em', marginBottom: '8px',
                                             paddingBottom: '6px', borderBottom: 'none',
-                                            whiteSpace: 'nowrap',
+                                            whiteSpace: 'normal',
+                                            lineHeight: 1.35,
                                           }}
                                         >
-                                          {sub.category_name}
+                                          {splitByNearestSpace(sub.category_name, 24)}
                                         </Link>
                                       ),
                                     });
@@ -3125,10 +3167,11 @@ const Header = () => {
                                           textTransform: 'uppercase', letterSpacing: '0.04em',
                                           marginBottom: '8px', paddingBottom: '6px',
                                           borderBottom: 'none',
-                                          whiteSpace: 'nowrap',
+                                          whiteSpace: 'normal',
+                                           lineHeight: 1.35,
                                         }}
                                       >
-                                        {sub.category_name}
+                                        {splitByNearestSpace(sub.category_name, 24)}
                                       </Link>
                                     ),
                                   });
