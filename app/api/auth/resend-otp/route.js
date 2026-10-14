@@ -3,6 +3,8 @@
 import connectDB from "@/lib/db";
 import Otp from "@/models/Otp";
 import { sendRobeetaOtp } from "@/lib/sms";
+import { checkOtpSendLimits } from "@/lib/rateLimit";
+import { randomInt } from "crypto";
 import { NextResponse } from "next/server";
 
 export async function POST(request) {
@@ -20,27 +22,30 @@ export async function POST(request) {
     await connectDB();
 
     // 4-digit OTP matching Robeeta DLT template
-    const otp = Math.floor(1000 + Math.random() * 9000).toString();
+    const otp = randomInt(1000, 10000).toString();
 
     const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
 
-    if (mobile) {
-      // Validate mobile format
-      const cleanedMobile = String(mobile).replace(/\D/g, "").slice(-10);
-      if (!/^[6-9][0-9]{9}$/.test(cleanedMobile)) {
-        return NextResponse.json(
-          { success: false, error: "Please enter a valid 10-digit mobile number" },
-          { status: 400 }
-        );
-      }
+    const cleanedMobile = mobile ? String(mobile).replace(/\D/g, "").slice(-10) : null;
+    if (mobile && !/^[6-9][0-9]{9}$/.test(cleanedMobile)) {
+      return NextResponse.json(
+        { success: false, error: "Please enter a valid 10-digit mobile number" },
+        { status: 400 }
+      );
+    }
 
+    const limited = await checkOtpSendLimits(
+      request,
+      cleanedMobile || `email:${String(email).toLowerCase()}`
+    );
+    if (limited) return limited;
+
+    if (mobile) {
       await Otp.findOneAndUpdate(
         { mobile: cleanedMobile },
-        { otp, expiresAt },
+        { otp, expiresAt, attempts: 0 },
         { upsert: true, new: true, setDefaultsOnInsert: true }
       );
-
-      console.log(`[Resend OTP] Mobile: ${cleanedMobile} | Generated OTP: ${otp}`);
 
       const smsResult = await sendRobeetaOtp(cleanedMobile, otp);
       if (!smsResult.success) {
@@ -58,7 +63,7 @@ export async function POST(request) {
     if (email) {
       await Otp.findOneAndUpdate(
         { email },
-        { otp, expiresAt },
+        { otp, expiresAt, attempts: 0 },
         { upsert: true, new: true, setDefaultsOnInsert: true }
       );
       console.log(`[Resend OTP] OTP generated for email ${email}`);

@@ -2,6 +2,8 @@ import connectDB from "@/lib/db";
 import User from "@/models/User";
 import Otp from "@/models/Otp";
 import { sendRobeetaOtp } from "@/lib/sms";
+import { checkOtpSendLimits } from "@/lib/rateLimit";
+import { randomInt } from "crypto";
 import { NextResponse } from "next/server";
 
 export async function POST(req) {
@@ -18,19 +20,20 @@ export async function POST(req) {
 
     await connectDB();
 
+    const limited = await checkOtpSendLimits(req, mobile);
+    if (limited) return limited;
+
     // Generate random 4-digit OTP (1000 - 9999)
-    const otp = Math.floor(1000 + Math.random() * 9000).toString();
+    const otp = randomInt(1000, 10000).toString();
 
     const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes validity
 
     // Upsert OTP record for this mobile
     await Otp.findOneAndUpdate(
       { mobile },
-      { otp, expiresAt },
+      { otp, expiresAt, attempts: 0 },
       { upsert: true, new: true, setDefaultsOnInsert: true }
     );
-
-    console.log(`[OTP] Mobile: ${mobile} | Generated OTP: ${otp}`);
 
     // Dispatch SMS via Robeeta SMS Gateway
     const smsResult = await sendRobeetaOtp(mobile, otp);

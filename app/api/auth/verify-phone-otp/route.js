@@ -4,7 +4,17 @@ import Otp from "@/models/Otp";
 import jwt from "jsonwebtoken";
 import Cart from "@/models/ecom_cart_info";
 import Offer from "@/models/ecom_offer_info";
+import { consumeRateLimit, getClientIp, tooManyRequests } from "@/lib/rateLimit";
+import { timingSafeEqual } from "crypto";
 import { NextResponse } from "next/server";
+
+const MAX_OTP_ATTEMPTS = 5;
+
+function otpMatches(expected, received) {
+  const a = Buffer.from(String(expected).trim());
+  const b = Buffer.from(String(received).trim());
+  return a.length === b.length && timingSafeEqual(a, b);
+}
 
 export async function POST(req) {
   try {
@@ -35,6 +45,18 @@ export async function POST(req) {
       String(otp).trim() === "1234";
 
     if (!isTestBypass) {
+      const ipLimit = await consumeRateLimit(
+        `otp-verify:ip:${getClientIp(req)}`,
+        30,
+        15 * 60 * 1000
+      );
+      if (!ipLimit.allowed) {
+        return tooManyRequests(
+          "Too many verification attempts. Please try again later.",
+          ipLimit.retryAfter
+        );
+      }
+
       // Find the latest OTP record for this mobile
       const otpRecord = await Otp.findOne({ mobile }).sort({ createdAt: -1 });
 
@@ -54,10 +76,35 @@ export async function POST(req) {
         );
       }
 
-      // Check if OTP matches
-      if (String(otpRecord.otp).trim() !== String(otp).trim()) {
+      // Count this attempt atomically so parallel guesses can't exceed the cap
+      const counted = await Otp.findOneAndUpdate(
+        { _id: otpRecord._id, attempts: { $lt: MAX_OTP_ATTEMPTS } },
+        { $inc: { attempts: 1 } },
+        { new: true }
+      );
+
+      if (!counted) {
+        await Otp.deleteOne({ _id: otpRecord._id });
+        return tooManyRequests(
+          "Too many incorrect attempts. Please request a new OTP.",
+          60
+        );
+      }
+
+      if (!otpMatches(counted.otp, otp)) {
+        const remaining = MAX_OTP_ATTEMPTS - counted.attempts;
+        if (remaining <= 0) {
+          await Otp.deleteOne({ _id: otpRecord._id });
+          return tooManyRequests(
+            "Too many incorrect attempts. Please request a new OTP.",
+            60
+          );
+        }
         return NextResponse.json(
-          { success: false, error: "Invalid OTP. Please try again." },
+          {
+            success: false,
+            error: `Invalid OTP. ${remaining} attempt${remaining === 1 ? "" : "s"} left.`,
+          },
           { status: 400 }
         );
       }
