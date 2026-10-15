@@ -5,7 +5,7 @@ import Product from "@/models/product";
 import { requireAdmin } from "@/lib/adminRequest";
 
 async function verifyAdminRequest(req) {
-  return await requireAdmin(req, "products");
+  return await requireAdmin(req);
 }
 
 import { normalizeRegion, SUPPORTED_REGIONS } from "@/lib/regionHelper";

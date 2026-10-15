@@ -12,7 +12,7 @@ export const dynamic = "force-dynamic";
  */
 export async function POST(req) {
   try {
-    const auth = await requireAdmin(req, "products");
+    const auth = await requireAdmin(req);
     if (!auth.authorized) {
       return NextResponse.json({ success: false, message: auth.error }, { status: auth.status });
     }
