@@ -219,7 +219,7 @@ export default function CompetitorPriceTracker({ product, className = "" }) {
 
       {/* 4. Brand Primary View All Button */}
       <Link
-        href="/weekend-offer"
+        href="/deals-offer"
         className="w-full mt-1.5 py-1.5 text-xs font-bold text-center text-white bg-[#d72828] hover:bg-[#b81d1d] active:scale-[0.99] rounded-lg transition-all flex items-center justify-center gap-1 shadow-xs"
       >
         <span>View All</span>

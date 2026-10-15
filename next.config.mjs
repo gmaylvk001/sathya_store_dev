@@ -61,8 +61,13 @@ const nextConfig = {
         permanent: true,
       },
       {
+        source: "/weekend-offer",
+        destination: "/deals-offer",
+        permanent: true,
+      },
+      {
         source: "/offer/weekend-offer",
-        destination: "/weekend-offer",
+        destination: "/deals-offer",
         permanent: true,
       },
       {
