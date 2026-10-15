@@ -13,7 +13,7 @@ export async function GET(req) {
     // Implement your token verification logic
     const decoded = verifyToken(token);
     await connectDB();
-    const userRole = await User.findOne({ _id: decoded.userId }, { name: 1, last_name: 1, email: 1, mobile: 1, user_type: 1, store_id: 1 });
+    const userRole = await User.findOne({ _id: decoded.userId }, { name: 1, last_name: 1, email: 1, mobile: 1, user_type: 1, store_id: 1, admin_store_view: 1 });
     if (!userRole) {
       return Response.json({ loggedIn: false }, { status: 200 });
     }
@@ -27,6 +27,7 @@ export async function GET(req) {
       last_name: userRole.last_name || "",
       email: userRole.email || decoded.email || "",
       store_id: userRole.store_id || "",
+      admin_store_view: userRole.admin_store_view || "sathya",
     }, { status: 200 });
   } catch (error) {
     return Response.json({ loggedIn: false }, { status: 200 });

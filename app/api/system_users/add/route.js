@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import mongoose from "mongoose";
 import dbConnect from "@/lib/db";
-import User from "@/models/User";
+import User, { ADMIN_STORE_VIEWS } from "@/models/User";
 import Role from "@/models/Role";
 import bcrypt from "bcryptjs";
 import { requireAdmin } from "@/lib/adminRequest";
@@ -15,10 +15,15 @@ export async function POST(req) {
 
     await dbConnect();
     
-    const { name, mobile, email, password, status, role } = await req.json();
+    const { name, mobile, email, password, status, role, admin_store_view } = await req.json();
     
     if (!name || !mobile || !email || !password || !status) {
       return NextResponse.json({ error: "All fields are required" }, { status: 400 });
+    }
+
+    const storeView = admin_store_view || "sathya";
+    if (!ADMIN_STORE_VIEWS.includes(storeView)) {
+      return NextResponse.json({ error: "Invalid admin store view" }, { status: 400 });
     }
 
     if (!/^\d{10}$/.test(mobile)) {
@@ -70,6 +75,7 @@ export async function POST(req) {
       user_type: "admin",
       status,
       role: roleId,
+      admin_store_view: storeView,
     });
 
     await newUser.save();

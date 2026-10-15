@@ -13,22 +13,43 @@ const AdminHeader = ({ toggleSidebar, sidebarCollapsed = true, mobileOpen = fals
   const unreadCount = notifications.filter(n => !n.read).length;
   const [uniletView, setUniletView] = useState(false);
   const [uniletAvailable, setUniletAvailable] = useState(false);
+  const [userName, setUserName] = useState('');
   const router = useRouter();
 
   useEffect(() => {
     const cookieOn = /(?:^|;\s*)session_store=unilet(?:;|$)/.test(document.cookie);
     setUniletView(cookieOn);
-    fetch('/api/store_owners/unilet-exists')
-      .then((res) => res.json())
-      .then((data) => {
-        if (data?.exists) {
-          setUniletAvailable(true);
-        } else if (cookieOn) {
-          document.cookie = 'session_store=; path=/; max-age=0; SameSite=Lax';
-          window.location.reload();
-        }
-      })
-      .catch(() => setUniletAvailable(false));
+
+    const fetchStoreView = () => {
+      const token = localStorage.getItem('token');
+      if (!token) return Promise.resolve('sathya');
+      return fetch('/api/auth/check', { headers: { Authorization: `Bearer ${token}` } })
+        .then((res) => res.json())
+        .then((data) => {
+          setUserName([data?.name, data?.last_name].filter(Boolean).join(' ').trim() || data?.email || '');
+          return data?.admin_store_view || 'sathya';
+        })
+        .catch(() => 'sathya');
+    };
+
+    const fetchUniletExists = () =>
+      fetch('/api/store_owners/unilet-exists')
+        .then((res) => res.json())
+        .then((data) => Boolean(data?.exists))
+        .catch(() => false);
+
+    Promise.all([fetchStoreView(), fetchUniletExists()]).then(([storeView, exists]) => {
+      // all -> toggle shown; unilet -> locked to Unilet View; sathya -> locked to Sathya View.
+      const wantUnilet = exists && (storeView === 'unilet' || (storeView === 'all' && cookieOn));
+      if (wantUnilet !== cookieOn) {
+        document.cookie = wantUnilet
+          ? 'session_store=unilet; path=/; SameSite=Lax'
+          : 'session_store=; path=/; max-age=0; SameSite=Lax';
+        window.location.reload();
+        return;
+      }
+      setUniletAvailable(exists && storeView === 'all');
+    });
   }, []);
 
   const toggleUniletView = () => {
@@ -324,6 +345,11 @@ const AdminHeader = ({ toggleSidebar, sidebarCollapsed = true, mobileOpen = fals
 
             {dropdownOpen && (
               <div className="absolute right-0 mt-3 w-48 rounded-xl border border-gray-200 bg-white py-1 shadow-xl ring-1 ring-black/5 z-50">
+                {userName && (
+                  <div className="border-b border-gray-100 px-4 py-2 text-sm font-semibold text-[#0988f0] truncate" title={userName}>
+                    {userName}
+                  </div>
+                )}
                 <a
                   href="#"
                   onClick={handleSignOut}

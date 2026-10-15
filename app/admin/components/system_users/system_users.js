@@ -10,6 +10,7 @@ export default function SystemUsersComponent() {
   const [users, setUsers] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
+  const [storeViewFilter, setStoreViewFilter] = useState("");
   const [dateFilter, setDateFilter] = useState({
     startDate: null,
     endDate: null
@@ -26,6 +27,7 @@ export default function SystemUsersComponent() {
     user_type: "admin",
     status: "Active",
     role: "",
+    admin_store_view: "sathya",
   });
   const [roles, setRoles] = useState([]);
   const [isEditMode, setIsEditMode] = useState(false);
@@ -122,6 +124,7 @@ export default function SystemUsersComponent() {
       user_type: "admin",
       status: user.status,
       role: getRoleId(user.role),
+      admin_store_view: user.admin_store_view || "sathya",
     });
     setCurrentUserId(user._id);
     setIsEditMode(true);
@@ -298,6 +301,7 @@ export default function SystemUsersComponent() {
             email: formData.email,
             status: formData.status,
             role: formData.role || null,
+            admin_store_view: formData.admin_store_view || "sathya",
           },
           { headers: getAuthHeaders() }
         );
@@ -344,6 +348,7 @@ export default function SystemUsersComponent() {
       user_type: "admin",
       status: "Active",
       role: "",
+      admin_store_view: "sathya",
     });
     setIsEditMode(false);
     setCurrentUserId(null);
@@ -361,6 +366,8 @@ export default function SystemUsersComponent() {
 
     const matchesStatus = statusFilter === "All" || user.status === statusFilter;
 
+    const matchesStoreView = storeViewFilter === "" || (user.admin_store_view || "sathya") === storeViewFilter;
+
     let matchesDate = true;
     if (dateFilter.startDate && dateFilter.endDate && user.createdAt) {
       const userDate = new Date(user.createdAt);
@@ -373,7 +380,7 @@ export default function SystemUsersComponent() {
       matchesDate = userDate >= startDate && userDate <= endDate;
     }
 
-    return matchesAdmin && matchesSearch && matchesStatus && matchesDate;
+    return matchesAdmin && matchesSearch && matchesStatus && matchesStoreView && matchesDate;
   });
 
   const existUsersCount = users.filter((user) => String(user.exist_id || "").trim()).length;
@@ -493,7 +500,7 @@ export default function SystemUsersComponent() {
       ) : (
         <>
           <div className="bg-white shadow-md rounded-lg p-5 mb-5 overflow-x-auto border border-gray-200">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end mb-4">
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end mb-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
                 <input
@@ -521,6 +528,23 @@ export default function SystemUsersComponent() {
                   <option value="All">All Statuses</option>
                   <option value="Active">Active</option>
                   <option value="Inactive">Inactive</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Admin Store View</label>
+                <select
+                  value={storeViewFilter}
+                  onChange={(e) => {
+                    setStoreViewFilter(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500"
+                >
+                  <option value="">All Store Views</option>
+                  <option value="sathya">Sathya</option>
+                  <option value="unilet">Unilet</option>
+                  <option value="all">All (Sathya + Unilet)</option>
                 </select>
               </div>
 
@@ -615,7 +639,7 @@ export default function SystemUsersComponent() {
                   <th className="p-2">Display Name</th>
                   <th className="p-2">Last Name</th>
                   <th className="p-2">Mobile Number</th>
-                  <th className="p-2">User Type</th>
+                  <th className="p-2">Admin Store View</th>
                   <th className="p-2">Role</th>
                   <th className="p-2">Status</th>
                   <th className="p-2">Created At</th>
@@ -642,7 +666,7 @@ export default function SystemUsersComponent() {
                       <td className="p-2">{user.name || '-'}</td>
                       <td className="p-2">{user.last_name || '-'}</td>
                       <td className="p-2">{user.mobile || '-'}</td>
-                      <td className="p-2 font-semibold">{user.user_type || '-'}</td>
+                      <td className="p-2 font-semibold capitalize">{user.admin_store_view || 'sathya'}</td>
                       <td className="p-2">{getRoleName(user.role)}</td>
                       <td className="p-2">
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${user.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
@@ -806,6 +830,12 @@ export default function SystemUsersComponent() {
                     {roleItem.name}
                   </option>
                 ))}
+              </select>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Admin Store View</label>
+              <select name="admin_store_view" value={formData.admin_store_view} onChange={handleChange} className="w-full border p-2 mb-2 rounded" required>
+                <option value="sathya">Sathya</option>
+                <option value="unilet">Unilet</option>
+                <option value="all">All (Sathya + Unilet)</option>
               </select>
               <button type="submit" className="bg-red-500 text-white px-4 py-2 rounded w-full mt-2">
                 {submitButtonText}

@@ -1,9 +1,9 @@
 /**
  * Standalone Developer Script: admin permissions + "Admin" / "Unilet Admin" role seeder
  *
- * Reads every admin module from lib/adminModules.js (except EXCLUDED_MODULE_GROUPS) and creates a
- * permission for each in `ecom_permissions_infos` (Permissions page). Then seeds the roles in
- * `ecom_roles_infos` (Roles page):
+ * Reads every admin module from lib/adminModules.js and creates a permission for each in
+ * `ecom_permissions_infos` (Permissions page). Then seeds the roles in `ecom_roles_infos` (Roles page),
+ * leaving out PERMISSION_ONLY_GROUPS (Product, Category) from every role:
  *   - Admin: every seeded permission. Only adds missing ones, never removes.
  *   - Unilet Admin: only the modules in its `groups`. Its permission list is set to exactly these,
  *     so anything else on that role is removed.
@@ -19,8 +19,8 @@ const mongoose = require("mongoose");
 const fs = require("fs");
 const path = require("path");
 
-// Top-level menu labels in lib/adminModules.js left out of the seed (a group removes its whole submenu).
-const EXCLUDED_MODULE_GROUPS = ["Product", "Category"];
+// Top-level menu labels in lib/adminModules.js whose permissions are seeded but never given to any role.
+const PERMISSION_ONLY_GROUPS = ["Product", "Category"];
 
 // groups: top-level menu labels whose modules the role gets (null = every seeded module).
 // exact: true sets the role to exactly these permissions; false only adds missing ones.
@@ -58,7 +58,6 @@ async function getSeedPermissions() {
   const list = [];
 
   for (const item of items) {
-    if (EXCLUDED_MODULE_GROUPS.includes(item.label)) continue;
     if (item.link) {
       list.push({ name: item.label, module: item.permission || item.link, group: item.label });
     }
@@ -148,7 +147,10 @@ function uniqueIds(ids) {
 async function seedRole(db, role, seeded) {
   const roles = db.collection(ROLES_COLLECTION);
   const permissionIds = uniqueIds(
-    seeded.filter((p) => !role.groups || role.groups.includes(p.group)).map((p) => p.id)
+    seeded
+      .filter((p) => !PERMISSION_ONLY_GROUPS.includes(p.group))
+      .filter((p) => !role.groups || role.groups.includes(p.group))
+      .map((p) => p.id)
   );
   const existing = await roles.findOne({ $or: [{ slug: role.slug }, { name: role.name }] });
 
@@ -203,7 +205,7 @@ async function main() {
   console.log(`🔌 Connected: ${mongoose.connection.name}`);
 
   const seedList = await getSeedPermissions();
-  console.log(`📋 ${seedList.length} modules to seed (excluded: ${EXCLUDED_MODULE_GROUPS.join(", ")})`);
+  console.log(`📋 ${seedList.length} modules to seed (permission only, no role: ${PERMISSION_ONLY_GROUPS.join(", ")})`);
 
   const db = mongoose.connection.db;
   const seeded = await seedPermissions(db, seedList);
