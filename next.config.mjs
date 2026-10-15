@@ -61,6 +61,31 @@ const nextConfig = {
         permanent: true,
       },
       {
+        source: "/offer/weekend-offer",
+        destination: "/weekend-offer",
+        permanent: true,
+      },
+      {
+        source: "/bundle-offer",
+        destination: "/category/combo-offers",
+        permanent: true,
+      },
+      {
+        source: "/bundle-offers",
+        destination: "/category/combo-offers",
+        permanent: true,
+      },
+      {
+        source: "/combo-offers",
+        destination: "/category/combo-offers",
+        permanent: true,
+      },
+      {
+        source: "/big-discounts",
+        destination: "/deals-offer",
+        permanent: true,
+      },
+      {
         source: "/brand",
         destination: "/",
         permanent: true,

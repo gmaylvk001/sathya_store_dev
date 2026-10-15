@@ -86,7 +86,7 @@ export default async function Page({ params }) {
 
   await dbConnect();
   const category = await resolveCategoryBySlug(slug);
-  if (!category || category.status === "Inactive") {
+  if (!category || (category.status === "Inactive" && category.category_slug !== "combo-offers")) {
     notFound();
   }
 

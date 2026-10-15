@@ -38,7 +38,9 @@ const POLICY_LINKS = [
 ];
 
 const OFFER_LINKS = [
-  { label: "Weekend Offers", href: "/offer/weekend-offer" },
+  { label: "Weekend Offers", href: "/weekend-offer" },
+  { label: "Big Discounts", href: "/deals-offer" },
+  { label: "Bundle Offer", href: "/category/combo-offers" },
 ];
 
 const SOCIAL_LINKS = [
