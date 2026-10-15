@@ -163,10 +163,33 @@ export default function PermissionsComponent() {
     return matchesSearch && matchesDate;
   });
 
-  const totalEntries = filteredPermissions.length;
+  const groupOrder = [...new Set(adminModules.map((moduleItem) => moduleItem.group))];
+
+  const getPermissionGroup = (permission) => {
+    const match = adminModules.find((moduleItem) => moduleItem.key === permission.module);
+    if (match) return match.group;
+    const name = permission.name || "";
+    return name.includes(" / ") ? name.split(" / ")[0].trim() : "Other";
+  };
+
+  const getPermissionShortName = (permission, group) => {
+    const name = permission.name || "-";
+    return name.startsWith(`${group} / `) ? name.slice(group.length + 3) : name;
+  };
+
+  const groupRank = (group) => {
+    const index = groupOrder.indexOf(group);
+    return index === -1 ? groupOrder.length : index;
+  };
+
+  const groupedPermissions = filteredPermissions
+    .map((permission, index) => ({ permission, index, group: getPermissionGroup(permission) }))
+    .sort((a, b) => groupRank(a.group) - groupRank(b.group) || a.group.localeCompare(b.group) || a.index - b.index);
+
+  const totalEntries = groupedPermissions.length;
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentPermissions = filteredPermissions.slice(indexOfFirstItem, indexOfLastItem);
+  const currentPermissions = groupedPermissions.slice(indexOfFirstItem, indexOfLastItem);
   const startEntry = indexOfFirstItem + 1;
   const endEntry = Math.min(indexOfLastItem, totalEntries);
 
@@ -295,9 +318,17 @@ export default function PermissionsComponent() {
               </thead>
               <tbody>
                 {currentPermissions.length > 0 ? (
-                  currentPermissions.map((permission, index) => (
-                    <tr key={permission._id || index} className="text-center border-b">
-                      <td className="p-2 font-bold">{permission.name || '-'}</td>
+                  currentPermissions.map(({ permission, group }, index) => (
+                    <React.Fragment key={permission._id || index}>
+                    {(index === 0 || currentPermissions[index - 1].group !== group) && (
+                      <tr className="bg-red-50 border-b">
+                        <td colSpan="6" className="p-2 text-left font-bold text-[#d72828]">
+                          {group} ({groupedPermissions.filter((item) => item.group === group).length})
+                        </td>
+                      </tr>
+                    )}
+                    <tr className="text-center border-b">
+                      <td className="p-2 font-bold">{getPermissionShortName(permission, group)}</td>
                       <td className="p-2">{getAdminModuleLabel(permission.module)}</td>
                       <td className="p-2">{permission.slug || '-'}</td>
                       <td className="p-2">{permission.description || '-'}</td>
@@ -323,6 +354,7 @@ export default function PermissionsComponent() {
                         </div>
                       </td>
                     </tr>
+                    </React.Fragment>
                   ))
                 ) : (
                   <tr>

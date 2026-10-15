@@ -38,6 +38,9 @@ export default function UniletNewProductComponent() {
   const [productToRemove, setProductToRemove] = useState(null);
   const [isRemoving, setIsRemoving] = useState(false);
   const [message, setMessage] = useState({ text: "", type: "success" });
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -67,6 +70,50 @@ export default function UniletNewProductComponent() {
     currentPage * ITEMS_PER_PAGE,
     (currentPage + 1) * ITEMS_PER_PAGE
   );
+
+  const pageIds = paginatedProducts.map((p) => String(p._id));
+  const pageAllSelected = pageIds.length > 0 && pageIds.every((id) => selectedIds.includes(id));
+
+  const toggleSelectPage = () => {
+    setSelectedIds((prev) =>
+      pageAllSelected ? prev.filter((id) => !pageIds.includes(id)) : [...new Set([...prev, ...pageIds])]
+    );
+  };
+
+  const toggleSelectOne = (id) => {
+    const key = String(id);
+    setSelectedIds((prev) => (prev.includes(key) ? prev.filter((x) => x !== key) : [...prev, key]));
+  };
+
+  const confirmBulkDelete = async () => {
+    if (!selectedIds.length) return;
+    setIsBulkDeleting(true);
+    try {
+      const res = await fetch("/api/admin/unilet-new-products", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: selectedIds }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        setMessage({ text: data.error || "Failed to remove products", type: "error" });
+      } else {
+        const removed = new Set(selectedIds);
+        const remaining = products.filter((p) => !removed.has(String(p._id)));
+        setProducts(remaining);
+        const lastPage = Math.max(Math.ceil(remaining.length / ITEMS_PER_PAGE) - 1, 0);
+        setCurrentPage((prev) => Math.min(prev, lastPage));
+        setSelectedIds([]);
+        setMessage({ text: data.message || "Selected products removed", type: "success" });
+      }
+    } catch (err) {
+      console.error("Unilet new products bulk delete error:", err);
+      setMessage({ text: "Failed to remove products", type: "error" });
+    } finally {
+      setIsBulkDeleting(false);
+      setBulkDeleteOpen(false);
+    }
+  };
 
   const exportToExcel = () => {
     const rows = products.map((p) => ({
@@ -103,6 +150,7 @@ export default function UniletNewProductComponent() {
       } else {
         const remaining = products.filter((p) => p._id !== productToRemove._id);
         setProducts(remaining);
+        setSelectedIds((prev) => prev.filter((id) => id !== String(productToRemove._id)));
         const lastPage = Math.max(Math.ceil(remaining.length / ITEMS_PER_PAGE) - 1, 0);
         setCurrentPage((prev) => Math.min(prev, lastPage));
         setMessage({ text: `${productToRemove.item_code} removed`, type: "success" });
@@ -121,14 +169,43 @@ export default function UniletNewProductComponent() {
       <h2 className="text-3xl font-normal text-gray-800 mb-4">New Products</h2>
       <hr className="border-t border-gray-200 mb-5" />
 
-      <button
-        onClick={exportToExcel}
-        disabled={!products.length}
-        className="mb-5 flex items-center gap-1.5 bg-white border border-gray-300 text-gray-800 text-sm px-3 py-1.5 rounded hover:bg-gray-50 disabled:opacity-50"
-      >
-        <Icon icon="mdi:download" className="text-base" />
-        Export to Excel
-      </button>
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <button
+            onClick={exportToExcel}
+            disabled={!products.length}
+            className="flex items-center gap-1.5 bg-white border border-gray-300 text-gray-800 text-sm px-3 py-1.5 rounded hover:bg-gray-50 disabled:opacity-50"
+          >
+            <Icon icon="mdi:download" className="text-base" />
+            Export to Excel
+          </button>
+          {selectedIds.length > 0 && (
+            <button
+              onClick={() => setBulkDeleteOpen(true)}
+              className="flex items-center gap-1.5 bg-red-600 hover:bg-red-700 text-white text-sm px-3 py-1.5 rounded"
+            >
+              <Icon icon="mdi:trash-can-outline" className="text-base" />
+              Delete Selected ({selectedIds.length})
+            </button>
+          )}
+          {selectedIds.length > 0 && selectedIds.length < products.length && (
+            <button
+              onClick={() => setSelectedIds(products.map((p) => String(p._id)))}
+              className="text-sm text-blue-600 hover:underline"
+            >
+              Select all {products.length}
+            </button>
+          )}
+          {selectedIds.length > 0 && (
+            <button onClick={() => setSelectedIds([])} className="text-sm text-gray-600 hover:underline">
+              Clear selection
+            </button>
+          )}
+        </div>
+        <div className="text-sm font-semibold text-gray-700">
+          Total Products: <span className="text-gray-900 font-bold">{isLoading ? "-" : products.length}</span>
+        </div>
+      </div>
 
       {message.text && (
         <div
@@ -155,6 +232,16 @@ export default function UniletNewProductComponent() {
             <table className="w-full min-w-[1100px] text-sm text-gray-800">
               <thead>
                 <tr className="text-left border-b border-gray-200">
+                  <th className="p-2 w-8">
+                    <input
+                      type="checkbox"
+                      checked={pageAllSelected}
+                      onChange={toggleSelectPage}
+                      disabled={!pageIds.length}
+                      className="w-4 h-4 cursor-pointer"
+                      aria-label="Select all on this page"
+                    />
+                  </th>
                   <th className="p-2 font-medium">ItemCode</th>
                   <th className="p-2 font-medium">Quantity</th>
                   <th className="p-2 font-medium">MRP</th>
@@ -173,7 +260,19 @@ export default function UniletNewProductComponent() {
               <tbody>
                 {paginatedProducts.length > 0 ? (
                   paginatedProducts.map((p) => (
-                    <tr key={p._id} className="border-b border-gray-100 align-top">
+                    <tr
+                      key={p._id}
+                      className={`border-b border-gray-100 align-top ${selectedIds.includes(String(p._id)) ? "bg-red-50/60" : ""}`}
+                    >
+                      <td className="p-2">
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.includes(String(p._id))}
+                          onChange={() => toggleSelectOne(p._id)}
+                          className="w-4 h-4 cursor-pointer"
+                          aria-label={`Select ${p.item_code || "product"}`}
+                        />
+                      </td>
                       <td className="p-2">{p.item_code || "-"}</td>
                       <td className="p-2">{p.quantity ?? "-"}</td>
                       <td className="p-2">{formatAmount(p.price)}</td>
@@ -198,7 +297,7 @@ export default function UniletNewProductComponent() {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="13" className="text-center p-4">
+                    <td colSpan="14" className="text-center p-4">
                       No Products found
                     </td>
                   </tr>
@@ -286,6 +385,33 @@ export default function UniletNewProductComponent() {
                 className="bg-red-500 px-4 py-2 rounded-md text-white disabled:opacity-60"
               >
                 {isRemoving ? "Removing..." : "Yes, Remove"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {bulkDeleteOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-96 max-w-[90vw]">
+            <h2 className="text-xl font-bold mb-4">Remove Selected Products</h2>
+            <p className="mb-4">
+              Remove <strong>{selectedIds.length}</strong> selected product(s) from new products? This cannot be undone.
+            </p>
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => setBulkDeleteOpen(false)}
+                disabled={isBulkDeleting}
+                className="bg-gray-300 px-4 py-2 rounded-md"
+              >
+                No, Close
+              </button>
+              <button
+                onClick={confirmBulkDelete}
+                disabled={isBulkDeleting}
+                className="bg-red-500 px-4 py-2 rounded-md text-white disabled:opacity-60"
+              >
+                {isBulkDeleting ? "Removing..." : `Yes, Remove ${selectedIds.length}`}
               </button>
             </div>
           </div>

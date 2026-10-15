@@ -59,3 +59,32 @@ export async function DELETE(req) {
     return NextResponse.json({ success: false, error: "Failed to remove product" }, { status: 500 });
   }
 }
+
+/**
+ * POST /api/admin/unilet-new-products  { ids: [<product_all_u _id>, ...] }
+ * Bulk removes records from product_all_u.
+ */
+export async function POST(req) {
+  const auth = await requireAdmin(req);
+  if (!auth.authorized) return auth.response;
+
+  try {
+    const body = await req.json().catch(() => ({}));
+    const ids = Array.isArray(body?.ids) ? body.ids.filter((id) => mongoose.isValidObjectId(id)) : [];
+    if (!ids.length) {
+      return NextResponse.json({ success: false, error: "Select at least one product" }, { status: 400 });
+    }
+
+    await dbConnect();
+    const result = await ProductAllU.deleteMany({ _id: { $in: ids } });
+
+    return NextResponse.json({
+      success: true,
+      deletedCount: result.deletedCount,
+      message: `${result.deletedCount} product(s) removed`,
+    });
+  } catch (error) {
+    console.error("[unilet-new-products] bulk delete error:", error);
+    return NextResponse.json({ success: false, error: "Failed to remove products" }, { status: 500 });
+  }
+}
