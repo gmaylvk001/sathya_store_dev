@@ -348,6 +348,7 @@ export default function CartComponent() {
   const [productToDelete, setProductToDelete] = useState(null);
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [updatingQuantityId, setUpdatingQuantityId] = useState(null);
   
   // Coupon states
   const [couponCode, setCouponCode] = useState("");
@@ -868,6 +869,9 @@ export default function CartComponent() {
 
 
   const updateQuantity = async (productId, newQuantity, original_quantity = null) => {
+    if (newQuantity < 1) return;
+    if (updatingQuantityId === productId) return;
+    setUpdatingQuantityId(productId);
     try {
       if (original_quantity !== null && newQuantity > original_quantity) {
         setErrorMessage("Requested quantity exceeds available stock.");
@@ -875,9 +879,8 @@ export default function CartComponent() {
         return;
       }
       let response = '';
-      const token = localStorage.getItem('token');
-      if(token)
-      {
+      const token = typeof window !== "undefined" ? localStorage.getItem('token') : null;
+      if (token) {
         response = await fetch('/api/cart', {
           method: 'PUT',
           headers: {
@@ -886,15 +889,13 @@ export default function CartComponent() {
           },
           body: JSON.stringify({ productId, quantity: newQuantity })
         });
-      }
-      else
-      {
-        const guestCartId = localStorage.getItem("guestCartId") || uuidv4();
+      } else {
+        const guestCartId = typeof window !== "undefined" ? (localStorage.getItem("guestCartId") || uuidv4()) : null;
         response = await fetch('/api/cart', {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
-            'guestCartId': guestCartId
+            ...(guestCartId && { 'guestCartId': guestCartId })
           },
           body: JSON.stringify({ productId, quantity: newQuantity })
         });
@@ -915,7 +916,7 @@ export default function CartComponent() {
 
       // Merge existing details
       const itemsMerged = updatedCart.cart.items.map(item => {
-        const existingItem = cartData.items.find(i => i.productId === item.productId);
+        const existingItem = cartData?.items?.find(i => i.productId === item.productId);
         return {
           ...existingItem,
           ...item,
@@ -935,6 +936,8 @@ export default function CartComponent() {
     } catch (err) {
       console.error('Update quantity error:', err);
       setError(err.message);
+    } finally {
+      setUpdatingQuantityId(null);
     }
   };
 
@@ -1631,19 +1634,72 @@ return (
 
                       {/* Qty & Price Row */}
                       <div className="flex items-center gap-4 mt-2 flex-wrap">
-                        {/* Qty Select Stepper Container */}
-                        <div className="flex items-center gap-2 text-xs font-semibold text-gray-700 bg-gray-50/80 border border-gray-300/80 rounded-lg px-3 py-1.5">
-                          <span className="text-gray-500">Qty:</span>
-                          <select
-                            value={item.quantity}
-                            onChange={(e) => updateQuantity(item.productId, Number(e.target.value), item.original_quantity)}
-                            className="bg-transparent font-bold text-gray-900 focus:outline-none cursor-pointer text-sm"
-                          >
-                            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
-                              <option key={num} value={num}>{num}</option>
-                            ))}
-                          </select>
-                        </div>
+                        {/* Qty Stepper */}
+                        {(() => {
+                          const isUpdating = updatingQuantityId === item.productId;
+                          const maxStock =
+                            item.original_quantity != null && Number(item.original_quantity) > 0
+                              ? Number(item.original_quantity)
+                              : 10;
+                          const maxAllowed = Math.min(10, maxStock);
+                          const isMin = item.quantity <= 1;
+                          const isMax = item.quantity >= maxAllowed;
+
+                          return (
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs font-semibold text-gray-500">Qty:</span>
+                              <div className="inline-flex items-center bg-gray-50/80 border border-gray-300/80 rounded-lg p-0.5 shadow-2xs">
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    updateQuantity(
+                                      item.productId,
+                                      item.quantity - 1,
+                                      item.original_quantity
+                                    )
+                                  }
+                                  disabled={isMin || isUpdating}
+                                  aria-label="Decrease quantity"
+                                  title={isMin ? "Minimum quantity is 1" : "Decrease quantity"}
+                                  className={`w-7 h-7 flex items-center justify-center rounded-md font-bold transition-all select-none ${
+                                    isMin || isUpdating
+                                      ? "text-gray-300 cursor-not-allowed"
+                                      : "text-gray-700 hover:bg-white hover:text-[#d72828] hover:shadow-2xs active:scale-95 cursor-pointer"
+                                  }`}
+                                >
+                                  <span className="leading-none text-base">−</span>
+                                </button>
+                                <span className="w-8 text-center text-xs sm:text-sm font-extrabold text-gray-900 select-none flex items-center justify-center">
+                                  {isUpdating ? (
+                                    <span className="inline-block w-3 h-3 border-2 border-[#d72828] border-t-transparent rounded-full animate-spin" />
+                                  ) : (
+                                    item.quantity
+                                  )}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    updateQuantity(
+                                      item.productId,
+                                      item.quantity + 1,
+                                      item.original_quantity
+                                    )
+                                  }
+                                  disabled={isMax || isUpdating}
+                                  aria-label="Increase quantity"
+                                  title={isMax ? `Maximum quantity is ${maxAllowed}` : "Increase quantity"}
+                                  className={`w-7 h-7 flex items-center justify-center rounded-md font-bold transition-all select-none ${
+                                    isMax || isUpdating
+                                      ? "text-gray-300 cursor-not-allowed"
+                                      : "text-gray-700 hover:bg-white hover:text-[#d72828] hover:shadow-2xs active:scale-95 cursor-pointer"
+                                  }`}
+                                >
+                                  <span className="leading-none text-base">+</span>
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })()}
 
                         {/* Price */}
                         <div className="flex items-baseline gap-2">

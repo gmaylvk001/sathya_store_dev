@@ -2,24 +2,28 @@
 "use client";
 // ─── GA4 Ecommerce Helpers ───────────────────────────────────────────────────
 
-export const ga4AddToCart = ({ product }) => {
-  console.log("🛒 ga4AddToCart called", product);
-  if (typeof window !== "undefined" && window.gtag) {
-    console.log("✅ gtag exists, firing add_to_cart");
-    window.gtag("event", "add_to_cart", {
-      currency: "INR",
-      value: product?.price,
-      items: [
-        {
-          item_id: product?.id,
-          item_name: product?.name,
-          price: product?.price,
-          quantity: product?.qty || 1,
-        },
-      ],
-    });
-  } else {
-    console.warn("❌ gtag not found on window");
+export const ga4AddToCart = ({ product } = {}) => {
+  try {
+    console.log("🛒 ga4AddToCart called", product);
+    if (typeof window !== "undefined" && window.gtag) {
+      console.log("✅ gtag exists, firing add_to_cart");
+      window.gtag("event", "add_to_cart", {
+        currency: "INR",
+        value: product?.price || 0,
+        items: [
+          {
+            item_id: product?.id,
+            item_name: product?.name || "Product",
+            price: product?.price || 0,
+            quantity: product?.qty || 1,
+          },
+        ],
+      });
+    } else {
+      console.warn("❌ gtag not found on window");
+    }
+  } catch (err) {
+    console.warn("ga4AddToCart error:", err);
   }
 };
 
@@ -85,28 +89,38 @@ export const ga4Purchase = ({ orderId, value, items }) => {
   }
 }; */
 
-export const trackAddToCart = ({ user, product }) => {
-  if (typeof window !== "undefined" && window._em_event) {
-    window._em_event.track({
-      event: "btnClick",
-      action: "addToCart",
-      user_info: {
-        user_name: user?.name,
-        phone: user?.mobile,
-        email: user?.email,
-      },
-      product_info: {
-        product_id: product?.id,
-        product_name: product?.name,
-        price: product?.price,
-        product_link: product?.link,
-        image: product?.image,
-        qty: product?.qty || 1,
-        currency: product?.currency || "INR",
-      },
-    });
-  } else {
-    console.warn("Adtarbo not loaded yet");
+export const trackAddToCart = (payload = {}) => {
+  try {
+    const user = payload.user || payload.user_info || {};
+    const product = payload.product || payload.product_info || {};
+    if (
+      typeof window !== "undefined" &&
+      window._em_event &&
+      typeof window._em_event.track === "function"
+    ) {
+      window._em_event.track({
+        event: "btnClick",
+        action: "addToCart",
+        user_info: {
+          user_name: user?.name || user?.user_name || "",
+          phone: user?.mobile || user?.phone || "",
+          email: user?.email || "",
+        },
+        product_info: {
+          product_id: product?.id || product?.product_id || "",
+          product_name: product?.name || product?.product_name || "",
+          price: product?.price != null ? product.price : 0,
+          product_link: product?.link || product?.product_link || "",
+          image: product?.image || "",
+          qty: product?.qty || product?.quantity || 1,
+          currency: product?.currency || "INR",
+        },
+      });
+    } else {
+      console.warn("Adtarbo not loaded yet");
+    }
+  } catch (err) {
+    console.warn("trackAddToCart error:", err);
   }
 };
 

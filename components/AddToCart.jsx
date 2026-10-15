@@ -33,7 +33,7 @@ const AddToCartButton = ({
   checkMovement = false,
 }) => {
   const { openAuthModal } = useModal();
-  const { updateHeaderdetails, setIsLoggedIn, setUserData, setIsAdmin } =
+  const { updateHeaderdetails, setIsLoggedIn, setUserData, setIsAdmin, userData } =
     useHeaderdetails();
   const [isLoading, setIsLoading] = useState(false);
   // const [showAuthModal, setShowAuthModal] = useState(false);
@@ -155,40 +155,83 @@ const AddToCartButton = ({
         localStorage.setItem("guestCartId", responseData.guestCartId);
       }
       console.log("📦 responseData:", responseData);
-      updateCartCount(responseData.cart.totalItems + additionalProducts.length);
+      const totalItemsCount =
+        (responseData?.cart?.totalItems != null
+          ? responseData.cart.totalItems
+          : 1) + additionalProducts.length;
+      updateCartCount(totalItemsCount);
       console.log("🔔 About to call ga4AddToCart");
 
-      // ✅ GA4 add_to_cart (fires for all users, logged in or guest)
-      ga4AddToCart({
-        product: {
-          id: productId,
-          name: productData.data.name,
-          price:
-            productData.data.special_price > 0
-              ? productData.data.special_price
-              : productData.data.price,
-          qty: quantity,
-        },
-      });
+      // Extract resolved product fields safely from response and props
+      const addedItem =
+        responseData?.cart?.items?.find(
+          (item) =>
+            (item?.productId?._id || item?.productId)?.toString() ===
+            productId?.toString()
+        ) ||
+        responseData?.cart?.items?.[responseData?.cart?.items?.length - 1] ||
+        responseData?.cart?.items?.[0] ||
+        {};
 
-      // ✅ Email marketing track (logged-in only)
-      if (isLoggedIn) {
-        trackAddToCart({
-          user_info: {
-            user_name: userData?.name,
-            phone: userData?.mobile,
-            email: userData?.email,
-          },
-          product_info: {
-            product_id: productId,
-            product_link: `${apiUrl}/product/${productData.data.slug}`,
-            product_name: responseData.cart.items[0].name,
-            price: responseData.cart.items[0].price,
-            image: `${apiUrl}/uploads/products/${responseData.cart.items[0].image}`,
-            qty: responseData.cart.items[0].quantity,
-            currency: "INR",
+      const resolvedName = productName || addedItem.name || "Product";
+      const resolvedPrice =
+        Number(special_price) > 0
+          ? Number(special_price)
+          : Number(addedItem.price) || 0;
+      const resolvedSlug = productSlug || productId;
+      const resolvedQty = Number(quantity) || Number(addedItem.quantity) || 1;
+      const resolvedImage = addedItem.image
+        ? addedItem.image.startsWith("http")
+          ? addedItem.image
+          : `${apiUrl || ""}/uploads/products/${addedItem.image}`
+        : `${apiUrl || ""}/uploads/sathya-header-logo.webp`;
+
+      // ✅ GA4 add_to_cart (strictly isolated)
+      try {
+        ga4AddToCart({
+          product: {
+            id: productId,
+            name: resolvedName,
+            price: resolvedPrice,
+            qty: resolvedQty,
           },
         });
+      } catch (trackErr) {
+        console.warn("GA4 tracking error:", trackErr);
+      }
+
+      // ✅ Email marketing track (logged-in only, strictly isolated)
+      if (isLoggedIn) {
+        try {
+          const currentStoredUser =
+            userData ||
+            (typeof window !== "undefined"
+              ? JSON.parse(
+                  localStorage.getItem("userData") ||
+                    localStorage.getItem("user") ||
+                    "null"
+                )
+              : null);
+
+          trackAddToCart({
+            user: {
+              name: currentStoredUser?.name,
+              mobile: currentStoredUser?.mobile || currentStoredUser?.phone,
+              email: currentStoredUser?.email,
+            },
+            product: {
+              id: productId,
+              name: addedItem.name || resolvedName,
+              price: addedItem.price != null ? addedItem.price : resolvedPrice,
+              link: `${apiUrl || ""}/product/${resolvedSlug}`,
+              image: resolvedImage,
+              qty: addedItem.quantity || resolvedQty,
+              currency: "INR",
+            },
+          });
+        } catch (trackErr) {
+          console.warn("Email marketing tracking error:", trackErr);
+        }
       }
 
       // ✅ Store frequently bought together
@@ -204,23 +247,6 @@ const AddToCartButton = ({
       console.error("Add to cart error:", error);
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const trackAddToCart = ({ user_info, product_info }) => {
-    if (
-      typeof window !== "undefined" &&
-      window._em_event &&
-      typeof window._em_event.track === "function"
-    ) {
-      window._em_event.track({
-        event: "btnClick",
-        action: "addToCart",
-        user_info,
-        product_info,
-      });
-    } else {
-      console.warn("Adtarbo not loaded yet");
     }
   };
   const sizeClass = className || "w-full min-[1400px]:w-[185px]";

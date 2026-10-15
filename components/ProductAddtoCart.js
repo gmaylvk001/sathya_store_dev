@@ -5,7 +5,7 @@ import { useCart } from '@/context/CartContext';
 import { useModal } from '@/context/ModalContext';
 import { useHeaderdetails } from '@/context/HeaderContext';
 import { ToastContainer, toast } from 'react-toastify';
-import { trackAddToCart } from "@/utils/nextjs-event-tracking.js";
+import { trackAddToCart, ga4AddToCart } from "@/utils/nextjs-event-tracking.js";
 
 import { FaShoppingCart } from "react-icons/fa";
 import { isOpenBoxEligible } from "@/lib/openBoxHelper";
@@ -15,7 +15,7 @@ import { v4 as uuidv4 } from "uuid";
 
 const AddToCartButton = ({ productId, quantity = 1, warranty, additionalProducts = [], extendedWarranty, selectedFrequentProducts = [], stockQuantity = 1, special_price, onSuccess, buttonLabel, buttonClassName, movement, productName, productSlug, warrantyData }) => {
   const { openAuthModal } = useModal();
-  const { updateHeaderdetails, setIsLoggedIn, setUserData, setIsAdmin } = useHeaderdetails();
+  const { updateHeaderdetails, setIsLoggedIn, setUserData, setIsAdmin, userData } = useHeaderdetails();
   const [isLoading, setIsLoading] = useState(false);
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
   const [authError, setAuthError] = useState('');
@@ -131,26 +131,82 @@ const AddToCartButton = ({ productId, quantity = 1, warranty, additionalProducts
         }
   
         const responseData = await cartResponse.json();
-        updateCartCount(responseData.cart.totalItems + additionalProducts.length);
+        const totalItemsCount =
+          (responseData?.cart?.totalItems != null
+            ? responseData.cart.totalItems
+            : 1) + additionalProducts.length;
+        updateCartCount(totalItemsCount);
 
-        // ✅ Track events (skip if guest)
-        if (isLoggedIn) {
-          trackAddToCart({
-            user: {
-              name: userData?.name,
-              phone: userData?.phone,
-              email: userData?.email,
-            },
+        // Find added item safely
+        const addedItem =
+          responseData?.cart?.items?.find(
+            (item) =>
+              (item?.productId?._id || item?.productId)?.toString() ===
+              productId?.toString()
+          ) ||
+          responseData?.cart?.items?.[responseData?.cart?.items?.length - 1] ||
+          responseData?.cart?.items?.[0] ||
+          {};
+
+        const resolvedName = productName || addedItem.name || "Product";
+        const resolvedPrice =
+          Number(special_price) > 0
+            ? Number(special_price)
+            : Number(addedItem.price) || 0;
+        const resolvedSlug = productSlug || productId;
+        const resolvedQty = Number(quantity) || Number(addedItem.quantity) || 1;
+        const resolvedImage = addedItem.image
+          ? addedItem.image.startsWith("http")
+            ? addedItem.image
+            : `${apiUrl || ""}/uploads/products/${addedItem.image}`
+          : `${apiUrl || ""}/uploads/sathya-header-logo.webp`;
+
+        // ✅ GA4 Tracking (strictly isolated)
+        try {
+          ga4AddToCart({
             product: {
               id: productId,
-              name: responseData.cart.items[0].name,
-              price: responseData.cart.items[0].price,
-              link: `${apiUrl}/product/${productData.data.slug}`,
-              image: `${apiUrl}/uploads/products/${responseData.cart.items[0].image}`,
-              qty: responseData.cart.items[0].quantity,
-              currency: "INR",
+              name: resolvedName,
+              price: resolvedPrice,
+              qty: resolvedQty,
             },
           });
+        } catch (trackErr) {
+          console.warn("GA4 tracking error:", trackErr);
+        }
+
+        // ✅ Track events (skip if guest, strictly isolated)
+        if (isLoggedIn) {
+          try {
+            const currentStoredUser =
+              userData ||
+              (typeof window !== "undefined"
+                ? JSON.parse(
+                    localStorage.getItem("userData") ||
+                      localStorage.getItem("user") ||
+                      "null"
+                  )
+                : null);
+
+            trackAddToCart({
+              user: {
+                name: currentStoredUser?.name,
+                mobile: currentStoredUser?.mobile || currentStoredUser?.phone,
+                email: currentStoredUser?.email,
+              },
+              product: {
+                id: productId,
+                name: addedItem.name || resolvedName,
+                price: addedItem.price != null ? addedItem.price : resolvedPrice,
+                link: `${apiUrl || ""}/product/${resolvedSlug}`,
+                image: resolvedImage,
+                qty: addedItem.quantity || resolvedQty,
+                currency: "INR",
+              },
+            });
+          } catch (trackErr) {
+            console.warn("trackAddToCart error:", trackErr);
+          }
         }
         
         // ✅ Store selected product IDs for persistence

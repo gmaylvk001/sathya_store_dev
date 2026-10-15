@@ -60,7 +60,7 @@ async function addProductToCart({
   const proRes = await fetch(`/api/product/get/${productId}`);
   if (!proRes.ok) throw new Error(`Product fetch failed: ${proRes.status}`);
   const productData = (await parseJsonSafely(proRes)) || {};
-  const original_prod_quantity = productData.data.quantity;
+  const original_prod_quantity = productData?.data?.quantity || 1;
 
   const cartRes = await fetch("/api/cart", {
     method: "POST",
@@ -83,37 +83,59 @@ async function addProductToCart({
   if (!cartRes.ok) throw new Error("Failed to add to cart");
 
   const responseData = await cartRes.json();
-  updateCartCount(responseData.cart.totalItems);
+  updateCartCount(responseData?.cart?.totalItems != null ? responseData.cart.totalItems : 1);
 
-  ga4AddToCart({
-    product: {
-      id: productId,
-      name: productData.data.name,
-      price:
-        productData.data.special_price > 0
-          ? productData.data.special_price
-          : productData.data.price,
-      qty: quantity,
-    },
-  });
+  const resolvedName = productData?.data?.name || responseData?.cart?.items?.[0]?.name || "Product";
+  const resolvedPrice =
+    productData?.data?.special_price > 0
+      ? productData?.data?.special_price
+      : productData?.data?.price || responseData?.cart?.items?.[0]?.price || 0;
+  const resolvedSlug = productData?.data?.slug || productId;
+  const resolvedQty = quantity || responseData?.cart?.items?.[0]?.quantity || 1;
+  const resolvedImage = responseData?.cart?.items?.[0]?.image
+    ? `${apiUrl || ""}/uploads/products/${responseData.cart.items[0].image}`
+    : `${apiUrl || ""}/uploads/sathya-header-logo.webp`;
 
-  if (isLoggedIn && userData) {
-    trackAddToCart({
-      user_info: {
-        user_name: userData?.name,
-        phone: userData?.mobile,
-        email: userData?.email,
-      },
-      product_info: {
-        product_id: productId,
-        product_link: `${apiUrl}/product/${productData.data.slug}`,
-        product_name: responseData.cart.items[0]?.name,
-        price: responseData.cart.items[0]?.price,
-        image: `${apiUrl}/uploads/products/${responseData.cart.items[0]?.image}`,
-        qty: responseData.cart.items[0]?.quantity,
-        currency: "INR",
+  try {
+    ga4AddToCart({
+      product: {
+        id: productId,
+        name: resolvedName,
+        price: resolvedPrice,
+        qty: resolvedQty,
       },
     });
+  } catch (err) {
+    console.warn("GA4 tracking error:", err);
+  }
+
+  if (isLoggedIn && (userData || typeof window !== "undefined")) {
+    try {
+      const currentStoredUser =
+        userData ||
+        (typeof window !== "undefined"
+          ? JSON.parse(localStorage.getItem("userData") || localStorage.getItem("user") || "null")
+          : null);
+
+      trackAddToCart({
+        user: {
+          name: currentStoredUser?.name,
+          mobile: currentStoredUser?.mobile || currentStoredUser?.phone,
+          email: currentStoredUser?.email,
+        },
+        product: {
+          id: productId,
+          link: `${apiUrl || ""}/product/${resolvedSlug}`,
+          name: responseData?.cart?.items?.[0]?.name || resolvedName,
+          price: responseData?.cart?.items?.[0]?.price != null ? responseData.cart.items[0].price : resolvedPrice,
+          image: resolvedImage,
+          qty: resolvedQty,
+          currency: "INR",
+        },
+      });
+    } catch (err) {
+      console.warn("trackAddToCart error:", err);
+    }
   }
 
   return responseData;
