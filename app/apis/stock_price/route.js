@@ -14,6 +14,11 @@ export const config = {
     bodyParser: false,
   },
 };
+// .env on_sathya_price_update=on -> products prices updated; off or missing -> only stock/status etc.
+function onSathyaPriceUpdate() {
+  return String(process.env.on_sathya_price_update || "").trim().toLowerCase() === "on";
+}
+
 /* stock_price */
 export async function POST(req) {
   try {
@@ -43,6 +48,7 @@ export async function POST(req) {
     }
 
     const get_indoor_array = [];
+    const priceUpdateOn = onSathyaPriceUpdate();
 
     for (const item of stockItems) {
       let common_item_code_product_all = null;
@@ -84,13 +90,15 @@ export async function POST(req) {
         const updateFields = {
           quantity: parseFloat(item.quantity),
           stock_status: stock_status,
-          store_price: item.branch_price,
           brand_code: item.brand_code,
           movement: item.movement,
           rank: item.rank,
           ean: item.EANCode,
-          price: parseFloat(item.price),
         };
+        if (priceUpdateOn) {
+          updateFields['store_price'] = item.branch_price;
+          updateFields['price'] = parseFloat(item.price);
+        }
 
         if(brand_id) {
           updateFields['brand'] = brand_id;
@@ -98,10 +106,12 @@ export async function POST(req) {
         if (existingProduct.is_common_type === 1) {
           updateFields['indoor_ean'] = item.Common_EANCode;
           updateFields['common_item_code'] = item.Common_Model;
-          updateFields['id_spl_price'] = parseFloat(item.spl_price);
-          updateFields['id_final_price'] = parseFloat(item.final_price);
-          updateFields['id_price'] = parseFloat(item.price);
-          updateFields['id_store_price'] = item.branch_price;
+          if (priceUpdateOn) {
+            updateFields['id_spl_price'] = parseFloat(item.spl_price);
+            updateFields['id_final_price'] = parseFloat(item.final_price);
+            updateFields['id_price'] = parseFloat(item.price);
+            updateFields['id_store_price'] = item.branch_price;
+          }
         }
 
         // if (existingProduct.is_sync_status === 0) {
@@ -109,28 +119,31 @@ export async function POST(req) {
         // }
 
         // if (existingProduct.is_manual_price === 0) {
+        if (priceUpdateOn) {
           updateFields['special_price'] = parseFloat(item.spl_price);
           updateFields['final_price'] = parseFloat(item.final_price);
+        }
         // }
 
         if (item.brand === 'GIFT') {
+          const giftFields = {
+            quantity: parseFloat(item.quantity),
+            status: Status,
+            name: existingName,
+            brand_code: item.brand_code,
+            movement: item.movement,
+            rank: item.rank,
+            ean: item.EANCode,
+          };
+          if (priceUpdateOn) {
+            giftFields['price'] = parseFloat(item.price);
+            giftFields['special_price'] = parseFloat(item.spl_price);
+            giftFields['final_price'] = item.final_price;
+            giftFields['store_price'] = item.branch_price;
+          }
           await Product.updateOne(
             { item_code: item.item_code },
-            {
-              $set: {
-                price: parseFloat(item.price),
-                special_price: parseFloat(item.spl_price),
-                quantity: parseFloat(item.quantity),
-                status: Status,
-                name: existingName,
-                final_price: item.final_price,
-                store_price: item.branch_price,
-                brand_code: item.brand_code,
-                movement: item.movement,
-                rank: item.rank,
-                ean: item.EANCode,
-              },
-            }
+            { $set: giftFields }
           );
         } else {
           await Product.updateOne(
@@ -143,7 +156,7 @@ export async function POST(req) {
           get_indoor_array.push(item.Common_Model);
         }
 
-        if (existingProduct.bajaj_mid) {
+        if (priceUpdateOn && existingProduct.bajaj_mid) {
           await Product.updateOne(
             { item_code: item.item_code, bajaj_mid: existingProduct.bajaj_mid },
             {
