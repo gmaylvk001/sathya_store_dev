@@ -190,9 +190,10 @@ export default function StorefrontProductCard({
 
         <Link href={productUrl} onClick={handleClick} className="block mb-1 sm:mb-1.5">
           <h4
-            className={`font-semibold text-gray-900 group-hover:text-[#d72828] transition-colors leading-tight sm:leading-snug line-clamp-2 ${
+            title={product.name}
+            className={`font-semibold text-gray-900 group-hover:text-[#d72828] transition-colors leading-snug line-clamp-3 sm:line-clamp-2 ${
               compactMobile
-                ? "text-[12px] sm:text-sm h-[2.1rem] sm:h-[2.4rem]"
+                ? "text-[12px] sm:text-sm min-h-[3.15rem] sm:min-h-0 sm:h-[2.4rem]"
                 : "text-xs sm:text-sm h-[2.4rem]"
             }`}
           >

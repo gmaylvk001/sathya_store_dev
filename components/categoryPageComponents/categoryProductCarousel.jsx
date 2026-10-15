@@ -34,7 +34,10 @@ function useIsMobile() {
       const match =
         typeof window !== "undefined" &&
         (window.innerWidth < 768 ||
-          Boolean(window.matchMedia && window.matchMedia("(max-width: 767px)").matches));
+          Boolean(
+            window.matchMedia &&
+              window.matchMedia("(max-width: 767px)").matches,
+          ));
       setIsMobile(match);
     };
     checkMobile();
@@ -75,7 +78,7 @@ export default function CategoryProductCarousel({ config }) {
   useEffect(() => {
     const fetchBrand = async () => {
       try {
-        const response = await fetch('/api/brand');
+        const response = await fetch("/api/brand");
         const result = await response.json();
         if (!result.error && Array.isArray(result.data)) {
           const map = {};
@@ -85,7 +88,7 @@ export default function CategoryProductCarousel({ config }) {
           setBrandMap(map);
         }
       } catch (error) {
-        console.error('Error fetching brand map:', error);
+        console.error("Error fetching brand map:", error);
       }
     };
     fetchBrand();
@@ -93,17 +96,20 @@ export default function CategoryProductCarousel({ config }) {
 
   const handleProductClick = (product) => {
     try {
-      const storedString = localStorage.getItem('recentlyViewed');
+      const storedString = localStorage.getItem("recentlyViewed");
       let stored = [];
       try {
         stored = JSON.parse(storedString) || [];
       } catch {
         stored = [];
       }
-      const updated = [product, ...stored.filter((p) => p._id !== product._id)].slice(0, 10);
-      localStorage.setItem('recentlyViewed', JSON.stringify(updated));
+      const updated = [
+        product,
+        ...stored.filter((p) => p._id !== product._id),
+      ].slice(0, 10);
+      localStorage.setItem("recentlyViewed", JSON.stringify(updated));
     } catch (e) {
-      console.error('Error updating recentlyViewed localStorage:', e);
+      console.error("Error updating recentlyViewed localStorage:", e);
     }
   };
 
@@ -117,11 +123,11 @@ export default function CategoryProductCarousel({ config }) {
 
   const pageStarts = useMemo(
     () => getPageStarts(products.length, perPage),
-    [products.length, perPage]
+    [products.length, perPage],
   );
   const pages = useMemo(
     () => pageStarts.map((start) => products.slice(start, start + perPage)),
-    [products, pageStarts, perPage]
+    [products, pageStarts, perPage],
   );
   const pageCount = Math.max(1, pages.length);
 
@@ -135,7 +141,7 @@ export default function CategoryProductCarousel({ config }) {
       el.scrollTo({ left: next * el.clientWidth, behavior });
       setPage(next);
     },
-    [pageCount]
+    [pageCount],
   );
 
   useEffect(() => {
@@ -176,7 +182,8 @@ export default function CategoryProductCarousel({ config }) {
       setPage((current) => {
         const next = current + 1 >= pageCount ? 0 : current + 1;
         const el = scrollerRef.current;
-        if (el) el.scrollTo({ left: next * el.clientWidth, behavior: "smooth" });
+        if (el)
+          el.scrollTo({ left: next * el.clientWidth, behavior: "smooth" });
         return next;
       });
     }, 4000);
@@ -220,7 +227,7 @@ export default function CategoryProductCarousel({ config }) {
       }
       const w = el.clientWidth || 1;
       requestAnimationFrame(() =>
-        scrollToPage(Math.round(el.scrollLeft / w), "smooth")
+        scrollToPage(Math.round(el.scrollLeft / w), "smooth"),
       );
     };
     const onClickCapture = (e) => {

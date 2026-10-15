@@ -9,7 +9,7 @@ import {
   FaHeadset,
 } from "react-icons/fa";
 import { FaXTwitter } from "react-icons/fa6";
-import { FiMail, FiPhone } from "react-icons/fi";
+import { FiChevronDown, FiMail, FiPhone } from "react-icons/fi";
 import { TbTruckDelivery } from "react-icons/tb";
 import { IoCardOutline, IoPricetagOutline } from "react-icons/io5";
 
@@ -73,6 +73,21 @@ const Footer = () => {
     main: [],
     subs: {},
   });
+
+  const [openSections, setOpenSections] = useState({
+    about: false,
+    categories: false,
+    policies: false,
+    offers: false,
+    contact: false,
+  });
+
+  const toggleSection = (section) => {
+    setOpenSections((prev) => ({
+      ...prev,
+      [section]: !prev[section],
+    }));
+  };
 
   useEffect(() => {
     const CACHE_TTL = 24 * 60 * 60 * 1000;
@@ -318,73 +333,39 @@ const Footer = () => {
 
         {/* 2. Main dark footer */}
         <div style={{ backgroundColor: FOOTER_BG }} className="text-white">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-10 pb-8">
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-8 lg:gap-10">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-6 sm:pt-10 pb-8">
+            <div className="grid grid-cols-1 md:grid-cols-4 md:gap-x-6 md:gap-y-8 lg:gap-10">
               {/* ABOUT SATHYA */}
-              <div>
-                <h3 className="text-sm font-bold tracking-wide uppercase mb-4">
-                  About Sathya
-                </h3>
-                <ul className="space-y-2.5">
-                  {ABOUT_LINKS.map((link) => (
-                    <li key={link.label}>
-                      <Link
-                        href={link.href}
-                        target={link.target}
-                        rel={link.rel}
-                        className="footer-link text-sm"
-                      >
-                        {link.label}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              {/* CATEGORIES */}
-              <div>
-                <h3 className="text-sm font-bold tracking-wide uppercase mb-4">
-                  Categories
-                </h3>
-                <ul className="space-y-2.5 max-h-[28rem] overflow-y-auto pr-2 footer-category-scroll">
-                  {categoryColumnLinks.length === 0 ? (
-                    <li className="text-sm text-gray-500">Loading…</li>
-                  ) : (
-                    categoryColumnLinks.map((link) => (
-                      <li key={link.id || link.href}>
-                        <Link href={link.href} className="footer-link text-sm">
-                          {link.label}
-                        </Link>
-                      </li>
-                    ))
-                  )}
-                </ul>
-              </div>
-
-              {/* POLICIES & OFFERS */}
-              <div>
-                <h3 className="text-sm font-bold tracking-wide uppercase mb-4">
-                  Policies
-                </h3>
-                <ul className="space-y-2.5">
-                  {POLICY_LINKS.map((link) => (
-                    <li key={link.label}>
-                      <Link href={link.href} className="footer-link text-sm">
-                        {link.label}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-
-                {/* OFFERS */}
-                <div className="mt-6">
-                  <h3 className="text-sm font-bold tracking-wide uppercase mb-4">
-                    Offers
+              <div className="border-b border-gray-800 md:border-b-0">
+                <button
+                  type="button"
+                  onClick={() => toggleSection("about")}
+                  className="w-full flex items-center justify-between py-3.5 md:py-0 text-left cursor-pointer md:cursor-default focus:outline-none"
+                  aria-expanded={openSections.about}
+                >
+                  <h3 className="text-sm font-bold tracking-wide uppercase text-white md:mb-4">
+                    About Sathya
                   </h3>
-                  <ul className="space-y-2.5">
-                    {OFFER_LINKS.map((link) => (
+                  <FiChevronDown
+                    className={`md:hidden text-lg text-gray-400 transition-transform duration-200 ${
+                      openSections.about ? "rotate-180 text-white" : ""
+                    }`}
+                  />
+                </button>
+                <div
+                  className={`${
+                    openSections.about ? "block" : "hidden"
+                  } md:block pb-4 md:pb-0`}
+                >
+                  <ul className="grid grid-cols-2 gap-x-4 gap-y-2.5 md:block md:space-y-2.5">
+                    {ABOUT_LINKS.map((link) => (
                       <li key={link.label}>
-                        <Link href={link.href} className="footer-link text-sm">
+                        <Link
+                          href={link.href}
+                          target={link.target}
+                          rel={link.rel}
+                          className="footer-link text-sm"
+                        >
                           {link.label}
                         </Link>
                       </li>
@@ -393,49 +374,176 @@ const Footer = () => {
                 </div>
               </div>
 
-              {/* SALES ENQUIRY */}
-              <div>
-                <h3 className="text-sm font-bold tracking-wide uppercase mb-4">
-                  Sales Enquiry
-                </h3>
-                <div className="space-y-3 text-sm">
-                  <a
-                    href="tel:+918880598985"
-                    className="flex items-center gap-2 font-semibold hover:opacity-90"
-                    style={{ color: BRAND_RED }}
+              {/* CATEGORIES */}
+              <div className="border-b border-gray-800 md:border-b-0">
+                <button
+                  type="button"
+                  onClick={() => toggleSection("categories")}
+                  className="w-full flex items-center justify-between py-3.5 md:py-0 text-left cursor-pointer md:cursor-default focus:outline-none"
+                  aria-expanded={openSections.categories}
+                >
+                  <h3 className="text-sm font-bold tracking-wide uppercase text-white md:mb-4">
+                    Categories
+                  </h3>
+                  <FiChevronDown
+                    className={`md:hidden text-lg text-gray-400 transition-transform duration-200 ${
+                      openSections.categories ? "rotate-180 text-white" : ""
+                    }`}
+                  />
+                </button>
+                <div
+                  className={`${
+                    openSections.categories ? "block" : "hidden"
+                  } md:block pb-4 md:pb-0`}
+                >
+                  <ul className="grid grid-cols-2 gap-x-4 gap-y-2.5 md:block md:space-y-2.5 md:max-h-[28rem] md:overflow-y-auto md:pr-2 md:footer-category-scroll">
+                    {categoryColumnLinks.length === 0 ? (
+                      <li className="text-sm text-gray-500">Loading…</li>
+                    ) : (
+                      categoryColumnLinks.map((link) => (
+                        <li key={link.id || link.href}>
+                          <Link href={link.href} className="footer-link text-sm">
+                            {link.label}
+                          </Link>
+                        </li>
+                      ))
+                    )}
+                  </ul>
+                </div>
+              </div>
+
+              {/* POLICIES & OFFERS */}
+              <div className="border-b border-gray-800 md:border-b-0">
+                {/* POLICIES */}
+                <div className="border-b border-gray-800/60 md:border-b-0">
+                  <button
+                    type="button"
+                    onClick={() => toggleSection("policies")}
+                    className="w-full flex items-center justify-between py-3.5 md:py-0 text-left cursor-pointer md:cursor-default focus:outline-none"
+                    aria-expanded={openSections.policies}
                   >
-                    <FiPhone className="text-base shrink-0" />
-                    +91 88805 98985
-                  </a>
-                  <a
-                    href="mailto:info@sathya.store"
-                    className="flex items-center gap-2 font-semibold hover:opacity-90 break-all"
-                    style={{ color: BRAND_RED }}
+                    <h3 className="text-sm font-bold tracking-wide uppercase text-white md:mb-4">
+                      Policies
+                    </h3>
+                    <FiChevronDown
+                      className={`md:hidden text-lg text-gray-400 transition-transform duration-200 ${
+                        openSections.policies ? "rotate-180 text-white" : ""
+                      }`}
+                    />
+                  </button>
+                  <div
+                    className={`${
+                      openSections.policies ? "block" : "hidden"
+                    } md:block pb-4 md:pb-0`}
                   >
-                    <FiMail className="text-base shrink-0" />
-                    info@sathya.store
-                  </a>
-                  <p className="text-gray-400 pt-1">
-                    Mon To Sun: 09:30 AM - 09:30 PM
-                  </p>
+                    <ul className="grid grid-cols-2 sm:grid-cols-2 md:block gap-x-4 gap-y-2.5 md:space-y-2.5">
+                      {POLICY_LINKS.map((link) => (
+                        <li key={link.label}>
+                          <Link href={link.href} className="footer-link text-sm">
+                            {link.label}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 </div>
 
-                <h4 className="text-sm font-bold tracking-wide uppercase mt-6 mb-3">
-                  Follow Us On
-                </h4>
-                <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
-                  {SOCIAL_LINKS.map(({ label, href, Icon }) => (
+                {/* OFFERS */}
+                <div className="mt-0 md:mt-6">
+                  <button
+                    type="button"
+                    onClick={() => toggleSection("offers")}
+                    className="w-full flex items-center justify-between py-3.5 md:py-0 text-left cursor-pointer md:cursor-default focus:outline-none"
+                    aria-expanded={openSections.offers}
+                  >
+                    <h3 className="text-sm font-bold tracking-wide uppercase text-white md:mb-4">
+                      Offers
+                    </h3>
+                    <FiChevronDown
+                      className={`md:hidden text-lg text-gray-400 transition-transform duration-200 ${
+                        openSections.offers ? "rotate-180 text-white" : ""
+                      }`}
+                    />
+                  </button>
+                  <div
+                    className={`${
+                      openSections.offers ? "block" : "hidden"
+                    } md:block pb-4 md:pb-0`}
+                  >
+                    <ul className="space-y-2.5">
+                      {OFFER_LINKS.map((link) => (
+                        <li key={link.label}>
+                          <Link href={link.href} className="footer-link text-sm">
+                            {link.label}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              {/* SALES ENQUIRY */}
+              <div className="border-b border-gray-800 md:border-b-0">
+                <button
+                  type="button"
+                  onClick={() => toggleSection("contact")}
+                  className="w-full flex items-center justify-between py-3.5 md:py-0 text-left cursor-pointer md:cursor-default focus:outline-none"
+                  aria-expanded={openSections.contact}
+                >
+                  <h3 className="text-sm font-bold tracking-wide uppercase text-white md:mb-4">
+                    Sales Enquiry
+                  </h3>
+                  <FiChevronDown
+                    className={`md:hidden text-lg text-gray-400 transition-transform duration-200 ${
+                      openSections.contact ? "rotate-180 text-white" : ""
+                    }`}
+                  />
+                </button>
+                <div
+                  className={`${
+                    openSections.contact ? "block" : "hidden"
+                  } md:block pb-4 md:pb-0`}
+                >
+                  <div className="space-y-3 text-sm">
                     <a
-                      key={label}
-                      href={href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      aria-label={label}
-                      className="w-9 h-9 flex items-center justify-center rounded border border-gray-600 text-gray-300 hover:border-white hover:text-white transition-colors"
+                      href="tel:+918880598985"
+                      className="flex items-center gap-2 font-semibold hover:opacity-90"
+                      style={{ color: BRAND_RED }}
                     >
-                      <Icon className="text-sm" />
+                      <FiPhone className="text-base shrink-0" />
+                      +91 88805 98985
                     </a>
-                  ))}
+                    <a
+                      href="mailto:info@sathya.store"
+                      className="flex items-center gap-2 font-semibold hover:opacity-90 break-all"
+                      style={{ color: BRAND_RED }}
+                    >
+                      <FiMail className="text-base shrink-0" />
+                      info@sathya.store
+                    </a>
+                    <p className="text-gray-400 pt-1">
+                      Mon To Sun: 09:30 AM - 09:30 PM
+                    </p>
+                  </div>
+
+                  <h4 className="text-sm font-bold tracking-wide uppercase mt-5 md:mt-6 mb-3">
+                    Follow Us On
+                  </h4>
+                  <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
+                    {SOCIAL_LINKS.map(({ label, href, Icon }) => (
+                      <a
+                        key={label}
+                        href={href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label={label}
+                        className="w-9 h-9 flex items-center justify-center rounded border border-gray-600 text-gray-300 hover:border-white hover:text-white transition-colors"
+                      >
+                        <Icon className="text-sm" />
+                      </a>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
