@@ -112,7 +112,7 @@ const menuItems = [
   },
 ];
 
-const UNILET_VIEW_MENUS = ['Dashboard', 'Category', 'Product', 'Unilet Products', 'New Unilet Product', 'Sales', 'Exist Sales', 'Stores'];
+const UNILET_VIEW_MENUS = ['Dashboard', 'Category', 'Product', 'Unilet Products', 'New Unilet Product', 'Sales', 'Stores'];
 const UNILET_ONLY_MENUS = ['Unilet Products', 'New Unilet Product'];
 
 function visibleMenuItems(uniletView) {
