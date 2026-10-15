@@ -19,6 +19,7 @@ export default function ProductCard({
   onProductClick,
   className = "",
   checkMovement,
+  compactMobile = false,
 }) {
   const [currentImg, setCurrentImg] = useState(product?.imgSrc || "/uploads/products/placeholder.jpg");
   const [imgLoaded, setImgLoaded] = useState(false);
@@ -107,7 +108,11 @@ export default function ProductCard({
     >
       {/* Top Image Container */}
       <div
-        className={`relative w-full bg-[#f9fafb] flex items-center justify-center overflow-hidden ${variantClasses.imageContainer}`}
+        className={`relative w-full bg-[#f9fafb] flex items-center justify-center overflow-hidden ${
+          compactMobile
+            ? "h-[120px] sm:h-[170px] p-2 sm:p-3"
+            : variantClasses.imageContainer
+        }`}
       >
         {/* Offer percentage badge removed as requested 
         {hasDiscount && (
@@ -117,11 +122,19 @@ export default function ProductCard({
         )}
         */}
 
-        <div className="absolute top-2.5 right-2.5 z-10">
+        <div
+          className={`absolute ${
+            compactMobile
+              ? "top-1.5 right-1.5 sm:top-2.5 sm:right-2.5"
+              : "top-2.5 right-2.5"
+          } z-10`}
+        >
           <AddToWishlistButton
             productId={_id}
-            iconSize={14}
-            className="w-7 h-7 rounded-full bg-white/90 backdrop-blur-md shadow-xs border border-gray-100 flex items-center justify-center hover:bg-white hover:scale-110 active:scale-95 transition-all text-gray-600 hover:text-rose-600"
+            iconSize={compactMobile ? 12 : 14}
+            className={`${
+              compactMobile ? "w-6 h-6 sm:w-7 sm:h-7" : "w-7 h-7"
+            } rounded-full bg-white/90 backdrop-blur-md shadow-xs border border-gray-100 flex items-center justify-center hover:bg-white hover:scale-110 active:scale-95 transition-all text-gray-600 hover:text-rose-600`}
           />
         </div>
 
@@ -151,15 +164,21 @@ export default function ProductCard({
 
       {/* Content Area */}
       <div
-        className={`flex flex-col flex-1 bg-white ${variantClasses.contentArea}`}
+        className={`flex flex-col flex-1 bg-white ${
+          compactMobile ? "p-2 sm:p-4" : variantClasses.contentArea
+        }`}
       >
         <span className="text-[10px] font-extrabold text-gray-400 uppercase tracking-wider truncate mb-1 block">
           {brandName}
         </span>
 
-        <Link href={productUrl} onClick={handleClick} className="block mb-1.5">
+        <Link href={productUrl} onClick={handleClick} className="block mb-1 sm:mb-1.5">
           <h4
-            className={`font-semibold text-gray-900 group-hover:text-[#d72828] transition-colors leading-snug line-clamp-2 ${variantClasses.title}`}
+            className={`font-semibold text-gray-900 group-hover:text-[#d72828] transition-colors leading-tight sm:leading-snug line-clamp-2 ${
+              compactMobile
+                ? "text-[12px] sm:text-sm h-[2.1rem] sm:h-[2.4rem]"
+                : variantClasses.title
+            }`}
           >
             {name}
           </h4>
@@ -191,15 +210,23 @@ export default function ProductCard({
         <PriceBlock 
           price={currentPrice} 
           mrp={originalPrice} 
-          priceClass={variantClasses.price} 
+          priceClass={compactMobile ? "text-[13px] sm:text-base" : variantClasses.price} 
         />
 
-        <div className="mt-auto pt-2 border-t border-gray-100 flex flex-col gap-2">
+        <div
+          className={`mt-auto ${
+            compactMobile ? "pt-1.5 sm:pt-2 gap-1.5 sm:gap-2" : "pt-2 gap-2"
+          } border-t border-gray-100 flex flex-col`}
+        >
           <ProductAddtoCart
             productId={_id}
             stockQuantity={quantity}
             special_price={special_price}
-            className="w-full text-xs font-bold py-1.5 rounded-xl transition-all shadow-2xs"
+            className={
+              compactMobile
+                ? "w-full text-xs font-bold !py-0 !mr-0 h-[32px] sm:h-auto min-h-[32px] rounded-xl transition-all shadow-2xs flex items-center justify-center whitespace-nowrap"
+                : "w-full text-xs font-bold py-1.5 rounded-xl transition-all shadow-2xs"
+            }
             movement={movement}
             productName={name}
             productSlug={slug}
@@ -210,6 +237,7 @@ export default function ProductCard({
             <BestPriceStrip 
               effectivePrice={bestPriceData.bestPrice} 
               onOffersClick={() => setIsOffersModalOpen(true)}
+              compact={compactMobile}
             />
           ) : null}
         </div>

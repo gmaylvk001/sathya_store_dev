@@ -1,6 +1,6 @@
 import React from "react";
 
-function BestPriceBadgeIcon() {
+function BestPriceBadgeIcon({ compact = false }) {
   return (
     <div className="relative flex items-center justify-center shrink-0">
       <style>{`
@@ -19,7 +19,11 @@ function BestPriceBadgeIcon() {
       `}</style>
       <svg
         viewBox="0 0 100 100"
-        className="w-[40px] h-[40px] min-w-[40px] sm:w-[44px] sm:h-[44px] sm:min-w-[44px] shrink-0 animate-zoom-in-out drop-shadow-sm"
+        className={`${
+          compact
+            ? "w-[26px] h-[26px] min-w-[26px] sm:w-[44px] sm:h-[44px] sm:min-w-[44px]"
+            : "w-[40px] h-[40px] min-w-[40px] sm:w-[44px] sm:h-[44px] sm:min-w-[44px]"
+        } shrink-0 animate-zoom-in-out drop-shadow-sm`}
         aria-label="Best Price"
       >
         <defs>
@@ -105,7 +109,12 @@ function BestPriceBadgeIcon() {
   );
 }
 
-export default function BestPriceStrip({ effectivePrice, onOffersClick }) {
+export default function BestPriceStrip({
+  effectivePrice,
+  onOffersClick,
+  compact = false,
+  className = "",
+}) {
   if (!effectivePrice || isNaN(effectivePrice)) {
     return null;
   }
@@ -126,27 +135,41 @@ export default function BestPriceStrip({ effectivePrice, onOffersClick }) {
   return (
     <div 
       onClick={onOffersClick ? handleOffersClick : undefined}
-      className={`w-full box-border rounded-[8px] bg-[#f8faff] border border-[#e2e8f0] px-2.5 py-1.5 mb-2 flex items-center gap-2 ${
+      className={`w-full box-border rounded-[8px] bg-[#f8faff] border border-[#e2e8f0] ${
+        compact
+          ? "p-1.5 sm:px-2.5 sm:py-1.5 gap-1.5 sm:gap-2 mb-1.5 sm:mb-2"
+          : "px-2.5 py-1.5 mb-2 gap-2"
+      } flex items-center ${
         onOffersClick ? "cursor-pointer hover:bg-blue-50/60 hover:border-blue-200 transition-all" : ""
-      }`}
+      } ${className}`}
     >
       {/* Left: Badge Icon */}
-      <BestPriceBadgeIcon />
+      <BestPriceBadgeIcon compact={compact} />
 
       {/* Right: Stacked Text & Description */}
       <div className="flex flex-col justify-center min-w-0 leading-tight">
         {/* Title / Price */}
-        <span className="text-[#16a34a] font-bold text-[14px] leading-tight tracking-tight">
+        <span
+          className={`text-[#16a34a] font-bold ${
+            compact ? "text-[12px] sm:text-[14px]" : "text-[14px]"
+          } leading-tight tracking-tight`}
+        >
           ₹{formattedPrice}
         </span>
 
         {/* Description / Subtext with Offers indented right beside the badge */}
-        <span className="text-[10px] text-gray-500 leading-tight">
+        <span
+          className={`${
+            compact ? "text-[9.5px] sm:text-[10px]" : "text-[10px]"
+          } text-gray-500 leading-tight`}
+        >
           with all applicable{" "}
           <button
             type="button"
             onClick={handleOffersClick}
-            className="text-[#2563eb] font-semibold text-[10px] leading-tight hover:underline inline p-0 focus:outline-none cursor-pointer"
+            className={`text-[#2563eb] font-semibold ${
+              compact ? "text-[9.5px] sm:text-[10px]" : "text-[10px]"
+            } leading-tight hover:underline inline p-0 focus:outline-none cursor-pointer`}
           >
             Offers
           </button>
