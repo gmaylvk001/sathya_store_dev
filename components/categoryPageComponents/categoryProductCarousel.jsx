@@ -26,6 +26,25 @@ function usePerPage() {
   return perPage;
 }
 
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      const match =
+        typeof window !== "undefined" &&
+        (window.innerWidth < 768 ||
+          Boolean(window.matchMedia && window.matchMedia("(max-width: 767px)").matches));
+      setIsMobile(match);
+    };
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  return isMobile;
+}
+
 function getPageStarts(total, perPage) {
   if (total <= 0) return [];
   if (total <= perPage) return [0];
@@ -47,6 +66,7 @@ export default function CategoryProductCarousel({ config }) {
   const name = config?.name || "";
   const seeAllHref = config?.seeAllHref || "";
   const perPage = usePerPage();
+  const isMobile = useIsMobile();
   const scrollerRef = useRef(null);
   const [page, setPage] = useState(0);
   const [paused, setPaused] = useState(false);
@@ -124,7 +144,32 @@ export default function CategoryProductCarousel({ config }) {
     if (el) el.scrollTo({ left: 0, behavior: "auto" });
   }, [perPage]);
 
+  // Keep page index synced with scroll position (e.g. manual swipe on mobile)
   useEffect(() => {
+    const el = scrollerRef.current;
+    if (!el) return undefined;
+
+    const handleScroll = () => {
+      if (dragRef.current?.active) return;
+      const w = el.clientWidth || 1;
+      const currentPage = Math.round(el.scrollLeft / w);
+      setPage((prev) => (prev !== currentPage ? currentPage : prev));
+    };
+
+    el.addEventListener("scroll", handleScroll, { passive: true });
+    return () => el.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  useEffect(() => {
+    // 100% disable auto-scroll on mobile view (<= 767px)
+    if (isMobile) return undefined;
+    if (
+      typeof window !== "undefined" &&
+      (window.innerWidth < 768 ||
+        window.matchMedia?.("(max-width: 767px)")?.matches)
+    ) {
+      return undefined;
+    }
     if (pageCount <= 1 || paused) return undefined;
     const id = setInterval(() => {
       if (dragRef.current.active) return;
@@ -136,7 +181,7 @@ export default function CategoryProductCarousel({ config }) {
       });
     }, 4000);
     return () => clearInterval(id);
-  }, [pageCount, paused]);
+  }, [pageCount, paused, isMobile]);
 
   useEffect(() => {
     const el = scrollerRef.current;
