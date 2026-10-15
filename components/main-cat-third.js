@@ -8,6 +8,7 @@ import "swiper/css/navigation";
 import ProductCard from "@/components/ProductCard";
 import Addtocart from "@/components/AddToCart";
 import { FaShareAlt } from "react-icons/fa";
+import { getDiscountInfo } from "@/lib/discountHelper";
 
 export default function CategoryMainPage({ categorySlug = "large-appliance" }) {
   const [banners, setBanners] = useState([]);
@@ -399,27 +400,27 @@ export default function CategoryMainPage({ categorySlug = "large-appliance" }) {
                         </Link>
 
                         {/* Price */}
-                        <div className="mb-3">
-                          <div className="flex items-center gap-2 mt-1">
-                            <span className="text-base font-semibold text-red-600">
-                              ₹{" "}
-                              {(product.special_price &&
-                              product.special_price > 0 &&
-                              product.special_price !== "0" &&
-                              product.special_price < product.price
-                                ? Math.round(product.special_price)
-                                : Math.round(product.price)
-                              ).toLocaleString()}
-                            </span>
-                            {product.special_price > 0 &&
-                              product.special_price !== "0" &&
-                              product.special_price < product.price && (
-                                <span className="text-xs text-gray-500 line-through">
-                                  ₹ {Math.round(product.price).toLocaleString()}
+                        {(() => {
+                          const { showDiscount } = getDiscountInfo(product.price, product.special_price);
+                          return (
+                            <div className="mb-3">
+                              <div className="flex items-center gap-2 mt-1">
+                                <span className="text-base font-semibold text-red-600">
+                                  ₹{" "}
+                                  {(showDiscount
+                                    ? Math.round(product.special_price)
+                                    : Math.round(product.price)
+                                  ).toLocaleString()}
                                 </span>
-                              )}
-                          </div>
-                        </div>
+                                {showDiscount && (
+                                  <span className="text-xs text-gray-500 line-through">
+                                    ₹ {Math.round(product.price).toLocaleString()}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })()}
 
                         <h4
                           className={`text-xs mb-3 ${

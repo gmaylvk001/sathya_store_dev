@@ -5,6 +5,7 @@ import Image from "next/image";
 import { X, Check, Copy, Share2 } from "lucide-react";
 import { FaWhatsapp, FaFacebookF, FaXTwitter, FaEnvelope } from "react-icons/fa6";
 import { toast } from "react-toastify";
+import { getDiscountInfo } from "@/lib/discountHelper";
 
 const ASSET_FALLBACK_BASE = (process.env.NEXT_PUBLIC_ASSET_FALLBACK_URL || "https://estore.bharathelectronics.in").replace(/\/+$/, "");
 
@@ -59,8 +60,7 @@ export default function ShareModal({ isOpen, onClose, product }) {
 
   const sellingPrice = Number(product.special_price > 0 ? product.special_price : product.price || 0);
   const originalPrice = Number(product.price || 0);
-  const hasDiscount = sellingPrice > 0 && originalPrice > sellingPrice;
-  const discountPercent = hasDiscount ? Math.round(((originalPrice - sellingPrice) / originalPrice) * 100) : 0;
+  const { discountPercent, showDiscount: hasDiscount } = getDiscountInfo(originalPrice, sellingPrice);
 
   const shareText = `Check out ${product.name} on Sathya Store at ₹${sellingPrice.toLocaleString("en-IN")}!`;
 

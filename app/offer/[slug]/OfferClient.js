@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Icon } from '@iconify/react';
+import { getDiscountInfo } from "@/lib/discountHelper";
 
 export default function OfferClient({ offer, products }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -162,14 +163,19 @@ export default function OfferClient({ offer, products }) {
                 </div>
                 <div className="p-4 text-center border-t border-gray-50">
                   <h3 className="text-sm font-medium text-gray-800 line-clamp-2 min-h-[40px] mb-2">{product.productName}</h3>
-                  <div className="flex justify-center items-baseline gap-2 mb-4">
-                    {product.price && (
-                      <span className="text-gray-400 text-sm line-through">₹{parseFloat(product.price).toLocaleString()}</span>
-                    )}
-                    {product.specialPrice && (
-                      <span className="text-gray-900 font-bold text-lg">₹{parseFloat(product.specialPrice).toLocaleString()}</span>
-                    )}
-                  </div>
+                  {(() => {
+                    const { showDiscount } = getDiscountInfo(product.price, product.specialPrice);
+                    return (
+                      <div className="flex justify-center items-baseline gap-2 mb-4">
+                        {showDiscount && (
+                          <span className="text-gray-400 text-sm line-through">₹{parseFloat(product.price).toLocaleString()}</span>
+                        )}
+                        <span className="text-gray-900 font-bold text-lg">
+                          ₹{parseFloat(showDiscount ? product.specialPrice : (product.specialPrice || product.price)).toLocaleString()}
+                        </span>
+                      </div>
+                    );
+                  })()}
                   <button 
                     onClick={() => handleOpenModal(product.productName)}
                     className="bg-red-600 hover:bg-red-700 text-white font-bold w-full py-2 text-sm transition-colors"

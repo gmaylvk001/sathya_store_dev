@@ -12,6 +12,7 @@ import {
   groupCardOffersByCategory,
 } from "@/lib/cardOffers/cardOfferNavigationHelper";
 import CardOfferCategorySection from "@/components/cardOffers/CardOfferCategorySection";
+import { getDiscountInfo } from "@/lib/discountHelper";
 
 // Helper to determine if an offer timer is active for the specified region
 function isTimerActiveForRegion(timer, currentRegion) {
@@ -122,11 +123,8 @@ function formatOfferDateRange(startVal, endVal) {
 function SuperOfferProductCard({ product, brandMap }) {
   const price = Number(product.price) || 0;
   const specialPrice = Number(product.special_price) || 0;
-  const hasDiscount = specialPrice > 0 && specialPrice < price;
-  const discountPct = hasDiscount
-    ? Math.round(100 - (specialPrice / price) * 100)
-    : 0;
-  const displayPrice = hasDiscount ? specialPrice : price;
+  const { discountPercent: discountPct, showDiscount } = getDiscountInfo(price, specialPrice);
+  const displayPrice = showDiscount ? specialPrice : (specialPrice > 0 ? specialPrice : price);
 
   const rawImage = product.images?.[0] || product.image || "";
   const initialImg = rawImage
@@ -147,7 +145,7 @@ function SuperOfferProductCard({ product, brandMap }) {
 
   return (
     <div className="bg-white rounded-2xl border border-gray-200/80 shadow-[0_2px_8px_rgba(0,0,0,0.06)] hover:shadow-xl hover:border-red-200 transition-all duration-300 flex flex-col p-3 sm:p-4 w-full relative group">
-      {hasDiscount && discountPct > 0 && (
+      {showDiscount && (
         <div className="absolute top-3 left-3 z-10 bg-[#d72828] text-white text-[10px] sm:text-xs font-extrabold px-2 py-0.5 rounded shadow-sm">
           {discountPct}% OFF
         </div>
@@ -194,7 +192,7 @@ function SuperOfferProductCard({ product, brandMap }) {
         <span className="text-base sm:text-lg font-extrabold text-gray-900">
           ₹{Math.round(displayPrice).toLocaleString("en-IN")}
         </span>
-        {hasDiscount && (
+        {showDiscount && (
           <span className="text-xs text-gray-400 line-through">
             ₹{Math.round(price).toLocaleString("en-IN")}
           </span>

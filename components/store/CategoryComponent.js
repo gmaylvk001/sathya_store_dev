@@ -5,6 +5,7 @@ import { useEffect, useState, useRef } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination, Autoplay } from "swiper/modules";
 import Link from "next/link";
+import { getDiscountInfo } from "@/lib/discountHelper";
 
 import "swiper/css";
 import "swiper/css/navigation";
@@ -850,18 +851,22 @@ export default function StoreDetail() {
               <p className="text-[12px] text-gray-800 font-medium text-center line-clamp-2 w-full">
                 {prod.name}
               </p>
-              <div className="flex items-center gap-2 w-full justify-center">
-                {prod.special_price && (
-                  <span className="text-[13px] font-bold text-[#d72828]">
-                    ₹{prod.special_price.toLocaleString()}
-                  </span>
-                )}
-                {prod.price && prod.special_price && (
-                  <span className="text-[11px] text-gray-400 line-through">
-                    ₹{prod.price.toLocaleString()}
-                  </span>
-                )}
-              </div>
+              {(() => {
+                const { showDiscount } = getDiscountInfo(prod.price, prod.special_price);
+                const displayPrice = showDiscount ? prod.special_price : (prod.special_price || prod.price);
+                return (
+                  <div className="flex items-center gap-2 w-full justify-center">
+                    <span className="text-[13px] font-bold text-[#d72828]">
+                      ₹{Number(displayPrice).toLocaleString()}
+                    </span>
+                    {showDiscount && (
+                      <span className="text-[11px] text-gray-400 line-through">
+                        ₹{Number(prod.price).toLocaleString()}
+                      </span>
+                    )}
+                  </div>
+                );
+              })()}
             </div>
           </Link>
         </SwiperSlide>

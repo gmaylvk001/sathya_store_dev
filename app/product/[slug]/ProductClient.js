@@ -44,6 +44,7 @@ import { getBestPrice } from "@/lib/offers/bestPriceUtils";
 import { isExtendedWarrantyEligible } from "@/lib/productServiceEligibility";
 import { ADD_CART_ALLOWED_MOVEMENTS } from "@/lib/addCartConfig";
 import { v4 as uuidv4 } from "uuid";
+import { getDiscountInfo } from "@/lib/discountHelper";
 
 
 function FaqItem({ question, answer }) {
@@ -113,6 +114,11 @@ export default function ProductClient() {
   const [highlightOffer, setHighlightOffer] = useState(null);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const { setSimilarProducts } = useCompare();
+
+  const mainDiscountInfo = useMemo(
+    () => getDiscountInfo(product?.price, product?.special_price),
+    [product?.price, product?.special_price]
+  );
 
   // Sync related products to compare context for similar product recommendations
   useEffect(() => {
@@ -1311,7 +1317,7 @@ export default function ProductClient() {
                 )}
               </div>
 
-              {product.special_price > 0 && product.price > product.special_price && (
+              {mainDiscountInfo.showDiscount && (
                 <div className="flex flex-col sm:flex-row w-full sm:items-start sm:justify-between gap-1.5 sm:gap-6 mt-2 sm:mt-3">
                   <div className="flex flex-wrap items-baseline gap-1.5 sm:flex-col sm:leading-tight sm:flex-1 sm:min-w-0 sm:pr-3 sm:border-r sm:border-gray-200">
                     <span className="text-xs sm:text-sm text-gray-500 line-through whitespace-nowrap">
@@ -1331,7 +1337,7 @@ export default function ProductClient() {
                         <span>You Save ₹ {Number(product.price - product.special_price).toLocaleString('en-IN')}</span>
                       </p>
                       <span className="inline-block sm:hidden bg-green-100 text-green-700 text-xs font-bold px-2 py-0.5 rounded whitespace-nowrap">
-                        {Math.round(((product.price - product.special_price) / product.price) * 100)}% OFF
+                        {mainDiscountInfo.discountPercent}% OFF
                       </span>
                     </div>
                     <span className="text-[11px] sm:text-xs text-gray-400 mt-0.5 sm:mt-1">
@@ -1341,13 +1347,13 @@ export default function ProductClient() {
 
                   <div className="hidden sm:flex sm:flex-col sm:items-end sm:justify-start sm:flex-shrink-0 sm:pl-3">
                     <span className="bg-green-100 text-green-700 text-xs font-bold px-2 py-0.5 rounded whitespace-nowrap">
-                      {Math.round(((product.price - product.special_price) / product.price) * 100)}% OFF
+                      {mainDiscountInfo.discountPercent}% OFF
                     </span>
                   </div>
                 </div>
               )}
 
-              {!(product.special_price > 0 && product.price > product.special_price) && (
+              {!mainDiscountInfo.showDiscount && (
                 <p className="text-xs text-gray-400 mt-0.5">Price includes all applicable taxes</p>
               )}
             </div>
@@ -1687,7 +1693,7 @@ export default function ProductClient() {
                           <h4 className="font-medium text-gray-800 line-clamp-2 text-[11px] leading-snug">{item.name}</h4>
                         </Link>
                         <div className="flex flex-col mt-1">
-                          {item?.special_price > 0 && item?.special_price < item?.price && (
+                          {getDiscountInfo(item?.price, item?.special_price).showDiscount && (
                             <span className="text-[10px] text-gray-400 line-through">
                               ₹ {Number(item?.price).toLocaleString('en-IN')}
                             </span>
@@ -1947,13 +1953,13 @@ export default function ProductClient() {
                         onDeselect={handleDeselectWarranty}
                       />
                     )}
-                    {product.special_price > 0 && product.price > product.special_price && (
+                    {mainDiscountInfo.showDiscount && (
                       <>
                         <span className="text-sm text-gray-400 line-through font-medium">
                           M.R.P: ₹ {Number(product.price + (isExtendedWarrantyEligible(product) ? (selectedWarrantyAmount || 0) : 0)).toLocaleString('en-IN')}
                         </span>
                         <span className="bg-green-600 text-white text-xs font-bold px-2 py-0.5 rounded">
-                          {Math.round(((product.price - product.special_price) / product.price) * 100)}% OFF
+                          {mainDiscountInfo.discountPercent}% OFF
                         </span>
                       </>
                     )}
@@ -2117,7 +2123,7 @@ export default function ProductClient() {
                                   <h4 className="font-medium text-gray-800 line-clamp-2 text-[11px] leading-snug">{item.name}</h4>
                                 </Link>
                                 <div className="flex flex-col mt-1">
-                                  {item?.special_price > 0 && item?.special_price < item?.price && (
+                                  {getDiscountInfo(item?.price, item?.special_price).showDiscount && (
                                     <span className="text-[10px] text-gray-400 line-through">
                                       ₹ {Number(item?.price).toLocaleString('en-IN')}
                                     </span>

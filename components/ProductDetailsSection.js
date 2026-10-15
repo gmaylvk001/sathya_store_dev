@@ -10,6 +10,7 @@ import Link from "next/link";
 import { formatDistanceToNow, format } from "date-fns";
 import { useHeaderdetails } from '@/context/HeaderContext';
 import { ToastContainer, toast } from 'react-toastify';
+import { getDiscountInfo } from "@/lib/discountHelper";
 
 
 
@@ -414,13 +415,14 @@ useEffect(() => {
     }
   };
   const renderProductCard = (product) => {
-    const discountPercentage = product.special_price 
-      ? Math.round(((product.price - product.special_price) / product.price) * 100)
-      : 0;
+    const { discountPercent: discountPercentage, showDiscount } = getDiscountInfo(
+      product.price,
+      product.special_price
+    );
 
     return (
       <div key={product._id} className="border rounded-lg p-2 sm:p-3 hover:shadow-md transition-shadow relative">
-        {discountPercentage > 0 && (
+        {showDiscount && (
           <span className={`px-1 sm:px-2 py-1 text-xs font-bold tracking-wider text-white rounded absolute top-1 sm:top-2 left-1 sm:left-2 ${
             discountPercentage > 30 ? "bg-blue-500" : "bg-orange-500"
           }`}>
@@ -448,8 +450,8 @@ useEffect(() => {
         </Link>
         <p className="text-gray-600 text-xs">By {product.brand?.brand_name || "Our Store"}</p>
         <div className="flex items-center mt-1">
-          <p className="text-sm sm:text-lg font-bold">${product.special_price || product.price}</p>
-          {product.special_price && (
+          <p className="text-sm sm:text-lg font-bold">${showDiscount ? product.special_price : (product.special_price || product.price)}</p>
+          {showDiscount && (
             <p className="text-gray-500 text-xs sm:text-sm line-through ml-1 sm:ml-2">${product.price}</p>
           )}
         </div>

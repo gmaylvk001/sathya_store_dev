@@ -1,13 +1,11 @@
 import React from "react";
+import { getDiscountInfo } from "@/lib/discountHelper";
 
 export default function PriceBlock({ price, mrp, priceClass = "text-sm sm:text-base" }) {
   const safePrice = Number(price) || 0;
   const safeMrp = Number(mrp) || 0;
 
-  const hasDiscount = safeMrp > safePrice;
-  const discountPercent = hasDiscount
-    ? Math.round(((safeMrp - safePrice) / safeMrp) * 100)
-    : 0;
+  const { discountPercent, showDiscount } = getDiscountInfo(safeMrp, safePrice);
 
   const formatter = new Intl.NumberFormat("en-IN", {
     maximumFractionDigits: 0,
@@ -24,14 +22,14 @@ export default function PriceBlock({ price, mrp, priceClass = "text-sm sm:text-b
       </span>
 
       {/* 2. MRP (strikethrough) - reduced size to fit in 1 line */}
-      {hasDiscount && (
+      {showDiscount && (
         <span className="text-[10px] sm:text-[11px] text-gray-400 line-through shrink-0 font-normal">
           MRP ₹{formattedMrp}
         </span>
       )}
 
       {/* 3. Offer (% OFF) */}
-      {hasDiscount && (
+      {showDiscount && (
         <span className="text-[10px] sm:text-[11.5px] font-bold text-emerald-600 shrink-0 tracking-tight">
           {discountPercent}% OFF
         </span>
@@ -39,3 +37,4 @@ export default function PriceBlock({ price, mrp, priceClass = "text-sm sm:text-b
     </div>
   );
 }
+

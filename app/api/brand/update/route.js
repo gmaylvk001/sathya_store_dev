@@ -1,5 +1,7 @@
 import dbConnect from "@/lib/db";
 import Brand from "@/models/ecom_brand_info";
+import CategoryPage from "@/models/categoryPage";
+import { PAGE_TYPES } from "@/lib/categoryPageComponents/registry";
 import { NextResponse } from "next/server";
 import path from "path";
 import fs from "fs/promises";
@@ -40,31 +42,7 @@ export async function PUT(req) {
       );
     }
 
-    // Handle image upload
-    /* let imagePath = existingBrand.image;
-    if (image && image.name) {
-      // Delete old image if it exists
-      if (existingImage) {
-        try {
-          const oldImagePath = path.join(process.cwd(), "public", existingImage);
-          await unlink(oldImagePath);
-        } catch (err) {
-          console.error("Error deleting old image:", err);
-        }
-      }
-
-      // Save new image
-      const bytes = await image.arrayBuffer();
-      const buffer = Buffer.from(bytes);
-      const ext = path.extname(image.name);
-      const fileName = `brand_${Date.now()}${ext}`;
-      const filePath = path.join(process.cwd(), "public/uploads/brands", fileName);
-
-      await writeFile(filePath, buffer);
-      imagePath = `${fileName}`; 
-    } */
-
-       // Existing image name from DB
+    // Existing image name from DB
     let imagePath = existingBrand.image;
 
     // Upload new image
@@ -111,18 +89,43 @@ export async function PUT(req) {
       imagePath = fileName;
     }
 
+    const brand_slug = brand_name.toLowerCase().replace(/\s+/g, "-");
 
     // Update the brand
     const updatedBrand = await Brand.findByIdAndUpdate(
       id,
       {
         brand_name,
-        brand_slug: brand_name.toLowerCase().replace(/\s+/g, "-"),
+        brand_slug,
         status,
         image: imagePath
       },
       { new: true }
     );
+
+    // Sync brand page name and slug
+    try {
+      await CategoryPage.updateMany(
+        { pageType: PAGE_TYPES.BRAND, categoryId: id },
+        {
+          $set: {
+            categoryName: brand_name,
+            categorySlug: brand_slug,
+          },
+        }
+      );
+      await CategoryPage.updateMany(
+        { pageType: PAGE_TYPES.CATEGORY_BRAND, brandId: id },
+        {
+          $set: {
+            brandName: brand_name,
+            brandSlug: brand_slug,
+          },
+        }
+      );
+    } catch (syncErr) {
+      console.error("Error syncing CategoryPage on brand update:", syncErr);
+    }
 
     return NextResponse.json(
       { 

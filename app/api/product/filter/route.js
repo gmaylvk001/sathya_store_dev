@@ -134,17 +134,17 @@ query.$or = [
             }
           }
         },
-        { $sort: { effective_price: sortDir, _id: -1 } },
+        { $sort: { stock_status: 1, effective_price: sortDir, _id: -1 } },
         { $skip: skip },
         { $limit: limit }
       ]);
     } else {
       const sortObj =
-        sort === 'name-a-z' ? { name: 1, _id: -1 } :
-        sort === 'name-z-a' ? { name: -1, _id: -1 } :
-        sort === 'quantity-low-to-high' ? { quantity: 1, _id: -1 } :
-        sort === 'quantity-high-to-low' ? { quantity: -1, _id: -1 } :
-        { createdAt: -1, _id: -1 };
+        sort === 'name-a-z' ? { stock_status: 1, name: 1, _id: -1 } :
+        sort === 'name-z-a' ? { stock_status: 1, name: -1, _id: -1 } :
+        sort === 'quantity-low-to-high' ? { stock_status: 1, quantity: 1, _id: -1 } :
+        sort === 'quantity-high-to-low' ? { stock_status: 1, quantity: -1, _id: -1 } :
+        { stock_status: 1, createdAt: -1, _id: -1 };
 
       products = await productsQuery
         .sort(sortObj)

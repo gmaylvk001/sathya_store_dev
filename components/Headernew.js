@@ -26,6 +26,7 @@ import HeaderOfferTimer from "@/components/HeaderOfferTimer";
 import { filterAndRankProducts } from '@/lib/searchMatch';
 import { uniqueById } from '@/lib/uniqueById';
 import { PAGE_TYPES } from '@/lib/categoryPageComponents/registry';
+import { sortProductsClient } from '@/lib/productSort';
 import {
   buildCategoryHref,
   buildBrandHref,
@@ -460,19 +461,7 @@ const Header = () => {
   const charIndex = useRef(0);
   const isDeleting = useRef(false);
   const getSortedProducts = () => {
-    const sortedProducts = [...products];
-    switch (sortOption) {
-      case 'price-low-high':
-        return sortedProducts.sort((a, b) => (a.special_price ?? a.price) - (b.special_price ?? b.price));
-      case 'price-high-low':
-        return sortedProducts.sort((a, b) => (b.special_price ?? b.price) - (a.special_price ?? a.price));
-      case 'name-a-z':
-        return sortedProducts.sort((a, b) => a.name.localeCompare(b.name));
-      case 'name-z-a':
-        return sortedProducts.sort((a, b) => b.name.localeCompare(a.name));
-      default:
-        return sortedProducts;
-    }
+    return sortProductsClient(products, sortOption);
   };
 
   // --- Add cache helpers after your state declarations (place near other consts) ---

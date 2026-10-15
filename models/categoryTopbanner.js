@@ -14,6 +14,8 @@ const BannerItemSchema = new mongoose.Schema(
     slot: { type: Number, default: 1 },
     isActive: { type: Boolean, default: true },
     order: { type: Number, default: 0 },
+    startDate: { type: Date, default: null },
+    endDate: { type: Date, default: null },
   },
   { _id: true }
 );

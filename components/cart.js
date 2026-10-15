@@ -10,6 +10,7 @@ import { v4 as uuidv4 } from "uuid";
 import { MdSecurity, MdLoop, MdVerified, MdCardMembership, MdLocalShipping, MdLock } from "react-icons/md";
 import { useWishlist } from '@/context/WishlistContext';
 import ProductAddtoCart from "@/components/ProductAddtoCart";
+import { getDiscountInfo } from "@/lib/discountHelper";
 
 
 const slugify = (str) => {
@@ -1588,9 +1589,7 @@ return (
             {cartData.items.map((item) => {
               const originalPrice = item.actual_price > 0 ? item.actual_price : item.price;
               const specialPrice = item.price;
-              const discountPercent = originalPrice > specialPrice
-                ? Math.round(((originalPrice - specialPrice) / originalPrice) * 100)
-                : 0;
+              const { discountPercent, showDiscount } = getDiscountInfo(originalPrice, specialPrice);
 
               return (
                 <div key={item.productId} className="p-4 sm:p-6 flex flex-col gap-4 group transition-colors hover:bg-gray-50/40">
@@ -1648,12 +1647,12 @@ return (
 
                         {/* Price */}
                         <div className="flex items-baseline gap-2">
-                          {discountPercent > 0 && (
+                          {showDiscount && (
                             <span className="text-emerald-600 font-bold text-xs sm:text-sm bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100">
                               ↓{discountPercent}% OFF
                             </span>
                           )}
-                          {originalPrice > specialPrice && (
+                          {showDiscount && (
                             <s className="text-gray-400 text-xs sm:text-sm line-through">
                               ₹{Number(originalPrice).toLocaleString("en-IN")}
                             </s>

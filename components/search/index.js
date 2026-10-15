@@ -20,6 +20,7 @@ import {
 } from "@/lib/filterUrl";
 import { CATEGORY_PAGE_SHELL_CLASS } from "@/lib/categoryPageComponents/layout";
 import { humanLabel } from "@/lib/humanLabel";
+import { sortProductsClient } from "@/lib/productSort";
 
 export default function SearchPage() {
   const router = useRouter();
@@ -226,7 +227,8 @@ export default function SearchPage() {
         }
 
         const { data } = await axios.get(`/api/search?${qs}`);
-        setProducts(Array.isArray(data.products) ? data.products : []);
+        const rawList = Array.isArray(data.products) ? data.products : [];
+        setProducts(sortProductsClient(rawList));
         setPagination(data.pagination || null);
 
         const nextBrands = (data.brandSummary || [])

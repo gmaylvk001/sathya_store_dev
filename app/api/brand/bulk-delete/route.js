@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import Brand from "@/models/ecom_brand_info";
 import Product from "@/models/product";
+import CategoryPage from "@/models/categoryPage";
+import { PAGE_TYPES } from "@/lib/categoryPageComponents/registry";
 import { requireAdmin } from "@/lib/adminRequest";
 
 export async function POST(req) {
@@ -20,6 +22,7 @@ export async function POST(req) {
 
         const results = {
             deletedCount: 0,
+            deletedIds: [],
             failedIds: [],
             errors: []
         };
@@ -43,10 +46,25 @@ export async function POST(req) {
                 }
 
                 results.deletedCount++;
+                results.deletedIds.push(brandId);
             } catch (err) {
                 console.error(`Error deleting brand ${brandId}:`, err);
                 results.failedIds.push(brandId);
                 results.errors.push(`Error deleting brand ${brandId}.`);
+            }
+        }
+
+        // Clean up CategoryPage layouts for deleted brands
+        if (results.deletedIds.length > 0) {
+            try {
+                await CategoryPage.deleteMany({
+                    $or: [
+                        { pageType: PAGE_TYPES.BRAND, categoryId: { $in: results.deletedIds } },
+                        { pageType: PAGE_TYPES.CATEGORY_BRAND, brandId: { $in: results.deletedIds } },
+                    ],
+                });
+            } catch (pageErr) {
+                console.error("Error bulk deleting CategoryPage layouts:", pageErr);
             }
         }
 

@@ -1,5 +1,9 @@
 import dbConnect from "@/lib/db";
 import Brand from "@/models/ecom_brand_info";
+import CategoryPage, {
+  ensureCategoryPageIndexes,
+} from "@/models/categoryPage";
+import { PAGE_TYPES } from "@/lib/categoryPageComponents/registry";
 import { NextResponse } from "next/server";
 import { writeFile, mkdir } from "fs/promises";
 import path from "path";
@@ -62,8 +66,39 @@ export async function POST(req) {
     });
 
     await newBrand.save();
+
+    // Auto-create Brand Page in CategoryPage collection
+    let brandPage = null;
+    try {
+      await ensureCategoryPageIndexes();
+      brandPage = await CategoryPage.findOne({
+        pageType: PAGE_TYPES.BRAND,
+        categoryId: newBrand._id,
+      });
+
+      if (!brandPage) {
+        brandPage = await CategoryPage.create({
+          pageType: PAGE_TYPES.BRAND,
+          categoryId: newBrand._id,
+          categoryName: newBrand.brand_name,
+          categorySlug: newBrand.brand_slug,
+          brandId: null,
+          brandName: "",
+          brandSlug: "",
+          status: "active",
+          components: [],
+        });
+      }
+    } catch (pageErr) {
+      console.error("Failed to auto-create CategoryPage for brand:", pageErr);
+    }
+
     return NextResponse.json(
-      { message: "Brand added successfully", brand: newBrand },
+      {
+        message: "Brand and Brand Page added successfully",
+        brand: newBrand,
+        brandPageId: brandPage ? brandPage._id : null,
+      },
       { status: 201 }
     );
   } catch (error) {

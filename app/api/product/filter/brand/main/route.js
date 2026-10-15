@@ -21,6 +21,7 @@ export async function GET(req) {
     const filterIds = (searchParams.get('filters')?.split(',') || []).filter(Boolean);
     const page = parseInt(searchParams.get('page')) || 1;
     const limit = parseInt(searchParams.get('limit')) || 20;
+    const sort = searchParams.get('sort') || 'featured';
 
     // Base query
     let query = { status: "Active" };
@@ -140,11 +141,41 @@ export async function GET(req) {
     
     // Apply pagination
     const skip = (page - 1) * limit;
-    const products = await productsQuery
-      .sort({ createdAt: -1, _id: -1 })
-      .skip(skip)
-      .limit(limit)
-      .lean();
+    let products;
+
+    if (sort === 'price-low-high' || sort === 'price-high-low') {
+      const sortDir = sort === 'price-low-high' ? 1 : -1;
+      products = await Product.aggregate([
+        { $match: query },
+        {
+          $addFields: {
+            effective_price: {
+              $cond: {
+                if: { $and: [{ $gt: ["$special_price", 0] }, { $lt: ["$special_price", "$price"] }] },
+                then: "$special_price",
+                else: "$price"
+              }
+            }
+          }
+        },
+        { $sort: { stock_status: 1, effective_price: sortDir, _id: -1 } },
+        { $skip: skip },
+        { $limit: limit }
+      ]);
+    } else {
+      const sortObj =
+        sort === 'name-a-z' ? { stock_status: 1, name: 1, _id: -1 } :
+        sort === 'name-z-a' ? { stock_status: 1, name: -1, _id: -1 } :
+        sort === 'quantity-low-to-high' ? { stock_status: 1, quantity: 1, _id: -1 } :
+        sort === 'quantity-high-to-low' ? { stock_status: 1, quantity: -1, _id: -1 } :
+        { stock_status: 1, createdAt: -1, _id: -1 };
+
+      products = await productsQuery
+        .sort(sortObj)
+        .skip(skip)
+        .limit(limit)
+        .lean();
+    }
     
     // Get total count for pagination info
     const totalProducts = await Product.countDocuments(query);

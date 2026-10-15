@@ -5,6 +5,7 @@ import {
   isExtendedWarrantyEligible,
   isInstallationEligible,
 } from "@/lib/productServiceEligibility";
+import { getDiscountInfo } from "@/lib/discountHelper";
 
 /**
  * Generic Service Icon
@@ -269,8 +270,7 @@ export default function ProductInstallationWarrantySection({
 
       const yearText = yr === 1 ? "1 Year" : `${yr} Years`;
       const mrp = Math.round(price * 1.15);
-      const discountPercent =
-        mrp > price ? Math.round(((mrp - price) / mrp) * 100) : null;
+      const { discountPercent, showDiscount } = getDiscountInfo(mrp, price);
 
       return {
         id: `w-${yr}yr`,
@@ -291,8 +291,8 @@ export default function ProductInstallationWarrantySection({
           ...(typeof dbItem === "object" ? dbItem : {}),
         },
         price: price,
-        mrp: yr > 1 ? mrp : null,
-        discountPercent: yr > 1 ? discountPercent : null,
+        mrp: yr > 1 && showDiscount ? mrp : null,
+        discountPercent: yr > 1 && showDiscount ? discountPercent : null,
         mrpLabel: yr === 1 ? "MRP (Inclusive of all taxes)" : null,
         features: [
           "100% Cashless Repairs & Service",

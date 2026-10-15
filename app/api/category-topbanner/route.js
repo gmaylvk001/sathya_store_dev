@@ -140,6 +140,8 @@ export async function POST(req) {
           url: item.url || "",
           state: item.state || "all",
           isActive: item.isActive !== false,
+          startDate: item.startDate ? new Date(item.startDate) : null,
+          endDate: item.endDate ? new Date(item.endDate) : null,
           order: typeof item.order === "number" ? item.order : i,
         });
       }
@@ -155,6 +157,8 @@ export async function POST(req) {
         url: b.url || "",
         state: b.state || "all",
         isActive: b.isActive !== false,
+        startDate: b.startDate ? new Date(b.startDate) : null,
+        endDate: b.endDate ? new Date(b.endDate) : null,
         order: typeof b.order === "number" ? b.order : i,
       }));
     }

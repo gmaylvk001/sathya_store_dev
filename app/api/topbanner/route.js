@@ -62,10 +62,31 @@ export async function GET(req) {
       return NextResponse.json({ success: true, region, banners: banners || [] });
     }
 
+    const now = new Date();
+    const dateFilter = {
+      $and: [
+        {
+          $or: [
+            { startDate: null },
+            { startDate: { $exists: false } },
+            { startDate: { $lte: now } },
+          ],
+        },
+        {
+          $or: [
+            { endDate: null },
+            { endDate: { $exists: false } },
+            { endDate: { $gte: now } },
+          ],
+        },
+      ],
+    };
+
     // 1. Try matching user's specific state
     let banners = await TopBanner.find({
       status: "Active",
       state: region,
+      ...dateFilter,
     }).sort({ order: 1 }).lean();
 
     // 2. Fallback to 'all' banners if no state-specific banner found
@@ -73,6 +94,7 @@ export async function GET(req) {
       banners = await TopBanner.find({
         status: "Active",
         $or: [{ state: "all" }, { state: { $exists: false } }, { state: null }],
+        ...dateFilter,
       }).sort({ order: 1 }).lean();
     }
 
@@ -140,6 +162,11 @@ export async function POST(req) {
 
     const mobile_banner_image = formData.get("mobile_banner_image") || "";
 
+    const startDateRaw = formData.get("startDate");
+    const endDateRaw = formData.get("endDate");
+    const startDate = startDateRaw ? new Date(startDateRaw) : null;
+    const endDate = endDateRaw ? new Date(endDateRaw) : null;
+
     const newBanner = new TopBanner({
       banner_image: filePath,
       mobile_banner_image,
@@ -147,6 +174,8 @@ export async function POST(req) {
       state,
       status,
       order: newOrder,
+      startDate: startDate && !isNaN(startDate.getTime()) ? startDate : null,
+      endDate: endDate && !isNaN(endDate.getTime()) ? endDate : null,
     });
 
     await newBanner.save();
@@ -204,6 +233,18 @@ export async function PUT(req) {
 
     const mobile_banner_image = formData.get("mobile_banner_image");
     if (mobile_banner_image !== null) updateData.mobile_banner_image = mobile_banner_image;
+
+    if (formData.has("startDate")) {
+      const startDateRaw = formData.get("startDate");
+      const sDate = startDateRaw ? new Date(startDateRaw) : null;
+      updateData.startDate = sDate && !isNaN(sDate.getTime()) ? sDate : null;
+    }
+
+    if (formData.has("endDate")) {
+      const endDateRaw = formData.get("endDate");
+      const eDate = endDateRaw ? new Date(endDateRaw) : null;
+      updateData.endDate = eDate && !isNaN(eDate.getTime()) ? eDate : null;
+    }
 
     const file = formData.get("banner_image");
     if (file && typeof file === "object" && file.size > 0) {

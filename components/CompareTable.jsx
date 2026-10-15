@@ -36,6 +36,7 @@ import { useCompare } from '@/context/CompareContext';
 import { useCart } from '@/context/CartContext';
 import { normalizeAttributes, parseNumericValue, formatBrandName, checkProductAvailability } from '@/utils/compareHelpers';
 import { toast } from 'react-toastify';
+import { getDiscountInfo } from "@/lib/discountHelper";
 
 const BRAND_RED = '#d72828';
 
@@ -66,14 +67,15 @@ function getMRP(product) {
 function getDiscount(product) {
   const sp = getPrice(product);
   const mp = getMRP(product);
-  if (!sp || !mp || sp >= mp) return null;
-  return Math.round(((mp - sp) / mp) * 100);
+  const { discountPercent, showDiscount } = getDiscountInfo(mp, sp);
+  return showDiscount ? discountPercent : null;
 }
 
 function getSavings(product) {
   const sp = getPrice(product);
   const mp = getMRP(product);
-  if (!sp || !mp || sp >= mp) return 0;
+  const { showDiscount } = getDiscountInfo(mp, sp);
+  if (!showDiscount || !sp || !mp) return 0;
   return mp - sp;
 }
 
@@ -358,7 +360,7 @@ function ProductHeaderCard({
             <span className="text-lg font-black" style={{ color: BRAND_RED }}>
               ₹{Number(price).toLocaleString('en-IN')}
             </span>
-            {mrp && mrp > price && (
+            {getDiscountInfo(mrp, price).showDiscount && (
               <span className="text-xs text-gray-400 line-through">
                 ₹{Number(mrp).toLocaleString('en-IN')}
               </span>
@@ -953,7 +955,7 @@ function MobileCards({ products, rows }) {
                   <p className="text-base font-extrabold text-[#d72828] mt-1">
                     ₹{Number(price || 0).toLocaleString('en-IN')}
                   </p>
-                  {mrp && mrp > price && (
+                  {getDiscountInfo(mrp, price).showDiscount && (
                     <p className="text-xs text-gray-400 line-through">₹{Number(mrp).toLocaleString('en-IN')}</p>
                   )}
                   <StarDisplay rating={rating} count={reviewCount} />

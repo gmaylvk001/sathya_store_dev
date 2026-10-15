@@ -256,7 +256,7 @@ searchFilter.$and = [
     if (query) {
       const candidateLimit = query.length <= 3 ? 500 : 250;
       const candidates = await productsQuery
-        .sort({ createdAt: -1, _id: -1 })
+        .sort({ stock_status: 1, createdAt: -1, _id: -1 })
         .limit(candidateLimit)
         .lean();
 
@@ -267,6 +267,18 @@ searchFilter.$and = [
         }))
         .filter(({ score }) => score > 0)
         .sort((a, b) => {
+          const inStockA =
+            a.product.stock_status === "In Stock" &&
+            Number(a.product.quantity || 0) > 0
+              ? 1
+              : 0;
+          const inStockB =
+            b.product.stock_status === "In Stock" &&
+            Number(b.product.quantity || 0) > 0
+              ? 1
+              : 0;
+          if (inStockB !== inStockA) return inStockB - inStockA;
+
           if (b.score !== a.score) return b.score - a.score;
           const timeA = new Date(a.product.createdAt || 0).getTime();
           const timeB = new Date(b.product.createdAt || 0).getTime();
@@ -278,7 +290,7 @@ searchFilter.$and = [
     } else {
       total = await Product.countDocuments(searchFilter);
       products = await productsQuery
-        .sort({ createdAt: -1, _id: -1 })
+        .sort({ stock_status: 1, createdAt: -1, _id: -1 })
         .skip(skip)
         .limit(limit)
         .lean();

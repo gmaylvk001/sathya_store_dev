@@ -18,6 +18,7 @@ import {
   getVisibleFilterGroups,
   VISIBLE_FILTER_GROUP_LIMIT,
 } from "@/lib/filterGroupDefaults";
+import { getDiscountInfo } from "@/lib/discountHelper";
 
 const OPEN_BOX_FEATURES = [
   {
@@ -48,14 +49,7 @@ const OPEN_BOX_FEATURES = [
 ];
 
 const getDiscountPct = (product) => {
-  if (
-    !product.special_price ||
-    !product.price ||
-    product.special_price >= product.price
-  ) {
-    return 0;
-  }
-  return Math.round(100 - (product.special_price / product.price) * 100);
+  return getDiscountInfo(product?.price, product?.special_price).discountPercent;
 };
 
 const getProductImageSrc = (product) => {
@@ -710,18 +704,14 @@ const handleShare = async (product) => {
                   />
                 )}
                 {/* Discount Badge */}
-              
-                {product.special_price &&
-                  product.special_price !== product.price &&
-                  100 - (product.special_price / product.price) * 100 > 0 && (
+                {(() => {
+                  const { discountPercent: discPct, showDiscount: hasDisc } = getDiscountInfo(product.price, product.special_price);
+                  return hasDisc ? (
                     <span className="absolute top-2 left-2 bg-orange-500 tracking-wider text-white text-xs font-bold px-2 py-1 rounded z-10">
-                      -
-                      {Math.round(
-                        100 - (product.special_price / product.price) * 100,
-                      )}
-                      %
+                      -{discPct}%
                     </span>
-                  )}
+                  ) : null;
+                })()}
                 {/* Wishlist */}
                 <div className="absolute top-2 right-2">
                   <ProductCard productId={product._id} />
@@ -741,23 +731,25 @@ const handleShare = async (product) => {
                 </Link>
 
                 {/* Price */}
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="text-base font-semibold text-red-600">
-                    ₹
-                    {(product.special_price &&
-                    product.special_price > 0 &&
-                    product.special_price < product.price
-                      ? Math.round(product.special_price)
-                      : Math.round(product.price)
-                    ).toLocaleString('en-IN')}
-                  </span>
-                  {product.special_price > 0 &&
-                    product.special_price < product.price && (
-                      <span className="text-xs text-gray-500 line-through">
-                        ₹{Math.round(product.price).toLocaleString('en-IN')}
+                {(() => {
+                  const { showDiscount: hasDisc } = getDiscountInfo(product.price, product.special_price);
+                  return (
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className="text-base font-semibold text-red-600">
+                        ₹
+                        {(hasDisc
+                          ? Math.round(product.special_price)
+                          : Math.round(product.price)
+                        ).toLocaleString('en-IN')}
                       </span>
-                    )}
-                </div>
+                      {hasDisc && (
+                        <span className="text-xs text-gray-500 line-through">
+                          ₹{Math.round(product.price).toLocaleString('en-IN')}
+                        </span>
+                      )}
+                    </div>
+                  );
+                })()}
 
                 {/* Stock */}
                 <div className="mb-2">
@@ -901,12 +893,10 @@ const handleShare = async (product) => {
   };
 
   const renderShowcaseCard = (product) => {
-    const discount = getDiscountPct(product);
+    const { discountPercent: discount, showDiscount: hasDiscount } = getDiscountInfo(product.price, product.special_price);
     const imageSrc = getProductImageSrc(product);
     const brandName = getProductBrandName(product);
     const brandImage = getProductBrandImage(product);
-    const hasDiscount =
-      product.special_price > 0 && product.special_price < product.price;
     const salePrice = hasDiscount
       ? Math.round(product.special_price)
       : Math.round(product.price || 0);
@@ -916,7 +906,7 @@ const handleShare = async (product) => {
         key={product._id}
         className="min-w-[300px] w-[300px] sm:min-w-[340px] sm:w-[340px] snap-start relative flex bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md overflow-hidden h-[300px]"
       >
-        {discount > 0 && (
+        {hasDiscount && (
           <span className="absolute top-3 left-3 z-10 bg-red-600 text-white text-[11px] font-bold px-2.5 py-1 rounded">
             {discount}% OFF
           </span>
@@ -1671,19 +1661,14 @@ const handleShare = async (product) => {
                          </span>
                             )}
 
-                      {product.special_price &&
-                        product.special_price !== product.price &&
-                        100 - (product.special_price / product.price) * 100 >
-                          0 && (
+                      {(() => {
+                        const { discountPercent: discPct, showDiscount: hasDisc } = getDiscountInfo(product.price, product.special_price);
+                        return hasDisc ? (
                           <span className="absolute top-2 left-2 bg-orange-500 tracking-wider text-white text-xs font-bold px-2 py-1 rounded z-10">
-                            -
-                            {Math.round(
-                              100 -
-                                (product.special_price / product.price) * 100,
-                            )}
-                            %
+                            -{discPct}%
                           </span>
-                        )}
+                        ) : null;
+                      })()}
 
                       {/* Wishlist */}
                       <div className="absolute top-2 right-2">
@@ -1704,23 +1689,25 @@ const handleShare = async (product) => {
                       </Link>
 
                       {/* Price */}
-                      <div className="flex items-center gap-2 mb-3">
-                        <span className="text-base font-semibold text-red-600">
-                          ₹
-                          {(product.special_price &&
-                          product.special_price > 0 &&
-                          product.special_price < product.price
-                            ? Math.round(product.special_price)
-                            : Math.round(product.price)
-                          ).toLocaleString('en-IN')}
-                        </span>
-                        {product.special_price > 0 &&
-                          product.special_price < product.price && (
-                            <span className="text-xs text-gray-500 line-through">
-                              ₹{Math.round(product.price).toLocaleString('en-IN')}
+                      {(() => {
+                        const { showDiscount: hasDisc } = getDiscountInfo(product.price, product.special_price);
+                        return (
+                          <div className="flex items-center gap-2 mb-3">
+                            <span className="text-base font-semibold text-red-600">
+                              ₹
+                              {(hasDisc
+                                ? Math.round(product.special_price)
+                                : Math.round(product.price)
+                              ).toLocaleString('en-IN')}
                             </span>
-                          )}
-                      </div>
+                            {hasDisc && (
+                              <span className="text-xs text-gray-500 line-through">
+                                ₹{Math.round(product.price).toLocaleString('en-IN')}
+                              </span>
+                            )}
+                          </div>
+                        );
+                      })()}
                       <div className="mb-2">
                         {product.quantity > 0 ? (
                           <span className="text-xs text-green-600 font-medium">

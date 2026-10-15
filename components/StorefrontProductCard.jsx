@@ -12,6 +12,7 @@ import BestPriceStrip from "@/components/product/BestPriceStrip";
 import ProductCardTrustBadge from "@/components/product/ProductCardTrustBadge";
 import { getBestPriceData } from "@/lib/offers/bestPriceUtils";
 import { BankOffersModal } from "@/components/ProductOffersSection";
+import { getDiscountInfo } from "@/lib/discountHelper";
 
 export default function StorefrontProductCard({
   product,
@@ -24,15 +25,8 @@ export default function StorefrontProductCard({
 
   if (!product) return null;
 
-  const hasDiscount =
-    Number(product.special_price) > 0 &&
-    Number(product.special_price) < Number(product.price);
-
-  const discountPercent = hasDiscount
-    ? Math.round(
-        100 - (Number(product.special_price) / Number(product.price)) * 100
-      )
-    : 0;
+  const { discountPercent, showDiscount } = getDiscountInfo(product.price, product.special_price);
+  const hasDiscount = showDiscount;
 
   const currentPrice = hasDiscount ? product.special_price : product.price || 0;
   const originalPrice = product.price || 0;

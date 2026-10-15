@@ -8,6 +8,48 @@ import {
   consumeAllowedCategoryPageImage,
 } from "@/lib/categoryPageComponents/registry";
 
+const formatDateTimeForInput = (date) => {
+  if (!date) return "";
+  const d = new Date(date);
+  if (isNaN(d.getTime())) return "";
+  const pad = (n) => String(n).padStart(2, "0");
+  const year = d.getFullYear();
+  const month = pad(d.getMonth() + 1);
+  const day = pad(d.getDate());
+  const hours = pad(d.getHours());
+  const minutes = pad(d.getMinutes());
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+};
+
+const getBannerTimerStatus = (startDate, endDate) => {
+  if (!startDate && !endDate) {
+    return { label: "Always Active", color: "bg-gray-100 text-gray-700 border-gray-200" };
+  }
+  const now = new Date();
+  const start = startDate ? new Date(startDate) : null;
+  const end = endDate ? new Date(endDate) : null;
+
+  if (start && now < start) {
+    return {
+      label: `Upcoming (Starts ${start.toLocaleDateString("en-IN", { day: '2-digit', month: 'short' })} ${start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })})`,
+      color: "bg-amber-50 text-amber-800 border-amber-300 font-medium"
+    };
+  }
+  if (end && now > end) {
+    return {
+      label: `Expired (${end.toLocaleDateString("en-IN", { day: '2-digit', month: 'short' })} ${end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })})`,
+      color: "bg-red-50 text-red-700 border-red-300 font-medium"
+    };
+  }
+  if (end) {
+    return {
+      label: `Live (Ends ${end.toLocaleDateString("en-IN", { day: '2-digit', month: 'short' })} ${end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })})`,
+      color: "bg-emerald-50 text-emerald-800 border-emerald-300 font-medium"
+    };
+  }
+  return { label: "Live (No expiry)", color: "bg-emerald-50 text-emerald-800 border-emerald-300 font-medium" };
+};
+
 const emptyBanner = () => ({
   desktopImage: "",
   mobileImage: "",
@@ -18,6 +60,8 @@ const emptyBanner = () => ({
   url: "",
   state: "all",
   isActive: true,
+  startDate: "",
+  endDate: "",
 });
 
 /**
@@ -63,6 +107,8 @@ export default function TopBannerConfigForm({
                   url: b.url || "",
                   state: b.state || "all",
                   isActive: b.isActive !== false,
+                  startDate: b.startDate ? formatDateTimeForInput(b.startDate) : "",
+                  endDate: b.endDate ? formatDateTimeForInput(b.endDate) : "",
                 }))
               : [emptyBanner()]
           );
@@ -113,6 +159,8 @@ export default function TopBannerConfigForm({
             url: b.url || "",
             state: b.state || "all",
             isActive: b.isActive !== false,
+            startDate: b.startDate || null,
+            endDate: b.endDate || null,
             order: i,
           }))
         )
@@ -144,6 +192,8 @@ export default function TopBannerConfigForm({
                 url: b.url || "",
                 state: b.state || "all",
                 isActive: b.isActive !== false,
+                startDate: b.startDate ? formatDateTimeForInput(b.startDate) : "",
+                endDate: b.endDate ? formatDateTimeForInput(b.endDate) : "",
               }))
             : [emptyBanner()]
         );
@@ -374,6 +424,58 @@ export default function TopBannerConfigForm({
                 placeholder="/category/... or https://..."
               />
             </div>
+          </div>
+
+          {/* Schedule / Timer Row */}
+          <div className="pt-2 border-t border-gray-200/80">
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+              <span className="text-xs font-semibold text-gray-700 flex items-center gap-1">
+                <span>⏰</span> Schedule / Timer (Optional)
+              </span>
+              {(() => {
+                const badge = getBannerTimerStatus(banner.startDate, banner.endDate);
+                return (
+                  <span className={`text-[11px] px-2 py-0.5 rounded-full border ${badge.color}`}>
+                    {badge.label}
+                  </span>
+                );
+              })()}
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-[11px] font-medium text-gray-500 mb-1">
+                  Show From (Start Date & Time)
+                </label>
+                <input
+                  type="datetime-local"
+                  value={banner.startDate || ""}
+                  onChange={(e) => updateBanner(index, { startDate: e.target.value })}
+                  className="w-full rounded-lg border border-gray-300 px-2.5 py-1.5 text-xs bg-white text-gray-700 focus:ring-1 focus:ring-red-400"
+                />
+              </div>
+              <div>
+                <label className="block text-[11px] font-medium text-gray-500 mb-1">
+                  Hide After (End Date & Time)
+                </label>
+                <input
+                  type="datetime-local"
+                  value={banner.endDate || ""}
+                  onChange={(e) => updateBanner(index, { endDate: e.target.value })}
+                  className="w-full rounded-lg border border-gray-300 px-2.5 py-1.5 text-xs bg-white text-gray-700 focus:ring-1 focus:ring-red-400"
+                />
+              </div>
+            </div>
+            {(banner.startDate || banner.endDate) && (
+              <div className="mt-1.5 flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => updateBanner(index, { startDate: "", endDate: "" })}
+                  className="text-[11px] text-gray-500 hover:text-red-600 underline"
+                >
+                  Clear Schedule (Show Always)
+                </button>
+              </div>
+            )}
           </div>
 
           <div className="flex items-center gap-3">

@@ -10,6 +10,7 @@ import { useRegion } from "@/context/RegionContext";
 import { useHeaderdetails } from "@/context/HeaderContext";
 import DealsOfferModal from "@/components/deals-offer/DealsOfferModal";
 import { getCardOfferCategoryHref, isExternalUrl } from "@/lib/cardOffers/cardOfferNavigationHelper";
+import { getDiscountInfo } from "@/lib/discountHelper";
 
 // Helper to determine destination URL for any card offer
 export function getCardOfferHref(card) {
@@ -172,11 +173,8 @@ function AdminCardOfferItem({ card }) {
 function DealProductCard({ product, brandMap }) {
   const price = Number(product.price) || 0;
   const specialPrice = Number(product.special_price) || 0;
-  const hasDiscount = specialPrice > 0 && specialPrice < price;
-  const discountPct = hasDiscount
-    ? Math.round(100 - (specialPrice / price) * 100)
-    : 0;
-  const displayPrice = hasDiscount ? specialPrice : price;
+  const { discountPercent: discountPct, showDiscount } = getDiscountInfo(price, specialPrice);
+  const displayPrice = showDiscount ? specialPrice : (specialPrice > 0 ? specialPrice : price);
 
   const initialImg = product.images?.[0]
     ? product.images[0].startsWith("http")
@@ -189,7 +187,7 @@ function DealProductCard({ product, brandMap }) {
   return (
     <div className="bg-white rounded-2xl border border-gray-200/80 shadow-[0_2px_8px_rgba(0,0,0,0.06)] hover:shadow-xl hover:border-red-200 transition-all duration-300 flex flex-col p-3 sm:p-4 w-[240px] sm:w-[260px] md:w-[270px] flex-none relative group">
       {/* Discount Badge */}
-      {hasDiscount && discountPct > 0 && (
+      {showDiscount && (
         <div className="absolute top-3 left-3 z-10 bg-[#d72828] text-white text-[10px] sm:text-xs font-extrabold px-2 py-0.5 rounded shadow-sm">
           {discountPct}% OFF
         </div>
@@ -241,7 +239,7 @@ function DealProductCard({ product, brandMap }) {
         <span className="text-base sm:text-lg font-extrabold text-gray-900">
           ₹{Math.round(displayPrice).toLocaleString("en-IN")}
         </span>
-        {hasDiscount && (
+        {showDiscount && (
           <span className="text-xs text-gray-400 line-through">
             ₹{Math.round(price).toLocaleString("en-IN")}
           </span>

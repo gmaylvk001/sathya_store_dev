@@ -87,6 +87,7 @@ ProductSchema.index({ createdAt: -1, _id: -1 });
 ProductSchema.index({ status: 1, brand: 1 });
 ProductSchema.index({ status: 1, name: 1 });
 ProductSchema.index({ status: 1, createdAt: -1 });
+ProductSchema.index({ status: 1, stock_status: 1, createdAt: -1 });
 ProductSchema.index({ status: 1, sub_category_new_name: 1 });
 ProductSchema.index({ status: 1, item_code: 1 });
 ProductSchema.index({ item_code: 1 });

@@ -21,6 +21,7 @@ import {
 import { useCategoryFilterUrl } from "@/hooks/useCategoryFilterUrl";
 import ProductFilters from "@/components/filters/ProductFilters";
 import { CATEGORY_PAGE_SHELL_CLASS } from "@/lib/categoryPageComponents/layout";
+import { sortProductsClient } from "@/lib/productSort";
 
 
 export default function CategoryPage() {
@@ -442,36 +443,7 @@ const scroll = (direction) => {
 
     // Sorting functionality
     const getSortedProducts = () => {
-      const sortedProducts = [...products];
-
-      switch (sortOption) {
-        case 'price-low-high':
-          return sortedProducts.sort((a, b) => a.special_price - b.special_price);
-
-        case 'price-high-low':
-          return sortedProducts.sort((a, b) => b.special_price - a.special_price);
-
-        case 'name-a-z':
-          return sortedProducts.sort((a, b) => {
-            if (a.name.toLowerCase() === 'capacity') return -1;
-            if (b.name.toLowerCase() === 'capacity') return 1;
-            return a.name.localeCompare(b.name);
-          });
-
-        case 'name-z-a':
-          return sortedProducts.sort((a, b) => b.name.localeCompare(a.name));
-
-        // ✅ NEW: Quantity Low → High
-        case 'quantity-low-to-high':
-          return sortedProducts.sort((a, b) => (a.quantity || 0) - (b.quantity || 0));
-
-        // ✅ NEW: Quantity High → Low
-        case 'quantity-high-to-low':
-          return sortedProducts.sort((a, b) => (b.quantity || 0) - (a.quantity || 0));
-
-        default:
-          return sortedProducts;
-      }
+      return sortProductsClient(products, sortOption);
     };
 
    const [brandMap, setBrandMap] = useState([]);

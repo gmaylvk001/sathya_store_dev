@@ -6,6 +6,7 @@ import { Navigation, Autoplay, Pagination } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
+import { getDiscountInfo } from "@/lib/discountHelper";
 
 export default function TestCategoryPage() {
    const categoriess = [
@@ -172,18 +173,18 @@ export default function TestCategoryPage() {
           className="customSwiper"
         >
           {testProducts.map((product) => {
-            const discount = Math.round(
-              100 - (product.sale / product.price) * 100
-            );
+            const { discountPercent: discount, showDiscount } = getDiscountInfo(product.price, product.sale);
 
             return (
               <SwiperSlide key={product.id}>
                 <div className="relative bg-white border rounded-lg p-3 h-full flex flex-col hover:shadow-lg transition">
 
                   {/* ✅ Discount Badge */}
-                  <span className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
-                    {discount}% OFF
-                  </span>
+                  {showDiscount && (
+                    <span className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
+                      {discount}% OFF
+                    </span>
+                  )}
 
                   {/* ✅ Wishlist Icon */}
                   <span className="absolute top-2 right-2 border rounded-full p-1">
@@ -212,9 +213,11 @@ export default function TestCategoryPage() {
                     <span className="text-red-600 font-semibold">
                       ₹ {product.sale.toLocaleString()}
                     </span>
-                    <span className="text-xs line-through text-gray-500">
-                      ₹ {product.price.toLocaleString()}
-                    </span>
+                    {showDiscount && (
+                      <span className="text-xs line-through text-gray-500">
+                        ₹ {product.price.toLocaleString()}
+                      </span>
+                    )}
                   </div>
 
                   {/* ✅ Stock */}
@@ -300,18 +303,18 @@ export default function TestCategoryPage() {
           className="customSwiper"
         >
           {testProducts.map((product) => {
-            const discount = Math.round(
-              100 - (product.sale / product.price) * 100
-            );
+            const { discountPercent: discount, showDiscount } = getDiscountInfo(product.price, product.sale);
 
             return (
               <SwiperSlide key={product.id}>
                 <div className="relative bg-white border rounded-lg p-3 h-full flex flex-col hover:shadow-lg transition">
 
                   {/* ✅ Discount Badge */}
-                  <span className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
-                    {discount}% OFF
-                  </span>
+                  {showDiscount && (
+                    <span className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
+                      {discount}% OFF
+                    </span>
+                  )}
 
                   {/* ✅ Wishlist Icon */}
                   <span className="absolute top-2 right-2 border rounded-full p-1">
@@ -340,9 +343,11 @@ export default function TestCategoryPage() {
                     <span className="text-red-600 font-semibold">
                       ₹ {product.sale.toLocaleString()}
                     </span>
-                    <span className="text-xs line-through text-gray-500">
-                      ₹ {product.price.toLocaleString()}
-                    </span>
+                    {showDiscount && (
+                      <span className="text-xs line-through text-gray-500">
+                        ₹ {product.price.toLocaleString()}
+                      </span>
+                    )}
                   </div>
 
                   {/* ✅ Stock */}
@@ -428,18 +433,18 @@ export default function TestCategoryPage() {
           className="customSwiper"
         >
           {testProducts.map((product) => {
-            const discount = Math.round(
-              100 - (product.sale / product.price) * 100
-            );
+            const { discountPercent: discount, showDiscount } = getDiscountInfo(product.price, product.sale);
 
             return (
               <SwiperSlide key={product.id}>
                 <div className="relative bg-white border rounded-lg p-3 h-full flex flex-col hover:shadow-lg transition">
 
                   {/* ✅ Discount Badge */}
-                  <span className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
-                    {discount}% OFF
-                  </span>
+                  {showDiscount && (
+                    <span className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
+                      {discount}% OFF
+                    </span>
+                  )}
 
                   {/* ✅ Wishlist Icon */}
                   <span className="absolute top-2 right-2 border rounded-full p-1">
@@ -468,9 +473,11 @@ export default function TestCategoryPage() {
                     <span className="text-red-600 font-semibold">
                       ₹ {product.sale.toLocaleString()}
                     </span>
-                    <span className="text-xs line-through text-gray-500">
-                      ₹ {product.price.toLocaleString()}
-                    </span>
+                    {showDiscount && (
+                      <span className="text-xs line-through text-gray-500">
+                        ₹ {product.price.toLocaleString()}
+                      </span>
+                    )}
                   </div>
 
                   {/* ✅ Stock */}
@@ -556,18 +563,18 @@ export default function TestCategoryPage() {
           className="customSwiper"
         >
           {testProducts.map((product) => {
-            const discount = Math.round(
-              100 - (product.sale / product.price) * 100
-            );
+            const { discountPercent: discount, showDiscount } = getDiscountInfo(product.price, product.sale);
 
             return (
               <SwiperSlide key={product.id}>
                 <div className="relative bg-white border rounded-lg p-3 h-full flex flex-col hover:shadow-lg transition">
 
                   {/* ✅ Discount Badge */}
-                  <span className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
-                    {discount}% OFF
-                  </span>
+                  {showDiscount && (
+                    <span className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
+                      {discount}% OFF
+                    </span>
+                  )}
 
                   {/* ✅ Wishlist Icon */}
                   <span className="absolute top-2 right-2 border rounded-full p-1">
@@ -596,9 +603,11 @@ export default function TestCategoryPage() {
                     <span className="text-red-600 font-semibold">
                       ₹ {product.sale.toLocaleString()}
                     </span>
-                    <span className="text-xs line-through text-gray-500">
-                      ₹ {product.price.toLocaleString()}
-                    </span>
+                    {showDiscount && (
+                      <span className="text-xs line-through text-gray-500">
+                        ₹ {product.price.toLocaleString()}
+                      </span>
+                    )}
                   </div>
 
                   {/* ✅ Stock */}

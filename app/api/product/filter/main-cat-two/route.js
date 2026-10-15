@@ -132,7 +132,7 @@ export async function GET(req) {
         .populate('brand', 'brand_name brand_slug')
         .populate('category', 'name')
         .populate('sub_category', 'name')
-        .sort({ createdAt: -1 })
+        .sort({ stock_status: 1, createdAt: -1, _id: -1 })
         .skip(skip)
         .limit(limit)
         .lean(),

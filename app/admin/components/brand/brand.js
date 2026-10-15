@@ -1,12 +1,14 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { FaPlus, FaMinus, FaEdit } from "react-icons/fa";
 import ReactPaginate from "react-paginate";
 import { Icon } from '@iconify/react';
 import Image from "next/image";
 
 export default function BrandComponent() {
+  const router = useRouter();
   const [brand, setBrand] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -32,6 +34,8 @@ export default function BrandComponent() {
   const [selectedBrands, setSelectedBrands] = useState([]);
   const [showBulkDeleteConfirm, setShowBulkDeleteConfirm] = useState(false);
   const [isDeletingBulk, setIsDeletingBulk] = useState(false);
+  const [isSubmittingBrand, setIsSubmittingBrand] = useState(false);
+  const [navigatingBrandId, setNavigatingBrandId] = useState(null);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(0);
@@ -198,8 +202,13 @@ export default function BrandComponent() {
   //     console.error("Error:", error);
   //   }
   // };
-  const handleAddBrand = async (e) => {
-    e.preventDefault();
+  const handleAddBrand = async (e, goToBuilder = false) => {
+    if (e && e.preventDefault) e.preventDefault();
+
+    if (!newBrand.brand_name?.trim()) {
+      alert("Brand Name is required");
+      return;
+    }
 
     if (newBrand.image) {
       const isValid = await validateImageDimensions(newBrand.image);
@@ -209,8 +218,9 @@ export default function BrandComponent() {
       }
     }
 
+    setIsSubmittingBrand(true);
     const formData = new FormData();
-    formData.append("brand_name", newBrand.brand_name);
+    formData.append("brand_name", newBrand.brand_name.trim());
     formData.append("status", newBrand.status);
     if (newBrand.image) {
       formData.append("image", newBrand.image);
@@ -232,7 +242,13 @@ export default function BrandComponent() {
           image: null,
         });
         setImagePreview(null);
-        setSuccessMessage("Brand Added Successfully");
+
+        if (goToBuilder && result.brandPageId) {
+          router.push(`/admin/brand-pages/${result.brandPageId}`);
+          return;
+        }
+
+        setSuccessMessage("Brand and Brand Page added successfully");
         setShowSuccessModal(true);
 
         // Auto-hide the success modal after 2 seconds
@@ -242,9 +258,31 @@ export default function BrandComponent() {
         }, 2000);
       } else {
         console.error("Error adding brand:", result.error);
+        alert(result.error || "Failed to add brand");
       }
     } catch (error) {
       console.error("Error:", error);
+      alert("An error occurred while adding the brand.");
+    } finally {
+      setIsSubmittingBrand(false);
+    }
+  };
+
+  const handleDesignPage = async (brandItem) => {
+    setNavigatingBrandId(brandItem._id);
+    try {
+      const res = await fetch(`/api/brand/page-link?brandId=${brandItem._id}`);
+      const data = await res.json();
+      if (res.ok && data.pageId) {
+        router.push(`/admin/brand-pages/${data.pageId}`);
+      } else {
+        alert(data.error || "Failed to open brand page builder.");
+        setNavigatingBrandId(null);
+      }
+    } catch (err) {
+      console.error("Error opening brand page:", err);
+      alert("Error opening brand page builder.");
+      setNavigatingBrandId(null);
     }
   };
 
@@ -550,15 +588,28 @@ export default function BrandComponent() {
           <td>
             <div className="flex items-center gap-2 justify-center">
               <button
+                onClick={() => handleDesignPage(brand)}
+                disabled={navigatingBrandId === brand._id}
+                className="px-2.5 py-1 bg-red-50 text-red-600 hover:bg-red-600 hover:text-white border border-red-200 rounded-md text-xs font-semibold inline-flex items-center gap-1 transition disabled:opacity-50"
+                title="Design Brand Page"
+              >
+                {navigatingBrandId === brand._id ? (
+                  <Icon icon="line-md:loading-loop" className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <Icon icon="mdi:palette-outline" className="w-3.5 h-3.5" />
+                )}
+                <span>Design Page</span>
+              </button>
+              <button
                 onClick={() => handleEditBrand(brand)}
-                className="w-7 h-7 bg-red-100 text-red-600 rounded-full inline-flex items-center justify-center"
+                className="w-7 h-7 bg-red-100 text-red-600 rounded-full inline-flex items-center justify-center hover:bg-red-200 transition"
                 title="Edit"
               >
                 <FaEdit className="w-3 h-3" />
               </button>
               <button
                 onClick={() => handleDeleteClick(brand._id)}
-                className="w-7 h-7 bg-pink-100 text-pink-600 rounded-full inline-flex items-center justify-center"
+                className="w-7 h-7 bg-pink-100 text-pink-600 rounded-full inline-flex items-center justify-center hover:bg-pink-200 transition"
                 title="Delete"
               >
                 <Icon icon="mingcute:delete-2-line" />
@@ -862,13 +913,30 @@ export default function BrandComponent() {
                   </select>
                 </div>
 
-                {/* Submit Button */}
-                <button
-                  type="submit"
-                  className="inline-block bg-red-600 text-white px-5 py-2 rounded-md text-sm font-semibold hover:bg-red-700 transition"
-                >
-                  Add Brand
-                </button>
+                {/* Submit Buttons */}
+                <div className="flex flex-wrap items-center gap-3 pt-2">
+                  <button
+                    type="button"
+                    disabled={isSubmittingBrand}
+                    onClick={(e) => handleAddBrand(e, true)}
+                    className="inline-flex items-center gap-2 bg-red-600 text-white px-5 py-2.5 rounded-md text-sm font-semibold hover:bg-red-700 transition disabled:opacity-50 shadow-sm cursor-pointer"
+                  >
+                    {isSubmittingBrand ? (
+                      <Icon icon="line-md:loading-loop" className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Icon icon="mdi:palette-outline" className="w-4 h-4" />
+                    )}
+                    Save & Design Brand Page
+                  </button>
+                  <button
+                    type="button"
+                    disabled={isSubmittingBrand}
+                    onClick={(e) => handleAddBrand(e, false)}
+                    className="inline-block bg-gray-100 text-gray-700 border border-gray-300 px-5 py-2.5 rounded-md text-sm font-semibold hover:bg-gray-200 transition disabled:opacity-50 cursor-pointer"
+                  >
+                    Save Brand Only
+                  </button>
+                </div>
               </form>
             </div>
           </div>

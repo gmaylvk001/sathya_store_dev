@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useParams } from "next/navigation";
 import { ChevronDown, ChevronUp } from "react-feather";
+import { getDiscountInfo } from "@/lib/discountHelper";
 export default function CategoryPage() {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -290,14 +291,21 @@ export default function CategoryPage() {
                     {product.name}
                   </Link>
                 </h3>
-                <div className="flex items-center gap-2 mb-4">
-                  <span className="text-gray-500 line-through">
-                    ₹{product.price}
-                  </span>
-                  <span className="text-xl font-bold text-[#d72828]">
-                    ₹{product.special_price}
-                  </span>
-                </div>
+                {(() => {
+                  const { showDiscount } = getDiscountInfo(product.price, product.special_price);
+                  return (
+                    <div className="flex items-center gap-2 mb-4">
+                      {showDiscount && (
+                        <span className="text-gray-500 line-through">
+                          ₹{product.price}
+                        </span>
+                      )}
+                      <span className="text-xl font-bold text-[#d72828]">
+                        ₹{showDiscount ? product.special_price : (product.special_price || product.price)}
+                      </span>
+                    </div>
+                  );
+                })()}
                 <button className="w-full bg-[#d72828] text-white py-2 rounded hover:bg-[#d72828]">
                   Add to Cart
                 </button>

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Icon } from "@iconify/react";
+import { getDiscountInfo } from "@/lib/discountHelper";
 
 export default function ProductDetailClient({ product }) {
   const [activeImageIndex, setActiveImageIndex] = useState(0);
@@ -228,18 +229,19 @@ export default function ProductDetailClient({ product }) {
                   <span className="text-4xl font-bold tracking-tight text-slate-900">
                     {product.currency || "₹"}{product.price.toLocaleString("en-IN")}
                   </span>
-                  {product.mrp && product.mrp > product.price && (
-                    <>
-                      <span className="text-lg text-slate-400 line-through decoration-slate-300">
-                        {product.currency || "₹"}{product.mrp.toLocaleString("en-IN")}
-                      </span>
-                      {product.discount && (
-                        <span className="text-green-600 font-semibold bg-green-50 px-2 py-0.5 rounded text-sm">
-                          {product.discount} OFF
+                  {(() => {
+                    const { discountPercent, showDiscount } = getDiscountInfo(product.mrp, product.price);
+                    return showDiscount ? (
+                      <>
+                        <span className="text-lg text-slate-400 line-through decoration-slate-300">
+                          {product.currency || "₹"}{product.mrp.toLocaleString("en-IN")}
                         </span>
-                      )}
-                    </>
-                  )}
+                        <span className="text-green-600 font-semibold bg-green-50 px-2 py-0.5 rounded text-sm">
+                          {discountPercent}% OFF
+                        </span>
+                      </>
+                    ) : null;
+                  })()}
                 </div>
               ) : (
                 <div className="text-2xl font-semibold text-slate-800">Price on Request</div>

@@ -59,6 +59,7 @@ export async function GET(req) {
     const products = await Product.find(query)
       .populate('category', 'category_name')
       .populate('brand', 'brand_name')
+      .sort({ stock_status: 1, createdAt: -1, _id: -1 })
       .lean();
 
     return NextResponse.json(products, { status: 200 });

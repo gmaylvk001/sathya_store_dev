@@ -110,26 +110,26 @@ export async function GET(req) {
     // Apply sorting based on parameter
     switch(sort) {
       case 'price-low-high':
-        productsQuery = productsQuery.sort({ price: 1 });
+        productsQuery = productsQuery.sort({ stock_status: 1, price: 1, _id: -1 });
         break;
       case 'price-high-low':
-        productsQuery = productsQuery.sort({ price: -1 });
+        productsQuery = productsQuery.sort({ stock_status: 1, price: -1, _id: -1 });
         break;
       case 'name-a-z':
-        productsQuery = productsQuery.sort({ name: 1 });
+        productsQuery = productsQuery.sort({ stock_status: 1, name: 1, _id: -1 });
         break;
       case 'name-z-a':
-        productsQuery = productsQuery.sort({ name: -1 });
+        productsQuery = productsQuery.sort({ stock_status: 1, name: -1, _id: -1 });
         break;
       case 'quantity-low-to-high':
-        productsQuery = productsQuery.sort({ quantity: 1, _id: -1 });
+        productsQuery = productsQuery.sort({ stock_status: 1, quantity: 1, _id: -1 });
         break;
       case 'quantity-high-to-low':
-        productsQuery = productsQuery.sort({ quantity: -1, _id: -1 });
+        productsQuery = productsQuery.sort({ stock_status: 1, quantity: -1, _id: -1 });
         break;
       case 'featured':
       default:
-        productsQuery = productsQuery.sort({ createdAt: -1, _id: -1 });
+        productsQuery = productsQuery.sort({ stock_status: 1, createdAt: -1, _id: -1 });
         break;
     }
 
@@ -154,21 +154,27 @@ export async function GET(req) {
 
         // Re-apply sorting
           switch(sort) {
+          case 'price-low-high':
+            productsQuery = productsQuery.sort({ stock_status: 1, price: 1, _id: -1 });
+            break;
+          case 'price-high-low':
+            productsQuery = productsQuery.sort({ stock_status: 1, price: -1, _id: -1 });
+            break;
           case 'name-a-z':
-            productsQuery = productsQuery.sort({ name: 1 });
+            productsQuery = productsQuery.sort({ stock_status: 1, name: 1, _id: -1 });
             break;
           case 'name-z-a':
-            productsQuery = productsQuery.sort({ name: -1 });
+            productsQuery = productsQuery.sort({ stock_status: 1, name: -1, _id: -1 });
             break;
           case 'quantity-low-to-high':
-            productsQuery = productsQuery.sort({ quantity: 1, _id: -1 });
+            productsQuery = productsQuery.sort({ stock_status: 1, quantity: 1, _id: -1 });
             break;
           case 'quantity-high-to-low':
-            productsQuery = productsQuery.sort({ quantity: -1, _id: -1 });
+            productsQuery = productsQuery.sort({ stock_status: 1, quantity: -1, _id: -1 });
             break;
           case 'featured':
           default:
-            productsQuery = productsQuery.sort({ createdAt: -1, _id: -1 });
+            productsQuery = productsQuery.sort({ stock_status: 1, createdAt: -1, _id: -1 });
             break;
         }
       }
@@ -231,7 +237,7 @@ const skip = (page - 1) * limit;
             }
           }
         },
-        { $sort: { effective_price: sortDir, _id: -1 } },
+        { $sort: { stock_status: 1, effective_price: sortDir, _id: -1 } },
         { $skip: skip },
         { $limit: limit }
       ]);
