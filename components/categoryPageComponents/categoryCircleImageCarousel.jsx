@@ -76,7 +76,9 @@ export default function CategoryCircleImageCarousel({ config }) {
   const scrollByDirection = useCallback((direction) => {
     const el = scrollerRef.current;
     if (!el) return;
-    const distance = el.clientWidth * 0.75;
+    const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+    const gap = 12; // gap-3 = 12px
+    const distance = isMobile ? el.clientWidth + gap : el.clientWidth * 0.75;
     el.scrollBy({
       left: direction === "left" ? -distance : distance,
       behavior: "smooth",
@@ -177,22 +179,25 @@ export default function CategoryCircleImageCarousel({ config }) {
             onPointerUp={endDrag}
             onPointerCancel={endDrag}
             onClick={onClickCapture}
-            className="flex items-start overflow-x-auto scrollbar-hide py-2 px-1 cursor-grab"
+            className="flex items-start overflow-x-auto scrollbar-hide py-2 px-0 sm:px-1 cursor-grab snap-x snap-mandatory touch-pan-x"
             style={{
               scrollBehavior: "smooth",
               WebkitOverflowScrolling: "touch",
             }}
           >
-            <div className="flex items-start justify-center gap-4 sm:gap-6 lg:gap-8 mx-auto">
+            <div className="flex items-start justify-start sm:justify-center gap-3 sm:gap-6 lg:gap-8 w-full sm:w-auto sm:mx-auto">
               {items.map((item, idx) => {
                 const href = resolveItemHref(item);
                 const isExternal = /^https?:\/\//i.test(href);
 
+                const itemWrapperClass =
+                  "no-underline snap-start flex-[0_0_calc((100%-24px)/3)] min-w-[calc((100%-24px)/3)] max-w-[calc((100%-24px)/3)] sm:flex-initial sm:min-w-0 sm:max-w-none sm:w-auto flex flex-col items-center justify-center shrink-0";
+
                 const content = (
-                  <div className="flex flex-col items-center group/item cursor-pointer w-24 sm:w-28 md:w-32 lg:w-36 shrink-0 transition-transform duration-200 hover:-translate-y-1">
+                  <div className="flex flex-col items-center group/item cursor-pointer w-full sm:w-28 md:w-32 lg:w-36 shrink-0 transition-transform duration-200 hover:-translate-y-1">
                     {/* Circle image container with radius 100 & red outline border */}
                     <div
-                      className="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 lg:w-36 lg:h-36 overflow-hidden bg-white border-2 sm:border-[2.5px] border-[#BC2121] shadow-xs flex items-center justify-center p-2 transition-all duration-300 group-hover/item:shadow-md group-hover/item:border-[#9E1B1B]"
+                      className="w-[84px] h-[84px] min-[390px]:w-24 min-[390px]:h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 lg:w-36 lg:h-36 overflow-hidden bg-white border-2 sm:border-[2.5px] border-[#BC2121] shadow-xs flex items-center justify-center p-2 transition-all duration-300 group-hover/item:shadow-md group-hover/item:border-[#9E1B1B]"
                       style={{ borderRadius: "100%" }}
                     >
                       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -207,43 +212,43 @@ export default function CategoryCircleImageCarousel({ config }) {
 
                     {/* Image name displaying in the bottom of the image in red color */}
                     {item.imageName && (
-                      <span className="mt-2.5 text-center text-xs sm:text-sm font-semibold text-[#BC2121] whitespace-nowrap overflow-hidden text-ellipsis w-full px-1 leading-snug tracking-tight transition-colors duration-200 group-hover/item:text-[#9E1B1B]">
+                      <span className="mt-2 sm:mt-2.5 text-center text-[11px] sm:text-sm font-semibold text-[#BC2121] line-clamp-2 sm:whitespace-nowrap overflow-hidden text-ellipsis w-full px-0.5 sm:px-1 leading-tight sm:leading-snug tracking-tight transition-colors duration-200 group-hover/item:text-[#9E1B1B]">
                         {item.imageName}
                       </span>
                     )}
                   </div>
                 );
 
-              if (href && href !== "#") {
-                if (isExternal) {
+                if (href && href !== "#") {
+                  if (isExternal) {
+                    return (
+                      <a
+                        key={item._id || idx}
+                        href={href}
+                        className={itemWrapperClass}
+                      >
+                        {content}
+                      </a>
+                    );
+                  }
+                  const linkHref = href.startsWith("/") ? href : `/${href}`;
                   return (
-                    <a
+                    <Link
                       key={item._id || idx}
-                      href={href}
-                      className="no-underline"
+                      href={linkHref}
+                      className={itemWrapperClass}
                     >
                       {content}
-                    </a>
+                    </Link>
                   );
                 }
-                const linkHref = href.startsWith("/") ? href : `/${href}`;
-                return (
-                  <Link
-                    key={item._id || idx}
-                    href={linkHref}
-                    className="no-underline"
-                  >
-                    {content}
-                  </Link>
-                );
-              }
 
-              return (
-                <div key={item._id || idx} className="no-underline">
-                  {content}
-                </div>
-              );
-            })}
+                return (
+                  <div key={item._id || idx} className={itemWrapperClass}>
+                    {content}
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
