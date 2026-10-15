@@ -1,5 +1,7 @@
 import mongoose from "mongoose";
 
+export const ADMIN_STORE_VIEWS = ["all", "sathya", "unilet"];
+
 const UserSchema = new mongoose.Schema({
   name: { type: String, required: false, default: null, trim: true },
   mobile: {
@@ -38,6 +40,8 @@ const UserSchema = new mongoose.Schema({
     default: null,
   },
   status: { type: String, enum: ["Active", "Inactive"], default: "Active" },
+  // Admin panel store view this admin may use: all (Sathya + Unilet), sathya only, or unilet only.
+  admin_store_view: { type: String, enum: ADMIN_STORE_VIEWS, default: "sathya" },
   store_id: { type: String, required: false, default: null },
   last_name: { type: String, required: false, default: null, trim: true },
   confirmed: { type: Number, required: false, default: null },

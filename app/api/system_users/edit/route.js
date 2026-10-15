@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import mongoose from "mongoose";
 import dbConnect from "@/lib/db";
-import User from "@/models/User";
+import User, { ADMIN_STORE_VIEWS } from "@/models/User";
 import Role from "@/models/Role";
 import { requireAdmin } from "@/lib/adminRequest";
 
@@ -14,10 +14,14 @@ export async function PUT(req) {
 
     await dbConnect();
 
-    const { userId, name, mobile, email, status, role } = await req.json();
+    const { userId, name, mobile, email, status, role, admin_store_view } = await req.json();
 
     if (!userId) {
       return NextResponse.json({ error: "User ID is required" }, { status: 400 });
+    }
+
+    if (admin_store_view !== undefined && !ADMIN_STORE_VIEWS.includes(admin_store_view)) {
+      return NextResponse.json({ error: "Invalid admin store view" }, { status: 400 });
     }
 
     if (!/^\d{10}$/.test(mobile)) {
@@ -61,9 +65,12 @@ export async function PUT(req) {
       roleId = role;
     }
 
+    const update = { name, mobile, email, status, role: roleId };
+    if (admin_store_view !== undefined) update.admin_store_view = admin_store_view;
+
     const updatedUser = await User.findByIdAndUpdate(
       userId,
-      { name, mobile, email, status, role: roleId },
+      update,
       { new: true , runValidators: true}
     );
 

@@ -26,6 +26,7 @@ export default function SystemUsersComponent() {
     user_type: "admin",
     status: "Active",
     role: "",
+    admin_store_view: "sathya",
   });
   const [roles, setRoles] = useState([]);
   const [isEditMode, setIsEditMode] = useState(false);
@@ -122,6 +123,7 @@ export default function SystemUsersComponent() {
       user_type: "admin",
       status: user.status,
       role: getRoleId(user.role),
+      admin_store_view: user.admin_store_view || "sathya",
     });
     setCurrentUserId(user._id);
     setIsEditMode(true);
@@ -298,6 +300,7 @@ export default function SystemUsersComponent() {
             email: formData.email,
             status: formData.status,
             role: formData.role || null,
+            admin_store_view: formData.admin_store_view || "sathya",
           },
           { headers: getAuthHeaders() }
         );
@@ -344,6 +347,7 @@ export default function SystemUsersComponent() {
       user_type: "admin",
       status: "Active",
       role: "",
+      admin_store_view: "sathya",
     });
     setIsEditMode(false);
     setCurrentUserId(null);
@@ -806,6 +810,12 @@ export default function SystemUsersComponent() {
                     {roleItem.name}
                   </option>
                 ))}
+              </select>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Admin Store View</label>
+              <select name="admin_store_view" value={formData.admin_store_view} onChange={handleChange} className="w-full border p-2 mb-2 rounded" required>
+                <option value="sathya">Sathya</option>
+                <option value="unilet">Unilet</option>
+                <option value="all">All (Sathya + Unilet)</option>
               </select>
               <button type="submit" className="bg-red-500 text-white px-4 py-2 rounded w-full mt-2">
                 {submitButtonText}
