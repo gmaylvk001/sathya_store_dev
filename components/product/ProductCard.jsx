@@ -7,6 +7,7 @@ import Link from "next/link";
 import { FaStar } from "react-icons/fa";
 import AddToWishlistButton from "@/components/ProductCard";
 import ProductAddtoCart from "@/components/AddToCart";
+import CompareButton from "@/components/CompareButton";
 import PriceBlock from "@/components/product/PriceBlock";
 import BestPriceStrip from "@/components/product/BestPriceStrip";
 import ProductCardTrustBadge from "@/components/product/ProductCardTrustBadge";
@@ -19,7 +20,7 @@ export default function ProductCard({
   onProductClick,
   className = "",
   checkMovement,
-  compactMobile = false,
+  compactMobile = true,
 }) {
   const [currentImg, setCurrentImg] = useState(product?.imgSrc || "/uploads/products/placeholder.jpg");
   const [imgLoaded, setImgLoaded] = useState(false);
@@ -104,7 +105,7 @@ export default function ProductCard({
 
   return (
     <div
-      className={`group relative bg-white rounded-[16px] border border-red-200/90 hover:border-[#d72828] shadow-2xs hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col h-full overflow-hidden select-none ${className}`}
+      className={`group relative bg-white rounded-[16px] border border-red-200/90 hover:border-[#d72828] shadow-2xs hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col h-full overflow-hidden w-full min-w-0 select-none ${className}`}
     >
       {/* Top Image Container */}
       <div
@@ -114,20 +115,20 @@ export default function ProductCard({
             : variantClasses.imageContainer
         }`}
       >
-        {/* Offer percentage badge removed as requested 
+        {/* Top-left discount badge */}
         {hasDiscount && (
-          <span className="absolute top-2.5 left-2.5 z-10 bg-gradient-to-r from-rose-600 to-red-600 text-white text-[10px] font-extrabold px-2 py-0.5 rounded-full shadow-xs tracking-wide">
+          <span className="absolute top-1.5 left-1.5 sm:top-2.5 sm:left-2.5 z-10 bg-gradient-to-r from-rose-600 to-red-600 text-white text-[10px] font-extrabold px-1.5 py-0.5 sm:px-2 sm:py-0.5 rounded-full shadow-xs tracking-wide">
             -{discountPercent}%
           </span>
         )}
-        */}
 
+        {/* Top-right Wishlist + Compare buttons */}
         <div
           className={`absolute ${
             compactMobile
-              ? "top-1.5 right-1.5 sm:top-2.5 sm:right-2.5"
-              : "top-2.5 right-2.5"
-          } z-10`}
+              ? "top-1.5 right-1.5 sm:top-2.5 sm:right-2.5 gap-1 sm:gap-1.5"
+              : "top-2.5 right-2.5 gap-1.5"
+          } z-10 flex flex-col`}
         >
           <AddToWishlistButton
             productId={_id}
@@ -135,6 +136,13 @@ export default function ProductCard({
             className={`${
               compactMobile ? "w-6 h-6 sm:w-7 sm:h-7" : "w-7 h-7"
             } rounded-full bg-white/90 backdrop-blur-md shadow-xs border border-gray-100 flex items-center justify-center hover:bg-white hover:scale-110 active:scale-95 transition-all text-gray-600 hover:text-rose-600`}
+          />
+          <CompareButton
+            product={product}
+            variant="icon"
+            className={`${
+              compactMobile ? "w-6 h-6 sm:w-7 sm:h-7" : "w-7 h-7"
+            } rounded-full bg-white/90 backdrop-blur-md shadow-xs border flex items-center justify-center transition-all active:scale-95`}
           />
         </div>
 
@@ -184,34 +192,32 @@ export default function ProductCard({
           </h4>
         </Link>
 
-        {/* Rating Section Hidden as requested 
-        <div className="flex items-center gap-1.5 mb-1.5 h-4">
-          {ratingValue > 0 ? (
-            <>
-              <div className="flex items-center gap-1 text-[10px] font-bold text-amber-700 bg-amber-50 px-1.5 py-0.2 rounded border border-amber-200/60">
-                <FaStar className="text-amber-500 text-[9px]" />
-                <span>{ratingValue.toFixed(1)}</span>
-              </div>
-              {reviewCount > 0 && (
-                <span className="text-[10px] text-gray-400 font-medium">
-                  ({reviewCount})
-                </span>
-              )}
-            </>
-          ) : (
-            <div className="flex items-center gap-1 text-[10px] text-gray-400 font-medium">
-              <FaStar className="text-gray-300 text-[9px]" />
-              <span>4.5</span>
-            </div>
+        {/* Rating Section */}
+        <div className="flex items-center gap-1 mb-1 h-4">
+          <div className="flex items-center gap-1 text-[10px] font-bold text-amber-700 bg-amber-50 px-1.5 py-0.2 rounded border border-amber-200/60">
+            <FaStar className="text-amber-500 text-[9px]" />
+            <span>{(ratingValue > 0 ? ratingValue : 4.5).toFixed(1)}</span>
+          </div>
+          {reviewCount > 0 && (
+            <span className="text-[10px] text-gray-400 font-medium">
+              ({reviewCount})
+            </span>
           )}
         </div>
-        */}
 
         <PriceBlock 
           price={currentPrice} 
           mrp={originalPrice} 
           priceClass={compactMobile ? "text-[13px] sm:text-base" : variantClasses.price} 
         />
+
+        {/* Stock Row */}
+        <div className="flex items-center gap-1 mt-0.5 mb-1.5">
+          <span className={`inline-block w-1.5 h-1.5 rounded-full ${inStock ? "bg-emerald-500" : "bg-rose-500"}`} />
+          <span className={`text-[10px] sm:text-xs font-medium ${inStock ? "text-emerald-600" : "text-rose-600"}`}>
+            {inStock ? "In Stock" : "Out of Stock"}
+          </span>
+        </div>
 
         <div
           className={`mt-auto ${
