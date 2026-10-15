@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { Icon } from '@iconify/react';
 import DateRangePicker from '@/components/DateRangePicker';
@@ -32,6 +32,10 @@ export default function UserComponent() {
   const [isBulkDeleting, setIsBulkDeleting] = useState(false);
   const [fetchingUserId, setFetchingUserId] = useState(null);
   const [fetchingOrdersUserId, setFetchingOrdersUserId] = useState(null);
+  const [bulkFetchBatch, setBulkFetchBatch] = useState(1000);
+  const [isBulkFetching, setIsBulkFetching] = useState(false);
+  const [bulkFetchProgress, setBulkFetchProgress] = useState(null);
+  const stopBulkFetchRef = useRef(false);
 
   useEffect(() => {
     fetchUsers();
@@ -125,6 +129,53 @@ export default function UserComponent() {
       setTimeout(() => setShowAlert(false), 4000);
     } finally {
       setFetchingOrdersUserId(null);
+    }
+  };
+
+  const handleBulkFetchOrders = async () => {
+    const confirmed = window.confirm(
+      `Fetch exist orders for all pending exist users (${bulkFetchBatch} users per batch)? Already-copied order numbers will be skipped. This can take a long time.`
+    );
+    if (!confirmed) return;
+
+    stopBulkFetchRef.current = false;
+    setIsBulkFetching(true);
+    const totals = { batches: 0, processed: 0, fetchedUsers: 0, noOrders: 0, failed: 0, inserted: 0, skipped: 0, remaining: null };
+    setBulkFetchProgress({ ...totals });
+
+    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
+    let afterId = null;
+    let errorText = "";
+    try {
+      while (!stopBulkFetchRef.current) {
+        const { data } = await axios.post(
+          "/api/users/fetch-orders/bulk",
+          { afterId, limit: bulkFetchBatch },
+          { headers, timeout: 310000 }
+        );
+        totals.batches += 1;
+        ["processed", "fetchedUsers", "noOrders", "failed", "inserted", "skipped"].forEach((key) => {
+          totals[key] += data[key] || 0;
+        });
+        totals.remaining = data.remaining;
+        setBulkFetchProgress({ ...totals });
+        afterId = data.lastId;
+        if (data.done || !data.processed) break;
+      }
+    } catch (error) {
+      errorText = error.response?.data?.error || error.message || "Bulk fetch failed";
+    } finally {
+      setIsBulkFetching(false);
+      const stopped = stopBulkFetchRef.current ? " (stopped)" : "";
+      setAlertMessage(
+        errorText
+          ? `❌ ${errorText}. Done so far: ${totals.processed} users, ${totals.inserted} orders inserted.`
+          : `✅ Bulk fetch finished${stopped}: ${totals.processed} users processed, ${totals.fetchedUsers} fetched, ${totals.noOrders} without orders, ${totals.failed} failed. Orders inserted: ${totals.inserted}, already existed: ${totals.skipped}.`
+      );
+      setShowAlert(true);
+      setTimeout(() => setShowAlert(false), 8000);
+      fetchUsers();
     }
   };
 
@@ -312,6 +363,9 @@ export default function UserComponent() {
   });
 
   const existUsersCount = users.filter((user) => String(user.exist_id || "").trim()).length;
+  const pendingOrdersFetchCount = users.filter(
+    (user) => String(user.exist_id || "").trim() && Number(user.orders_fetched) !== 1
+  ).length;
 
   // Pagination calculations
   const totalEntries = filteredUsers.length;
@@ -512,13 +566,53 @@ export default function UserComponent() {
                   Clear
                 </button>
               )}
-              <span
-                className="ml-auto inline-flex items-center rounded px-2 py-1 text-xs font-semibold text-yellow-900"
-                style={{ backgroundColor: "#fff59d" }}
-              >
-                Exist users: {existUsersCount}
-              </span>
+              <div className="ml-auto flex flex-wrap items-center gap-2">
+                <select
+                  value={bulkFetchBatch}
+                  onChange={(e) => setBulkFetchBatch(Number(e.target.value))}
+                  disabled={isBulkFetching}
+                  className="p-2 border border-gray-300 rounded-md text-sm"
+                  title="Users per batch"
+                >
+                  <option value={100}>100 per batch</option>
+                  <option value={500}>500 per batch</option>
+                  <option value={1000}>1000 per batch</option>
+                </select>
+                {isBulkFetching ? (
+                  <button
+                    type="button"
+                    onClick={() => { stopBulkFetchRef.current = true; }}
+                    className="p-2 border border-red-400 text-red-600 hover:bg-red-50 rounded-md transition text-sm"
+                  >
+                    Stop after this batch
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleBulkFetchOrders}
+                    disabled={pendingOrdersFetchCount === 0 || isBulkDeleting || Boolean(fetchingOrdersUserId)}
+                    className="p-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition text-sm disabled:opacity-50"
+                  >
+                    Bulk Fetch Orders ({pendingOrdersFetchCount} pending)
+                  </button>
+                )}
+                <span
+                  className="inline-flex items-center rounded px-2 py-1 text-xs font-semibold text-yellow-900"
+                  style={{ backgroundColor: "#fff59d" }}
+                >
+                  Exist users: {existUsersCount}
+                </span>
+              </div>
             </div>
+            {bulkFetchProgress && (
+              <div className="mb-3 rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-sm text-blue-800">
+                {isBulkFetching ? "Bulk fetching orders… " : "Last bulk fetch: "}
+                batches {bulkFetchProgress.batches}, users processed {bulkFetchProgress.processed}, fetched {bulkFetchProgress.fetchedUsers},
+                no orders {bulkFetchProgress.noOrders}, failed {bulkFetchProgress.failed} · orders inserted {bulkFetchProgress.inserted},
+                already existed {bulkFetchProgress.skipped}
+                {bulkFetchProgress.remaining != null ? ` · remaining users ${bulkFetchProgress.remaining}` : ""}
+              </div>
+            )}
             <hr className="border-t border-gray-200 mb-4" />
             <table className="w-full border border-gray-300">
               <thead>
