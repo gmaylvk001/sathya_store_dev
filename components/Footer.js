@@ -252,62 +252,62 @@ const Footer = () => {
         {/* 1. Service highlights — white */}
         <div className="bg-white border-t border-gray-100">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 py-5 sm:py-6">
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-              <div className="flex items-center gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-x-3 gap-y-4 sm:gap-6">
+              <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                 <TbTruckDelivery
-                  className="text-3xl sm:text-4xl shrink-0"
+                  className="text-2xl sm:text-3xl md:text-4xl shrink-0"
                   style={{ color: BRAND_RED }}
                 />
-                <div>
-                  <h4 className="font-bold text-gray-900 text-sm sm:text-base leading-tight">
+                <div className="min-w-0">
+                  <h4 className="font-semibold text-gray-900 text-xs sm:text-sm md:text-base leading-tight">
                     Fast Delivery
                   </h4>
-                  <p className="text-xs sm:text-sm text-gray-500 mt-0.5">
+                  <p className="text-[11px] sm:text-xs md:text-sm text-gray-500 mt-0.5 leading-tight">
                     Quick &amp; Reliable
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                 <IoCardOutline
-                  className="text-3xl sm:text-4xl shrink-0"
+                  className="text-2xl sm:text-3xl md:text-4xl shrink-0"
                   style={{ color: BRAND_RED }}
                 />
-                <div>
-                  <h4 className="font-bold text-gray-900 text-sm sm:text-base leading-tight">
+                <div className="min-w-0">
+                  <h4 className="font-semibold text-gray-900 text-xs sm:text-sm md:text-base leading-tight">
                     Safe Payments
                   </h4>
-                  <p className="text-xs sm:text-sm text-gray-500 mt-0.5">
+                  <p className="text-[11px] sm:text-xs md:text-sm text-gray-500 mt-0.5 leading-tight">
                     Secure Checkout
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                 <IoPricetagOutline
-                  className="text-3xl sm:text-4xl shrink-0"
+                  className="text-2xl sm:text-3xl md:text-4xl shrink-0"
                   style={{ color: BRAND_RED }}
                 />
-                <div>
-                  <h4 className="font-bold text-gray-900 text-sm sm:text-base leading-tight">
+                <div className="min-w-0">
+                  <h4 className="font-semibold text-gray-900 text-xs sm:text-sm md:text-base leading-tight">
                     Quality Products
                   </h4>
-                  <p className="text-xs sm:text-sm text-gray-500 mt-0.5">
+                  <p className="text-[11px] sm:text-xs md:text-sm text-gray-500 mt-0.5 leading-tight">
                     Top Quality
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                 <FaHeadset
-                  className="text-3xl sm:text-4xl shrink-0"
+                  className="text-2xl sm:text-3xl md:text-4xl shrink-0"
                   style={{ color: BRAND_RED }}
                 />
-                <div>
-                  <h4 className="font-bold text-gray-900 text-sm sm:text-base leading-tight">
+                <div className="min-w-0">
+                  <h4 className="font-semibold text-gray-900 text-xs sm:text-sm md:text-base leading-tight">
                     Help Center
                   </h4>
-                  <p className="text-xs sm:text-sm text-gray-500 mt-0.5">
+                  <p className="text-[11px] sm:text-xs md:text-sm text-gray-500 mt-0.5 leading-tight">
                     24/7 Support
                   </p>
                 </div>
