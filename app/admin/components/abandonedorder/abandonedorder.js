@@ -104,42 +104,6 @@ const OrdersTable_abon = () => {
     dateFilter?.endDate,
   ]);
 
-  // 📧 Send cancellation email function
-  const sendCancellationEmail = async (order) => {
-    try {
-      const name = order.order_username || "Customer";
-
-      // List of emails: customer + admins
-      const emailList = [
-        order.email_address || "kbsiva1234@gmail.com",
-        "arunkarthik@sathya.store", "ecom@sathya.store", "itadmin@sathya.store", "telemarketing@sathya.store", "sekarcorp@sathya.store", "customercare@sathya.store"
-      ];
-
-
-      // Loop through each email and send
-      const results = [];
-      for (const email of emailList) {
-        const emailFormData = new FormData();
-        emailFormData.append("campaign_id", "637cf8a5-db01-453d-9c47-cca3cac44d52");
-        emailFormData.append("email", email);
-        emailFormData.append(
-          "params",
-          JSON.stringify([name, order.order_number])
-        );
-
-        const response = { ok: true, status: 200, json: async () => ({ success: true, message: 'Disabled' }), text: async () => '{}' };
-
-        const data = await response.json();
-        results.push({ email, data });
-      }
-
-      return results; // Return results for all emails
-
-    } catch (error) {
-      console.error("Error sending cancellation email:", error);
-      throw error;
-    }
-  };
   const handleVerifyRazorpay = async () => {
     //alert("Hi");
     if (!razorpayId) {

@@ -159,32 +159,6 @@ const AbandantOrdersTable = () => {
     dateFilter?.endDate,
   ]);
 
-  // 📧 Send cancellation email function
-const sendCancellationEmail = async (order) => {
-  try {
-    const name = order.order_username || "Customer";
-
-   // List of emails: customer + admins
-    const emailList = [
-      order.email_address 
-    ];
-    
-
-    // Loop through each email and send
-    const results = [];
-    for (const email of emailList) {
-      // Email sending has been completely removed as requested
-      results.push({ email, data: { success: true, message: "Disabled" } });
-    }
-
-    return results; // Return results for all emails
-
-  } catch (error) {
-    console.error("Error sending cancellation email:", error);
-    throw error;
-  }
-};
-
   const handleVerifyRazorpay = async () => {
     //alert("Hi");
   if (!razorpayId) {

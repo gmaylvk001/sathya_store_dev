@@ -1423,60 +1423,6 @@ export default function CheckoutPage() {
         //   body: JSON.stringify({ order_number: orderData.order.order_number }),
         // });
 
-        try {
-          const name = orderUserName;
-          const orderDate = new Date().toLocaleString("en-IN", {
-            day: "2-digit",
-            month: "long",
-            year: "numeric",
-            hour: "2-digit",
-            minute: "2-digit",
-            hour12: true,
-          });
-
-          const adminEmails = [
-            // "arunkarthik@sathya.store",
-            // "ecom@sathya.store",
-            // "itadmin@sathya.store",
-            // "telemarketing@sathya.store",
-            // "sekarcorp@sathya.store",
-            // "abu@sathya.store",
-            // "customercare@sathya.store",
-            "hariharann2026@gmail.com"
-          ];
-
-          const emailRes = await fetch("/api/send-order-email", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              customerEmail: orderEmail,
-              adminEmails,
-              orderDetails: {
-                order_id: String(orderData.order._id || ""),
-                order_username: name,
-                order_number: orderData.order.order_number,
-                order_amount: orderData.order.order_amount,
-                payment_method: orderData.order.payment_method,
-                order_deliveryaddress: deliveryAddress,
-                order_phonenumber: orderPhone,
-                order_date: orderDate,
-                order_item: cartItems.map((item) => ({
-                  name: item.name,
-                  price: item.price,
-                  quantity: item.quantity,
-                  image: item.image || item.images?.[0],
-                  warrantyData: item.warrantyData || null,
-                })),
-              },
-            }),
-          });
-          if (!emailRes.ok) {
-            console.error("Order email failed:", await emailRes.json().catch(() => ({})));
-          }
-        } catch (e) {
-          console.error("Email sending failed:", e);
-        }
-
         toast.success('Order placed successfully!');
         updateCartCount(0);
         router.push('/orders');

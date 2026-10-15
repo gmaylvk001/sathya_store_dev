@@ -1239,7 +1239,7 @@ export default function HomeComponent() {
                 <motion.div variants={itemVariants} className="flex justify-between items-center mb-4">
                   <h5 className="text-lg font-bold text-[#d72828] tracking-tight">Shop by Brands</h5>
                   <Link
-                    href="/all-brands"
+                    href="/brands"
                     className="text-sm font-semibold text-[#d72828] hover:text-[#b31e1e] flex items-center gap-1 transition-colors group cursor-pointer"
                   >
                     <span>See All</span>

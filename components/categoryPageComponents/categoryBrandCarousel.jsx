@@ -297,7 +297,7 @@ export default function CategoryBrandCarousel({ config }) {
             {name}
           </h2>
           <Link
-            href="/all-brands"
+            href="/brands"
             className="text-sm font-semibold text-[#d72828] hover:text-[#b31e1e] flex items-center gap-1 transition-colors"
           >
             <span>See All</span>

@@ -96,6 +96,11 @@ const nextConfig = {
         permanent: true,
       },
       {
+        source: "/all-brands",
+        destination: "/brands",
+        permanent: true,
+      },
+      {
         source: "/location",
         destination: "https://sathya.adtarbo.com/stores",
         permanent: false,
