@@ -1519,7 +1519,7 @@ const calculateSubtotal = () => {
 
           {/* Continue Shopping Button with Sathya Brand Red & Rounded-Full */}
           <button 
-            onClick={() => router.push('/products')}
+            onClick={() => router.push('/')}
             className="inline-flex items-center justify-center gap-2.5 bg-gradient-to-r from-[#d72828] to-[#ea3838] hover:from-[#c02020] hover:to-[#d72828] text-white text-sm sm:text-base font-bold px-8 py-3.5 rounded-full shadow-md hover:shadow-lg hover:scale-105 active:scale-95 transition-all duration-300 cursor-pointer group"
           >
             <span>Continue Shopping</span>
@@ -1576,7 +1576,7 @@ return (
               </span>
             </h1>
             <button
-              onClick={() => router.push('/products')}
+              onClick={() => router.push('/')}
               className="text-xs sm:text-sm font-semibold text-[#d72828] hover:text-[#b91c1c] transition-colors flex items-center gap-1"
             >
               <span>Add more items</span>

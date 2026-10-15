@@ -498,7 +498,7 @@ export default function Order() {
                       ? "You haven't placed any orders yet" 
                       : `No ${activeFilter} orders found`}
                   </p>
-                  <Link href="/products" className="mt-4 sm:mt-6 inline-block px-4 sm:px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm sm:text-base">
+                  <Link href="/" className="mt-4 sm:mt-6 inline-block px-4 sm:px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm sm:text-base">
                     Start Shopping
                   </Link>
                 </div>

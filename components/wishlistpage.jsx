@@ -416,9 +416,9 @@ function YouMayLike({ relatedProducts = [], loading = false, brandMap = {} }) {
       let cancelled = false;
       setFallbackLoading(true);
       fetch("/api/product/featured?limit=10")
-        .then((res) => res.json())
+        .then(parseJsonSafely)
         .then((data) => {
-          if (cancelled) return;
+          if (cancelled || !data) return;
           const prods =
             data?.products ||
             data?.data ||
@@ -786,7 +786,7 @@ function EmptyWishlist() {
 
       {/* Sleek Button */}
       <Link
-        href="/products"
+        href="/"
         className="inline-flex items-center justify-center gap-2.5 bg-gradient-to-r from-[#d72828] to-[#ea3838] hover:from-[#c02020] hover:to-[#d72828] text-white text-sm sm:text-base font-bold px-8 py-3.5 rounded-full shadow-md hover:shadow-lg hover:scale-105 active:scale-95 transition-all duration-300 cursor-pointer group"
       >
         <span>Explore Products</span>

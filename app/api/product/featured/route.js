@@ -3,6 +3,31 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import Product from "@/models/product";
 
+export async function GET(req) {
+  try {
+    await dbConnect();
+    const { searchParams } = new URL(req.url);
+    const limitParam = parseInt(searchParams.get("limit") || "10", 10);
+    const limit = Math.min(Math.max(isNaN(limitParam) ? 10 : limitParam, 1), 50);
+
+    const products = await Product.find({
+      status: "Active",
+      quantity: { $gt: 0 },
+    })
+      .sort({ featured_products: -1, createdAt: -1 })
+      .limit(limit)
+      .lean();
+
+    return NextResponse.json(products, { status: 200 });
+  } catch (error) {
+    console.error("Featured GET API Error:", error);
+    return NextResponse.json(
+      { message: "Server error", error: error.message },
+      { status: 500 }
+    );
+  }
+}
+
 export async function POST(req) {
   await dbConnect();
   try {
