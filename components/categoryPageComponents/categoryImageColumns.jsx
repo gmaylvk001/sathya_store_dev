@@ -79,21 +79,21 @@ export default function CategoryImageColumns({ config }) {
   if (layout === "center_big") {
     mosaic = (
       <div
-        className={`grid grid-cols-1 md:grid-cols-[1fr_1.9fr_1fr] md:grid-rows-2 ${gapClass}`}
+        className={`grid grid-cols-2 md:grid-cols-[1fr_1.9fr_1fr] md:grid-rows-2 ${gapClass}`}
       >
-        <div className="aspect-[380/250] md:aspect-auto md:min-h-[200px]">
+        <div className="order-1 md:order-none aspect-[380/250] md:aspect-auto md:min-h-[200px]">
           <SlotImage image={map.tl.image} url={map.tl.url} />
         </div>
-        <div className="aspect-[780/520] md:aspect-auto md:row-span-2 md:min-h-[420px]">
+        <div className="order-3 md:order-none col-span-2 md:col-span-1 md:row-span-2 aspect-[780/520] md:aspect-auto md:min-h-[420px]">
           <SlotImage image={map.center.image} url={map.center.url} />
         </div>
-        <div className="aspect-[380/250] md:aspect-auto md:min-h-[200px]">
+        <div className="order-2 md:order-none aspect-[380/250] md:aspect-auto md:min-h-[200px]">
           <SlotImage image={map.tr.image} url={map.tr.url} />
         </div>
-        <div className="aspect-[380/250] md:aspect-auto md:min-h-[200px]">
+        <div className="order-4 md:order-none aspect-[380/250] md:aspect-auto md:min-h-[200px]">
           <SlotImage image={map.bl.image} url={map.bl.url} />
         </div>
-        <div className="aspect-[380/250] md:aspect-auto md:min-h-[200px]">
+        <div className="order-5 md:order-none aspect-[380/250] md:aspect-auto md:min-h-[200px]">
           <SlotImage image={map.br.image} url={map.br.url} />
         </div>
       </div>
@@ -101,9 +101,9 @@ export default function CategoryImageColumns({ config }) {
   } else if (layout === "left_big") {
     mosaic = (
       <div
-        className={`grid grid-cols-1 md:grid-cols-[1.9fr_1fr_1fr] md:grid-rows-2 ${gapClass}`}
+        className={`grid grid-cols-2 md:grid-cols-[1.9fr_1fr_1fr] md:grid-rows-2 ${gapClass}`}
       >
-        <div className="aspect-[780/520] md:aspect-auto md:row-span-2 md:min-h-[420px]">
+        <div className="col-span-2 md:col-span-1 md:row-span-2 aspect-[780/520] md:aspect-auto md:min-h-[420px]">
           <SlotImage image={map.left.image} url={map.left.url} />
         </div>
         <div className="aspect-[380/250] md:aspect-auto md:min-h-[200px]">
@@ -123,21 +123,21 @@ export default function CategoryImageColumns({ config }) {
   } else {
     mosaic = (
       <div
-        className={`grid grid-cols-1 md:grid-cols-[1fr_1fr_1.9fr] md:grid-rows-2 ${gapClass}`}
+        className={`grid grid-cols-2 md:grid-cols-[1fr_1fr_1.9fr] md:grid-rows-2 ${gapClass}`}
       >
-        <div className="aspect-[380/250] md:aspect-auto md:min-h-[200px]">
+        <div className="order-1 md:order-none aspect-[380/250] md:aspect-auto md:min-h-[200px]">
           <SlotImage image={map.tl.image} url={map.tl.url} />
         </div>
-        <div className="aspect-[380/250] md:aspect-auto md:min-h-[200px]">
+        <div className="order-2 md:order-none aspect-[380/250] md:aspect-auto md:min-h-[200px]">
           <SlotImage image={map.c1.image} url={map.c1.url} />
         </div>
-        <div className="aspect-[780/520] md:aspect-auto md:row-span-2 md:min-h-[420px]">
+        <div className="order-5 md:order-none col-span-2 md:col-span-1 md:row-span-2 aspect-[780/520] md:aspect-auto md:min-h-[420px]">
           <SlotImage image={map.right.image} url={map.right.url} />
         </div>
-        <div className="aspect-[380/250] md:aspect-auto md:min-h-[200px]">
+        <div className="order-3 md:order-none aspect-[380/250] md:aspect-auto md:min-h-[200px]">
           <SlotImage image={map.bl.image} url={map.bl.url} />
         </div>
-        <div className="aspect-[380/250] md:aspect-auto md:min-h-[200px]">
+        <div className="order-4 md:order-none aspect-[380/250] md:aspect-auto md:min-h-[200px]">
           <SlotImage image={map.c2.image} url={map.c2.url} />
         </div>
       </div>
