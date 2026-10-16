@@ -4,6 +4,7 @@ import Image from "next/image";
 import { Fragment } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import { useCart } from '@/context/CartContext';
 import Link from "next/link";
 import { v4 as uuidv4 } from "uuid";
@@ -11,6 +12,18 @@ import { MdSecurity, MdLoop, MdVerified, MdCardMembership, MdLocalShipping, MdLo
 import { useWishlist } from '@/context/WishlistContext';
 import ProductAddtoCart from "@/components/ProductAddtoCart";
 import { getDiscountInfo } from "@/lib/discountHelper";
+import { ROUTES } from "@/constants/routes";
+import CartHeader from "@/components/cart/CartHeader";
+import CartPriceDetails from "@/components/cart/CartPriceDetails";
+
+// Dynamically import CartRecommendations so it never blocks the primary cart bundle or checkout pipeline
+const CartRecommendations = dynamic(
+  () => import("@/components/cart/CartRecommendations"),
+  {
+    ssr: false,
+    loading: () => null, // Zero visual footprint / zero CLS during load
+  }
+);
 
 
 const slugify = (str) => {
@@ -271,7 +284,11 @@ function CompleteYourPurchase({ products, scrollRef, updateCartCount, isLoading 
                   movement={product.movement}
                   productName={product.name}
                   productSlug={product.slug}
-                  onSuccess={() => window.location.reload()}
+                  onSuccess={() => {
+                    if (typeof onAddSuccess === "function") {
+                      onAddSuccess();
+                    }
+                  }}
                 />
               </div>
             </div>
@@ -630,6 +647,67 @@ export default function CartComponent() {
     window.addEventListener("focus", onFocus);
     return () => window.removeEventListener("focus", onFocus);
   }, []);
+
+  // Silent background cart refresh helper: updates cart items & pricing without full page re-render or layout flash
+  const fetchCartDataSilent = useCallback(async () => {
+    try {
+      const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+      let response = null;
+
+      if (token) {
+        response = await fetch("/api/cart", {
+          headers: { Authorization: `Bearer ${token}` },
+          method: "GET",
+        });
+      } else {
+        const guestCartId =
+          (typeof window !== "undefined" && localStorage.getItem("guestCartId")) || uuidv4();
+        response = await fetch("/api/cart", {
+          headers: { guestCartId },
+          method: "GET",
+        });
+      }
+
+      if (!response.ok) return;
+
+      const data = await response.json();
+      if (!data?.cart?.items) return;
+
+      const itemsWithDiscount = data.cart.items.map((item) => ({
+        ...item,
+        discount: 0,
+      }));
+
+      let nextCart = { ...data.cart, items: itemsWithDiscount };
+
+      const savedCoupon =
+        typeof window !== "undefined" ? localStorage.getItem("appliedCoupon") : null;
+      if (savedCoupon) {
+        try {
+          const coupon = JSON.parse(savedCoupon);
+          const discountedItems = applyDiscountToItems(coupon, nextCart.items);
+          nextCart = { ...nextCart, items: discountedItems };
+        } catch {}
+      }
+
+      setCartData(nextCart);
+      saveCartState(nextCart);
+      if (typeof updateCartCount === "function") {
+        updateCartCount(nextCart.totalItems ?? nextCart.items.length);
+      }
+    } catch (err) {
+      console.warn("[Cart] Silent cart refresh failed:", err);
+    }
+  }, [updateCartCount]);
+
+  // Listen for decentral cartUpdated events to keep cart items in sync seamlessly
+  useEffect(() => {
+    const handleCartUpdated = () => {
+      fetchCartDataSilent();
+    };
+    window.addEventListener("cartUpdated", handleCartUpdated);
+    return () => window.removeEventListener("cartUpdated", handleCartUpdated);
+  }, [fetchCartDataSilent]);
 
   useEffect(() => {
     const fetchCartData = async () => {
@@ -1522,7 +1600,7 @@ const calculateSubtotal = () => {
 
           {/* Continue Shopping Button with Sathya Brand Red & Rounded-Full */}
           <button 
-            onClick={() => router.push('/')}
+            onClick={() => router.push(ROUTES.HOME)}
             className="inline-flex items-center justify-center gap-2.5 bg-gradient-to-r from-[#d72828] to-[#ea3838] hover:from-[#c02020] hover:to-[#d72828] text-white text-sm sm:text-base font-bold px-8 py-3.5 rounded-full shadow-md hover:shadow-lg hover:scale-105 active:scale-95 transition-all duration-300 cursor-pointer group"
           >
             <span>Continue Shopping</span>
@@ -1566,26 +1644,14 @@ return (
     />
 
     <div className="w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
-      {/* Main Grid: Left Cart List + Right Price Details */}
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] xl:grid-cols-[1fr_400px] gap-6 items-start">
-        {/* LEFT COLUMN: Cart items & Coupons */}
-        <div className="flex flex-col gap-4">
+      {/* Main Container: Left Cart List + Right Price Details */}
+      <div className="flex flex-col lg:flex-row gap-6 items-start w-full">
+        {/* LEFT COLUMN: Cart items & Recommendations */}
+        <div className="w-full flex-1 min-w-0 flex flex-col gap-4">
           {/* Cart Item Cards Header */}
-          <div className="flex items-center justify-between bg-white px-5 py-4 rounded-xl border border-gray-200/80 shadow-2xs">
-            <h1 className="text-lg sm:text-xl font-bold text-gray-900 flex items-center gap-2">
-              <span>Shopping Cart</span>
-              <span className="text-xs font-semibold text-gray-500 bg-gray-100 px-2.5 py-0.5 rounded-full">
-                {cartData?.totalItems ?? cartData?.items?.length ?? 0} {(cartData?.totalItems ?? cartData?.items?.length ?? 0) === 1 ? 'item' : 'items'}
-              </span>
-            </h1>
-            <button
-              onClick={() => router.push('/')}
-              className="text-xs sm:text-sm font-semibold text-[#d72828] hover:text-[#b91c1c] transition-colors flex items-center gap-1"
-            >
-              <span>Add more items</span>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
-            </button>
-          </div>
+          <CartHeader
+            totalItems={cartData?.totalItems ?? cartData?.items?.length ?? 0}
+          />
 
           {/* Cart Item Cards List */}
           <div className="bg-white rounded-xl border border-gray-200/80 divide-y divide-gray-100 shadow-2xs overflow-hidden">
@@ -1754,6 +1820,12 @@ return (
             })}
           </div>
 
+          {/* Related Products Section directly below cart items container */}
+          <CartRecommendations
+            cartItems={cartData?.items || []}
+            onItemAdded={fetchCartDataSilent}
+          />
+
           {/* Active Offers & Coupons Banner (Hidden/Commented Out) */}
           {/*
           {couponFeatureEnabled && validActiveOfferCodes.length > 0 && (
@@ -1782,101 +1854,14 @@ return (
           */}
         </div>
 
-        {/* RIGHT COLUMN: Price Details Card */}
-        <div className="flex flex-col gap-4 sticky top-4">
-          {/* Coupon Input Box (Hidden/Commented Out) */}
-          {/*
-          {couponFeatureEnabled && (
-            <div className="bg-white rounded-xl border border-gray-200/80 p-4 shadow-2xs">
-              <h3 className="text-xs font-bold text-gray-600 uppercase tracking-wider mb-2.5">
-                Apply Promo Code
-              </h3>
-              <div className="flex gap-2">
-                <input
-                  id="coupon_input"
-                  type="text"
-                  placeholder="Enter Coupon Code"
-                  value={couponCode}
-                  onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-                  className="flex-1 bg-gray-50 border border-gray-300/80 rounded-lg px-3 py-2 text-xs sm:text-sm font-semibold uppercase tracking-wider text-gray-900 focus:outline-none focus:border-[#d72828]"
-                />
-                {appliedCoupon ? (
-                  <button
-                    onClick={removeCoupon}
-                    className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold px-4 py-2 rounded-lg text-xs transition cursor-pointer"
-                  >
-                    Remove
-                  </button>
-                ) : (
-                  <button
-                    onClick={validateCoupon}
-                    disabled={isValidatingCoupon}
-                    className="bg-[#d72828] hover:bg-[#b91c1c] text-white font-bold px-4 py-2 rounded-lg text-xs transition cursor-pointer disabled:opacity-50"
-                  >
-                    {isValidatingCoupon ? 'Validating...' : 'Apply'}
-                  </button>
-                )}
-              </div>
-              {couponError && <p className="text-red-600 text-xs font-medium mt-2">{couponError}</p>}
-              {couponSuccess && <p className="text-emerald-600 text-xs font-medium mt-2">{couponSuccess}</p>}
-            </div>
-          )}
-          */}
-
-          {/* Price Details Card */}
-          <div className="bg-white rounded-xl border border-gray-200/80 p-5 shadow-2xs">
-            <h2 className="text-gray-500 font-bold text-xs sm:text-sm border-b border-gray-200/80 pb-3.5 uppercase tracking-wider">
-              Order Price Details
-            </h2>
-
-            <div className="flex flex-col gap-3.5 py-4 text-xs sm:text-sm text-gray-800">
-              <div className="flex justify-between items-center">
-                <span className="text-gray-600">Total MRP (incl. of all taxes)</span>
-                <span className="font-semibold text-gray-900">
-                  ₹{Number(calculateTotalMRP()).toLocaleString("en-IN")}
-                </span>
-              </div>
-
-              <div className="flex justify-between items-center">
-                <span className="text-gray-600">Delivery Charges</span>
-                <span className="font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded text-xs">FREE</span>
-              </div>
-
-              <div className="flex justify-between items-center">
-                <span className="text-gray-600">Bag Savings & Discounts</span>
-                <span className="font-semibold text-emerald-600">
-                  -₹{Number(calculateTotalDiscounts()).toLocaleString("en-IN")}
-                </span>
-              </div>
-
-              <div className="border-t border-dashed border-gray-200 pt-3.5 flex justify-between items-center text-base font-extrabold text-gray-900">
-                <span>Total Amount Payable</span>
-                <span className="text-lg font-black text-[#d72828]">₹{Number(calculateFinalTotal()).toLocaleString("en-IN")}</span>
-              </div>
-            </div>
-
-            {/* Green Savings Callout Banner */}
-            {calculateTotalDiscounts() > 0 && (
-              <div className="bg-emerald-50 text-emerald-800 font-semibold text-xs sm:text-sm p-3 rounded-lg border border-emerald-200/80 text-center mb-4 flex items-center justify-center gap-1.5">
-                <svg className="w-4 h-4 text-emerald-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                <span>You will save ₹{Number(calculateTotalDiscounts()).toLocaleString("en-IN")} on this order</span>
-              </div>
-            )}
-
-            {/* Sticky/Prominent Place Order CTA Button */}
-            <button
-              onClick={proceedToCheckout}
-              className="w-full bg-[#d72828] hover:bg-[#b91c1c] text-white font-extrabold py-3.5 rounded-lg uppercase tracking-wider shadow-md hover:shadow-lg transition-all duration-200 text-sm text-center block cursor-pointer active:scale-[0.99]"
-            >
-              Proceed to Checkout →
-            </button>
-
-            {/* Security Guarantee */}
-            <div className="border-t border-gray-100 pt-4 mt-4 flex items-center gap-3 text-gray-500 text-xs leading-tight">
-              <MdSecurity className="text-3xl text-gray-400 flex-shrink-0" />
-              <span>Safe and 100% secure payments. Guaranteed authentic products & easy returns.</span>
-            </div>
-          </div>
+        {/* RIGHT COLUMN: Price Details Card (Sticky on Desktop) */}
+        <div className="w-full lg:w-[380px] xl:w-[420px] lg:flex-shrink-0 flex flex-col gap-4 lg:sticky lg:top-4">
+          <CartPriceDetails
+            totalMRP={calculateTotalMRP()}
+            totalDiscounts={calculateTotalDiscounts()}
+            finalTotal={calculateFinalTotal()}
+            onCheckout={proceedToCheckout}
+          />
         </div>
       </div>
 
@@ -1886,7 +1871,7 @@ return (
         scrollRef={completeScrollRef}
         updateCartCount={updateCartCount}
         isLoading={addonsLoading}
-        onAddSuccess={() => window.location.reload()}
+        onAddSuccess={fetchCartDataSilent}
       />
     </div>
   </div>

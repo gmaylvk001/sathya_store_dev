@@ -239,7 +239,7 @@ export async function GET(req) {
     const query = userId ? { userId } : { guestId };
     const cart = await Cart.findOne(query).populate(
       "items.productId",
-      "name price images item_code quantity key_specifications"
+      "name price images item_code quantity key_specifications category brand slug related_products"
     );
 
     if (!cart || !cart.items || cart.items.length === 0) {
@@ -269,6 +269,10 @@ export async function GET(req) {
           item_code: itemCode,
           productId: prodId,
           name: prodDoc?.name || item.name,
+          slug: prodDoc?.slug || item.slug || prodId,
+          category: prodDoc?.category || item.category || null,
+          brand: prodDoc?.brand || item.brand || null,
+          related_products: prodDoc?.related_products || item.related_products || [],
           price: item.price,
           image: prodImg,
           quantity: item.quantity,
